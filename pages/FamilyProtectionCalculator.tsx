@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { ROUTES } from '../constants/routes'
 import NavigationButtons from '../components/assessment/NavigationButtons'
 import CalculatorLayout from '../components/calculator/CalculatorLayout'
 import { CALCULATOR_STORAGE_KEY, CALCULATOR_TOTAL_STEPS } from '../components/calculator/constants'
@@ -54,7 +55,7 @@ export default function FamilyProtectionCalculator() {
 
   function handleBack() {
     if (currentStep === 1) {
-      navigate('/')
+      navigate(ROUTES.home)
       return
     }
     setCurrentStep((step) => step - 1)
@@ -79,7 +80,7 @@ export default function FamilyProtectionCalculator() {
       submissionWarning = CALCULATOR_SUBMISSION_WARNING
     }
 
-    navigate('/protection-results', {
+    navigate(ROUTES.protectionResults, {
       state: { answers, submissionWarning },
     })
   }

@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from 'react-router-dom'
 import BrandLogo from '../components/BrandLogo'
 import ScheduleReportCardLink from '../components/ScheduleReportCardLink'
+import { ROUTES } from '../constants/routes'
 import PriorityRecommendationCard from '../components/results/PriorityRecommendationCard'
 import { DEMO_ANSWERS_STORAGE_KEY } from '../components/assessment/constants'
 import { DemoAssessmentAnswers, INITIAL_DEMO_ANSWERS } from '../components/assessment/types'
@@ -137,7 +138,7 @@ export default function FamilyReportCardResults() {
             personalized Family Financial Blueprint™.
           </p>
           <ScheduleReportCardLink className="results-cta-button" />
-          <button type="button" className="results-back-link" onClick={() => navigate('/assessment')}>
+          <button type="button" className="results-back-link" onClick={() => navigate(ROUTES.reportCard)}>
             Retake Assessment
           </button>
         </section>

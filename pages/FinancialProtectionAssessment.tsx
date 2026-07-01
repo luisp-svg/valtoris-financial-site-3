@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { ROUTES } from '../constants/routes'
 import AssessmentLayout from '../components/assessment/AssessmentLayout'
 import NavigationButtons from '../components/assessment/NavigationButtons'
 import { DEMO_ANSWERS_STORAGE_KEY, DEMO_ASSESSMENT_STEPS } from '../components/assessment/constants'
@@ -57,7 +58,7 @@ export default function FinancialProtectionAssessment() {
 
   function handleBack() {
     if (currentStep === 1) {
-      navigate('/')
+      navigate(ROUTES.home)
       return
     }
     setCurrentStep((step) => step - 1)
@@ -72,7 +73,7 @@ export default function FinancialProtectionAssessment() {
     }
 
     sessionStorage.setItem(DEMO_ANSWERS_STORAGE_KEY, JSON.stringify(answers))
-    navigate('/results', { state: { answers } })
+    navigate(ROUTES.reportCardResults, { state: { answers } })
   }
 
   return (

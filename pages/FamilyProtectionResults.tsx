@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from 'react-router-dom'
 import BrandLogo from '../components/BrandLogo'
 import ScheduleReportCardLink from '../components/ScheduleReportCardLink'
+import { ROUTES } from '../constants/routes'
 import {
   calculateSelectedNeed,
   formatCurrency,
@@ -82,7 +83,7 @@ export default function FamilyProtectionResults() {
           <button
             type="button"
             className="protection-results-back"
-            onClick={() => navigate('/protectioncalc')}
+            onClick={() => navigate(ROUTES.protectionGap)}
           >
             Recalculate Protection Need
           </button>

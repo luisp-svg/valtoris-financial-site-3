@@ -1,7 +1,8 @@
 import { ReactNode } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Navigate, Route, Routes } from 'react-router-dom'
 import SiteHeader from '../components/SiteHeader'
 import SiteFooter from '../components/SiteFooter'
+import { ROUTES } from '../constants/routes'
 import HomePage from '../pages/HomePage'
 import CheckupPage from '../pages/CheckupPage'
 import FamilyProtectionCalculator from '../pages/FamilyProtectionCalculator'
@@ -24,11 +25,15 @@ function SiteLayout({ children }: { children: ReactNode }) {
 export default function App() {
   return (
     <Routes>
-      <Route path="/assessment" element={<FinancialProtectionAssessment />} />
-      <Route path="/results" element={<FamilyReportCardResults />} />
-      <Route path="/schedule" element={<ScheduleReportCardPage />} />
+      <Route path={ROUTES.reportCard} element={<FinancialProtectionAssessment />} />
+      <Route path="/assessment" element={<Navigate to={ROUTES.reportCard} replace />} />
+      <Route path="/report" element={<Navigate to={ROUTES.reportCard} replace />} />
+
+      <Route path={ROUTES.reportCardResults} element={<FamilyReportCardResults />} />
+      <Route path={ROUTES.schedule} element={<ScheduleReportCardPage />} />
+
       <Route
-        path="/"
+        path={ROUTES.home}
         element={
           <SiteLayout>
             <HomePage />
@@ -36,23 +41,30 @@ export default function App() {
         }
       />
       <Route
-        path="/checkup"
+        path={ROUTES.checkup}
         element={
           <SiteLayout>
             <CheckupPage />
           </SiteLayout>
         }
       />
-      <Route path="/protectioncalc" element={<FamilyProtectionCalculator />} />
-      <Route path="/protection-results" element={<FamilyProtectionResults />} />
+
+      <Route path={ROUTES.protectionGap} element={<FamilyProtectionCalculator />} />
+      <Route path="/protectioncalc" element={<Navigate to={ROUTES.protectionGap} replace />} />
+      <Route path="/calculator" element={<Navigate to={ROUTES.protectionGap} replace />} />
+
+      <Route path={ROUTES.protectionResults} element={<FamilyProtectionResults />} />
+
       <Route
-        path="/business"
+        path={ROUTES.businessReportCard}
         element={
           <SiteLayout>
             <BusinessReportCardPage />
           </SiteLayout>
         }
       />
+      <Route path="/business" element={<Navigate to={ROUTES.businessReportCard} replace />} />
+      <Route path="/business-assessment" element={<Navigate to={ROUTES.businessReportCard} replace />} />
     </Routes>
   )
 }

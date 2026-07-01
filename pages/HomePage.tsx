@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { ROUTES } from '../constants/routes'
 import HeroVisual from '../components/HeroVisual'
 import LeadForm from '../components/LeadForm'
 
@@ -16,8 +17,8 @@ export default function HomePage() {
               and opportunities, and provide a personalized roadmap toward becoming Legacy Ready™.
             </p>
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 20 }}>
-              <Link className="button" to="/assessment">Get My Family Financial Report Card™</Link>
-              <Link className="button secondary" to="/results">See a Sample Family Financial Report Card™</Link>
+              <Link className="button" to={ROUTES.reportCard}>Get My Family Financial Report Card™</Link>
+              <Link className="button secondary" to={ROUTES.reportCardResults}>See a Sample Family Financial Report Card™</Link>
             </div>
           </div>
           <HeroVisual />
