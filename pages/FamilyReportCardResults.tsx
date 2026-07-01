@@ -1,5 +1,6 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import BrandLogo from '../components/BrandLogo'
+import ScheduleReportCardLink from '../components/ScheduleReportCardLink'
 import PriorityRecommendationCard from '../components/results/PriorityRecommendationCard'
 import { DEMO_ANSWERS_STORAGE_KEY } from '../components/assessment/constants'
 import { DemoAssessmentAnswers, INITIAL_DEMO_ANSWERS } from '../components/assessment/types'
@@ -135,9 +136,7 @@ export default function FamilyReportCardResults() {
             Meet with a Valtoris Financial Strategist to review your report and build your
             personalized Family Financial Blueprint™.
           </p>
-          <Link className="results-cta-button" to="/schedule">
-            Schedule My Strategy Session
-          </Link>
+          <ScheduleReportCardLink className="results-cta-button" />
           <button type="button" className="results-back-link" onClick={() => navigate('/assessment')}>
             Retake Assessment
           </button>

@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import NavigationButtons from '../components/assessment/NavigationButtons'
 import CalculatorLayout from '../components/calculator/CalculatorLayout'
 import { CALCULATOR_STORAGE_KEY, CALCULATOR_TOTAL_STEPS } from '../components/calculator/constants'
+import { submitCalculatorToGoogleSheets } from '../components/calculator/submitCalculatorResults'
+import { CALCULATOR_SUBMISSION_WARNING } from '../constants/urls'
 import CalcStepFiveEducation from '../components/calculator/steps/CalcStepFiveEducation'
 import CalcStepFourDebt from '../components/calculator/steps/CalcStepFourDebt'
 import CalcStepOneFamily from '../components/calculator/steps/CalcStepOneFamily'
@@ -20,6 +22,7 @@ export default function FamilyProtectionCalculator() {
   const navigate = useNavigate()
   const [currentStep, setCurrentStep] = useState(1)
   const [answers, setAnswers] = useState<CalculatorAnswers>(INITIAL_CALCULATOR_ANSWERS)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const canContinue = useMemo(
     () => isCalculatorStepComplete(currentStep, answers),
@@ -57,16 +60,28 @@ export default function FamilyProtectionCalculator() {
     setCurrentStep((step) => step - 1)
   }
 
-  function handleContinue() {
-    if (!canContinue) return
+  async function handleContinue() {
+    if (!canContinue || isSubmitting) return
 
     if (currentStep < CALCULATOR_TOTAL_STEPS) {
       setCurrentStep((step) => step + 1)
       return
     }
 
+    setIsSubmitting(true)
     sessionStorage.setItem(CALCULATOR_STORAGE_KEY, JSON.stringify(answers))
-    navigate('/protection-results', { state: { answers } })
+
+    const submission = await submitCalculatorToGoogleSheets(answers)
+    let submissionWarning: string | undefined
+
+    if (!submission.ok) {
+      console.error('Google Sheets submission failed:', submission.error)
+      submissionWarning = CALCULATOR_SUBMISSION_WARNING
+    }
+
+    navigate('/protection-results', {
+      state: { answers, submissionWarning },
+    })
   }
 
   return (
@@ -76,9 +91,13 @@ export default function FamilyProtectionCalculator() {
         <NavigationButtons
           onBack={handleBack}
           onContinue={handleContinue}
-          continueDisabled={!canContinue}
+          continueDisabled={!canContinue || isSubmitting}
           continueLabel={
-            currentStep === CALCULATOR_TOTAL_STEPS ? 'View My Protection Analysis' : 'Continue'
+            isSubmitting
+              ? 'Saving...'
+              : currentStep === CALCULATOR_TOTAL_STEPS
+                ? 'View My Protection Analysis'
+                : 'Continue'
           }
         />
       }

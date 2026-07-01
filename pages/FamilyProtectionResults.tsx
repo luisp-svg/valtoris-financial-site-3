@@ -1,5 +1,6 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import BrandLogo from '../components/BrandLogo'
+import ScheduleReportCardLink from '../components/ScheduleReportCardLink'
 import {
   calculateSelectedNeed,
   formatCurrency,
@@ -28,6 +29,12 @@ export default function FamilyProtectionResults() {
   const location = useLocation()
   const navigate = useNavigate()
   const answers = loadAnswers(location.state)
+  const submissionWarning =
+    location.state &&
+    typeof location.state === 'object' &&
+    'submissionWarning' in location.state
+      ? String((location.state as { submissionWarning?: string }).submissionWarning ?? '')
+      : ''
   const familyName = answers.family.firstName.trim()
   const greeting = familyName ? `Prepared for ${familyName}` : 'Sample Protection Analysis'
 
@@ -41,6 +48,12 @@ export default function FamilyProtectionResults() {
           <BrandLogo className="protection-results-logo" />
           <p className="protection-results-prepared">{greeting}</p>
         </header>
+
+        {submissionWarning ? (
+          <p className="submission-notice" role="status">
+            {submissionWarning}
+          </p>
+        ) : null}
 
         <section className="protection-results-hero">
           <p className="protection-results-kicker">Valtoris Financial</p>
@@ -65,9 +78,7 @@ export default function FamilyProtectionResults() {
             recommendations for protection, retirement, debt strategy, estate planning, tax
             efficiency, and long-term financial planning.
           </p>
-          <Link className="protection-results-cta-button" to="/schedule">
-            Schedule My Complimentary Family Financial Report Card™
-          </Link>
+          <ScheduleReportCardLink className="protection-results-cta-button" />
           <button
             type="button"
             className="protection-results-back"
