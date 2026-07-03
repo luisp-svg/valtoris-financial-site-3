@@ -40,10 +40,14 @@ export default function FamilyReportCardResults() {
 
         <section className="rd-cta">
           <h2 className="rd-cta-title">
-            Schedule Your Complimentary Family Financial Strategy Session™
+            Schedule My Complimentary Family Financial Report Card™
           </h2>
+          <p className="rd-cta-copy">
+            Review your Family Financial Report Card™ with a Valtoris strategist and receive a
+            customized action plan for protecting and growing your family&apos;s wealth.
+          </p>
           <ScheduleReportCardLink className="rd-cta-button">
-            Schedule My Strategy Session™
+            Schedule My Complimentary Family Financial Report Card™
           </ScheduleReportCardLink>
           <button
             type="button"

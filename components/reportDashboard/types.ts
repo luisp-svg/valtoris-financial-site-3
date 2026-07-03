@@ -15,10 +15,18 @@ export type ReportHeroMetaCard =
       copy?: string
     }
 
+export type ReportActionPlanIcon = 'bolt' | 'calendar' | 'flag'
+
 export type ReportActionPlan = {
   immediate: readonly string[]
   thirtyDay: readonly string[]
   ninetyDay: readonly string[]
+}
+
+export type ReportProtectionAnalysis = {
+  label: string
+  value: string
+  note: string
 }
 
 export type ReportDashboardData = {
@@ -31,6 +39,9 @@ export type ReportDashboardData = {
   level: string
   heroMeta: ReportHeroMetaCard[]
   glanceLead: string
+  strengths?: readonly string[]
+  opportunities?: readonly string[]
+  protectionAnalysis?: ReportProtectionAnalysis
   categories: CategoryScore[]
   prioritiesTitle: string
   prioritiesLead: string
@@ -39,6 +50,7 @@ export type ReportDashboardData = {
   actionPlanTitle: string
   actionPlanLead: string
   actionPlan: ReportActionPlan
+  actionPlanColumnIcons?: readonly [ReportActionPlanIcon, ReportActionPlanIcon, ReportActionPlanIcon]
   categoriesTitle: string
   categoriesLead: string
   statusLabels: {

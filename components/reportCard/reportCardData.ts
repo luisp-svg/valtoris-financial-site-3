@@ -1,4 +1,4 @@
-import { ReportDashboardData } from '../reportDashboard/types'
+import { ReportActionPlan, ReportDashboardData } from '../reportDashboard/types'
 import { PriorityRecommendation } from '../results/PriorityRecommendationCard'
 import { CategoryScore } from './types'
 
@@ -54,50 +54,18 @@ export const REPORT_PAGES = [
 export const CATEGORY_SCORES: CategoryScore[] = [
   {
     id: 'cashflow',
-    title: 'Cash Flow',
+    title: 'Cash Flow & Budget',
     grade: 'A',
     score: 92,
     status: 'strength',
     summary: 'Strong income stability with healthy cash flow.',
     explanation:
-      'Your household income and spending patterns indicate reliable cash flow with room to allocate toward goals.',
+      'Your household income and spending patterns indicate reliable cash flow with room to allocate toward protection, savings, and legacy goals.',
     guidance:
       'Healthy cash flow is the foundation of every financial plan — it creates flexibility for protection, savings, and legacy goals.',
     recommendations: [
       'Maintain 3–6 months of expenses in liquid reserves.',
       'Review tax-advantaged savings opportunities annually.',
-    ],
-  },
-  {
-    id: 'debt',
-    title: 'Debt',
-    grade: 'B+',
-    score: 88,
-    status: 'strength',
-    summary: 'Manageable debt with a clear payoff trajectory.',
-    explanation:
-      'Your debt levels are proportionate to income, with no immediate red flags in your repayment structure.',
-    guidance:
-      'Strategic debt management frees cash flow for protection and long-term wealth building.',
-    recommendations: [
-      'Prioritize high-interest balances while preserving emergency savings.',
-      'Consider consolidating where rates and terms improve cash flow.',
-    ],
-  },
-  {
-    id: 'protection',
-    title: 'Protection',
-    grade: 'B',
-    score: 82,
-    status: 'opportunity',
-    summary: 'Coverage exists, but a meaningful protection gap remains.',
-    explanation:
-      'Life insurance is in place, yet your estimated protection gap suggests your family may be underprotected relative to your lifestyle.',
-    guidance:
-      'Protection planning helps ensure your family can maintain their standard of living through life\'s unexpected events.',
-    recommendations: [
-      `Address the estimated ${REPORT_PROTECTION_GAP} Protection Gap™.`,
-      'Review living benefits and disability coverage for both earners.',
     ],
   },
   {
@@ -117,8 +85,40 @@ export const CATEGORY_SCORES: CategoryScore[] = [
     ],
   },
   {
+    id: 'debt',
+    title: 'Debt Management',
+    grade: 'B+',
+    score: 88,
+    status: 'strength',
+    summary: 'Manageable debt with a clear payoff trajectory.',
+    explanation:
+      'Your debt levels are proportionate to income, with no immediate red flags in your repayment structure.',
+    guidance:
+      'Strategic debt management frees cash flow for protection and long-term wealth building.',
+    recommendations: [
+      'Prioritize high-interest balances while preserving emergency savings.',
+      'Consider consolidating where rates and terms improve cash flow.',
+    ],
+  },
+  {
+    id: 'protection',
+    title: 'Insurance & Protection',
+    grade: 'B',
+    score: 82,
+    status: 'opportunity',
+    summary: 'Coverage exists, but a meaningful protection gap remains.',
+    explanation:
+      'Life insurance is in place, yet your estimated protection gap suggests your family may be underprotected relative to your lifestyle.',
+    guidance:
+      'Protection planning helps ensure your family can maintain their standard of living through life\'s unexpected events.',
+    recommendations: [
+      `Address the estimated ${REPORT_PROTECTION_GAP} Protection Gap™.`,
+      'Review living benefits and disability coverage for both earners.',
+    ],
+  },
+  {
     id: 'retirement',
-    title: 'Retirement',
+    title: 'Retirement Readiness',
     grade: 'B-',
     score: 78,
     status: 'neutral',
@@ -150,23 +150,27 @@ export const CATEGORY_SCORES: CategoryScore[] = [
   },
 ]
 
-export const ACTION_PLAN = {
-  immediate: [
-    'Review your Protection Gap™ estimate and current coverage.',
-    'Confirm beneficiary designations on all policies and accounts.',
-    'Save or print this report for your household records.',
-  ],
-  thirtyDay: [
-    'Schedule your complimentary Family Financial Strategy Session™.',
-    'Gather estate documents for advisor review.',
-    'Set a 30-day emergency fund milestone.',
-  ],
-  ninetyDay: [
-    'Implement your Personalized Financial Blueprint™ priorities.',
-    'Close identified protection gaps with appropriate coverage.',
-    'Establish a quarterly family financial check-in.',
-  ],
-} as const
+export function buildFamilyActionPlan(categories: CategoryScore[]): ReportActionPlan {
+  const byId = Object.fromEntries(categories.map((category) => [category.id, category]))
+
+  return {
+    immediate: [
+      byId.protection?.recommendations[0] ?? 'Increase life insurance protection',
+      byId.emergency?.recommendations[0] ?? 'Build emergency fund',
+      'Review beneficiaries on all policies and accounts',
+    ],
+    thirtyDay: [
+      'Meet with a Valtoris Financial Strategist',
+      byId.debt?.recommendations[0] ?? 'Create debt payoff strategy',
+      byId.retirement?.recommendations[0] ?? 'Begin retirement contributions',
+    ],
+    ninetyDay: [
+      byId.estate?.recommendations[0] ?? 'Complete will & trust',
+      'Review education funding for dependents',
+      'Update your annual family financial plan',
+    ],
+  }
+}
 
 export function getGradeTone(grade: string): 'excellent' | 'good' | 'fair' | 'needs-attention' {
   const letter = grade.charAt(0).toUpperCase()
@@ -188,6 +192,8 @@ export function getFamilyReportDashboardData(
   firstName: string,
   greeting: string,
 ): ReportDashboardData {
+  const categories = CATEGORY_SCORES
+
   return {
     title: 'Your Family Financial Report Card™',
     preparedFor: greeting,
@@ -201,6 +207,7 @@ export function getFamilyReportDashboardData(
         type: 'progress',
         label: 'Progress Toward Legacy Ready™',
         value: REPORT_PROGRESS,
+        copy: 'Measures how prepared your family is to protect income, build wealth, and become Legacy Ready™.',
       },
       {
         type: 'metric',
@@ -210,25 +217,44 @@ export function getFamilyReportDashboardData(
       },
     ],
     glanceLead: 'Your financial foundation across six categories.',
-    categories: CATEGORY_SCORES,
+    strengths: REPORT_STRENGTHS,
+    opportunities: REPORT_OPPORTUNITIES,
+    protectionAnalysis: {
+      label: 'Family Protection Gap',
+      value: REPORT_PROTECTION_GAP,
+      note: 'Closing this gap helps protect your family\'s income, lifestyle, and long-term legacy goals.',
+    },
+    categories,
     prioritiesTitle: 'Top 3 Priorities™',
     prioritiesLead: 'Highest-impact recommendations for your family.',
     priorities: REPORT_TOP_PRIORITIES,
-    impactLabel: 'Expected impact',
-    actionPlanTitle: 'Personalized Action Plan™',
-    actionPlanLead: 'Immediate, 30-day, and 90-day next steps.',
-    actionPlan: ACTION_PLAN,
-    categoriesTitle: 'Category Recommendations',
-    categoriesLead: 'Expand each category for personalized guidance and improvements.',
+    impactLabel: 'Family Impact',
+    actionPlanTitle: 'Family Action Plan™',
+    actionPlanLead: 'Immediate, 30-day, and 90-day next steps personalized from your report.',
+    actionPlan: buildFamilyActionPlan(categories),
+    actionPlanColumnIcons: ['bolt', 'calendar', 'flag'],
+    categoriesTitle: 'Your Financial Score Breakdown™',
+    categoriesLead:
+      'Review each financial category, understand your score, and discover personalized recommendations to strengthen your family\'s financial foundation.',
     statusLabels: {
-      strength: 'Strength',
-      opportunity: 'Opportunity',
-      neutral: 'In progress',
+      strength: 'Low Risk',
+      opportunity: 'Moderate Risk',
+      neutral: 'Attention Needed',
     },
-    recommendationsSubhead: 'Recommended improvements',
-    blueprintTitle: 'Your Personalized Financial Blueprint™',
+    statusMetricLabel: 'Risk Level',
+    recommendationsSubhead: 'Next steps',
+    blueprintTitle: 'Family Financial Blueprint™',
     blueprintCopy:
-      'This report identifies your current strengths, potential risks, and highest-impact opportunities. During your complimentary Family Financial Strategy Session™, we\'ll review every recommendation and create a customized action plan for your family.',
+      'This report helps families identify strengths, exposures, and the highest-impact opportunities to protect income and build lasting wealth.',
+    blueprintBullets: [
+      'Protect income',
+      'Build emergency savings',
+      'Eliminate unnecessary debt',
+      'Prepare for retirement',
+      'Protect children',
+      'Build generational wealth',
+      'Create an estate plan',
+    ],
     footerLines: ['Powered by Valtoris Financial™', 'Helping Families Become Legacy Ready™'],
     defaultOpenCategory: 'protection',
   }

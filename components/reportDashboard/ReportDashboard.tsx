@@ -59,9 +59,12 @@ function CategoryAccordionItem({
               Letter Grade <strong>{category.grade}</strong>
             </span>
             {statusMetricLabel ? (
-              <span className="rd-accordion-metric">{statusMetricLabel}</span>
-            ) : null}
-            <span className={`rd-status-chip rd-status-${category.status}`}>{statusLabel}</span>
+              <span className="rd-accordion-metric">
+                {statusMetricLabel} <strong>{statusLabel}</strong>
+              </span>
+            ) : (
+              <span className={`rd-status-chip rd-status-${category.status}`}>{statusLabel}</span>
+            )}
           </div>
           <ScoreBar score={category.score} grade={category.grade} />
           <p className="rd-accordion-explanation">{category.explanation}</p>
@@ -160,6 +163,58 @@ export default function ReportDashboard({ data }: ReportDashboardProps) {
         </div>
       </section>
 
+      {data.strengths?.length && data.opportunities?.length ? (
+        <section className="rd-section" aria-labelledby="rd-insights-title">
+          <div className="rd-section-head">
+            <h2 id="rd-insights-title" className="rd-section-title">
+              Strengths &amp; Opportunities
+            </h2>
+            <p className="rd-section-lead">
+              Where your family is strongest today and where the highest-impact improvements live.
+            </p>
+          </div>
+
+          <div className="rd-insights-grid">
+            <article className="rd-insight-panel rd-insight-panel-strengths">
+              <h3 className="rd-insight-panel-title">Greatest Strengths</h3>
+              <ul className="rd-insight-list">
+                {data.strengths.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </article>
+
+            <article className="rd-insight-panel rd-insight-panel-opportunities">
+              <h3 className="rd-insight-panel-title">Biggest Opportunities</h3>
+              <ul className="rd-insight-list">
+                {data.opportunities.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </article>
+          </div>
+        </section>
+      ) : null}
+
+      {data.protectionAnalysis ? (
+        <section className="rd-section" aria-labelledby="rd-protection-title">
+          <div className="rd-section-head">
+            <h2 id="rd-protection-title" className="rd-section-title">
+              Protection Analysis
+            </h2>
+            <p className="rd-section-lead">
+              How well your current coverage protects your family&apos;s income and lifestyle.
+            </p>
+          </div>
+
+          <article className="rd-protection-card">
+            <span className="rd-protection-label">{data.protectionAnalysis.label}</span>
+            <span className="rd-protection-value">{data.protectionAnalysis.value}</span>
+            <p className="rd-protection-note">{data.protectionAnalysis.note}</p>
+          </article>
+        </section>
+      ) : null}
+
       <section className="rd-section rd-section-priorities" aria-labelledby="rd-priorities-title">
         <div className="rd-section-head">
           <h2 id="rd-priorities-title" className="rd-section-title">
@@ -195,30 +250,30 @@ export default function ReportDashboard({ data }: ReportDashboardProps) {
         </div>
 
         <div className="rd-plan-grid">
-          <article className="rd-plan-column">
-            <h3 className="rd-plan-label">Immediate</h3>
-            <ul className="rd-plan-list">
-              {data.actionPlan.immediate.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-          </article>
-          <article className="rd-plan-column">
-            <h3 className="rd-plan-label">30 Days</h3>
-            <ul className="rd-plan-list">
-              {data.actionPlan.thirtyDay.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-          </article>
-          <article className="rd-plan-column">
-            <h3 className="rd-plan-label">90 Days</h3>
-            <ul className="rd-plan-list">
-              {data.actionPlan.ninetyDay.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-          </article>
+          {(
+            [
+              { key: 'immediate', label: 'Immediate', items: data.actionPlan.immediate },
+              { key: 'thirtyDay', label: '30 Days', items: data.actionPlan.thirtyDay },
+              { key: 'ninetyDay', label: '90 Days', items: data.actionPlan.ninetyDay },
+            ] as const
+          ).map((column, index) => (
+            <article key={column.key} className="rd-plan-column">
+              <h3 className="rd-plan-label">
+                {data.actionPlanColumnIcons ? (
+                  <span
+                    className={`rd-plan-icon rd-plan-icon-${data.actionPlanColumnIcons[index]}`}
+                    aria-hidden="true"
+                  />
+                ) : null}
+                {column.label}
+              </h3>
+              <ul className="rd-plan-list">
+                {column.items.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </article>
+          ))}
         </div>
       </section>
 
