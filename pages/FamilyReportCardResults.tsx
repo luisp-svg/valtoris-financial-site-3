@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from 'react-router-dom'
 import BrandLogo from '../components/BrandLogo'
 import ScheduleReportCardLink from '../components/ScheduleReportCardLink'
-import ReportCardDocument from '../components/reportCard/ReportCardDocument'
+import ReportDashboard from '../components/reportDashboard/ReportDashboard'
 import { SAMPLE_GREETING } from '../components/reportCard/reportCardData'
 import { DEMO_ANSWERS_STORAGE_KEY } from '../components/assessment/constants'
 import { DemoAssessmentAnswers, INITIAL_DEMO_ANSWERS } from '../components/assessment/types'
@@ -26,35 +26,30 @@ export default function FamilyReportCardResults() {
   const location = useLocation()
   const navigate = useNavigate()
   const answers = loadAnswers(location.state)
-  const familyName = answers.family.firstName.trim()
-  const greeting = familyName ? `Prepared for ${familyName}` : SAMPLE_GREETING
+  const firstName = answers.family.firstName.trim()
+  const greeting = firstName ? `Prepared for ${firstName}` : SAMPLE_GREETING
 
   return (
-    <div className="results-shell">
-      <div className="results-container">
-        <header className="results-header">
+    <div className="results-shell report-dashboard-shell">
+      <div className="results-container report-dashboard-container">
+        <header className="results-header report-dashboard-header">
           <BrandLogo className="results-logo" />
-          <p className="results-prepared-for">{greeting}</p>
         </header>
 
-        <ReportCardDocument
-          greeting={greeting}
-          showHeader={false}
-          showFooter={false}
-          variant="flow"
-          pages={['overview', 'insights', 'protection', 'priorities']}
-        />
+        <ReportDashboard firstName={firstName} greeting={greeting} />
 
-        <section className="results-cta">
-          <h2 className="results-cta-headline">
-            Ready to Improve Your Family Financial Report Card™?
+        <section className="rd-cta">
+          <h2 className="rd-cta-title">
+            Schedule Your Complimentary Family Financial Strategy Session™
           </h2>
-          <p className="results-cta-support">
-            Meet with a Valtoris Financial Strategist to review your report and build your
-            personalized Family Financial Blueprint™.
-          </p>
-          <ScheduleReportCardLink className="results-cta-button" />
-          <button type="button" className="results-back-link" onClick={() => navigate(ROUTES.reportCard)}>
+          <ScheduleReportCardLink className="rd-cta-button">
+            Schedule My Strategy Session™
+          </ScheduleReportCardLink>
+          <button
+            type="button"
+            className="results-back-link"
+            onClick={() => navigate(ROUTES.reportCard)}
+          >
             Retake Assessment
           </button>
         </section>
