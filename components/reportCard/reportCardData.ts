@@ -1,4 +1,8 @@
+import { ReportDashboardData } from '../reportDashboard/types'
 import { PriorityRecommendation } from '../results/PriorityRecommendationCard'
+import { CategoryScore } from './types'
+
+export type { CategoryScore, CategoryStatus, ReportPageId } from './types'
 
 export const SAMPLE_GREETING = 'Sample Family Report Card'
 
@@ -46,22 +50,6 @@ export const REPORT_PAGES = [
   { id: 'priorities', label: 'Priorities' },
   { id: 'next-steps', label: 'Next Steps' },
 ] as const
-
-export type ReportPageId = (typeof REPORT_PAGES)[number]['id']
-
-export type CategoryStatus = 'strength' | 'opportunity' | 'neutral'
-
-export type CategoryScore = {
-  id: string
-  title: string
-  grade: string
-  score: number
-  status: CategoryStatus
-  summary: string
-  explanation: string
-  guidance: string
-  recommendations: string[]
-}
 
 export const CATEGORY_SCORES: CategoryScore[] = [
   {
@@ -194,4 +182,54 @@ export function getHeroNarrative(firstName: string): string {
     return `Great job ${name}. Your family has a strong financial foundation, but there are several opportunities to improve your long-term Legacy Ready™ score.`
   }
   return 'Your family has a strong financial foundation, but there are several opportunities to improve your long-term Legacy Ready™ score.'
+}
+
+export function getFamilyReportDashboardData(
+  firstName: string,
+  greeting: string,
+): ReportDashboardData {
+  return {
+    title: 'Your Family Financial Report Card™',
+    preparedFor: greeting,
+    narrative: getHeroNarrative(firstName),
+    scoreLabel: 'Overall Financial Score™',
+    score: REPORT_PROGRESS,
+    grade: REPORT_GRADE,
+    level: REPORT_LEVEL,
+    heroMeta: [
+      {
+        type: 'progress',
+        label: 'Progress Toward Legacy Ready™',
+        value: REPORT_PROGRESS,
+      },
+      {
+        type: 'metric',
+        label: 'Protection Gap™',
+        value: REPORT_PROTECTION_GAP,
+        copy: 'Estimated additional protection your family may need beyond current coverage.',
+      },
+    ],
+    glanceLead: 'Your financial foundation across six categories.',
+    categories: CATEGORY_SCORES,
+    prioritiesTitle: 'Top 3 Priorities™',
+    prioritiesLead: 'Highest-impact recommendations for your family.',
+    priorities: REPORT_TOP_PRIORITIES,
+    impactLabel: 'Expected impact',
+    actionPlanTitle: 'Personalized Action Plan™',
+    actionPlanLead: 'Immediate, 30-day, and 90-day next steps.',
+    actionPlan: ACTION_PLAN,
+    categoriesTitle: 'Category Recommendations',
+    categoriesLead: 'Expand each category for personalized guidance and improvements.',
+    statusLabels: {
+      strength: 'Strength',
+      opportunity: 'Opportunity',
+      neutral: 'In progress',
+    },
+    recommendationsSubhead: 'Recommended improvements',
+    blueprintTitle: 'Your Personalized Financial Blueprint™',
+    blueprintCopy:
+      'This report identifies your current strengths, potential risks, and highest-impact opportunities. During your complimentary Family Financial Strategy Session™, we\'ll review every recommendation and create a customized action plan for your family.',
+    footerLines: ['Powered by Valtoris Financial™', 'Helping Families Become Legacy Ready™'],
+    defaultOpenCategory: 'protection',
+  }
 }

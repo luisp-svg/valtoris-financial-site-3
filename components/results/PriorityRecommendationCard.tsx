@@ -11,6 +11,7 @@ export type PriorityRecommendation = {
 type PriorityRecommendationCardProps = PriorityRecommendation & {
   rank?: number
   featured?: boolean
+  impactLabel?: string
 }
 
 export default function PriorityRecommendationCard({
@@ -21,6 +22,7 @@ export default function PriorityRecommendationCard({
   impact,
   rank,
   featured = false,
+  impactLabel = 'Expected impact',
 }: PriorityRecommendationCardProps) {
   const levelClass = level.toLowerCase().replace('-', '')
 
@@ -37,7 +39,7 @@ export default function PriorityRecommendationCard({
       </div>
       {impact ? (
         <div className="priority-detail">
-          <span className="priority-detail-label">Expected impact</span>
+          <span className="priority-detail-label">{impactLabel}</span>
           <p className="priority-detail-text">{impact}</p>
         </div>
       ) : null}

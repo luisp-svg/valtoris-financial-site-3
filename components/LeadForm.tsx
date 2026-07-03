@@ -3,9 +3,10 @@ import { FormEvent, useState } from 'react'
 type LeadFormProps = {
   source: string
   title?: string
+  onSuccess?: (payload: Record<string, FormDataEntryValue>) => void
 }
 
-export default function LeadForm({ source, title = 'Request a consultation' }: LeadFormProps) {
+export default function LeadForm({ source, title = 'Request a consultation', onSuccess }: LeadFormProps) {
   const [status, setStatus] = useState('')
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -21,6 +22,7 @@ export default function LeadForm({ source, title = 'Request a consultation' }: L
 
     if (response.ok) {
       setStatus('Thanks — your request was submitted.')
+      onSuccess?.(payload)
       event.currentTarget.reset()
     } else {
       setStatus('Submission failed. Please try again.')

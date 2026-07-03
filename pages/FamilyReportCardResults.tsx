@@ -2,7 +2,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import BrandLogo from '../components/BrandLogo'
 import ScheduleReportCardLink from '../components/ScheduleReportCardLink'
 import ReportDashboard from '../components/reportDashboard/ReportDashboard'
-import { SAMPLE_GREETING } from '../components/reportCard/reportCardData'
+import { getFamilyReportDashboardData, SAMPLE_GREETING } from '../components/reportCard/reportCardData'
 import { DEMO_ANSWERS_STORAGE_KEY } from '../components/assessment/constants'
 import { DemoAssessmentAnswers, INITIAL_DEMO_ANSWERS } from '../components/assessment/types'
 import { ROUTES } from '../constants/routes'
@@ -36,7 +36,7 @@ export default function FamilyReportCardResults() {
           <BrandLogo className="results-logo" />
         </header>
 
-        <ReportDashboard firstName={firstName} greeting={greeting} />
+        <ReportDashboard data={getFamilyReportDashboardData(firstName, greeting)} />
 
         <section className="rd-cta">
           <h2 className="rd-cta-title">
