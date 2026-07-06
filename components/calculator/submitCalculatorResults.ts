@@ -1,30 +1,10 @@
-import { GOOGLE_SHEETS_CALCULATOR_WEBHOOK_URL } from '../../constants/urls'
+import { ROUTES } from '../../constants/routes'
+import { buildMasterLeadPayload } from '../../utils/masterLeadPayload'
+import { getSourcePage, submitLeadToGoogleSheets } from '../../utils/submitLeadToGoogleSheets'
 import { calculateSelectedNeed, parseAmount } from './calculations'
 import { CalculatorAnswers } from './types'
 
-export type CalculatorSubmissionPayload = {
-  firstName: string
-  lastName: string
-  email: string
-  phone: string
-  age: string
-  state: string
-  maritalStatus: string
-  children: string
-  annualIncome: number
-  housingType: string
-  annualHousing: number
-  creditCards: number
-  autoLoans: number
-  personalLoans: number
-  studentLoans: number
-  educationPerChild: number
-  finalExpenses: number
-  existingCoverage: number
-  totalNeed: number
-  protectionGap: number
-  submittedAt: string
-}
+export type CalculatorSubmissionPayload = ReturnType<typeof buildCalculatorSubmissionPayload>
 
 function getAnnualHousingPayment(answers: CalculatorAnswers): number {
   if (answers.housing.housingType === 'own') {
@@ -54,10 +34,14 @@ export function buildCalculatorSubmissionPayload(
   answers: CalculatorAnswers,
 ): CalculatorSubmissionPayload {
   const breakdown = calculateSelectedNeed(answers)
+  const firstName = answers.family.firstName.trim()
+  const lastName = answers.family.lastName.trim()
+  const submittedAt = new Date().toISOString()
 
-  return {
-    firstName: answers.family.firstName.trim(),
-    lastName: answers.family.lastName.trim(),
+  return buildMasterLeadPayload({
+    firstName,
+    lastName,
+    fullName: [firstName, lastName].filter(Boolean).join(' '),
     email: answers.family.email.trim(),
     phone: answers.family.phone.trim(),
     age: answers.family.age.trim(),
@@ -75,39 +59,19 @@ export function buildCalculatorSubmissionPayload(
     finalExpenses: getFinalExpenseTotal(answers),
     existingCoverage: parseAmount(answers.coverage.currentLifeInsurance),
     totalNeed: breakdown.total,
+    overallScore: breakdown.total,
+    overallGrade: '',
     protectionGap: breakdown.netNeed,
-    submittedAt: new Date().toISOString(),
-  }
+    sourcePage: getSourcePage() || ROUTES.protectionGap,
+    rawAnswers: JSON.stringify(answers),
+    submittedAt,
+    timestamp: submittedAt,
+  })
 }
 
 export async function submitCalculatorToGoogleSheets(
   answers: CalculatorAnswers,
 ): Promise<{ ok: true } | { ok: false; error: unknown }> {
   const payload = buildCalculatorSubmissionPayload(answers)
-
-  console.log('Submitting calculator lead')
-  console.log('Payload:', payload)
-  console.log('Webhook URL:', GOOGLE_SHEETS_CALCULATOR_WEBHOOK_URL)
-
-  try {
-    const response = await fetch(GOOGLE_SHEETS_CALCULATOR_WEBHOOK_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(payload),
-    })
-
-    const responseText = await response.text()
-    console.log('Response status:', response.status)
-    console.log('Response text:', responseText)
-
-    if (!response.ok) {
-      return { ok: false, error: new Error(`Webhook responded with ${response.status}: ${responseText}`) }
-    }
-
-    return { ok: true }
-  } catch (error) {
-    console.log('Response status: request failed')
-    console.log('Response text:', error)
-    return { ok: false, error }
-  }
+  return submitLeadToGoogleSheets('Protection Gap', payload)
 }

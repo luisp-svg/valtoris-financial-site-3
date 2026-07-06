@@ -24,6 +24,13 @@ export default function StepFourProtection({ answers, onChange }: StepFourProtec
           required
         />
         <YesNoInput
+          label="Do you have disability income protection (through work or an individual policy)?"
+          name="hasDisabilityProtection"
+          value={answers.hasDisabilityProtection}
+          onChange={(value) => onChange('hasDisabilityProtection', value)}
+          required
+        />
+        <YesNoInput
           label="Has Will?"
           name="hasWill"
           value={answers.hasWill}

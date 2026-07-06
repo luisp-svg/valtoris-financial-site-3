@@ -1,6 +1,6 @@
 import LeadForm from '../components/LeadForm'
 import ScheduleReportCardLink from '../components/ScheduleReportCardLink'
-import { CALENDLY_REPORT_CARD_BUTTON_LABEL } from '../constants/urls'
+import { FAMILY_CTA } from '../constants/homepage'
 
 export default function CheckupPage() {
   return (
@@ -9,7 +9,7 @@ export default function CheckupPage() {
         <div className="panel">
           <div className="kicker">Family Financial Report Card™</div>
           <h1 style={{ fontSize: 'clamp(2rem, 4vw, 3.6rem)' }}>
-            Schedule your complimentary Family Financial Report Card™ review.
+            Book your Family Financial Report Card™ strategy session.
           </h1>
           <p>
             Receive a complete evaluation of your family's protection, retirement, debt strategy,
@@ -17,10 +17,7 @@ export default function CheckupPage() {
           </p>
           <ScheduleReportCardLink className="button checkup-schedule-link" />
         </div>
-        <LeadForm
-          source="family-financial-report-card"
-          title={CALENDLY_REPORT_CARD_BUTTON_LABEL}
-        />
+        <LeadForm source="family-financial-report-card" title={FAMILY_CTA} />
       </div>
     </section>
   )

@@ -5,6 +5,7 @@ import ReportDashboard from '../components/reportDashboard/ReportDashboard'
 import { getFamilyReportDashboardData, SAMPLE_GREETING } from '../components/reportCard/reportCardData'
 import { DEMO_ANSWERS_STORAGE_KEY } from '../components/assessment/constants'
 import { DemoAssessmentAnswers, INITIAL_DEMO_ANSWERS } from '../components/assessment/types'
+import { SCHEDULE_CTA } from '../constants/homepage'
 import { ROUTES } from '../constants/routes'
 
 function loadAnswers(state: unknown): DemoAssessmentAnswers {
@@ -36,19 +37,15 @@ export default function FamilyReportCardResults() {
           <BrandLogo className="results-logo" />
         </header>
 
-        <ReportDashboard data={getFamilyReportDashboardData(firstName, greeting)} />
+        <ReportDashboard data={getFamilyReportDashboardData(firstName, greeting, answers)} />
 
         <section className="rd-cta">
-          <h2 className="rd-cta-title">
-            Schedule My Complimentary Family Financial Report Card™
-          </h2>
+          <h2 className="rd-cta-title">{SCHEDULE_CTA}</h2>
           <p className="rd-cta-copy">
             Review your Family Financial Report Card™ with a Valtoris strategist and receive a
             customized action plan for protecting and growing your family&apos;s wealth.
           </p>
-          <ScheduleReportCardLink className="rd-cta-button">
-            Schedule My Complimentary Family Financial Report Card™
-          </ScheduleReportCardLink>
+          <ScheduleReportCardLink className="rd-cta-button">{SCHEDULE_CTA}</ScheduleReportCardLink>
           <button
             type="button"
             className="results-back-link"

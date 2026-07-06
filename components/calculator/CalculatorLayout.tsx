@@ -16,7 +16,7 @@ export default function CalculatorLayout({ currentStep, children, footer }: Calc
         <header className="calculator-header">
           <BrandLogo className="calculator-logo" />
           <div className="calculator-intro">
-            <h1 className="calculator-title">Family Protection Calculator™</h1>
+            <h1 className="calculator-title">Family Protection Analysis™</h1>
             <p className="calculator-subtitle">
               Find out how much life insurance your family may need in less than 2 minutes.
             </p>

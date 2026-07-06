@@ -1,6 +1,8 @@
 import CurrencyInput from '../CurrencyInput'
+import OptionGroup from '../../calculator/OptionGroup'
 import QuestionCard from '../QuestionCard'
 import TextInput from '../TextInput'
+import { MONTHLY_CASH_FLOW_OPTIONS, RETIREMENT_CONTRIBUTION_OPTIONS } from '../constants'
 import { FinancialAnswers } from '../types'
 
 type StepThreeFinancialProps = {
@@ -48,6 +50,22 @@ export default function StepThreeFinancial({ answers, onChange }: StepThreeFinan
           placeholder="3"
           min={0}
           max={24}
+          required
+        />
+        <OptionGroup
+          label="Which best describes your household’s monthly cash flow after required expenses?"
+          name="monthlyCashFlow"
+          options={MONTHLY_CASH_FLOW_OPTIONS}
+          value={answers.monthlyCashFlow}
+          onChange={(value) => onChange('monthlyCashFlow', value)}
+          required
+        />
+        <OptionGroup
+          label="Which best describes your retirement savings contributions today?"
+          name="retirementContribution"
+          options={RETIREMENT_CONTRIBUTION_OPTIONS}
+          value={answers.retirementContribution}
+          onChange={(value) => onChange('retirementContribution', value)}
           required
         />
       </form>

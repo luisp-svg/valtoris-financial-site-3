@@ -9,6 +9,7 @@ import {
 import ProtectionSummaryBreakdown from '../components/calculator/ProtectionSummaryBreakdown'
 import { CALCULATOR_STORAGE_KEY } from '../components/calculator/constants'
 import { CalculatorAnswers, INITIAL_CALCULATOR_ANSWERS } from '../components/calculator/types'
+import { SCHEDULE_CTA } from '../constants/homepage'
 import { ROUTES } from '../constants/routes'
 
 function loadAnswers(state: unknown): CalculatorAnswers {
@@ -120,19 +121,21 @@ export default function FamilyProtectionResults() {
           </h2>
           <p className="protection-means-copy">
             This calculator provides an educational estimate based on the information you entered.
-            It is not an insurance quote or financial recommendation. Your complimentary Family
-            Financial Report Card™ will provide a personalized analysis and recommendations.
+            It is not an insurance quote or financial recommendation. Your Family Financial Report
+            Card™ will provide a personalized analysis and recommendations.
           </p>
         </section>
 
         <section className="protection-results-cta protection-report-fade protection-report-fade-delay-5">
-          <h2>Ready to Protect Your Family?</h2>
+          <h2>{SCHEDULE_CTA}</h2>
           <p>
-            Schedule your complimentary Family Financial Report Card™ to review your results with a
-            Valtoris Financial Advisor.
+            Review your Family Protection Analysis™ with a Valtoris Financial Advisor and receive
+            personalized recommendations.
           </p>
           <div className="protection-results-actions">
-            <ScheduleReportCardLink className="protection-results-cta-button" />
+            <ScheduleReportCardLink className="protection-results-cta-button">
+              {SCHEDULE_CTA}
+            </ScheduleReportCardLink>
             <button
               type="button"
               className="protection-results-secondary-btn"

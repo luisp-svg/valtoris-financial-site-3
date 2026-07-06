@@ -33,6 +33,24 @@ export default function StepTwoFamily({ answers, onChange }: StepTwoFamilyProps)
           required
         />
         <TextInput
+          label="Email"
+          name="email"
+          type="email"
+          value={answers.email}
+          onChange={(value) => onChange('email', value)}
+          placeholder="you@email.com"
+          required
+        />
+        <TextInput
+          label="Phone"
+          name="phone"
+          type="tel"
+          value={answers.phone}
+          onChange={(value) => onChange('phone', value)}
+          placeholder="(555) 555-5555"
+          required
+        />
+        <TextInput
           label="Age"
           name="age"
           type="number"

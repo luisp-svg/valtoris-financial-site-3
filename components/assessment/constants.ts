@@ -62,6 +62,22 @@ export const MARITAL_STATUS_OPTIONS = [
 
 export const DEMO_ASSESSMENT_STEPS = 5
 
+export const MONTHLY_CASH_FLOW_OPTIONS = [
+  { value: 'save-most-months', label: 'We consistently save money most months' },
+  { value: 'break-even', label: 'We usually break even' },
+  { value: 'overspend', label: 'We often spend more than we take in' },
+  { value: 'unsure', label: "I'm not sure" },
+] as const
+
+export const RETIREMENT_CONTRIBUTION_OPTIONS = [
+  { value: 'not-saving', label: 'I am not currently saving for retirement' },
+  { value: 'under-3', label: 'Less than 3% of household income' },
+  { value: '3-5', label: '3% to 5% of household income' },
+  { value: '6-10', label: '6% to 10% of household income' },
+  { value: '11-15', label: '11% to 15% of household income' },
+  { value: 'over-15', label: 'More than 15% of household income' },
+] as const
+
 export const GOAL_OPTIONS = [
   { value: 'protect-family', label: 'Protect my family' },
   { value: 'debt-free', label: 'Become debt free' },

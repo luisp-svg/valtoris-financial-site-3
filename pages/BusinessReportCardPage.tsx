@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import LeadForm from '../components/LeadForm'
 import { BUSINESS_REPORT_STORAGE_KEY } from '../components/business/constants'
+import { BUSINESS_CTA } from '../constants/homepage'
 import { ROUTES } from '../constants/routes'
 
 export default function BusinessReportCardPage() {
@@ -10,6 +11,8 @@ export default function BusinessReportCardPage() {
     const businessName = typeof payload.name === 'string' ? payload.name.trim() : ''
     const context = { businessName }
     sessionStorage.setItem(BUSINESS_REPORT_STORAGE_KEY, JSON.stringify(context))
+
+    console.log('Navigation to results:', ROUTES.businessReportCardResults)
     navigate(ROUTES.businessReportCardResults, { state: context })
   }
 
@@ -40,7 +43,7 @@ export default function BusinessReportCardPage() {
         </div>
         <LeadForm
           source="business-financial-report-card"
-          title="Request your Business Financial Report Card™"
+          title={BUSINESS_CTA}
           onSuccess={handleLeadSuccess}
         />
       </div>

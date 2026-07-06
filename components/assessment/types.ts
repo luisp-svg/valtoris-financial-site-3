@@ -1,6 +1,8 @@
 export type FamilyAnswers = {
   firstName: string
   lastName: string
+  email: string
+  phone: string
   age: string
   state: string
   maritalStatus: string
@@ -12,13 +14,17 @@ export type FinancialAnswers = {
   monthlyHousingPayment: string
   totalDebt: string
   emergencyFundMonths: string
+  monthlyCashFlow: string
+  retirementContribution: string
 }
 
 export type ProtectionAnswers = {
   currentLifeInsurance: string
+  hasDisabilityProtection: string
   hasWill: string
   hasTrust: string
   beneficiariesReviewed: string
+  guardianDocumented: string
 }
 
 export type GoalsAnswers = {
@@ -36,6 +42,8 @@ export const INITIAL_DEMO_ANSWERS: DemoAssessmentAnswers = {
   family: {
     firstName: '',
     lastName: '',
+    email: '',
+    phone: '',
     age: '',
     state: '',
     maritalStatus: '',
@@ -46,12 +54,16 @@ export const INITIAL_DEMO_ANSWERS: DemoAssessmentAnswers = {
     monthlyHousingPayment: '',
     totalDebt: '',
     emergencyFundMonths: '',
+    monthlyCashFlow: '',
+    retirementContribution: '',
   },
   protection: {
     currentLifeInsurance: '',
+    hasDisabilityProtection: '',
     hasWill: '',
     hasTrust: '',
     beneficiariesReviewed: '',
+    guardianDocumented: '',
   },
   goals: {
     selected: [],
@@ -70,8 +82,23 @@ export function isFinancialComplete(financial: FinancialAnswers) {
   return allFilled(financial)
 }
 
+export function isProtectionBaseComplete(protection: ProtectionAnswers) {
+  return (
+    protection.currentLifeInsurance.trim() !== '' &&
+    protection.hasDisabilityProtection.trim() !== '' &&
+    protection.hasWill.trim() !== '' &&
+    protection.hasTrust.trim() !== '' &&
+    protection.beneficiariesReviewed.trim() !== ''
+  )
+}
+
+export function isGuardianComplete(protection: ProtectionAnswers) {
+  return protection.guardianDocumented.trim() !== ''
+}
+
+/** @deprecated Use isProtectionBaseComplete / isGuardianComplete */
 export function isProtectionComplete(protection: ProtectionAnswers) {
-  return allFilled(protection)
+  return isProtectionBaseComplete(protection) && isGuardianComplete(protection)
 }
 
 export function isGoalsComplete(goals: GoalsAnswers) {
@@ -87,7 +114,7 @@ export function isDemoStepComplete(step: number, answers: DemoAssessmentAnswers)
     case 3:
       return isFinancialComplete(answers.financial)
     case 4:
-      return isProtectionComplete(answers.protection)
+      return isProtectionBaseComplete(answers.protection)
     case 5:
       return isGoalsComplete(answers.goals)
     default:

@@ -1,4 +1,5 @@
 import { FormEvent, useState } from 'react'
+import { submitLeadFormLead } from './reportCard/submitReportCardLead'
 
 type LeadFormProps = {
   source: string
@@ -11,22 +12,18 @@ export default function LeadForm({ source, title = 'Request a consultation', onS
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    const formData = new FormData(event.currentTarget)
+    const form = event.currentTarget
+    const formData = new FormData(form)
     const payload = Object.fromEntries(formData.entries())
 
-    const response = await fetch('/api/lead', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...payload, source })
-    })
-
-    if (response.ok) {
-      setStatus('Thanks — your request was submitted.')
-      onSuccess?.(payload)
-      event.currentTarget.reset()
-    } else {
-      setStatus('Submission failed. Please try again.')
+    const submission = await submitLeadFormLead(source, payload)
+    if (!submission.ok) {
+      console.error('Google Sheets submission failed:', submission.error)
     }
+
+    setStatus('Thanks — your request was submitted.')
+    void onSuccess?.(payload)
+    form.reset()
   }
 
   return (

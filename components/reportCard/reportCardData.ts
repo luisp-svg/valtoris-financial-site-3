@@ -1,5 +1,7 @@
 import { ReportActionPlan, ReportDashboardData } from '../reportDashboard/types'
 import { PriorityRecommendation } from '../results/PriorityRecommendationCard'
+import { DemoAssessmentAnswers } from '../assessment/types'
+import { scoreFamilyAssessment } from '../assessment/scoring/scoreFamilyAssessment'
 import { CategoryScore } from './types'
 
 export type { CategoryScore, CategoryStatus, ReportPageId } from './types'
@@ -189,6 +191,77 @@ export function getHeroNarrative(firstName: string): string {
 }
 
 export function getFamilyReportDashboardData(
+  firstName: string,
+  greeting: string,
+  answers?: DemoAssessmentAnswers,
+): ReportDashboardData {
+  if (!answers) {
+    return getSampleFamilyReportDashboardData(firstName, greeting)
+  }
+
+  const scored = scoreFamilyAssessment(answers)
+  const categories = scored.categories
+
+  return {
+    title: 'Your Family Financial Report Card™',
+    preparedFor: greeting,
+    narrative: scored.narrative,
+    scoreLabel: 'Overall Financial Score™',
+    score: scored.overallScore,
+    grade: scored.overallGrade,
+    level: scored.currentLevel,
+    heroMeta: [
+      {
+        type: 'progress',
+        label: 'Progress Toward Legacy Ready™',
+        value: scored.overallScore,
+        copy: 'Measures how prepared your family is to protect income, build wealth, and become Legacy Ready™.',
+      },
+      {
+        type: 'metric',
+        label: 'Protection Gap™',
+        value: scored.protectionGapFormatted,
+        copy: 'Estimated additional protection your family may need beyond current coverage.',
+      },
+    ],
+    glanceLead: 'Your financial foundation across six categories.',
+    strengths: scored.strengths.length > 0 ? scored.strengths : ['Financial assessment completed'],
+    opportunities:
+      scored.opportunities.length > 0 ? scored.opportunities : ['Continue strengthening your financial foundation'],
+    protectionAnalysis: {
+      label: 'Family Protection Gap',
+      value: scored.protectionGapFormatted,
+      note: 'Closing this gap helps protect your family\'s income, lifestyle, and long-term legacy goals.',
+    },
+    categories,
+    prioritiesTitle: 'Top 3 Priorities™',
+    prioritiesLead: 'Highest-impact recommendations for your family.',
+    priorities: scored.priorities,
+    impactLabel: 'Family Impact',
+    actionPlanTitle: 'Family Action Plan™',
+    actionPlanLead: 'Immediate, 30-day, and 90-day next steps personalized from your report.',
+    actionPlan: scored.actionPlan,
+    actionPlanColumnIcons: ['bolt', 'calendar', 'flag'],
+    categoriesTitle: 'Your Financial Score Breakdown™',
+    categoriesLead:
+      'Review each financial category, understand your score, and discover personalized recommendations to strengthen your family\'s financial foundation.',
+    statusLabels: {
+      strength: 'Low Risk',
+      opportunity: 'Moderate Risk',
+      neutral: 'Attention Needed',
+    },
+    statusMetricLabel: 'Risk Level',
+    recommendationsSubhead: 'Next steps',
+    blueprintTitle: 'Family Financial Blueprint™',
+    blueprintCopy:
+      'This report helps families identify strengths, exposures, and the highest-impact opportunities to protect income and build lasting wealth.',
+    blueprintBullets: scored.blueprintBullets,
+    footerLines: ['Powered by Valtoris Financial™', 'Helping Families Become Legacy Ready™'],
+    defaultOpenCategory: scored.defaultOpenCategory,
+  }
+}
+
+function getSampleFamilyReportDashboardData(
   firstName: string,
   greeting: string,
 ): ReportDashboardData {

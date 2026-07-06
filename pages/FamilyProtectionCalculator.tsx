@@ -6,6 +6,7 @@ import CalculatorLayout from '../components/calculator/CalculatorLayout'
 import { CALCULATOR_STORAGE_KEY, CALCULATOR_TOTAL_STEPS } from '../components/calculator/constants'
 import { submitCalculatorToGoogleSheets } from '../components/calculator/submitCalculatorResults'
 import { CALCULATOR_SUBMISSION_WARNING } from '../constants/urls'
+import { PROTECTION_CTA } from '../constants/homepage'
 import CalcStepFiveEducation from '../components/calculator/steps/CalcStepFiveEducation'
 import CalcStepFourDebt from '../components/calculator/steps/CalcStepFourDebt'
 import CalcStepOneFamily from '../components/calculator/steps/CalcStepOneFamily'
@@ -80,6 +81,7 @@ export default function FamilyProtectionCalculator() {
       submissionWarning = CALCULATOR_SUBMISSION_WARNING
     }
 
+    console.log('Navigation to results:', ROUTES.protectionResults)
     navigate(ROUTES.protectionResults, {
       state: { answers, submissionWarning },
     })
@@ -98,7 +100,9 @@ export default function FamilyProtectionCalculator() {
               ? 'Saving...'
               : currentStep === CALCULATOR_TOTAL_STEPS
                 ? 'View My Protection Analysis'
-                : 'Continue'
+                : currentStep === 1
+                  ? PROTECTION_CTA
+                  : 'Continue'
           }
         />
       }

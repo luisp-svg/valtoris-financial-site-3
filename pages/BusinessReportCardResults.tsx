@@ -11,6 +11,7 @@ import {
   BusinessReportContext,
   INITIAL_BUSINESS_REPORT_CONTEXT,
 } from '../components/business/constants'
+import { SCHEDULE_CTA } from '../constants/homepage'
 import { ROUTES } from '../constants/routes'
 
 function loadBusinessContext(state: unknown): BusinessReportContext {
@@ -48,16 +49,12 @@ export default function BusinessReportCardResults() {
         <ReportDashboard data={getBusinessReportDashboardData(trimmedName, greeting)} />
 
         <section className="rd-cta">
-          <h2 className="rd-cta-title">
-            Schedule Your Complimentary Business Financial Strategy Session™
-          </h2>
+          <h2 className="rd-cta-title">{SCHEDULE_CTA}</h2>
           <p className="rd-cta-copy">
             Review your Business Financial Report Card™ with a Valtoris strategist and receive a
             customized action plan for protecting and growing your business.
           </p>
-          <ScheduleReportCardLink className="rd-cta-button">
-            Schedule My Strategy Session™
-          </ScheduleReportCardLink>
+          <ScheduleReportCardLink className="rd-cta-button">{SCHEDULE_CTA}</ScheduleReportCardLink>
           <button
             type="button"
             className="results-back-link"

@@ -1,4 +1,5 @@
 import QuestionCard from '../QuestionCard'
+import { FAMILY_CTA } from '../../../constants/homepage'
 
 type StepWelcomeProps = {
   onBegin: () => void
@@ -12,7 +13,7 @@ export default function StepWelcome({ onBegin }: StepWelcomeProps) {
     >
       <div className="welcome-actions">
         <button type="button" className="assessment-btn assessment-btn-primary" onClick={onBegin}>
-          Begin
+          {FAMILY_CTA}
         </button>
       </div>
     </QuestionCard>

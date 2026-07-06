@@ -1,4 +1,5 @@
 import PriorityRecommendationCard from '../results/PriorityRecommendationCard'
+import { SCHEDULE_CTA } from '../../constants/homepage'
 import {
   REPORT_GRADE,
   REPORT_LEVEL,
@@ -129,7 +130,7 @@ function ReportCardNextStepsPage() {
           Meet with a Valtoris Financial Strategist to review your report and build your personalized
           Family Financial Blueprint™.
         </p>
-        <span className="report-card-doc-cta-placeholder">Schedule My Complimentary Session</span>
+        <span className="report-card-doc-cta-placeholder">{SCHEDULE_CTA}</span>
       </div>
     </section>
   )
