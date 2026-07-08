@@ -1,5 +1,5 @@
 import { ReactNode } from 'react'
-import BrandLogo from '../BrandLogo'
+import AssessmentBrandHeader from '../AssessmentBrandHeader'
 import ProgressBar from '../assessment/ProgressBar'
 import { CALCULATOR_TOTAL_STEPS } from './constants'
 
@@ -14,7 +14,7 @@ export default function CalculatorLayout({ currentStep, children, footer }: Calc
     <div className="calculator-shell">
       <div className="calculator-container">
         <header className="calculator-header">
-          <BrandLogo className="calculator-logo" />
+          <AssessmentBrandHeader />
           <div className="calculator-intro">
             <h1 className="calculator-title">Family Protection Analysis™</h1>
             <p className="calculator-subtitle">

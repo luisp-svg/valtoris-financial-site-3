@@ -1,11 +1,11 @@
 import { useLocation, useNavigate } from 'react-router-dom'
-import BrandLogo from '../components/BrandLogo'
+import AssessmentBrandHeader from '../components/AssessmentBrandHeader'
 import ScheduleReportCardLink from '../components/ScheduleReportCardLink'
 import ReportDashboard from '../components/reportDashboard/ReportDashboard'
 import { getFamilyReportDashboardData, SAMPLE_GREETING } from '../components/reportCard/reportCardData'
 import { DEMO_ANSWERS_STORAGE_KEY } from '../components/assessment/constants'
 import { DemoAssessmentAnswers, INITIAL_DEMO_ANSWERS } from '../components/assessment/types'
-import { SCHEDULE_CTA } from '../constants/homepage'
+import { RETAKE_ASSESSMENT_CTA, SCHEDULE_CTA } from '../constants/homepage'
 import { ROUTES } from '../constants/routes'
 
 function loadAnswers(state: unknown): DemoAssessmentAnswers {
@@ -34,7 +34,7 @@ export default function FamilyReportCardResults() {
     <div className="results-shell report-dashboard-shell">
       <div className="results-container report-dashboard-container">
         <header className="results-header report-dashboard-header">
-          <BrandLogo className="results-logo" />
+          <AssessmentBrandHeader />
         </header>
 
         <ReportDashboard data={getFamilyReportDashboardData(firstName, greeting, answers)} />
@@ -51,7 +51,7 @@ export default function FamilyReportCardResults() {
             className="results-back-link"
             onClick={() => navigate(ROUTES.reportCard)}
           >
-            Retake Assessment
+            {RETAKE_ASSESSMENT_CTA}
           </button>
         </section>
       </div>

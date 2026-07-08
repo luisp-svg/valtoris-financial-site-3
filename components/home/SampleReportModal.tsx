@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import AssessmentBrandHeader from '../AssessmentBrandHeader'
 import ReportCardDocument from '../reportCard/ReportCardDocument'
 
 type SampleReportModalProps = {
@@ -37,8 +38,8 @@ export default function SampleReportModal({ isOpen, onClose }: SampleReportModal
 
       <div className="sample-report-modal-panel">
         <header className="sample-report-modal-header">
-          <div>
-            <p className="sample-report-modal-kicker">Valtoris Financial</p>
+          <div className="sample-report-modal-brand">
+            <AssessmentBrandHeader />
             <h2 className="sample-report-modal-title">Sample Family Financial Report Card™</h2>
           </div>
           <button type="button" className="sample-report-modal-close" onClick={onClose}>

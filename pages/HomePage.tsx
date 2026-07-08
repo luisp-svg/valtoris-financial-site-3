@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import HomeCardIcon from '../components/home/HomeCardIcon'
 import ReportCardHeroPreview from '../components/home/ReportCardHeroPreview'
 import SampleReportModal from '../components/home/SampleReportModal'
-import { HOME_PRIMARY_CTA } from '../constants/homepage'
+import { HOME_PRIMARY_CTA, SAMPLE_REPORT_CTA } from '../constants/homepage'
 import { ROUTES } from '../constants/routes'
 
 const WALK_AWAY_WITH = [
@@ -110,7 +110,7 @@ export default function HomePage() {
               className="home-btn home-btn-secondary"
               onClick={() => setIsSampleOpen(true)}
             >
-              See Sample Report
+              {SAMPLE_REPORT_CTA}
             </button>
           </div>
         </div>

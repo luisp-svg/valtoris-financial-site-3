@@ -115,12 +115,38 @@ p { color: var(--muted); line-height: 1.7; }
   flex-direction: column;
   align-items: center;
   gap: 16px;
-  margin-bottom: 24px;
+  margin-bottom: 28px;
 }
-.assessment-logo {
-  display: block;
-  height: 48px;
-  width: auto;
+.assessment-brand-header {
+  display: flex;
+  justify-content: center;
+  width: min(100%, 200px);
+  margin: 0 auto;
+  text-align: center;
+}
+.assessment-brand-wordmark {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+.assessment-brand-valtoris {
+  margin: 0;
+  font-family: 'Times New Roman', Georgia, serif;
+  font-size: 19px;
+  font-weight: 400;
+  letter-spacing: 0.2em;
+  color: var(--brand);
+  line-height: 1;
+}
+.assessment-brand-financial {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--gold);
+  line-height: 1.2;
 }
 .assessment-progress {
   width: 100%;
@@ -369,12 +395,7 @@ p { color: var(--muted); line-height: 1.7; }
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  margin-bottom: 24px;
-}
-.results-logo,
-.schedule-logo {
-  height: 48px;
-  width: auto;
+  margin-bottom: 32px;
 }
 .results-prepared-for {
   margin: 0;
@@ -690,7 +711,7 @@ p { color: var(--muted); line-height: 1.7; }
   padding: 20px 0 56px;
 }
 .report-dashboard-header {
-  margin-bottom: 8px;
+  margin-bottom: 24px;
 }
 .report-dashboard {
   display: grid;
@@ -1684,13 +1705,8 @@ p { color: var(--muted); line-height: 1.7; }
   flex-direction: column;
   align-items: center;
   gap: 16px;
-  margin-bottom: 24px;
+  margin-bottom: 32px;
   text-align: center;
-}
-.calculator-logo,
-.protection-results-logo {
-  height: 48px;
-  width: auto;
 }
 .calculator-intro {
   display: grid;
@@ -2892,13 +2908,13 @@ p { color: var(--muted); line-height: 1.7; }
   border-bottom: 1px solid var(--line);
   background: #ffffff;
 }
-.sample-report-modal-kicker {
-  margin: 0 0 6px;
-  color: var(--gold);
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-size: 11px;
-  font-weight: 800;
+.sample-report-modal-brand {
+  display: grid;
+  gap: 10px;
+}
+.sample-report-modal-brand .assessment-brand-header {
+  margin: 0;
+  width: min(100%, 245px);
 }
 .sample-report-modal-title {
   margin: 0;
@@ -2931,25 +2947,28 @@ p { color: var(--muted); line-height: 1.7; }
     padding: 36px 32px;
     border-radius: 28px;
   }
-  .assessment-logo {
-    height: 56px;
-  }
   .results-grid {
     grid-template-columns: 1fr 1fr;
-  }
-  .results-logo,
-  .schedule-logo {
-    height: 56px;
-  }
-  .calculator-logo,
-  .protection-results-logo {
-    height: 56px;
   }
   .protection-comparison-grid {
     grid-template-columns: 1fr 1fr;
   }
   .home-premium-grid-four {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 768px) {
+  .assessment-brand-header {
+    width: min(100%, 245px);
+  }
+  .assessment-brand-valtoris {
+    font-size: 23px;
+    letter-spacing: 0.22em;
+  }
+  .assessment-brand-financial {
+    font-size: 12px;
+    letter-spacing: 0.34em;
   }
 }
 

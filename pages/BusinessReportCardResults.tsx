@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom'
-import BrandLogo from '../components/BrandLogo'
+import AssessmentBrandHeader from '../components/AssessmentBrandHeader'
 import ScheduleReportCardLink from '../components/ScheduleReportCardLink'
 import ReportDashboard from '../components/reportDashboard/ReportDashboard'
 import {
@@ -9,7 +9,7 @@ import {
 } from '../components/reportCard/businessReportCardData'
 import { BUSINESS_ANSWERS_STORAGE_KEY } from '../components/business/constants'
 import { BusinessAssessmentAnswers } from '../components/assessment/business/types'
-import { SCHEDULE_CTA } from '../constants/homepage'
+import { RETAKE_ASSESSMENT_CTA, SCHEDULE_CTA } from '../constants/homepage'
 import { ROUTES } from '../constants/routes'
 
 function loadAnswers(state: unknown): BusinessAssessmentAnswers | undefined {
@@ -38,7 +38,7 @@ export default function BusinessReportCardResults() {
     <div className="results-shell report-dashboard-shell">
       <div className="results-container report-dashboard-container">
         <header className="results-header report-dashboard-header">
-          <BrandLogo className="results-logo" />
+          <AssessmentBrandHeader />
         </header>
 
         <ReportDashboard
@@ -57,7 +57,7 @@ export default function BusinessReportCardResults() {
             className="results-back-link"
             onClick={() => navigate(ROUTES.businessAssessment)}
           >
-            Retake Assessment
+            {RETAKE_ASSESSMENT_CTA}
           </button>
         </section>
       </div>

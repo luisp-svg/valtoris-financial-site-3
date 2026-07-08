@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import BrandLogo from '../components/BrandLogo'
+import AssessmentBrandHeader from '../components/AssessmentBrandHeader'
 import ScheduleReportCardLink from '../components/ScheduleReportCardLink'
 import { SCHEDULE_CTA } from '../constants/homepage'
 import { ROUTES } from '../constants/routes'
@@ -9,7 +9,7 @@ export default function ScheduleReportCardPage() {
     <div className="schedule-shell">
       <div className="schedule-container">
         <header className="schedule-header">
-          <BrandLogo className="schedule-logo" />
+          <AssessmentBrandHeader />
         </header>
 
         <section className="schedule-card">

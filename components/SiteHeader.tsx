@@ -19,7 +19,7 @@ export default function SiteHeader() {
           <Link to={ROUTES.home}>Home</Link>
           <Link to={ROUTES.reportCard}>Family Report Card™</Link>
           <Link to={ROUTES.protectionGap}>Protection Analysis™</Link>
-          <Link to={ROUTES.businessReportCard}>Business Report Card™</Link>
+          <Link to={ROUTES.businessAssessment}>Business Report Card™</Link>
         </nav>
       </div>
     </header>

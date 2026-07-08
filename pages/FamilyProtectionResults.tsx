@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom'
-import BrandLogo from '../components/BrandLogo'
+import AssessmentBrandHeader from '../components/AssessmentBrandHeader'
 import ScheduleReportCardLink from '../components/ScheduleReportCardLink'
 import AnimatedCurrency from '../components/calculator/AnimatedCurrency'
 import {
@@ -9,7 +9,7 @@ import {
 import ProtectionSummaryBreakdown from '../components/calculator/ProtectionSummaryBreakdown'
 import { CALCULATOR_STORAGE_KEY } from '../components/calculator/constants'
 import { CalculatorAnswers, INITIAL_CALCULATOR_ANSWERS } from '../components/calculator/types'
-import { SCHEDULE_CTA } from '../constants/homepage'
+import { RESTART_ASSESSMENT_CTA, SCHEDULE_CTA } from '../constants/homepage'
 import { ROUTES } from '../constants/routes'
 
 function loadAnswers(state: unknown): CalculatorAnswers {
@@ -49,7 +49,7 @@ export default function FamilyProtectionResults() {
     <div className="protection-results-shell">
       <div className="protection-results-container">
         <header className="protection-results-header protection-report-fade">
-          <BrandLogo className="protection-results-logo" />
+          <AssessmentBrandHeader />
         </header>
 
         {submissionWarning ? (
@@ -141,7 +141,7 @@ export default function FamilyProtectionResults() {
               className="protection-results-secondary-btn"
               onClick={() => navigate(ROUTES.protectionGap)}
             >
-              Recalculate
+              {RESTART_ASSESSMENT_CTA}
             </button>
           </div>
         </section>

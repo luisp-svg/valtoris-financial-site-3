@@ -1,5 +1,5 @@
 import { ReactNode } from 'react'
-import BrandLogo from '../BrandLogo'
+import AssessmentBrandHeader from '../AssessmentBrandHeader'
 import ProgressBar from './ProgressBar'
 import { DEMO_ASSESSMENT_STEPS } from './constants'
 
@@ -20,7 +20,7 @@ export default function AssessmentLayout({
     <div className="assessment-shell">
       <div className="assessment-container">
         <header className="assessment-header">
-          <BrandLogo className="assessment-logo" />
+          <AssessmentBrandHeader />
           <p className="assessment-step-indicator">
             Step {currentStep} of {totalSteps}
           </p>
