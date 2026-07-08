@@ -1,19 +1,12 @@
 import { useNavigate } from 'react-router-dom'
-import LeadForm from '../components/LeadForm'
-import { BUSINESS_REPORT_STORAGE_KEY } from '../components/business/constants'
 import { BUSINESS_CTA } from '../constants/homepage'
 import { ROUTES } from '../constants/routes'
 
 export default function BusinessReportCardPage() {
   const navigate = useNavigate()
 
-  function handleLeadSuccess(payload: Record<string, FormDataEntryValue>) {
-    const businessName = typeof payload.name === 'string' ? payload.name.trim() : ''
-    const context = { businessName }
-    sessionStorage.setItem(BUSINESS_REPORT_STORAGE_KEY, JSON.stringify(context))
-
-    console.log('Navigation to results:', ROUTES.businessReportCardResults)
-    navigate(ROUTES.businessReportCardResults, { state: context })
+  function handleStartAssessment() {
+    navigate(ROUTES.businessAssessment)
   }
 
   function handleViewSampleReport() {
@@ -41,11 +34,20 @@ export default function BusinessReportCardPage() {
             View Sample Business Report Card™
           </button>
         </div>
-        <LeadForm
-          source="business-financial-report-card"
-          title={BUSINESS_CTA}
-          onSuccess={handleLeadSuccess}
-        />
+        <div className="panel business-report-card-cta-panel">
+          <h3 className="business-report-card-cta-title">Business Financial Assessment™</h3>
+          <p className="business-report-card-cta-copy">
+            A professional diagnostic for business owners — answer focused questions and receive your
+            personalized Business Financial Report Card™.
+          </p>
+          <button
+            type="button"
+            className="assessment-btn assessment-btn-primary business-report-card-cta-button"
+            onClick={handleStartAssessment}
+          >
+            {BUSINESS_CTA}
+          </button>
+        </div>
       </div>
     </section>
   )

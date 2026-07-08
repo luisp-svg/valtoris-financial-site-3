@@ -4,40 +4,35 @@ import ScheduleReportCardLink from '../components/ScheduleReportCardLink'
 import ReportDashboard from '../components/reportDashboard/ReportDashboard'
 import {
   BUSINESS_SAMPLE_GREETING,
+  DEMO_BUSINESS_ANSWERS,
   getBusinessReportDashboardData,
 } from '../components/reportCard/businessReportCardData'
-import {
-  BUSINESS_REPORT_STORAGE_KEY,
-  BusinessReportContext,
-  INITIAL_BUSINESS_REPORT_CONTEXT,
-} from '../components/business/constants'
+import { BUSINESS_ANSWERS_STORAGE_KEY } from '../components/business/constants'
+import { BusinessAssessmentAnswers } from '../components/assessment/business/types'
 import { SCHEDULE_CTA } from '../constants/homepage'
 import { ROUTES } from '../constants/routes'
 
-function loadBusinessContext(state: unknown): BusinessReportContext {
-  if (state && typeof state === 'object' && 'businessName' in state) {
-    const businessName = (state as { businessName?: unknown }).businessName
-    if (typeof businessName === 'string') {
-      return { businessName }
-    }
+function loadAnswers(state: unknown): BusinessAssessmentAnswers | undefined {
+  if (state && typeof state === 'object' && 'answers' in state) {
+    return (state as { answers: BusinessAssessmentAnswers }).answers
   }
 
   try {
-    const stored = sessionStorage.getItem(BUSINESS_REPORT_STORAGE_KEY)
-    if (stored) return JSON.parse(stored) as BusinessReportContext
+    const stored = sessionStorage.getItem(BUSINESS_ANSWERS_STORAGE_KEY)
+    if (stored) return JSON.parse(stored) as BusinessAssessmentAnswers
   } catch {
     // Demo fallback when opened directly.
   }
 
-  return INITIAL_BUSINESS_REPORT_CONTEXT
+  return undefined
 }
 
 export default function BusinessReportCardResults() {
   const location = useLocation()
   const navigate = useNavigate()
-  const { businessName } = loadBusinessContext(location.state)
-  const trimmedName = businessName.trim()
-  const greeting = trimmedName ? `Prepared for ${trimmedName}` : BUSINESS_SAMPLE_GREETING
+  const answers = loadAnswers(location.state)
+  const businessName = answers?.business.name.trim() ?? ''
+  const greeting = businessName ? `Prepared for ${businessName}` : BUSINESS_SAMPLE_GREETING
 
   return (
     <div className="results-shell report-dashboard-shell">
@@ -46,7 +41,9 @@ export default function BusinessReportCardResults() {
           <BrandLogo className="results-logo" />
         </header>
 
-        <ReportDashboard data={getBusinessReportDashboardData(trimmedName, greeting)} />
+        <ReportDashboard
+          data={getBusinessReportDashboardData(businessName, greeting, answers ?? DEMO_BUSINESS_ANSWERS)}
+        />
 
         <section className="rd-cta">
           <h2 className="rd-cta-title">{SCHEDULE_CTA}</h2>
@@ -58,9 +55,9 @@ export default function BusinessReportCardResults() {
           <button
             type="button"
             className="results-back-link"
-            onClick={() => navigate(ROUTES.businessReportCard)}
+            onClick={() => navigate(ROUTES.businessAssessment)}
           >
-            Back to Business Report Card
+            Retake Assessment
           </button>
         </section>
       </div>

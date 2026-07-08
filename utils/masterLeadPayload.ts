@@ -17,6 +17,15 @@ export type MasterLeadPayloadInput = {
   children?: string
   businessName?: string
   businessType?: string
+  businessIndustry?: string
+  entityStructure?: string
+  grossAnnualRevenue?: string
+  ownerCompensationMethod?: string
+  ownerPersonalIncome?: string
+  acceptsCardPayments?: string
+  cardSalesPercentage?: string
+  estimatedProcessingRate?: string
+  lastProcessingReview?: string
   annualIncome?: number | string
   housingType?: string
   annualHousing?: number | string
@@ -60,6 +69,15 @@ export function buildMasterLeadPayload(input: MasterLeadPayloadInput = {}): Lead
     children: input.children ?? '',
     businessName: input.businessName ?? '',
     businessType: input.businessType ?? '',
+    businessIndustry: input.businessIndustry ?? '',
+    entityStructure: input.entityStructure ?? '',
+    grossAnnualRevenue: input.grossAnnualRevenue ?? '',
+    ownerCompensationMethod: input.ownerCompensationMethod ?? '',
+    ownerPersonalIncome: input.ownerPersonalIncome ?? '',
+    acceptsCardPayments: input.acceptsCardPayments ?? '',
+    cardSalesPercentage: input.cardSalesPercentage ?? '',
+    estimatedProcessingRate: input.estimatedProcessingRate ?? '',
+    lastProcessingReview: input.lastProcessingReview ?? '',
     annualIncome: input.annualIncome ?? '',
     housingType: input.housingType ?? '',
     annualHousing: input.annualHousing ?? '',

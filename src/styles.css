@@ -178,6 +178,12 @@ p { color: var(--muted); line-height: 1.7; }
   display: grid;
   gap: 20px;
 }
+.assessment-subsection {
+  display: grid;
+  gap: 20px;
+  padding: 20px 0 4px;
+  border-top: 1px solid var(--line);
+}
 .assessment-field {
   display: grid;
   gap: 8px;
@@ -1634,6 +1640,26 @@ p { color: var(--muted); line-height: 1.7; }
 .business-report-card-sample:hover {
   transform: translateY(-1px);
   box-shadow: 0 14px 32px rgba(7, 20, 77, 0.18);
+}
+.business-report-card-cta-panel {
+  align-content: start;
+}
+.business-report-card-cta-title {
+  margin: 0;
+  font-size: 1.5rem;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--brand);
+}
+.business-report-card-cta-copy {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--muted);
+}
+.business-report-card-cta-button {
+  justify-self: start;
+  margin-top: 4px;
 }
 
 /* Family Protection Calculator */

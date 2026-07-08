@@ -8,6 +8,7 @@ import CheckupPage from '../pages/CheckupPage'
 import FamilyProtectionCalculator from '../pages/FamilyProtectionCalculator'
 import FamilyProtectionResults from '../pages/FamilyProtectionResults'
 import BusinessReportCardPage from '../pages/BusinessReportCardPage'
+import BusinessFinancialAssessment from '../pages/BusinessFinancialAssessment'
 import BusinessReportCardResults from '../pages/BusinessReportCardResults'
 import FinancialProtectionAssessment from '../pages/FinancialProtectionAssessment'
 import FamilyReportCardResults from '../pages/FamilyReportCardResults'
@@ -32,6 +33,7 @@ export default function App() {
 
       <Route path={ROUTES.reportCardResults} element={<FamilyReportCardResults />} />
       <Route path={ROUTES.businessReportCardResults} element={<BusinessReportCardResults />} />
+      <Route path={ROUTES.businessAssessment} element={<BusinessFinancialAssessment />} />
       <Route path={ROUTES.schedule} element={<ScheduleReportCardPage />} />
 
       <Route
@@ -66,7 +68,6 @@ export default function App() {
         }
       />
       <Route path="/business" element={<Navigate to={ROUTES.businessReportCard} replace />} />
-      <Route path="/business-assessment" element={<Navigate to={ROUTES.businessReportCard} replace />} />
     </Routes>
   )
 }
