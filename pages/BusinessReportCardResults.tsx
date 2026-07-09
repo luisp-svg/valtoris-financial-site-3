@@ -31,6 +31,12 @@ export default function BusinessReportCardResults() {
   const location = useLocation()
   const navigate = useNavigate()
   const answers = loadAnswers(location.state)
+  const submissionWarning =
+    location.state &&
+    typeof location.state === 'object' &&
+    'submissionWarning' in location.state
+      ? String((location.state as { submissionWarning?: string }).submissionWarning ?? '')
+      : ''
   const businessName = answers?.business.name.trim() ?? ''
   const greeting = businessName ? `Prepared for ${businessName}` : BUSINESS_SAMPLE_GREETING
 
@@ -40,6 +46,12 @@ export default function BusinessReportCardResults() {
         <header className="results-header report-dashboard-header">
           <AssessmentBrandHeader />
         </header>
+
+        {submissionWarning ? (
+          <p className="submission-notice" role="status">
+            {submissionWarning}
+          </p>
+        ) : null}
 
         <ReportDashboard
           data={getBusinessReportDashboardData(businessName, greeting, answers ?? DEMO_BUSINESS_ANSWERS)}

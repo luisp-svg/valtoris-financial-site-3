@@ -3,9 +3,10 @@ import { FAMILY_CTA } from '../../../constants/homepage'
 
 type StepWelcomeProps = {
   onBegin: () => void
+  onBack?: () => void
 }
 
-export default function StepWelcome({ onBegin }: StepWelcomeProps) {
+export default function StepWelcome({ onBegin, onBack }: StepWelcomeProps) {
   return (
     <QuestionCard
       title="Start Your Family Financial Report Card™"
@@ -15,6 +16,11 @@ export default function StepWelcome({ onBegin }: StepWelcomeProps) {
         <button type="button" className="assessment-btn assessment-btn-primary" onClick={onBegin}>
           {FAMILY_CTA}
         </button>
+        {onBack ? (
+          <button type="button" className="assessment-btn assessment-btn-secondary" onClick={onBack}>
+            Back to Overview
+          </button>
+        ) : null}
       </div>
     </QuestionCard>
   )

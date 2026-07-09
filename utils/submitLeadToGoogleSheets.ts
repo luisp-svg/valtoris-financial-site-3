@@ -17,11 +17,6 @@ export async function submitLeadToGoogleSheets(
     ...payload,
   }
 
-  console.log('SHARED GOOGLE SHEETS SUBMIT CALLED')
-  console.log('Lead type:', leadType)
-  console.log('Webhook URL:', webhookUrl)
-  console.log('Payload:', body)
-
   const webhookPresent = Boolean(webhookUrl.trim())
 
   if (!webhookPresent) {
@@ -38,8 +33,6 @@ export async function submitLeadToGoogleSheets(
     })
 
     const responseText = await response.text()
-    console.log('Google Sheets response status:', response.status)
-    console.log('Google Sheets response text:', responseText)
 
     if (!response.ok) {
       const error = new Error(`Webhook responded with ${response.status}: ${responseText}`)

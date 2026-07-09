@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ROUTES } from '../constants/routes'
+import { CALCULATOR_SUBMISSION_WARNING } from '../constants/urls'
 import AssessmentLayout from '../components/assessment/AssessmentLayout'
 import NavigationButtons from '../components/assessment/NavigationButtons'
 import { DEMO_ANSWERS_STORAGE_KEY, DEMO_ASSESSMENT_STEPS } from '../components/assessment/constants'
@@ -97,7 +98,7 @@ export default function FinancialProtectionAssessment() {
   }
 
   async function completeFamilyAssessment(finalAnswers: DemoAssessmentAnswers) {
-    console.log('FAMILY SUBMIT START')
+    let submissionWarning: string | undefined
 
     try {
       sessionStorage.setItem(DEMO_ANSWERS_STORAGE_KEY, JSON.stringify(finalAnswers))
@@ -105,12 +106,15 @@ export default function FinancialProtectionAssessment() {
       const submission = await submitFamilyReportCardLead(finalAnswers)
       if (!submission.ok) {
         console.error('Google Sheets submission failed:', submission.error)
+        submissionWarning = CALCULATOR_SUBMISSION_WARNING
       }
     } catch (error) {
       console.error('Google Sheets submission failed:', error)
+      submissionWarning = CALCULATOR_SUBMISSION_WARNING
     } finally {
-      console.log('NAVIGATING TO FAMILY RESULTS')
-      navigate(ROUTES.reportCardResults, { state: { answers: finalAnswers } })
+      navigate(ROUTES.reportCardResults, {
+        state: { answers: finalAnswers, submissionWarning },
+      })
     }
   }
 
@@ -152,7 +156,12 @@ export default function FinancialProtectionAssessment() {
         )
       }
     >
-      {currentStep === 1 && <StepWelcome onBegin={() => setCurrentStep(2)} />}
+      {currentStep === 1 && (
+        <StepWelcome
+          onBegin={() => setCurrentStep(2)}
+          onBack={() => navigate(ROUTES.reportCard)}
+        />
+      )}
       {currentStep === 2 && <StepTwoFamily answers={answers.family} onChange={updateFamily} />}
       {currentStep === 3 && (
         <StepThreeFinancial answers={answers.financial} onChange={updateFinancial} />

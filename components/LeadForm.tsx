@@ -19,6 +19,10 @@ export default function LeadForm({ source, title = 'Request a consultation', onS
     const submission = await submitLeadFormLead(source, payload)
     if (!submission.ok) {
       console.error('Google Sheets submission failed:', submission.error)
+      setStatus(
+        'We could not submit your request right now. Please try again or schedule a strategy session directly.',
+      )
+      return
     }
 
     setStatus('Thanks — your request was submitted.')

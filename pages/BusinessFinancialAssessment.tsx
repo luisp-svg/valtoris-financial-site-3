@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ROUTES } from '../constants/routes'
+import { CALCULATOR_SUBMISSION_WARNING } from '../constants/urls'
 import AssessmentLayout from '../components/assessment/AssessmentLayout'
 import NavigationButtons from '../components/assessment/NavigationButtons'
 import { BUSINESS_ASSESSMENT_STEPS } from '../components/assessment/business/constants'
@@ -106,7 +107,7 @@ export default function BusinessFinancialAssessment() {
   }
 
   async function completeBusinessAssessment(finalAnswers: BusinessAssessmentAnswers) {
-    console.log('BUSINESS SUBMIT START')
+    let submissionWarning: string | undefined
 
     try {
       sessionStorage.setItem(BUSINESS_ANSWERS_STORAGE_KEY, JSON.stringify(finalAnswers))
@@ -118,12 +119,15 @@ export default function BusinessFinancialAssessment() {
       const submission = await submitBusinessReportCardLead(finalAnswers)
       if (!submission.ok) {
         console.error('Google Sheets submission failed:', submission.error)
+        submissionWarning = CALCULATOR_SUBMISSION_WARNING
       }
     } catch (error) {
       console.error('Google Sheets submission failed:', error)
+      submissionWarning = CALCULATOR_SUBMISSION_WARNING
     } finally {
-      console.log('NAVIGATING TO BUSINESS RESULTS')
-      navigate(ROUTES.businessReportCardResults, { state: { answers: finalAnswers } })
+      navigate(ROUTES.businessReportCardResults, {
+        state: { answers: finalAnswers, submissionWarning },
+      })
     }
   }
 
@@ -160,7 +164,12 @@ export default function BusinessFinancialAssessment() {
         )
       }
     >
-      {currentStep === 1 && <StepBusinessWelcome onBegin={() => setCurrentStep(2)} />}
+      {currentStep === 1 && (
+        <StepBusinessWelcome
+          onBegin={() => setCurrentStep(2)}
+          onBack={() => navigate(ROUTES.businessReportCard)}
+        />
+      )}
       {currentStep === 2 && (
         <StepBusinessInformation
           owner={answers.owner}

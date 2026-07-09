@@ -81,7 +81,6 @@ export default function FamilyProtectionCalculator() {
       submissionWarning = CALCULATOR_SUBMISSION_WARNING
     }
 
-    console.log('Navigation to results:', ROUTES.protectionResults)
     navigate(ROUTES.protectionResults, {
       state: { answers, submissionWarning },
     })

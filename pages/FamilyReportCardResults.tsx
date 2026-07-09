@@ -1,11 +1,11 @@
-import { useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import AssessmentBrandHeader from '../components/AssessmentBrandHeader'
 import ScheduleReportCardLink from '../components/ScheduleReportCardLink'
 import ReportDashboard from '../components/reportDashboard/ReportDashboard'
 import { getFamilyReportDashboardData, SAMPLE_GREETING } from '../components/reportCard/reportCardData'
 import { DEMO_ANSWERS_STORAGE_KEY } from '../components/assessment/constants'
 import { DemoAssessmentAnswers, INITIAL_DEMO_ANSWERS } from '../components/assessment/types'
-import { RETAKE_ASSESSMENT_CTA, SCHEDULE_CTA } from '../constants/homepage'
+import { PROTECTION_CTA, RETAKE_ASSESSMENT_CTA, SCHEDULE_CTA } from '../constants/homepage'
 import { ROUTES } from '../constants/routes'
 
 function loadAnswers(state: unknown): DemoAssessmentAnswers {
@@ -27,6 +27,12 @@ export default function FamilyReportCardResults() {
   const location = useLocation()
   const navigate = useNavigate()
   const answers = loadAnswers(location.state)
+  const submissionWarning =
+    location.state &&
+    typeof location.state === 'object' &&
+    'submissionWarning' in location.state
+      ? String((location.state as { submissionWarning?: string }).submissionWarning ?? '')
+      : ''
   const firstName = answers.family.firstName.trim()
   const greeting = firstName ? `Prepared for ${firstName}` : SAMPLE_GREETING
 
@@ -37,6 +43,12 @@ export default function FamilyReportCardResults() {
           <AssessmentBrandHeader />
         </header>
 
+        {submissionWarning ? (
+          <p className="submission-notice" role="status">
+            {submissionWarning}
+          </p>
+        ) : null}
+
         <ReportDashboard data={getFamilyReportDashboardData(firstName, greeting, answers)} />
 
         <section className="rd-cta">
@@ -46,6 +58,9 @@ export default function FamilyReportCardResults() {
             customized action plan for protecting and growing your family&apos;s wealth.
           </p>
           <ScheduleReportCardLink className="rd-cta-button">{SCHEDULE_CTA}</ScheduleReportCardLink>
+          <Link className="results-back-link" to={ROUTES.protectionAnalysis}>
+            {PROTECTION_CTA}
+          </Link>
           <button
             type="button"
             className="results-back-link"

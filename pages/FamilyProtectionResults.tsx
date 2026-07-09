@@ -1,4 +1,4 @@
-import { useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import AssessmentBrandHeader from '../components/AssessmentBrandHeader'
 import ScheduleReportCardLink from '../components/ScheduleReportCardLink'
 import AnimatedCurrency from '../components/calculator/AnimatedCurrency'
@@ -9,7 +9,7 @@ import {
 import ProtectionSummaryBreakdown from '../components/calculator/ProtectionSummaryBreakdown'
 import { CALCULATOR_STORAGE_KEY } from '../components/calculator/constants'
 import { CalculatorAnswers, INITIAL_CALCULATOR_ANSWERS } from '../components/calculator/types'
-import { RESTART_ASSESSMENT_CTA, SCHEDULE_CTA } from '../constants/homepage'
+import { FAMILY_REPORT_CARD_LEARN_CTA, RESTART_ASSESSMENT_CTA, SCHEDULE_CTA } from '../constants/homepage'
 import { ROUTES } from '../constants/routes'
 
 function loadAnswers(state: unknown): CalculatorAnswers {
@@ -136,6 +136,9 @@ export default function FamilyProtectionResults() {
             <ScheduleReportCardLink className="protection-results-cta-button">
               {SCHEDULE_CTA}
             </ScheduleReportCardLink>
+            <Link className="protection-results-secondary-btn" to={ROUTES.reportCard}>
+              {FAMILY_REPORT_CARD_LEARN_CTA}
+            </Link>
             <button
               type="button"
               className="protection-results-secondary-btn"

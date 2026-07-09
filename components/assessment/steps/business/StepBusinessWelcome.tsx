@@ -3,9 +3,10 @@ import { BUSINESS_CTA } from '../../../../constants/homepage'
 
 type StepBusinessWelcomeProps = {
   onBegin: () => void
+  onBack?: () => void
 }
 
-export default function StepBusinessWelcome({ onBegin }: StepBusinessWelcomeProps) {
+export default function StepBusinessWelcome({ onBegin, onBack }: StepBusinessWelcomeProps) {
   return (
     <QuestionCard
       title="Start Your Business Financial Report Card™"
@@ -15,6 +16,11 @@ export default function StepBusinessWelcome({ onBegin }: StepBusinessWelcomeProp
         <button type="button" className="assessment-btn assessment-btn-primary" onClick={onBegin}>
           {BUSINESS_CTA}
         </button>
+        {onBack ? (
+          <button type="button" className="assessment-btn assessment-btn-secondary" onClick={onBack}>
+            Back to Overview
+          </button>
+        ) : null}
       </div>
     </QuestionCard>
   )
