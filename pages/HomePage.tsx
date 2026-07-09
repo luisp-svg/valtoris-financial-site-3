@@ -75,6 +75,29 @@ const HOW_IT_WORKS = [
   },
 ]
 
+const SOLUTION_PREVIEW_AREAS = [
+  {
+    icon: 'protection' as const,
+    title: 'Protect Your Family',
+    description: 'Build a stronger financial foundation for the people who depend on you.',
+  },
+  {
+    icon: 'priorities' as const,
+    title: 'Strengthen Your Finances',
+    description: 'Create more breathing room today so you can build a stronger tomorrow.',
+  },
+  {
+    icon: 'strategy' as const,
+    title: 'Build Your Future',
+    description: 'Turn today\u2019s financial decisions into long-term progress.',
+  },
+  {
+    icon: 'picture' as const,
+    title: 'Protect & Grow Your Business',
+    description: 'A financial strategy as intentional as the business itself.',
+  },
+]
+
 const WHO_WE_HELP = [
   {
     title: 'Families',
@@ -174,6 +197,28 @@ export default function HomePage() {
               <DiagnosticProductCard key={product.title} {...product} />
             ))}
           </div>
+        </div>
+      </section>
+
+      <section className="platform-section platform-solutions-preview">
+        <div className="container platform-section-inner">
+          <h2 className="platform-section-title">Solutions for Your Whole Financial Life</h2>
+          <p className="platform-section-lead">
+            Four strategic areas — protection, finances, future planning, and business — coordinated
+            around what matters most.
+          </p>
+          <div className="solutions-preview-grid">
+            {SOLUTION_PREVIEW_AREAS.map((area) => (
+              <article key={area.title} className="solutions-preview-card">
+                <HomeCardIcon variant={area.icon} />
+                <h3 className="solutions-preview-title">{area.title}</h3>
+                <p className="solutions-preview-copy">{area.description}</p>
+              </article>
+            ))}
+          </div>
+          <Link className="platform-btn platform-btn-secondary solutions-preview-cta" to={ROUTES.solutions}>
+            Explore All Solutions
+          </Link>
         </div>
       </section>
 

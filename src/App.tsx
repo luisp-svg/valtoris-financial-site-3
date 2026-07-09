@@ -14,6 +14,7 @@ import FinancialProtectionAssessment from '../pages/FinancialProtectionAssessmen
 import FamilyReportCardResults from '../pages/FamilyReportCardResults'
 import FamilyReportCardPage from '../pages/FamilyReportCardPage'
 import ProtectionAnalysisPage from '../pages/ProtectionAnalysisPage'
+import SolutionsPage from '../pages/SolutionsPage'
 import ScheduleReportCardPage from '../pages/ScheduleReportCardPage'
 import NotFoundPage from '../pages/NotFoundPage'
 
@@ -83,6 +84,14 @@ export default function App() {
         element={
           <SiteLayout>
             <ProtectionAnalysisPage />
+          </SiteLayout>
+        }
+      />
+      <Route
+        path={ROUTES.solutions}
+        element={
+          <SiteLayout>
+            <SolutionsPage />
           </SiteLayout>
         }
       />

@@ -11,6 +11,7 @@ export default function SiteHeader() {
         </Link>
         <nav className="nav" aria-label="Primary">
           <Link to={ROUTES.home}>Home</Link>
+          <Link to={ROUTES.solutions}>Solutions</Link>
           <Link to={ROUTES.reportCard}>Family Report Card™</Link>
           <Link to={ROUTES.businessReportCard}>Business Report Card™</Link>
           <Link to={ROUTES.protectionAnalysis}>Protection Analysis™</Link>
