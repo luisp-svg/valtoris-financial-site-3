@@ -1,9 +1,18 @@
 export const FAMILY_CTA = 'Get My Free Family Financial Report Card™'
 export const PROTECTION_CTA = 'Start My Family Protection Analysis™'
 export const BUSINESS_CTA = 'Get My Business Financial Report Card™'
+export const BUSINESS_SAMPLE_CTA = 'View Sample Business Report Card™'
 export const SCHEDULE_CTA = 'Schedule Complimentary Strategy Session™'
 export const RETAKE_ASSESSMENT_CTA = 'Retake Assessment'
 export const RESTART_ASSESSMENT_CTA = 'Restart Assessment'
 export const SAMPLE_REPORT_CTA = 'View Sample Report'
+export const FAMILY_REPORT_CARD_LEARN_CTA = 'Learn About the Full Family Report Card™'
+
+export const HOME_EXPLORE_CTA = 'Explore Your Diagnostics'
+export const HOME_HOW_IT_WORKS_CTA = 'How It Works'
+export const HOME_FAMILY_CARD_PRIMARY = 'Get My Family Report Card'
+export const HOME_BUSINESS_CARD_PRIMARY = 'Get My Business Report Card'
+export const HOME_PROTECTION_CARD_PRIMARY = 'Start Protection Analysis'
+export const HOME_LEARN_MORE_CTA = 'Learn More'
 
 export const HOME_PRIMARY_CTA = FAMILY_CTA

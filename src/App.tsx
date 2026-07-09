@@ -12,7 +12,10 @@ import BusinessFinancialAssessment from '../pages/BusinessFinancialAssessment'
 import BusinessReportCardResults from '../pages/BusinessReportCardResults'
 import FinancialProtectionAssessment from '../pages/FinancialProtectionAssessment'
 import FamilyReportCardResults from '../pages/FamilyReportCardResults'
+import FamilyReportCardPage from '../pages/FamilyReportCardPage'
+import ProtectionAnalysisPage from '../pages/ProtectionAnalysisPage'
 import ScheduleReportCardPage from '../pages/ScheduleReportCardPage'
+import NotFoundPage from '../pages/NotFoundPage'
 
 function SiteLayout({ children }: { children: ReactNode }) {
   return (
@@ -27,9 +30,9 @@ function SiteLayout({ children }: { children: ReactNode }) {
 export default function App() {
   return (
     <Routes>
-      <Route path={ROUTES.reportCard} element={<FinancialProtectionAssessment />} />
-      <Route path="/assessment" element={<Navigate to={ROUTES.reportCard} replace />} />
-      <Route path="/report" element={<Navigate to={ROUTES.reportCard} replace />} />
+      <Route path={ROUTES.familyAssessment} element={<FinancialProtectionAssessment />} />
+      <Route path="/assessment" element={<Navigate to={ROUTES.familyAssessment} replace />} />
+      <Route path="/report" element={<Navigate to={ROUTES.familyAssessment} replace />} />
 
       <Route path={ROUTES.reportCardResults} element={<FamilyReportCardResults />} />
       <Route path={ROUTES.businessReportCardResults} element={<BusinessReportCardResults />} />
@@ -60,6 +63,14 @@ export default function App() {
       <Route path={ROUTES.protectionResults} element={<FamilyProtectionResults />} />
 
       <Route
+        path={ROUTES.reportCard}
+        element={
+          <SiteLayout>
+            <FamilyReportCardPage />
+          </SiteLayout>
+        }
+      />
+      <Route
         path={ROUTES.businessReportCard}
         element={
           <SiteLayout>
@@ -67,7 +78,24 @@ export default function App() {
           </SiteLayout>
         }
       />
+      <Route
+        path={ROUTES.protectionAnalysis}
+        element={
+          <SiteLayout>
+            <ProtectionAnalysisPage />
+          </SiteLayout>
+        }
+      />
       <Route path="/business" element={<Navigate to={ROUTES.businessReportCard} replace />} />
+
+      <Route
+        path="*"
+        element={
+          <SiteLayout>
+            <NotFoundPage />
+          </SiteLayout>
+        }
+      />
     </Routes>
   )
 }

@@ -49,7 +49,7 @@ export default function FamilyReportCardResults() {
           <button
             type="button"
             className="results-back-link"
-            onClick={() => navigate(ROUTES.reportCard)}
+            onClick={() => navigate(ROUTES.familyAssessment)}
           >
             {RETAKE_ASSESSMENT_CTA}
           </button>

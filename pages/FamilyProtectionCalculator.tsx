@@ -56,7 +56,7 @@ export default function FamilyProtectionCalculator() {
 
   function handleBack() {
     if (currentStep === 1) {
-      navigate(ROUTES.home)
+      navigate(ROUTES.protectionAnalysis)
       return
     }
     setCurrentStep((step) => step - 1)

@@ -73,7 +73,7 @@ export async function submitFamilyReportCardLead(answers: DemoAssessmentAnswers)
     leadStatus: '',
     assignedAdvisor: '',
     notes: '',
-    sourcePage: getSourcePage() || ROUTES.reportCard,
+    sourcePage: getSourcePage() || ROUTES.familyAssessment,
     rawAnswers: JSON.stringify(answers),
   })
 

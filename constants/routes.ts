@@ -1,7 +1,9 @@
 export const ROUTES = {
   home: '/',
   reportCard: '/report-card',
+  familyAssessment: '/family-assessment',
   reportCardResults: '/results',
+  protectionAnalysis: '/protection-analysis',
   protectionGap: '/protection-gap',
   protectionResults: '/protection-results',
   businessReportCard: '/business-report-card',

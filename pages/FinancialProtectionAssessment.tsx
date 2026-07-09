@@ -90,7 +90,7 @@ export default function FinancialProtectionAssessment() {
     }
 
     if (currentStep === 1) {
-      navigate(ROUTES.home)
+      navigate(ROUTES.reportCard)
       return
     }
     setCurrentStep((step) => step - 1)
