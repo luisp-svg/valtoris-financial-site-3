@@ -200,9 +200,14 @@ export default function SolutionsPage() {
               together, identify the areas that need attention, and take the next right step.
             </p>
           </div>
-          <a className="product-btn-secondary" href="#starting-points">
-            Start With a Financial Diagnostic
-          </a>
+          <div className="solutions-hero-actions platform-btn-row platform-btn-row--center">
+            <Link className="platform-btn platform-btn-primary" to={ROUTES.reportCard}>
+              Start Family Report Card
+            </Link>
+            <Link className="platform-btn platform-btn-secondary" to={ROUTES.businessReportCard}>
+              Business Owner? Start Here
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -220,7 +225,7 @@ export default function SolutionsPage() {
                 {section.lead}
               </p>
               <p className="solutions-section-body">{section.body}</p>
-              <Link className="product-btn-secondary" to={section.ctaTo}>
+              <Link className="platform-btn platform-btn-primary" to={section.ctaTo}>
                 {section.ctaLabel}
               </Link>
             </div>
@@ -279,7 +284,7 @@ export default function SolutionsPage() {
             You don&apos;t have to figure out every financial decision alone.
           </p>
           <div className="product-closing-actions">
-            <ScheduleReportCardLink className="product-btn-light">
+            <ScheduleReportCardLink className="platform-btn platform-btn-secondary">
               Schedule My Complimentary Strategy Session™
             </ScheduleReportCardLink>
           </div>

@@ -1,232 +1,253 @@
 import { Fragment } from 'react'
 import { Link } from 'react-router-dom'
-import DiagnosticProductCard from '../components/home/DiagnosticProductCard'
 import HomeCardIcon from '../components/home/HomeCardIcon'
-import PlatformHeroVisual from '../components/home/PlatformHeroVisual'
+import SampleResultsPreview from '../components/home/SampleResultsPreview'
 import {
-  HOME_BUSINESS_CARD_PRIMARY,
-  HOME_EXPLORE_CTA,
-  HOME_FAMILY_CARD_PRIMARY,
-  HOME_HOW_IT_WORKS_CTA,
-  HOME_LEARN_MORE_CTA,
-  HOME_PROTECTION_CARD_PRIMARY,
+  HOME_BUSINESS_PATHWAY_CTA,
+  HOME_FAMILY_PATHWAY_CTA,
+  HOME_PAIN_CTA,
+  HOME_POSITIONING_TAGLINE,
+  HOME_PRIMARY_CTA,
+  HOME_SECONDARY_CTA,
 } from '../constants/homepage'
 import { ROUTES } from '../constants/routes'
 
-const DIAGNOSTIC_PRODUCTS = [
+const FAMILY_FUNNEL = ROUTES.reportCard
+const BUSINESS_FUNNEL = ROUTES.businessReportCard
+
+const PAIN_POINTS = [
+  'You make decent money but still wonder where it goes.',
+  'You have insurance but are unsure whether your family is properly protected.',
+  'You are saving for retirement but do not know whether you are truly on track.',
+  'Debt keeps taking money away from your goals.',
+  'You know you need a will or trust but keep putting it off.',
+  'You have financial products but no coordinated financial strategy.',
+]
+
+const CATEGORIES = [
   {
-    variant: 'family' as const,
-    icon: 'grade' as const,
-    title: 'Family Financial Report Card™',
-    valueProp:
-      'Understand your household\'s financial health across protection, cash flow, debt, retirement, and legacy.',
-    timeEstimate: '~5 min',
-    primaryLabel: HOME_FAMILY_CARD_PRIMARY,
-    primaryTo: ROUTES.familyAssessment,
-    secondaryLabel: HOME_LEARN_MORE_CTA,
-    secondaryTo: ROUTES.reportCard,
+    icon: 'cashflow' as const,
+    title: 'Cash Flow and Budget',
+    description: 'See how income, spending, and monthly flexibility support your goals.',
   },
   {
-    variant: 'business' as const,
-    icon: 'picture' as const,
-    title: 'Business Financial Report Card™',
-    valueProp:
-      'Identify gaps in cash flow, structure, tax strategy, protection, risk, funding, and exit readiness.',
-    timeEstimate: '~6 min',
-    primaryLabel: HOME_BUSINESS_CARD_PRIMARY,
-    primaryTo: ROUTES.businessAssessment,
-    secondaryLabel: HOME_LEARN_MORE_CTA,
-    secondaryTo: ROUTES.businessReportCard,
+    icon: 'emergency' as const,
+    title: 'Emergency Preparedness',
+    description: 'Evaluate whether reserves can cover unexpected expenses or income disruption.',
   },
   {
-    variant: 'protection' as const,
+    icon: 'debt' as const,
+    title: 'Debt Management',
+    description: 'Understand how balances and payments may be limiting progress.',
+  },
+  {
     icon: 'protection' as const,
-    title: 'Family Protection Analysis™',
-    valueProp:
-      'Estimate how much life insurance protection your family may need and where your coverage gap may be.',
-    timeEstimate: '<2 min',
-    primaryLabel: HOME_PROTECTION_CARD_PRIMARY,
-    primaryTo: ROUTES.protectionGap,
-    secondaryLabel: HOME_LEARN_MORE_CTA,
-    secondaryTo: ROUTES.protectionAnalysis,
+    title: 'Protection and Insurance',
+    description: 'Identify where coverage may leave your household exposed.',
+  },
+  {
+    icon: 'retirement' as const,
+    title: 'Retirement Readiness',
+    description: 'Check whether current savings habits align with long-term income needs.',
+  },
+  {
+    icon: 'estate' as const,
+    title: 'Estate and Legacy Planning',
+    description: 'Review wills, trusts, and documents that protect the people you love.',
+  },
+  {
+    icon: 'credit' as const,
+    title: 'Credit Health',
+    description: 'Assess credit strength and how it affects borrowing and opportunity.',
+  },
+  {
+    icon: 'independence' as const,
+    title: 'Financial Independence',
+    description: 'Measure progress toward lasting freedom and family financial resilience.',
   },
 ]
 
 const HOW_IT_WORKS = [
   {
     step: '1',
-    title: 'Choose Your Diagnostic',
-    description: 'Select the path that matches your family, business, or protection needs.',
+    title: 'Complete the Report Card',
+    description:
+      'Answer focused questions about your household finances in about two minutes. No account is required.',
   },
   {
     step: '2',
-    title: 'Answer Focused Questions',
-    description: 'Complete a short, structured assessment — no account required.',
+    title: 'Receive Your Results',
+    description:
+      'Get an immediate personalized score, grade, and category breakdown based on your answers.',
   },
   {
     step: '3',
-    title: 'Receive Your Personalized Report',
-    description: 'Get grades, gaps, and prioritized insights built from your answers.',
+    title: 'Review Your Blueprint',
+    description:
+      'See what is working, what may be exposed, and which priorities deserve attention first.',
   },
   {
     step: '4',
-    title: 'Build Your Strategy',
-    description: 'Move forward with a clear action plan tailored to what matters most.',
-  },
-]
-
-const SOLUTION_PREVIEW_AREAS = [
-  {
-    icon: 'protection' as const,
-    title: 'Protect Your Family',
-    description: 'Build a stronger financial foundation for the people who depend on you.',
-  },
-  {
-    icon: 'priorities' as const,
-    title: 'Strengthen Your Finances',
-    description: 'Create more breathing room today so you can build a stronger tomorrow.',
-  },
-  {
-    icon: 'strategy' as const,
-    title: 'Build Your Future',
-    description: 'Turn today\u2019s financial decisions into long-term progress.',
-  },
-  {
-    icon: 'picture' as const,
-    title: 'Protect & Grow Your Business',
-    description: 'A financial strategy as intentional as the business itself.',
-  },
-]
-
-const WHO_WE_HELP = [
-  {
-    title: 'Families',
+    title: 'Decide Your Next Step',
     description:
-      'Clarity across protection, cash flow, debt, and legacy — with a full Family Financial Report Card™ or a faster Family Protection Analysis™.',
-    actionLabel: 'Explore Family Solutions',
-    actionTo: ROUTES.reportCard,
-    icon: 'grade' as const,
-  },
-  {
-    title: 'Business Owners',
-    description:
-      'Assess financial health, risk, structure, cash flow, protection, and exit readiness — with prioritized steps to grow enterprise value.',
-    actionLabel: 'Explore Business Solutions',
-    actionTo: ROUTES.businessReportCard,
-    icon: 'picture' as const,
+      'Use your results to take focused action—or continue with a complimentary strategy conversation.',
   },
 ]
 
-const WHY_VALTORIS = [
-  {
-    icon: 'picture' as const,
-    title: 'Clarity Over Complexity',
-    description: 'Structured diagnostics that turn financial uncertainty into a clear, readable picture.',
-  },
-  {
-    icon: 'priorities' as const,
-    title: 'Prioritized Recommendations',
-    description: 'Know what deserves attention first — not a generic list of everything at once.',
-  },
-  {
-    icon: 'grade' as const,
-    title: 'Educational First',
-    description: 'Complimentary reports designed to inform and empower — not pressure you into a sale.',
-  },
-  {
-    icon: 'strategy' as const,
-    title: 'Strategy After Diagnosis',
-    description: 'Every diagnostic leads to actionable next steps — not just data without direction.',
-  },
-]
-
-const FINAL_CTA_PATHS = [
-  {
-    label: 'Family Report Card',
-    description: 'Comprehensive household financial health',
-    action: 'Explore Family Report Card',
-    to: ROUTES.reportCard,
-  },
-  {
-    label: 'Business Report Card',
-    description: 'Business financial health & enterprise value',
-    action: 'Explore Business Report Card',
-    to: ROUTES.businessReportCard,
-  },
-  {
-    label: 'Protection Analysis',
-    description: 'Coverage needs & protection gap estimate',
-    action: 'Explore Protection Analysis',
-    to: ROUTES.protectionAnalysis,
-  },
+const SOLUTIONS = [
+  'Life insurance and living-benefit strategies',
+  'Property and casualty insurance',
+  'Health insurance solutions',
+  'Retirement and annuity strategies',
+  'Credit improvement',
+  'Student-loan strategies',
+  'Wills and trusts',
+  'Tax-planning coordination',
+  'Business-owner solutions',
 ]
 
 export default function HomePage() {
   return (
-    <div className="platform-home">
-      <section className="platform-hero">
+    <div className="platform-home funnel-home">
+      <section className="platform-hero funnel-hero">
         <div className="container platform-hero-grid">
           <div className="platform-hero-copy">
-            <p className="platform-eyebrow">VALTORIS FINANCIAL</p>
-            <h1 className="platform-headline">See the gaps. Know what to fix next.</h1>
+            <p className="platform-eyebrow">VALTORIS FAMILY FINANCIAL REPORT CARD™</p>
+            <p className="funnel-positioning">{HOME_POSITIONING_TAGLINE}</p>
+            <h1 className="platform-headline">How Financially Prepared Is Your Family?</h1>
             <p className="platform-subhead">
-              Personalized financial diagnostics for your family, your business, and the future
-              you&apos;re building.
+              Take the complimentary 2-minute Valtoris Family Financial Report Card™ and receive a
+              personalized score, category breakdown, risk analysis, and next-step action plan.
             </p>
-            <div className="platform-hero-actions">
-              <a className="platform-btn platform-btn-primary" href="#diagnostics">
-                {HOME_EXPLORE_CTA}
-              </a>
-              <a className="platform-btn platform-btn-secondary" href="#how-it-works">
-                {HOME_HOW_IT_WORKS_CTA}
-              </a>
+            <p className="funnel-hero-extra">
+              Stop guessing about your finances. See what is working, what may be exposed, and what
+              to address first.
+            </p>
+            <div className="platform-hero-actions platform-btn-row">
+              <Link className="platform-btn platform-btn-primary" to={FAMILY_FUNNEL}>
+                {HOME_PRIMARY_CTA}
+              </Link>
+              <Link className="platform-btn platform-btn-secondary" to={BUSINESS_FUNNEL}>
+                {HOME_SECONDARY_CTA}
+              </Link>
             </div>
+            <p className="funnel-microcopy">No cost. No obligation. Immediate personalized results.</p>
           </div>
-          <PlatformHeroVisual />
+          <SampleResultsPreview compact />
         </div>
       </section>
 
-      <section id="diagnostics" className="platform-section platform-diagnostics">
+      <section
+        className="platform-section platform-tone-blue funnel-pathways"
+        aria-labelledby="pathways-heading"
+      >
         <div className="container platform-section-inner">
-          <h2 className="platform-section-title">Your Financial Diagnostics</h2>
+          <h2 id="pathways-heading" className="platform-section-title">
+            Choose Your Path
+          </h2>
           <p className="platform-section-lead">
-            Three focused diagnostics — each built to reveal gaps and prioritize what to fix next.
+            Start with the diagnostic that matches where you need clarity most.
           </p>
-          <div className="diagnostic-product-grid">
-            {DIAGNOSTIC_PRODUCTS.map((product) => (
-              <DiagnosticProductCard key={product.title} {...product} />
-            ))}
+          <div className="funnel-pathway-grid">
+            <article className="funnel-pathway-card funnel-pathway-card--family platform-card">
+              <HomeCardIcon variant="grade" />
+              <h3 className="funnel-pathway-title">For Families</h3>
+              <p className="funnel-pathway-copy">
+                Understand your household&apos;s cash flow, savings, debt, protection, retirement
+                readiness, credit health, estate planning, and progress toward financial
+                independence.
+              </p>
+              <Link className="platform-btn platform-btn-primary" to={FAMILY_FUNNEL}>
+                {HOME_FAMILY_PATHWAY_CTA}
+              </Link>
+            </article>
+            <article className="funnel-pathway-card funnel-pathway-card--business platform-card">
+              <HomeCardIcon variant="picture" />
+              <h3 className="funnel-pathway-title">For Business Owners</h3>
+              <p className="funnel-pathway-copy">
+                Evaluate the financial strength, protection, continuity, benefits, succession
+                readiness, and owner independence of your business.
+              </p>
+              <Link className="platform-btn platform-btn-secondary" to={BUSINESS_FUNNEL}>
+                {HOME_BUSINESS_PATHWAY_CTA}
+              </Link>
+            </article>
           </div>
         </div>
       </section>
 
-      <section className="platform-section platform-solutions-preview">
+      <section className="platform-section platform-tone-white" aria-labelledby="pain-heading">
         <div className="container platform-section-inner">
-          <h2 className="platform-section-title">Solutions for Your Whole Financial Life</h2>
-          <p className="platform-section-lead">
-            Four strategic areas — protection, finances, future planning, and business — coordinated
-            around what matters most.
-          </p>
-          <div className="solutions-preview-grid">
-            {SOLUTION_PREVIEW_AREAS.map((area) => (
-              <article key={area.title} className="solutions-preview-card">
-                <HomeCardIcon variant={area.icon} />
-                <h3 className="solutions-preview-title">{area.title}</h3>
-                <p className="solutions-preview-copy">{area.description}</p>
-              </article>
+          <h2 id="pain-heading" className="platform-section-title">
+            Does This Sound Familiar?
+          </h2>
+          <ul className="funnel-pain-list">
+            {PAIN_POINTS.map((point) => (
+              <li key={point} className="funnel-pain-item platform-card">
+                <HomeCardIcon variant="check" />
+                <span>{point}</span>
+              </li>
             ))}
-          </div>
-          <Link className="platform-btn platform-btn-secondary solutions-preview-cta" to={ROUTES.solutions}>
-            Explore All Solutions
+          </ul>
+          <p className="funnel-pain-close">
+            Stop guessing. Get a clear view of your complete financial foundation.
+          </p>
+          <Link className="platform-btn platform-btn-primary" to={FAMILY_FUNNEL}>
+            {HOME_PAIN_CTA}
           </Link>
         </div>
       </section>
 
-      <section id="how-it-works" className="platform-section platform-section-alt">
+      <section className="platform-section platform-tone-gray" aria-labelledby="categories-heading">
         <div className="container platform-section-inner">
-          <h2 className="platform-section-title">How Valtoris Works</h2>
+          <h2 id="categories-heading" className="platform-section-title">
+            Eight Areas That Shape Your Score
+          </h2>
           <p className="platform-section-lead">
-            From diagnostic to direction in four focused steps.
+            Your Report Card reviews the core categories that support a coordinated family financial
+            foundation.
+          </p>
+          <div className="funnel-category-grid">
+            {CATEGORIES.map((category) => (
+              <article key={category.title} className="funnel-category-card platform-card">
+                <HomeCardIcon variant={category.icon} />
+                <h3 className="funnel-category-title">{category.title}</h3>
+                <p className="funnel-category-copy">{category.description}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="platform-section platform-tone-white" aria-labelledby="preview-heading">
+        <div className="container platform-section-inner funnel-preview-section">
+          <h2 id="preview-heading" className="platform-section-title">
+            See What Your Results Can Look Like
+          </h2>
+          <p className="platform-section-lead">
+            A clear score, category breakdown, priority callout, and near-term action plan—so you
+            know where to focus next.
+          </p>
+          <div className="funnel-preview-stage">
+            <SampleResultsPreview />
+          </div>
+          <Link className="platform-btn platform-btn-primary" to={FAMILY_FUNNEL}>
+            {HOME_PRIMARY_CTA}
+          </Link>
+        </div>
+      </section>
+
+      <section
+        id="how-it-works"
+        className="platform-section platform-tone-blue"
+        aria-labelledby="how-heading"
+      >
+        <div className="container platform-section-inner">
+          <h2 id="how-heading" className="platform-section-title">
+            How It Works
+          </h2>
+          <p className="platform-section-lead">
+            From your first answers to a clearer next step in four focused stages.
           </p>
           <div className="product-steps">
             {HOW_IT_WORKS.map((item, index) => (
@@ -249,60 +270,79 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="platform-section">
-        <div className="container platform-section-inner">
-          <h2 className="platform-section-title">Who We Help</h2>
+      <section
+        className="platform-section platform-tone-white platform-why"
+        aria-labelledby="positioning-heading"
+      >
+        <div className="container platform-section-inner funnel-positioning-section">
+          <h2 id="positioning-heading" className="platform-section-title">
+            Your Financial Life Should Work as One Coordinated Strategy
+          </h2>
           <p className="platform-section-lead">
-            Purpose-built diagnostics for the people who carry the most financial responsibility.
+            Financial planning is often fragmented. One professional discusses insurance. Another
+            discusses taxes, credit, retirement, debt, or estate planning. Valtoris Financial helps
+            families see how these critical areas connect.
           </p>
-          <div className="platform-audience-grid">
-            {WHO_WE_HELP.map((item) => (
-              <article key={item.title} className="platform-audience-card">
-                <HomeCardIcon variant={item.icon} />
-                <h3 className="platform-audience-title">{item.title}</h3>
-                <p className="platform-audience-copy">{item.description}</p>
-                <Link className="platform-audience-action" to={item.actionTo}>
-                  {item.actionLabel} →
-                </Link>
-              </article>
-            ))}
-          </div>
+          <p className="funnel-positioning-emphasis">
+            Recommendations should begin with your situation—not with a product.
+          </p>
         </div>
       </section>
 
-      <section className="platform-section platform-why">
+      <section className="platform-section platform-tone-white" aria-labelledby="solutions-heading">
         <div className="container platform-section-inner">
-          <h2 className="platform-section-title">Why Valtoris</h2>
+          <h2 id="solutions-heading" className="platform-section-title">
+            Solutions That May Support Your Blueprint
+          </h2>
           <p className="platform-section-lead">
-            A diagnostic platform built for clarity — not complexity.
+            Depending on your results, these are potential areas that may support a client&apos;s
+            blueprint—not guaranteed recommendations.
           </p>
-          <div className="platform-why-grid">
-            {WHY_VALTORIS.map((item) => (
-              <article key={item.title} className="platform-why-item">
-                <HomeCardIcon variant={item.icon} />
-                <h3 className="platform-why-title">{item.title}</h3>
-                <p className="platform-why-copy">{item.description}</p>
-              </article>
+          <ul className="funnel-solutions-grid">
+            {SOLUTIONS.map((solution) => (
+              <li key={solution} className="funnel-solution-item platform-card">
+                {solution}
+              </li>
             ))}
-          </div>
+          </ul>
+          <Link className="platform-btn platform-btn-outline" to={ROUTES.solutions}>
+            Explore All Solutions
+          </Link>
+        </div>
+      </section>
+
+      <section className="platform-section platform-tone-gray" aria-labelledby="business-heading">
+        <div className="container platform-section-inner funnel-business-section">
+          <HomeCardIcon variant="picture" />
+          <h2 id="business-heading" className="platform-section-title">
+            Built for Business Owners Too
+          </h2>
+          <p className="platform-section-lead">
+            If you own a business, your personal and company finances are connected. The Business
+            Financial Report Card™ evaluates strength, protection, continuity, benefits, succession
+            readiness, and owner independence—so you can see what needs attention next.
+          </p>
+          <Link className="platform-btn platform-btn-primary" to={BUSINESS_FUNNEL}>
+            {HOME_SECONDARY_CTA}
+          </Link>
         </div>
       </section>
 
       <section className="product-closing platform-closing">
         <div className="container product-closing-inner">
-          <h2 className="product-closing-title">Start with clarity.</h2>
+          <h2 className="product-closing-title">Stop Guessing About Your Financial Future</h2>
           <p className="product-closing-copy">
-            Choose the diagnostic that fits where you are today.
+            Take the first step today and receive a clearer picture of where you stand, what may be
+            missing, and what to work on next.
           </p>
-          <div className="platform-final-cta-grid">
-            {FINAL_CTA_PATHS.map((path) => (
-              <Link key={path.label} className="platform-final-cta-card" to={path.to}>
-                <span className="platform-final-cta-label">{path.label}</span>
-                <span className="platform-final-cta-description">{path.description}</span>
-                <span className="platform-final-cta-action">{path.action} →</span>
-              </Link>
-            ))}
+          <div className="product-closing-actions">
+            <Link className="platform-btn platform-btn-secondary" to={FAMILY_FUNNEL}>
+              {HOME_PRIMARY_CTA}
+            </Link>
           </div>
+          <p className="funnel-final-microcopy">
+            Takes approximately two minutes. No cost. No obligation.
+          </p>
         </div>
       </section>
     </div>

@@ -12,10 +12,10 @@ export default function NotFoundPage() {
           The page you&apos;re looking for may have moved or no longer exists.
         </p>
         <div className="not-found-actions">
-          <Link className="button" to={ROUTES.home}>
+          <Link className="platform-btn platform-btn-primary" to={ROUTES.home}>
             Return Home
           </Link>
-          <Link className="button secondary" to={`${ROUTES.home}#diagnostics`}>
+          <Link className="platform-btn platform-btn-outline" to={`${ROUTES.home}#diagnostics`}>
             Explore Diagnostics
           </Link>
         </div>

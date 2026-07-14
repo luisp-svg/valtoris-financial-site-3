@@ -15,7 +15,7 @@ export default function CheckupPage() {
             Receive a complete evaluation of your family's protection, retirement, debt strategy,
             estate planning, tax efficiency, and long-term financial goals.
           </p>
-          <ScheduleReportCardLink className="button checkup-schedule-link" />
+          <ScheduleReportCardLink className="platform-btn platform-btn-primary checkup-schedule-link" />
         </div>
         <LeadForm source="family-financial-report-card" title={FAMILY_CTA} />
       </div>

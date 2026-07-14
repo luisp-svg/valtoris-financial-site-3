@@ -63,7 +63,7 @@ export default function BusinessReportCardResults() {
             Review your Business Financial Report Card™ with a Valtoris strategist and receive a
             customized action plan for protecting and growing your business.
           </p>
-          <ScheduleReportCardLink className="rd-cta-button">{SCHEDULE_CTA}</ScheduleReportCardLink>
+          <ScheduleReportCardLink className="platform-btn platform-btn-secondary">{SCHEDULE_CTA}</ScheduleReportCardLink>
           <button
             type="button"
             className="results-back-link"

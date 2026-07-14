@@ -35,10 +35,10 @@ export default function DiagnosticProductCard({
       <h3 className="diagnostic-product-card-title">{title}</h3>
       <p className="diagnostic-product-card-copy">{valueProp}</p>
       <div className="diagnostic-product-card-actions">
-        <Link className="diagnostic-product-card-primary" to={primaryTo}>
+        <Link className="platform-btn platform-btn-primary" to={primaryTo}>
           {primaryLabel}
         </Link>
-        <Link className="diagnostic-product-card-secondary" to={secondaryTo}>
+        <Link className="platform-btn platform-btn-outline" to={secondaryTo}>
           {secondaryLabel}
         </Link>
       </div>

@@ -46,7 +46,9 @@ export default function LeadForm({ source, title = 'Request a consultation', onS
         <option value="student-loans">Student loan strategy</option>
       </select>
       <textarea name="notes" rows={4} placeholder="Tell us about your goals" />
-      <button type="submit">Submit</button>
+      <button type="submit" className="platform-btn platform-btn-primary">
+        Submit
+      </button>
       {status ? <p className="notice">{status}</p> : null}
     </form>
   )

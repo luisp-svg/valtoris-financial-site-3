@@ -13,11 +13,11 @@ export default function StepBusinessWelcome({ onBegin, onBack }: StepBusinessWel
       description="Answer a focused set of questions so we can diagnose where your business is strong, exposed, and what to fix first."
     >
       <div className="welcome-actions">
-        <button type="button" className="assessment-btn assessment-btn-primary" onClick={onBegin}>
+        <button type="button" className="platform-btn platform-btn-primary" onClick={onBegin}>
           {BUSINESS_CTA}
         </button>
         {onBack ? (
-          <button type="button" className="assessment-btn assessment-btn-secondary" onClick={onBack}>
+          <button type="button" className="platform-btn platform-btn-outline" onClick={onBack}>
             Back to Overview
           </button>
         ) : null}

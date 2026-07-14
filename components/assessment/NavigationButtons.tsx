@@ -15,12 +15,12 @@ export default function NavigationButtons({
 }: NavigationButtonsProps) {
   return (
     <div className="assessment-nav">
-      <button type="button" className="assessment-btn assessment-btn-secondary" onClick={onBack}>
+      <button type="button" className="platform-btn platform-btn-outline" onClick={onBack}>
         {backLabel}
       </button>
       <button
         type="button"
-        className="assessment-btn assessment-btn-primary"
+        className="platform-btn platform-btn-primary"
         onClick={onContinue}
         disabled={continueDisabled}
       >

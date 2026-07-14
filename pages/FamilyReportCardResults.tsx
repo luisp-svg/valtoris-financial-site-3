@@ -57,7 +57,7 @@ export default function FamilyReportCardResults() {
             Review your Family Financial Report Card™ with a Valtoris strategist and receive a
             customized action plan for protecting and growing your family&apos;s wealth.
           </p>
-          <ScheduleReportCardLink className="rd-cta-button">{SCHEDULE_CTA}</ScheduleReportCardLink>
+          <ScheduleReportCardLink className="platform-btn platform-btn-secondary">{SCHEDULE_CTA}</ScheduleReportCardLink>
           <Link className="results-back-link" to={ROUTES.protectionAnalysis}>
             {PROTECTION_CTA}
           </Link>

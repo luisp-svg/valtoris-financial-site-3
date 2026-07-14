@@ -133,15 +133,15 @@ export default function FamilyProtectionResults() {
             personalized recommendations.
           </p>
           <div className="protection-results-actions">
-            <ScheduleReportCardLink className="protection-results-cta-button">
+            <ScheduleReportCardLink className="platform-btn platform-btn-primary">
               {SCHEDULE_CTA}
             </ScheduleReportCardLink>
-            <Link className="protection-results-secondary-btn" to={ROUTES.reportCard}>
+            <Link className="platform-btn platform-btn-outline" to={ROUTES.reportCard}>
               {FAMILY_REPORT_CARD_LEARN_CTA}
             </Link>
             <button
               type="button"
-              className="protection-results-secondary-btn"
+              className="platform-btn platform-btn-outline"
               onClick={() => navigate(ROUTES.protectionGap)}
             >
               {RESTART_ASSESSMENT_CTA}

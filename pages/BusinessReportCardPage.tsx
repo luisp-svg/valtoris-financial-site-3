@@ -1,70 +1,71 @@
 import { Fragment } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
+import BusinessSampleResultsPreview from '../components/home/BusinessSampleResultsPreview'
 import HomeCardIcon from '../components/home/HomeCardIcon'
-import BusinessReportHeroPreview from '../components/product/BusinessReportHeroPreview'
-import { BUSINESS_CTA, BUSINESS_SAMPLE_CTA } from '../constants/homepage'
+import { BUSINESS_CTA } from '../constants/homepage'
 import { ROUTES } from '../constants/routes'
 
 const WHAT_YOU_RECEIVE = [
   {
     icon: 'grade' as const,
-    title: 'Business Financial Score™',
-    description:
-      'Overall score and letter grade across the core areas of business financial health.',
+    title: 'Business Score',
+    description: 'An overall business financial score and letter grade across core operating areas.',
   },
   {
-    icon: 'picture' as const,
-    title: 'Eight Category Breakdowns',
-    description: 'See where the business is strong, exposed, or missing key systems.',
-  },
-  {
-    icon: 'priorities' as const,
-    title: 'Top 3 Business Priorities',
-    description: 'Identify what deserves attention first based on the owner\'s answers.',
+    icon: 'protection' as const,
+    title: 'Business Risk Review',
+    description: 'A clear view of continuity, coverage, and exposure that may threaten the company.',
   },
   {
     icon: 'blueprint' as const,
-    title: '90-Day Business Action Plan',
-    description: 'Turn assessment results into focused next steps for the next quarter.',
+    title: 'Owner Strategy Blueprint',
+    description: 'Guidance that connects company strength with the owner\'s long-term financial position.',
+  },
+  {
+    icon: 'priorities' as const,
+    title: '90-Day Business Priorities',
+    description: 'Focused near-term actions so leadership knows what to address first.',
   },
 ]
 
-const WHAT_WE_REVIEW = [
+const CATEGORIES = [
   {
+    icon: 'picture' as const,
     title: 'Business Structure',
-    description:
-      'Legal entity, operating documents, and separation of personal and business finances.',
+    description: 'Legal entity, operating documents, and separation of personal and business finances.',
   },
   {
+    icon: 'cashflow' as const,
     title: 'Cash Flow',
-    description:
-      'Operating cash flow, reserves, revenue predictability, and owner compensation patterns.',
+    description: 'Operating cash flow, reserves, revenue predictability, and owner compensation.',
   },
   {
+    icon: 'strategy' as const,
     title: 'Tax Strategy',
-    description:
-      'Proactive tax planning, benefit strategies, and alignment with business growth goals.',
+    description: 'Proactive tax planning, benefit strategies, and alignment with growth goals.',
   },
   {
+    icon: 'protection' as const,
     title: 'Business Protection',
-    description:
-      'Key person coverage, buy-sell planning, and continuity strategies for leadership risk.',
+    description: 'Key person coverage, buy-sell planning, and leadership continuity strategies.',
   },
   {
+    icon: 'emergency' as const,
     title: 'Risk Management',
-    description:
-      'Core commercial insurance, specialized coverage, and operational liability exposure.',
+    description: 'Commercial insurance, specialized coverage, and operational liability exposure.',
   },
   {
+    icon: 'retirement' as const,
     title: 'Retirement & Wealth',
-    description:
-      'Owner retirement savings outside the business relative to revenue and personal income.',
+    description: 'Owner retirement savings outside the business relative to income and revenue.',
   },
   {
+    icon: 'credit' as const,
     title: 'Credit & Funding',
     description: 'Business credit profile, lending relationships, and access to growth capital.',
   },
   {
+    icon: 'independence' as const,
     title: 'Exit Planning',
     description: 'Succession planning, valuation baseline, and long-term transition readiness.',
   },
@@ -73,158 +74,154 @@ const WHAT_WE_REVIEW = [
 const HOW_IT_WORKS = [
   {
     step: '1',
-    title: 'Complete the Assessment',
-    description: 'Answer focused questions about your business, operations, and owner goals.',
+    title: 'Answer Questions',
+    description: 'Share focused details about your business operations, protection, and owner goals.',
   },
   {
     step: '2',
-    title: 'Receive Your Business Report Card',
-    description:
-      'Get your complimentary Business Financial Report Card™ with scores, grades, and insights.',
+    title: 'Receive Results',
+    description: 'Get your business score, grade, and category breakdown immediately.',
   },
   {
     step: '3',
-    title: 'Review Your Priorities',
-    description: 'See your Top 3 Business Priorities™ and where the business needs attention first.',
+    title: 'Review Blueprint',
+    description: 'See where the business is strong, exposed, and what deserves attention first.',
   },
   {
     step: '4',
-    title: 'Implement Your 90-Day Plan',
-    description: 'Follow your Business Action Plan™ with immediate, 30-day, and 90-day next steps.',
+    title: 'Schedule Strategy Session',
+    description: 'Optionally review your results with a complimentary strategy conversation.',
+  },
+]
+
+const FAQS = [
+  {
+    question: 'How long does it take?',
+    answer: 'Most business owners complete the assessment in a few focused minutes.',
+  },
+  {
+    question: 'Is it free?',
+    answer: 'Yes. The Business Financial Report Card™ is complimentary with no obligation.',
+  },
+  {
+    question: 'Do I have to purchase anything?',
+    answer: 'No. Your results are provided whether or not you choose additional services.',
+  },
+  {
+    question: 'Will someone contact me?',
+    answer:
+      'Only if you request a follow-up conversation. Completing the report card alone does not create a sales commitment.',
+  },
+  {
+    question: 'Is my information secure?',
+    answer:
+      'Your answers are used to generate personalized business results and are handled with care for educational planning purposes.',
+  },
+  {
+    question: 'Can I retake it later?',
+    answer: 'Yes. Retake the assessment as your business, team, or goals evolve.',
   },
 ]
 
 export default function BusinessReportCardPage() {
-  const navigate = useNavigate()
-
-  function handleStartAssessment() {
-    navigate(ROUTES.businessAssessment)
-  }
-
-  function handleViewSampleReport() {
-    navigate(ROUTES.businessReportCardResults)
-  }
-
   return (
-    <div className="product-landing business-report-card-page">
-      <section className="product-hero business-report-card-hero">
-        <div className="container two-col">
-          <div className="panel">
-            <div className="kicker">Business Financial Report Card™</div>
-            <h1 className="business-report-card-headline">
-              Your business finally has a financial health report.
-            </h1>
-            <p className="business-report-card-lead">
-              Discover where your business is strong, where it&apos;s exposed, and what to fix first
-              to protect revenue, reduce risk, and increase enterprise value.
-            </p>
-            <ul className="business-report-card-points">
-              <li>Business Financial Score with letter grade</li>
-              <li>Eight category breakdowns with personalized guidance</li>
-              <li>Top 3 Business Priorities and 90-day action plan</li>
-            </ul>
-            <button
-              type="button"
-              className="business-report-card-sample"
-              onClick={handleViewSampleReport}
-            >
-              {BUSINESS_SAMPLE_CTA}
-            </button>
-          </div>
-          <div className="panel business-report-card-cta-panel">
-            <h3 className="business-report-card-cta-title">Business Financial Assessment™</h3>
-            <p className="business-report-card-cta-copy">
-              A professional diagnostic for business owners — answer focused questions and receive your
-              personalized Business Financial Report Card™.
-            </p>
-            <button
-              type="button"
-              className="assessment-btn assessment-btn-primary business-report-card-cta-button"
-              onClick={handleStartAssessment}
-            >
+    <div className="platform-home diagnostic-landing business-report-card-page">
+      <section className="platform-hero diagnostic-hero">
+        <div className="container diagnostic-hero-inner">
+          <p className="platform-eyebrow">Business Financial Report Card™</p>
+          <h1 className="platform-headline diagnostic-hero-title">
+            See What Your Business Will Receive
+          </h1>
+          <p className="platform-subhead diagnostic-hero-copy">
+            Take the complimentary Business Financial Report Card™ and receive a business score,
+            risk review, owner strategy blueprint, and 90-day priorities—so you can protect revenue,
+            reduce exposure, and strengthen enterprise value.
+          </p>
+          <div className="diagnostic-hero-actions">
+            <Link className="platform-btn platform-btn-primary" to={ROUTES.businessAssessment}>
               {BUSINESS_CTA}
-            </button>
+            </Link>
           </div>
+          <p className="funnel-microcopy">No cost. No obligation. Immediate personalized results.</p>
         </div>
       </section>
 
-      <section className="product-section product-preview-section">
-        <div className="container product-section-inner">
-          <h2 className="product-section-title">See What Your Business Report Looks Like</h2>
-          <p className="product-section-lead">
-            Preview the financial score, category breakdowns, priorities, and action plan you&apos;ll
-            receive after completing the assessment.
+      <section className="platform-section platform-tone-blue" aria-labelledby="receive-heading">
+        <div className="container platform-section-inner">
+          <h2 id="receive-heading" className="platform-section-title">
+            What You&apos;ll Receive
+          </h2>
+          <p className="platform-section-lead">
+            Four deliverables that turn a short diagnostic into clear business direction.
           </p>
-          <div className="product-preview-stage">
-            <BusinessReportHeroPreview />
-          </div>
-          <div className="product-section-actions">
-            <button
-              type="button"
-              className="product-btn-secondary"
-              onClick={handleViewSampleReport}
-            >
-              {BUSINESS_SAMPLE_CTA}
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <section className="product-section">
-        <div className="container product-section-inner">
-          <h2 className="product-section-title">What You&apos;ll Receive</h2>
-          <p className="product-section-lead">
-            Four deliverables. One complete picture of your business financial health.
-          </p>
-          <div className="product-card-grid product-card-grid-four">
+          <div className="diagnostic-receive-grid">
             {WHAT_YOU_RECEIVE.map((item) => (
-              <article key={item.title} className="product-card">
+              <article key={item.title} className="diagnostic-receive-card platform-card">
                 <HomeCardIcon variant={item.icon} />
-                <h3 className="product-card-title">{item.title}</h3>
-                <p className="product-card-copy">{item.description}</p>
+                <h3 className="diagnostic-receive-title">{item.title}</h3>
+                <p className="diagnostic-receive-copy">{item.description}</p>
               </article>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="product-section product-section-alt">
-        <div className="container product-section-inner">
-          <h2 className="product-section-title">What We Review</h2>
-          <p className="product-section-lead">
-            Eight business dimensions scored, graded, and explained in your report.
+      <section className="platform-section platform-tone-white" aria-labelledby="sample-heading">
+        <div className="container platform-section-inner funnel-preview-section">
+          <h2 id="sample-heading" className="platform-section-title">
+            Sample Report Preview
+          </h2>
+          <p className="platform-section-lead">
+            An illustrative look at the score, category detail, and action plan business owners can
+            expect.
           </p>
-          <div className="product-card-grid product-card-grid-four">
-            {WHAT_WE_REVIEW.map((item) => (
-              <article key={item.title} className="product-card product-card-review">
-                <h3 className="product-card-title">{item.title}</h3>
-                <p className="product-card-copy">{item.description}</p>
+          <div className="funnel-preview-stage">
+            <BusinessSampleResultsPreview />
+          </div>
+        </div>
+      </section>
+
+      <section className="platform-section platform-tone-gray" aria-labelledby="categories-heading">
+        <div className="container platform-section-inner">
+          <h2 id="categories-heading" className="platform-section-title">
+            Categories Evaluated
+          </h2>
+          <p className="platform-section-lead">
+            Your Business Report Card reviews the eight dimensions that shape company financial
+            health.
+          </p>
+          <div className="funnel-category-grid">
+            {CATEGORIES.map((category) => (
+              <article key={category.title} className="funnel-category-card platform-card">
+                <HomeCardIcon variant={category.icon} />
+                <h3 className="funnel-category-title">{category.title}</h3>
+                <p className="funnel-category-copy">{category.description}</p>
               </article>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="product-section">
-        <div className="container product-section-inner">
-          <h2 className="product-section-title">How It Works</h2>
-          <p className="product-section-lead">
-            Four steps from assessment to action.
+      <section className="platform-section platform-tone-blue" aria-labelledby="how-heading">
+        <div className="container platform-section-inner">
+          <h2 id="how-heading" className="platform-section-title">
+            How It Works
+          </h2>
+          <p className="platform-section-lead">
+            From your first answers to a clearer next step in four focused stages.
           </p>
-          <div className="product-steps">
+          <div className="diagnostic-timeline">
             {HOW_IT_WORKS.map((item, index) => (
               <Fragment key={item.title}>
-                <article
-                  className={`product-step${index === 0 ? ' is-first' : ''}${
-                    index === HOW_IT_WORKS.length - 1 ? ' is-last' : ''
-                  }`}
-                >
-                  <span className="product-step-number">{item.step}</span>
-                  <h3 className="product-step-title">{item.title}</h3>
-                  <p className="product-step-copy">{item.description}</p>
+                <article className="diagnostic-timeline-step platform-card">
+                  <span className="diagnostic-timeline-number">{item.step}</span>
+                  <h3 className="diagnostic-timeline-title">{item.title}</h3>
+                  <p className="diagnostic-timeline-copy">{item.description}</p>
                 </article>
                 {index < HOW_IT_WORKS.length - 1 ? (
-                  <span className="product-step-connector" aria-hidden="true" />
+                  <span className="diagnostic-timeline-arrow" aria-hidden="true">
+                    ↓
+                  </span>
                 ) : null}
               </Fragment>
             ))}
@@ -232,28 +229,40 @@ export default function BusinessReportCardPage() {
         </div>
       </section>
 
-      <section className="product-closing">
+      <section className="platform-section platform-tone-white" aria-labelledby="faq-heading">
+        <div className="container platform-section-inner">
+          <h2 id="faq-heading" className="platform-section-title">
+            Frequently Asked Questions
+          </h2>
+          <p className="platform-section-lead">
+            Straightforward answers before you begin.
+          </p>
+          <div className="diagnostic-faq-list">
+            {FAQS.map((faq) => (
+              <article key={faq.question} className="diagnostic-faq-item platform-card">
+                <h3 className="diagnostic-faq-question">{faq.question}</h3>
+                <p className="diagnostic-faq-answer">{faq.answer}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="product-closing platform-closing">
         <div className="container product-closing-inner">
-          <h2 className="product-closing-title">Your Business Deserves More Than Guesswork.</h2>
+          <h2 className="product-closing-title">Ready to See Where Your Business Stands?</h2>
           <p className="product-closing-copy">
-            See where your business stands, what may be holding it back, and what to prioritize next.
+            Take the first step and receive a clearer picture of business strength, risk, and
+            near-term priorities.
           </p>
           <div className="product-closing-actions">
-            <button
-              type="button"
-              className="product-btn-light"
-              onClick={handleStartAssessment}
-            >
+            <Link className="platform-btn platform-btn-secondary" to={ROUTES.businessAssessment}>
               {BUSINESS_CTA}
-            </button>
-            <button
-              type="button"
-              className="product-btn-ghost"
-              onClick={handleViewSampleReport}
-            >
-              {BUSINESS_SAMPLE_CTA}
-            </button>
+            </Link>
           </div>
+          <p className="funnel-final-microcopy">
+            Takes a few focused minutes. No cost. No obligation.
+          </p>
         </div>
       </section>
     </div>

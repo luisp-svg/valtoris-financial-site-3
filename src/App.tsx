@@ -1,5 +1,6 @@
 import { ReactNode } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
+import ScrollToTop from '../components/ScrollToTop'
 import SiteHeader from '../components/SiteHeader'
 import SiteFooter from '../components/SiteFooter'
 import { ROUTES } from '../constants/routes'
@@ -30,7 +31,9 @@ function SiteLayout({ children }: { children: ReactNode }) {
 
 export default function App() {
   return (
-    <Routes>
+    <>
+      <ScrollToTop />
+      <Routes>
       <Route path={ROUTES.familyAssessment} element={<FinancialProtectionAssessment />} />
       <Route path="/assessment" element={<Navigate to={ROUTES.familyAssessment} replace />} />
       <Route path="/report" element={<Navigate to={ROUTES.familyAssessment} replace />} />
@@ -106,5 +109,6 @@ export default function App() {
         }
       />
     </Routes>
+    </>
   )
 }

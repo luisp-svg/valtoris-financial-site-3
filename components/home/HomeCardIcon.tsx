@@ -7,6 +7,14 @@ type HomeCardIconProps = {
     | 'picture'
     | 'priorities'
     | 'strategy'
+    | 'cashflow'
+    | 'emergency'
+    | 'debt'
+    | 'retirement'
+    | 'estate'
+    | 'credit'
+    | 'independence'
+    | 'check'
 }
 
 export default function HomeCardIcon({ variant }: HomeCardIconProps) {

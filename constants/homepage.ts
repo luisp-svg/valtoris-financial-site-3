@@ -15,4 +15,9 @@ export const HOME_BUSINESS_CARD_PRIMARY = 'Get My Business Report Card'
 export const HOME_PROTECTION_CARD_PRIMARY = 'Start Protection Analysis'
 export const HOME_LEARN_MORE_CTA = 'Learn More'
 
-export const HOME_PRIMARY_CTA = FAMILY_CTA
+export const HOME_PRIMARY_CTA = 'Get My Free Financial Score'
+export const HOME_SECONDARY_CTA = 'Get Your Business Financial Score'
+export const HOME_FAMILY_PATHWAY_CTA = 'Get My Family Score'
+export const HOME_BUSINESS_PATHWAY_CTA = 'Get My Business Score'
+export const HOME_PAIN_CTA = 'Find Out Where I Stand'
+export const HOME_POSITIONING_TAGLINE = 'Know Your Score. See Your Risks. Build Your Plan.'

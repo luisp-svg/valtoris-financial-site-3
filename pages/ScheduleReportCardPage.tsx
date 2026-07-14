@@ -19,7 +19,7 @@ export default function ScheduleReportCardPage() {
             Choose a time to review your Family Financial Report Card™ with a Valtoris advisor.
           </p>
 
-          <ScheduleReportCardLink className="schedule-primary-btn" />
+          <ScheduleReportCardLink className="platform-btn platform-btn-primary" />
 
           <Link className="schedule-back-link" to={ROUTES.home}>
             Return Home

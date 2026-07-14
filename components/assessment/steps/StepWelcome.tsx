@@ -13,11 +13,11 @@ export default function StepWelcome({ onBegin, onBack }: StepWelcomeProps) {
       description="Answer a few simple questions so we can show where your family stands today."
     >
       <div className="welcome-actions">
-        <button type="button" className="assessment-btn assessment-btn-primary" onClick={onBegin}>
+        <button type="button" className="platform-btn platform-btn-primary" onClick={onBegin}>
           {FAMILY_CTA}
         </button>
         {onBack ? (
-          <button type="button" className="assessment-btn assessment-btn-secondary" onClick={onBack}>
+          <button type="button" className="platform-btn platform-btn-outline" onClick={onBack}>
             Back to Overview
           </button>
         ) : null}
