@@ -10,6 +10,9 @@ export const ROUTES = {
   businessReportCard: '/business-report-card',
   businessAssessment: '/business-assessment',
   businessReportCardResults: '/business-results',
+  retirementReportCard: '/retirement-report-card',
+  retirementAssessment: '/retirement-assessment',
+  retirementReportCardResults: '/retirement-results',
   checkup: '/checkup',
   schedule: '/schedule',
 } as const

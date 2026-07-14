@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Production builds
+dist/
+
+# Vite cache
+.vite/
+
+# Logs
+*.log
+
+# macOS
+.DS_Store
+
+# Environment variables
+.env
+.env.local
+.env.production

@@ -1,8 +1,10 @@
 import { BusinessAssessmentAnswers } from '../assessment/business/types'
 import { scoreBusinessAssessment } from '../assessment/scoring/scoreBusinessAssessment'
+import { RetirementAssessmentAnswers } from '../assessment/retirement/types'
+import { scoreRetirementAssessment } from '../assessment/scoring/scoreRetirementAssessment'
 import { DemoAssessmentAnswers } from '../assessment/types'
 import { scoreFamilyAssessment } from '../assessment/scoring/scoreFamilyAssessment'
-import { parseAmount } from '../calculator/calculations'
+import { formatCurrency, parseAmount } from '../calculator/calculations'
 import { ROUTES } from '../../constants/routes'
 import { buildMasterLeadPayload } from '../../utils/masterLeadPayload'
 import {
@@ -177,4 +179,70 @@ export async function submitBusinessReportCardLead(answers: BusinessAssessmentAn
   })
 
   return submitLeadToGoogleSheets('Business Report Card', payload)
+}
+
+export async function submitRetirementReportCardLead(answers: RetirementAssessmentAnswers) {
+  const scored = scoreRetirementAssessment(answers)
+  const firstName = answers.household.firstName.trim()
+  const lastName = answers.household.lastName.trim()
+  const fullName = [firstName, lastName].filter(Boolean).join(' ')
+  const monthlyGap = Math.round(scored.metrics.annualIncomeGap / 12)
+  const retirementAgeNote = scored.metrics.isAlreadyRetired
+    ? 'Already retired'
+    : `Target retirement age: ${scored.metrics.retirementAge}`
+
+  const payload = buildMasterLeadPayload({
+    firstName,
+    lastName,
+    fullName,
+    email: answers.household.email.trim(),
+    phone: answers.household.phone.trim(),
+    age: answers.household.currentAge.trim(),
+    state: answers.household.state.trim(),
+    maritalStatus: answers.household.maritalStatus.trim(),
+    annualIncome: parseAmount(answers.lifestyle.currentAnnualGrossIncome),
+    overallScore: scored.overallScore,
+    overallGrade: scored.overallGrade,
+    protectionGap:
+      monthlyGap > 0
+        ? formatCurrency(monthlyGap)
+        : formatCurrency(scored.metrics.annualIncomeGap),
+    topPriority1: scored.priorities[0]?.title ?? '',
+    topPriority2: scored.priorities[1]?.title ?? '',
+    topPriority3: scored.priorities[2]?.title ?? '',
+    calendlyBooked: '',
+    strategySessionDate: '',
+    leadStatus: '',
+    assignedAdvisor: '',
+    notes: [
+      retirementAgeNote,
+      answers.leadDetails.preferredContactMethod
+        ? `Preferred contact: ${answers.leadDetails.preferredContactMethod}`
+        : '',
+      answers.leadDetails.bestContactTime
+        ? `Best time: ${answers.leadDetails.bestContactTime}`
+        : '',
+      answers.leadDetails.primaryConcern
+        ? `Primary concern: ${answers.leadDetails.primaryConcern}`
+        : '',
+    ]
+      .filter(Boolean)
+      .join(' | '),
+    sourcePage: getSourcePage() || ROUTES.retirementAssessment,
+    rawAnswers: JSON.stringify({
+      answers,
+      scored: {
+        overallScore: scored.overallScore,
+        overallGrade: scored.overallGrade,
+        currentLevel: scored.currentLevel,
+        metrics: scored.metrics,
+        strengths: scored.strengths,
+        opportunities: scored.opportunities,
+        priorities: scored.priorities,
+      },
+      assumptions: scored.metrics.assumptions,
+    }),
+  })
+
+  return submitLeadToGoogleSheets('Retirement Report Card', payload)
 }

@@ -11,6 +11,9 @@ import FamilyProtectionResults from '../pages/FamilyProtectionResults'
 import BusinessReportCardPage from '../pages/BusinessReportCardPage'
 import BusinessFinancialAssessment from '../pages/BusinessFinancialAssessment'
 import BusinessReportCardResults from '../pages/BusinessReportCardResults'
+import RetirementReportCardPage from '../pages/RetirementReportCardPage'
+import RetirementAssessment from '../pages/RetirementAssessment'
+import RetirementReportCardResults from '../pages/RetirementReportCardResults'
 import FinancialProtectionAssessment from '../pages/FinancialProtectionAssessment'
 import FamilyReportCardResults from '../pages/FamilyReportCardResults'
 import FamilyReportCardPage from '../pages/FamilyReportCardPage'
@@ -41,6 +44,8 @@ export default function App() {
       <Route path={ROUTES.reportCardResults} element={<FamilyReportCardResults />} />
       <Route path={ROUTES.businessReportCardResults} element={<BusinessReportCardResults />} />
       <Route path={ROUTES.businessAssessment} element={<BusinessFinancialAssessment />} />
+      <Route path={ROUTES.retirementReportCardResults} element={<RetirementReportCardResults />} />
+      <Route path={ROUTES.retirementAssessment} element={<RetirementAssessment />} />
       <Route path={ROUTES.schedule} element={<ScheduleReportCardPage />} />
 
       <Route
@@ -79,6 +84,14 @@ export default function App() {
         element={
           <SiteLayout>
             <BusinessReportCardPage />
+          </SiteLayout>
+        }
+      />
+      <Route
+        path={ROUTES.retirementReportCard}
+        element={
+          <SiteLayout>
+            <RetirementReportCardPage />
           </SiteLayout>
         }
       />

@@ -57,6 +57,10 @@ export type ReportDashboardData = {
     strength: string
     opportunity: string
     neutral: string
+    strong?: string
+    stable?: string
+    'needs-attention'?: string
+    'priority-risk'?: string
   }
   statusMetricLabel?: string
   recommendationsSubhead: string

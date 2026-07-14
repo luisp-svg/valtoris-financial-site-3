@@ -1,8 +1,0 @@
-{
-  "name": "Valtoris Financial",
-  "short_name": "Valtoris",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#F8FAFC",
-  "theme_color": "#07144D"
-}

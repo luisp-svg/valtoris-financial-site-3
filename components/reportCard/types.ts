@@ -1,4 +1,12 @@
-export type CategoryStatus = 'strength' | 'opportunity' | 'neutral'
+/** Family/Business use strength | opportunity | neutral. Retirement adds four-level statuses. */
+export type CategoryStatus =
+  | 'strength'
+  | 'opportunity'
+  | 'neutral'
+  | 'strong'
+  | 'stable'
+  | 'needs-attention'
+  | 'priority-risk'
 
 export type CategoryScore = {
   id: string

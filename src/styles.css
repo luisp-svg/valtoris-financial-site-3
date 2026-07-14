@@ -1263,6 +1263,24 @@ p { color: var(--muted); line-height: 1.7; }
 .rd-category-icon-exit {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2307144D' stroke-width='1.75'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9'/%3E%3C/svg%3E");
 }
+.rd-category-icon-vision {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2307144D' stroke-width='1.75'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z'/%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z'/%3E%3C/svg%3E");
+}
+.rd-category-icon-savings {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2307144D' stroke-width='1.75'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z'/%3E%3C/svg%3E");
+}
+.rd-category-icon-income-sources {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2307144D' stroke-width='1.75'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.172-.879-1.172-2.303 0-3.182.773-.582 1.525-.894 2.003-.894.477 0 1.23.312 2.003.894Z'/%3E%3C/svg%3E");
+}
+.rd-category-icon-income-adequacy {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2307144D' stroke-width='1.75'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z'/%3E%3C/svg%3E");
+}
+.rd-category-icon-investments {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2307144D' stroke-width='1.75'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941'/%3E%3C/svg%3E");
+}
+.rd-category-icon-healthcare {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2307144D' stroke-width='1.75'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z'/%3E%3C/svg%3E");
+}
 
 .rd-priorities-list {
   display: grid;
@@ -1473,6 +1491,22 @@ p { color: var(--muted); line-height: 1.7; }
 .rd-status-neutral {
   background: #f1f5f9;
   color: #64748b;
+}
+.rd-status-strong {
+  background: rgba(52, 211, 153, 0.12);
+  color: #0f766e;
+}
+.rd-status-stable {
+  background: rgba(100, 116, 139, 0.12);
+  color: #475569;
+}
+.rd-status-needs-attention {
+  background: rgba(251, 191, 36, 0.16);
+  color: #92400e;
+}
+.rd-status-priority-risk {
+  background: rgba(244, 163, 163, 0.18);
+  color: #9f1239;
 }
 .rd-accordion-list {
   margin: 14px 0 0;
@@ -4581,6 +4615,143 @@ p { color: var(--muted); line-height: 1.7; }
   line-height: 1.45;
   color: var(--platform-muted);
   font-weight: 500;
+}
+
+.sample-results-readiness {
+  margin: 12px 0 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--brand);
+}
+
+.assessment-note {
+  margin: 0 0 12px;
+  color: #64748b;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.assessment-section-heading {
+  margin: 8px 0 4px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--brand);
+}
+
+.assessment-validation-message {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(251, 191, 36, 0.14);
+  color: #92400e;
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.assessment-consent-field {
+  width: 100%;
+  min-width: 0;
+}
+
+.assessment-consent-label {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: #334155;
+  cursor: pointer;
+}
+
+.assessment-consent-label input[type='checkbox'] {
+  width: 1.125rem;
+  height: 1.125rem;
+  margin: 0.2em 0 0;
+  flex: 0 0 auto;
+  accent-color: var(--brand);
+}
+
+.assessment-consent-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto;
+}
+
+.retirement-snapshot-highlights {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin: 0 0 22px;
+}
+
+.retirement-snapshot-highlight {
+  margin: 0;
+  padding: 16px 18px;
+  border: 1px solid rgba(7, 20, 77, 0.12);
+  border-radius: 14px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  box-shadow: 0 1px 0 rgba(7, 20, 77, 0.04);
+}
+
+.retirement-snapshot-highlight dt {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.retirement-snapshot-highlight dd {
+  margin: 8px 0 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--brand);
+}
+
+.retirement-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 18px;
+  margin: 0;
+}
+
+.retirement-metrics-grid dt {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.retirement-metrics-grid dd {
+  margin: 4px 0 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--brand);
+}
+
+.retirement-assumption-list {
+  margin: 0;
+  padding-left: 18px;
+  color: #334155;
+  line-height: 1.6;
+}
+
+.retirement-assumption-list li + li {
+  margin-top: 6px;
+}
+
+@media (max-width: 640px) {
+  .retirement-snapshot-highlights,
+  .retirement-metrics-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 960px) {

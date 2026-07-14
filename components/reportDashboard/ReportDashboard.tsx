@@ -29,7 +29,15 @@ function CategoryAccordionItem({
       ? statusLabels.strength
       : category.status === 'opportunity'
         ? statusLabels.opportunity
-        : statusLabels.neutral
+        : category.status === 'strong'
+          ? statusLabels.strong ?? 'Strong'
+          : category.status === 'stable'
+            ? statusLabels.stable ?? 'Stable'
+            : category.status === 'needs-attention'
+              ? statusLabels['needs-attention'] ?? 'Needs Attention'
+              : category.status === 'priority-risk'
+                ? statusLabels['priority-risk'] ?? 'Priority Risk'
+                : statusLabels.neutral
 
   return (
     <article className={`rd-accordion-item${isOpen ? ' is-open' : ''}`}>

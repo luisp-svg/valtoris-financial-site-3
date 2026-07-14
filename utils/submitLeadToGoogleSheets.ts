@@ -1,6 +1,10 @@
 import { GOOGLE_SHEETS_CALCULATOR_WEBHOOK_URL } from '../constants/urls'
 
-export type LeadType = 'Protection Gap' | 'Family Report Card' | 'Business Report Card'
+export type LeadType =
+  | 'Protection Gap'
+  | 'Family Report Card'
+  | 'Business Report Card'
+  | 'Retirement Report Card'
 
 export type LeadPayloadValue = string | number | boolean | null | undefined
 
