@@ -1,9 +1,31 @@
 import { Link } from 'react-router-dom'
 import HomeCardIcon from '../components/home/HomeCardIcon'
 import ScheduleReportCardLink from '../components/ScheduleReportCardLink'
+import { RETIREMENT_CTA } from '../constants/homepage'
 import { ROUTES } from '../constants/routes'
 
-const SOLUTION_AREAS = [
+type SolutionAreaItem = {
+  title: string
+  description?: string
+}
+
+type SolutionSection = {
+  id: string
+  icon: 'protection' | 'priorities' | 'strategy' | 'retirement' | 'picture'
+  title: string
+  lead: string
+  body: string
+  areas: SolutionAreaItem[]
+  ctaLabel: string
+  ctaTo: string
+  crossLink?: {
+    text: string
+    linkLabel: string
+    to: string
+  }
+}
+
+const SOLUTION_AREAS: SolutionSection[] = [
   {
     id: 'protect-family',
     icon: 'protection' as const,
@@ -110,6 +132,32 @@ const SOLUTION_AREAS = [
     ],
     ctaLabel: 'Start My Family Financial Report Card™',
     ctaTo: ROUTES.reportCard,
+    crossLink: {
+      text: 'Prefer a retirement-focused diagnostic?',
+      linkLabel: 'Take the Retirement Report Card™',
+      to: ROUTES.retirementReportCard,
+    },
+  },
+  {
+    id: 'prepare-retirement',
+    icon: 'retirement' as const,
+    title: 'Prepare for Retirement With Greater Clarity',
+    lead: 'See how savings, income sources, and risk may work together before you need them to.',
+    body: 'Retirement planning involves more than accumulating assets. It also requires coordinating income needs, Social Security, pensions, withdrawals, taxes, healthcare, investment risk, and legacy goals. The areas below are educational evaluation topics—not guaranteed recommendations.',
+    areas: [
+      { title: 'Retirement Readiness' },
+      { title: 'Projected Income Needs' },
+      { title: 'Retirement Income Gap' },
+      { title: 'Social Security Timing' },
+      { title: 'Pension Options' },
+      { title: '401(k), 403(b), IRA, and TSP Decisions' },
+      { title: 'Investment Risk and Diversification' },
+      { title: 'Tax Diversification' },
+      { title: 'Healthcare and Long-Term-Care Readiness' },
+      { title: 'Estate and Beneficiary Coordination' },
+    ],
+    ctaLabel: RETIREMENT_CTA,
+    ctaTo: ROUTES.retirementReportCard,
   },
   {
     id: 'protect-business',
@@ -170,6 +218,11 @@ const STARTING_POINTS = [
     to: ROUTES.businessReportCard,
   },
   {
+    label: 'For Retirement Planning',
+    description: 'Take the Retirement Report Card™',
+    to: ROUTES.retirementReportCard,
+  },
+  {
     label: 'For Family Protection',
     description: 'Start the Family Protection Analysis™',
     to: ROUTES.protectionAnalysis,
@@ -228,14 +281,26 @@ export default function SolutionsPage() {
               <Link className="platform-btn platform-btn-primary" to={section.ctaTo}>
                 {section.ctaLabel}
               </Link>
+              {section.crossLink ? (
+                <p className="solutions-crosslink">
+                  {section.crossLink.text}{' '}
+                  <Link to={section.crossLink.to}>{section.crossLink.linkLabel}</Link>
+                </p>
+              ) : null}
             </div>
             <div className="solutions-areas">
               <h3 className="solutions-areas-title">Areas We Can Help You Evaluate:</h3>
               <ul className="solutions-areas-list">
                 {section.areas.map((area) => (
                   <li key={area.title} className="solutions-area-item">
-                    <strong className="solutions-area-title">{area.title}:</strong>{' '}
-                    <span className="solutions-area-description">{area.description}</span>
+                    {area.description ? (
+                      <>
+                        <strong className="solutions-area-title">{area.title}:</strong>{' '}
+                        <span className="solutions-area-description">{area.description}</span>
+                      </>
+                    ) : (
+                      <strong className="solutions-area-title">{area.title}</strong>
+                    )}
                   </li>
                 ))}
               </ul>

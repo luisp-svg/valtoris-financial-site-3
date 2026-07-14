@@ -94,16 +94,21 @@ const HOW_IT_WORKS = [
   },
 ]
 
-const SOLUTIONS = [
-  'Life insurance and living-benefit strategies',
-  'Property and casualty insurance',
-  'Health insurance solutions',
-  'Retirement and annuity strategies',
-  'Credit improvement',
-  'Student-loan strategies',
-  'Wills and trusts',
-  'Tax-planning coordination',
-  'Business-owner solutions',
+const SOLUTIONS: Array<{ label: string; to?: string; meaning?: string }> = [
+  { label: 'Life insurance and living-benefit strategies' },
+  { label: 'Property and casualty insurance' },
+  { label: 'Health insurance solutions' },
+  {
+    label: 'Retirement Readiness & Income Planning',
+    to: ROUTES.retirementReportCard,
+    meaning:
+      'Evaluate savings progress, projected retirement income, Social Security, pensions, investment risk, tax diversification, healthcare readiness, and potential income gaps.',
+  },
+  { label: 'Credit improvement' },
+  { label: 'Student-loan strategies' },
+  { label: 'Wills and trusts' },
+  { label: 'Tax-planning coordination' },
+  { label: 'Business-owner solutions' },
 ]
 
 export default function HomePage() {
@@ -300,8 +305,22 @@ export default function HomePage() {
           </p>
           <ul className="funnel-solutions-grid">
             {SOLUTIONS.map((solution) => (
-              <li key={solution} className="funnel-solution-item platform-card">
-                {solution}
+              <li key={solution.label} className="funnel-solution-item platform-card">
+                {solution.to ? (
+                  <Link
+                    className="funnel-solution-link"
+                    to={solution.to}
+                    aria-label={
+                      solution.meaning
+                        ? `${solution.label}. ${solution.meaning}`
+                        : solution.label
+                    }
+                  >
+                    {solution.label}
+                  </Link>
+                ) : (
+                  solution.label
+                )}
               </li>
             ))}
           </ul>
