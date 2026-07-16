@@ -1,6 +1,4 @@
-import { Fragment } from 'react'
-import { Link } from 'react-router-dom'
-import HomeCardIcon from '../components/home/HomeCardIcon'
+import DiagnosticLanding from '../components/home/DiagnosticLanding'
 import SampleResultsPreview from '../components/home/SampleResultsPreview'
 import { FAMILY_CTA } from '../constants/homepage'
 import { ROUTES } from '../constants/routes'
@@ -96,12 +94,17 @@ const HOW_IT_WORKS = [
 
 const FAQS = [
   {
-    question: 'How long does it take?',
+    question: 'How long does the Family Report Card take?',
     answer: 'Most families finish in about two minutes. No account creation is required.',
   },
   {
     question: 'Is it free?',
-    answer: 'Yes. The Family Financial Report Card™ is complimentary with no obligation.',
+    answer: 'Yes. The Valtoris Family Financial Report Card™ is complimentary with no obligation.',
+  },
+  {
+    question: 'Are the results guaranteed?',
+    answer:
+      'No. Results are educational estimates based on your answers. They do not guarantee financial outcomes.',
   },
   {
     question: 'Do I have to purchase anything?',
@@ -125,145 +128,30 @@ const FAQS = [
 
 export default function FamilyReportCardPage() {
   return (
-    <div className="platform-home diagnostic-landing family-report-card-page">
-      <section className="platform-hero diagnostic-hero">
-        <div className="container diagnostic-hero-inner">
-          <p className="platform-eyebrow">Family Financial Report Card™</p>
-          <h1 className="platform-headline diagnostic-hero-title">
-            See What Your Family Will Receive
-          </h1>
-          <p className="platform-subhead diagnostic-hero-copy">
-            Take the complimentary 2-minute Family Financial Report Card™ and receive a personalized
-            score, category breakdown, risk analysis, and action blueprint—so you know where you
-            stand and what to address first.
-          </p>
-          <div className="diagnostic-hero-actions">
-            <Link className="platform-btn platform-btn-primary" to={ROUTES.familyAssessment}>
-              {FAMILY_CTA}
-            </Link>
-          </div>
-          <p className="funnel-microcopy">No cost. No obligation. Immediate personalized results.</p>
-        </div>
-      </section>
-
-      <section className="platform-section platform-tone-blue" aria-labelledby="receive-heading">
-        <div className="container platform-section-inner">
-          <h2 id="receive-heading" className="platform-section-title">
-            What You&apos;ll Receive
-          </h2>
-          <p className="platform-section-lead">
-            Four deliverables designed to turn a short assessment into clear financial direction.
-          </p>
-          <div className="diagnostic-receive-grid">
-            {WHAT_YOU_RECEIVE.map((item) => (
-              <article key={item.title} className="diagnostic-receive-card platform-card">
-                <HomeCardIcon variant={item.icon} />
-                <h3 className="diagnostic-receive-title">{item.title}</h3>
-                <p className="diagnostic-receive-copy">{item.description}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="platform-section platform-tone-white" aria-labelledby="sample-heading">
-        <div className="container platform-section-inner funnel-preview-section">
-          <h2 id="sample-heading" className="platform-section-title">
-            Sample Report Preview
-          </h2>
-          <p className="platform-section-lead">
-            An illustrative look at the score, category detail, and action plan you can expect.
-          </p>
-          <div className="funnel-preview-stage">
-            <SampleResultsPreview />
-          </div>
-        </div>
-      </section>
-
-      <section className="platform-section platform-tone-gray" aria-labelledby="categories-heading">
-        <div className="container platform-section-inner">
-          <h2 id="categories-heading" className="platform-section-title">
-            Categories Evaluated
-          </h2>
-          <p className="platform-section-lead">
-            Your Report Card reviews the eight areas that shape a coordinated family financial
-            foundation.
-          </p>
-          <div className="funnel-category-grid">
-            {CATEGORIES.map((category) => (
-              <article key={category.title} className="funnel-category-card platform-card">
-                <HomeCardIcon variant={category.icon} />
-                <h3 className="funnel-category-title">{category.title}</h3>
-                <p className="funnel-category-copy">{category.description}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="platform-section platform-tone-blue" aria-labelledby="how-heading">
-        <div className="container platform-section-inner">
-          <h2 id="how-heading" className="platform-section-title">
-            How It Works
-          </h2>
-          <p className="platform-section-lead">
-            From your first answers to a clearer next step in four focused stages.
-          </p>
-          <div className="diagnostic-timeline">
-            {HOW_IT_WORKS.map((item, index) => (
-              <Fragment key={item.title}>
-                <article className="diagnostic-timeline-step platform-card">
-                  <span className="diagnostic-timeline-number">{item.step}</span>
-                  <h3 className="diagnostic-timeline-title">{item.title}</h3>
-                  <p className="diagnostic-timeline-copy">{item.description}</p>
-                </article>
-                {index < HOW_IT_WORKS.length - 1 ? (
-                  <span className="diagnostic-timeline-arrow" aria-hidden="true">
-                    ↓
-                  </span>
-                ) : null}
-              </Fragment>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="platform-section platform-tone-white" aria-labelledby="faq-heading">
-        <div className="container platform-section-inner">
-          <h2 id="faq-heading" className="platform-section-title">
-            Frequently Asked Questions
-          </h2>
-          <p className="platform-section-lead">
-            Straightforward answers before you begin.
-          </p>
-          <div className="diagnostic-faq-list">
-            {FAQS.map((faq) => (
-              <article key={faq.question} className="diagnostic-faq-item platform-card">
-                <h3 className="diagnostic-faq-question">{faq.question}</h3>
-                <p className="diagnostic-faq-answer">{faq.answer}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="product-closing platform-closing">
-        <div className="container product-closing-inner">
-          <h2 className="product-closing-title">Ready to See Where Your Family Stands?</h2>
-          <p className="product-closing-copy">
-            Take the first step and receive a clearer picture of your score, risks, and next
-            priorities.
-          </p>
-          <div className="product-closing-actions">
-            <Link className="platform-btn platform-btn-secondary" to={ROUTES.familyAssessment}>
-              {FAMILY_CTA}
-            </Link>
-          </div>
-          <p className="funnel-final-microcopy">
-            Takes approximately two minutes. No cost. No obligation.
-          </p>
-        </div>
-      </section>
-    </div>
+    <DiagnosticLanding
+      pageClassName="family-report-card-page"
+      eyebrow="VALTORIS FAMILY FINANCIAL REPORT CARD™"
+      title="How Financially Prepared Is Your Family?"
+      heroCopies={[
+        'Take the complimentary 2-minute Valtoris Family Financial Report Card™ to evaluate cash flow, emergency reserves, debt, protection, retirement readiness, estate planning, credit, and financial independence.',
+        'See what appears to be working, where your family may be exposed, and what to address next.',
+      ]}
+      ctaLabel={FAMILY_CTA}
+      ctaTo={ROUTES.familyAssessment}
+      heroMicrocopy="Takes approximately two minutes. No cost. No obligation. Results are estimates, not guarantees."
+      receiveLead="Four deliverables designed to turn a short assessment into clear financial direction."
+      receiveItems={WHAT_YOU_RECEIVE}
+      sampleLead="An illustrative look at the score, category detail, and action plan you can expect."
+      samplePreview={<SampleResultsPreview />}
+      categoriesHeading="Categories Evaluated"
+      categoriesLead="Your Report Card reviews the eight areas that shape a coordinated family financial foundation."
+      categories={CATEGORIES}
+      howLead="From your first answers to a clearer next step in four focused stages."
+      howSteps={HOW_IT_WORKS}
+      faqs={FAQS}
+      closingTitle="Ready to See Where Your Family Stands?"
+      closingCopy="Take the first step and receive a clearer picture of your score, risks, and next priorities."
+      closingMicrocopy="Takes approximately two minutes. No cost. No obligation. Results are estimates, not guarantees."
+    />
   )
 }

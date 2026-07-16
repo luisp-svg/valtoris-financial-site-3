@@ -1,6 +1,4 @@
-import { Fragment } from 'react'
-import { Link } from 'react-router-dom'
-import HomeCardIcon from '../components/home/HomeCardIcon'
+import DiagnosticLanding from '../components/home/DiagnosticLanding'
 import ProtectionSampleResultsPreview from '../components/home/ProtectionSampleResultsPreview'
 import { PROTECTION_CTA } from '../constants/homepage'
 import { ROUTES } from '../constants/routes'
@@ -96,12 +94,17 @@ const HOW_IT_WORKS = [
 
 const FAQS = [
   {
-    question: 'How long does it take?',
+    question: 'How long does the Family Protection Analysis take?',
     answer: 'Most households finish in under two minutes.',
   },
   {
     question: 'Is it free?',
-    answer: 'Yes. The Family Protection Analysis™ is complimentary and educational.',
+    answer: 'Yes. The Valtoris Family Protection Analysis™ is complimentary and educational.',
+  },
+  {
+    question: 'Are the estimates guaranteed?',
+    answer:
+      'No. Results are educational estimates based on your answers. They do not guarantee coverage amounts, underwriting outcomes, or product availability.',
   },
   {
     question: 'Do I have to purchase anything?',
@@ -125,144 +128,30 @@ const FAQS = [
 
 export default function ProtectionAnalysisPage() {
   return (
-    <div className="platform-home diagnostic-landing protection-analysis-page">
-      <section className="platform-hero diagnostic-hero">
-        <div className="container diagnostic-hero-inner">
-          <p className="platform-eyebrow">Family Protection Analysis™</p>
-          <h1 className="platform-headline diagnostic-hero-title">
-            See What Your Protection Analysis Delivers
-          </h1>
-          <p className="platform-subhead diagnostic-hero-copy">
-            Complete a focused protection diagnostic and receive recommended coverage, a needs
-            breakdown, your estimated Protection Gap™, and clear next-step recommendations—in less
-            than two minutes.
-          </p>
-          <div className="diagnostic-hero-actions">
-            <Link className="platform-btn platform-btn-primary" to={ROUTES.protectionGap}>
-              {PROTECTION_CTA}
-            </Link>
-          </div>
-          <p className="funnel-microcopy">No cost. No obligation. Immediate personalized results.</p>
-        </div>
-      </section>
-
-      <section className="platform-section platform-tone-blue" aria-labelledby="receive-heading">
-        <div className="container platform-section-inner">
-          <h2 id="receive-heading" className="platform-section-title">
-            What You&apos;ll Receive
-          </h2>
-          <p className="platform-section-lead">
-            Four deliverables that turn a short calculator into clearer protection direction.
-          </p>
-          <div className="diagnostic-receive-grid">
-            {WHAT_YOU_RECEIVE.map((item) => (
-              <article key={item.title} className="diagnostic-receive-card platform-card">
-                <HomeCardIcon variant={item.icon} />
-                <h3 className="diagnostic-receive-title">{item.title}</h3>
-                <p className="diagnostic-receive-copy">{item.description}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="platform-section platform-tone-white" aria-labelledby="sample-heading">
-        <div className="container platform-section-inner funnel-preview-section">
-          <h2 id="sample-heading" className="platform-section-title">
-            Sample Report Preview
-          </h2>
-          <p className="platform-section-lead">
-            An illustrative look at coverage need, current coverage, Protection Gap™, and priority
-            recommendations.
-          </p>
-          <div className="funnel-preview-stage">
-            <ProtectionSampleResultsPreview />
-          </div>
-        </div>
-      </section>
-
-      <section className="platform-section platform-tone-gray" aria-labelledby="categories-heading">
-        <div className="container platform-section-inner">
-          <h2 id="categories-heading" className="platform-section-title">
-            Categories Evaluated
-          </h2>
-          <p className="platform-section-lead">
-            Your Protection Analysis reviews the planning inputs that shape estimated coverage need.
-          </p>
-          <div className="funnel-category-grid">
-            {CATEGORIES.map((category) => (
-              <article key={category.title} className="funnel-category-card platform-card">
-                <HomeCardIcon variant={category.icon} />
-                <h3 className="funnel-category-title">{category.title}</h3>
-                <p className="funnel-category-copy">{category.description}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="platform-section platform-tone-blue" aria-labelledby="how-heading">
-        <div className="container platform-section-inner">
-          <h2 id="how-heading" className="platform-section-title">
-            How It Works
-          </h2>
-          <p className="platform-section-lead">
-            From your first answers to a clearer next step in four focused stages.
-          </p>
-          <div className="diagnostic-timeline">
-            {HOW_IT_WORKS.map((item, index) => (
-              <Fragment key={item.title}>
-                <article className="diagnostic-timeline-step platform-card">
-                  <span className="diagnostic-timeline-number">{item.step}</span>
-                  <h3 className="diagnostic-timeline-title">{item.title}</h3>
-                  <p className="diagnostic-timeline-copy">{item.description}</p>
-                </article>
-                {index < HOW_IT_WORKS.length - 1 ? (
-                  <span className="diagnostic-timeline-arrow" aria-hidden="true">
-                    ↓
-                  </span>
-                ) : null}
-              </Fragment>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="platform-section platform-tone-white" aria-labelledby="faq-heading">
-        <div className="container platform-section-inner">
-          <h2 id="faq-heading" className="platform-section-title">
-            Frequently Asked Questions
-          </h2>
-          <p className="platform-section-lead">
-            Straightforward answers before you begin.
-          </p>
-          <div className="diagnostic-faq-list">
-            {FAQS.map((faq) => (
-              <article key={faq.question} className="diagnostic-faq-item platform-card">
-                <h3 className="diagnostic-faq-question">{faq.question}</h3>
-                <p className="diagnostic-faq-answer">{faq.answer}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="product-closing platform-closing">
-        <div className="container product-closing-inner">
-          <h2 className="product-closing-title">Know Your Gap Before It Becomes a Risk</h2>
-          <p className="product-closing-copy">
-            Start with a focused protection estimate and leave with clearer next-step direction.
-          </p>
-          <div className="product-closing-actions">
-            <Link className="platform-btn platform-btn-secondary" to={ROUTES.protectionGap}>
-              {PROTECTION_CTA}
-            </Link>
-          </div>
-          <p className="funnel-final-microcopy">
-            Takes under two minutes. No cost. No obligation.
-          </p>
-        </div>
-      </section>
-    </div>
+    <DiagnosticLanding
+      pageClassName="protection-analysis-page"
+      eyebrow="VALTORIS FAMILY PROTECTION ANALYSIS™"
+      title="Is Your Family Financially Protected?"
+      heroCopies={[
+        'Take the complimentary Valtoris Family Protection Analysis™ to evaluate income replacement, housing protection, debt payoff, education funding, final expenses, and your current life insurance coverage.',
+        'See your estimated Protection Gap™, what may leave your household exposed, and what to address next.',
+      ]}
+      ctaLabel={PROTECTION_CTA}
+      ctaTo={ROUTES.protectionGap}
+      heroMicrocopy="Takes under two minutes. No cost. No obligation. Results are estimates, not guarantees."
+      receiveLead="Four deliverables that turn a short calculator into clearer protection direction."
+      receiveItems={WHAT_YOU_RECEIVE}
+      sampleLead="An illustrative look at coverage need, current coverage, Protection Gap™, and priority recommendations."
+      samplePreview={<ProtectionSampleResultsPreview />}
+      categoriesHeading="Categories Evaluated"
+      categoriesLead="Your Protection Analysis reviews the planning inputs that shape estimated coverage need."
+      categories={CATEGORIES}
+      howLead="From your first answers to a clearer next step in four focused stages."
+      howSteps={HOW_IT_WORKS}
+      faqs={FAQS}
+      closingTitle="Know Your Gap Before It Becomes a Risk"
+      closingCopy="Start with a focused protection estimate and leave with clearer next-step direction."
+      closingMicrocopy="Takes under two minutes. No cost. No obligation. Results are estimates, not guarantees."
+    />
   )
 }
