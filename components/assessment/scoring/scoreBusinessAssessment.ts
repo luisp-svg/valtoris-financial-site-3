@@ -858,9 +858,6 @@ function buildPriorities(
   const protection = categories.find((c) => c.id === 'business-protection')!
   const cashflow = categories.find((c) => c.id === 'cashflow')!
   const exit = categories.find((c) => c.id === 'exit')!
-  const retirement = categories.find((c) => c.id === 'retirement')!
-  const tax = categories.find((c) => c.id === 'tax')!
-
   if (protection.score < 50) {
     rankAdjustments.set('business-protection', (rankAdjustments.get('business-protection') ?? 0) - 2)
   }

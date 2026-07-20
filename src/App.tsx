@@ -1,9 +1,11 @@
 import { ReactNode } from 'react'
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Navigate, Outlet, Route, Routes } from 'react-router-dom'
 import ScrollToTop from '../components/ScrollToTop'
 import SiteHeader from '../components/SiteHeader'
 import SiteFooter from '../components/SiteFooter'
 import { ROUTES } from '../constants/routes'
+import { CrmAuthProvider } from '../crm/auth/CrmAuthContext'
+import { CrmLoginGate, CrmProtectedGate } from '../crm/components/CrmGate'
 import HomePage from '../pages/HomePage'
 import CheckupPage from '../pages/CheckupPage'
 import FamilyProtectionCalculator from '../pages/FamilyProtectionCalculator'
@@ -21,6 +23,10 @@ import ProtectionAnalysisPage from '../pages/ProtectionAnalysisPage'
 import SolutionsPage from '../pages/SolutionsPage'
 import ScheduleReportCardPage from '../pages/ScheduleReportCardPage'
 import NotFoundPage from '../pages/NotFoundPage'
+import CrmLoginPage from '../pages/crm/CrmLoginPage'
+import CrmHomePage from '../pages/crm/CrmHomePage'
+import CrmPlaceholderPage from '../pages/crm/CrmPlaceholderPage'
+import CrmTasksPage from '../pages/crm/CrmTasksPage'
 
 function SiteLayout({ children }: { children: ReactNode }) {
   return (
@@ -29,6 +35,14 @@ function SiteLayout({ children }: { children: ReactNode }) {
       <main>{children}</main>
       <SiteFooter />
     </div>
+  )
+}
+
+function CrmAuthLayout() {
+  return (
+    <CrmAuthProvider>
+      <Outlet />
+    </CrmAuthProvider>
   )
 }
 
@@ -112,6 +126,25 @@ export default function App() {
         }
       />
       <Route path="/business" element={<Navigate to={ROUTES.businessReportCard} replace />} />
+
+      <Route path="/crm" element={<CrmAuthLayout />}>
+        <Route element={<CrmLoginGate />}>
+          <Route path="login" element={<CrmLoginPage />} />
+        </Route>
+        <Route element={<CrmProtectedGate />}>
+          <Route index element={<CrmHomePage />} />
+          <Route path="leads" element={<CrmPlaceholderPage />} />
+          <Route path="households" element={<CrmPlaceholderPage />} />
+          <Route path="pipeline" element={<CrmPlaceholderPage />} />
+          <Route path="tasks" element={<CrmTasksPage />} />
+          <Route path="appointments" element={<CrmPlaceholderPage />} />
+          <Route path="policies" element={<CrmPlaceholderPage />} />
+          <Route path="annual-reviews" element={<CrmPlaceholderPage />} />
+          <Route path="documents" element={<CrmPlaceholderPage />} />
+          <Route path="settings" element={<CrmPlaceholderPage />} />
+        </Route>
+        <Route path="*" element={<Navigate to={ROUTES.crm} replace />} />
+      </Route>
 
       <Route
         path="*"

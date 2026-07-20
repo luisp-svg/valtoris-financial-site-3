@@ -18,5 +18,8 @@ dist/
 .env.*
 !.env.example
 
+# Dev Auth repair map (Phase C) — contains UUIDs, not passwords, but keep local
+.dev-auth-remap.json
+
 # Supabase local CLI state (never commit)
 supabase/.temp/

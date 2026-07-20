@@ -62,7 +62,21 @@ Owner-only actions (creating `advisor_profiles`, assigning households, managing 
 
 An advisor **cannot** self-promote: RLS + triggers block `role` changes on self-update.
 
-### Required one-time admin step
+### Development Auth users (valtoris-crm-dev)
+
+Do **not** insert rows into `auth.users` with SQL. Placeholder dry-run users are not valid for password login.
+
+For the linked development project only, use the local Admin API bootstrap:
+
+- Script: `scripts/bootstrap-dev-auth.mjs`
+- Docs: `scripts/README-dev-auth.md`
+- Command: `CONFIRM_DEV_AUTH_BOOTSTRAP=cxgiaevervjttbuiramd npm run bootstrap:dev-auth`
+
+Hard guards: `SUPABASE_URL` hostname must be exactly `cxgiaevervjttbuiramd.supabase.co`, and `CONFIRM_DEV_AUTH_BOOTSTRAP` must be exactly `cxgiaevervjttbuiramd`. Service-role key stays local (never `VITE_*`).
+
+If Auth Admin `listUsers` / malformed placeholder rows cause 500s, run read-only `npm run bootstrap:dev-auth:diagnose` and review `scripts/sql/repair-dev-placeholder-auth.sql` before any writes.
+
+### Required one-time admin step (non-script / production-style)
 
 After the first invite accepts, promote that user in the **Supabase SQL Editor** (or any service-role/admin connection). This bypasses RLS as a privileged database role.
 
@@ -290,6 +304,6 @@ Overview · Assessments · Recommendations · Opportunities · Policies · Tasks
 - [x] README updated (including FIRST OWNER BOOTSTRAP + cleanup notes)
 - [x] Dev migrations applied on `valtoris-crm-dev` (dry-run approved)
 - [x] Supabase CLI available as a devDependency
-- [ ] CRM UI / routes — **NO**
+- [x] CRM UI / routes — Phase 2 auth + shell (`/crm`, `/crm/login`)
 - [ ] Public funnels modified — **NO**
 - [ ] Credentials committed — **NO**

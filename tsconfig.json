@@ -16,5 +16,6 @@
     "noEmit": true,
     "jsx": "react-jsx"
   },
-  "include": ["src", "components", "pages", "api", "server"]
+  "include": ["src", "components", "pages", "api", "lib", "crm", "middleware.ts"],
+  "exclude": ["server", "dist", "node_modules"]
 }
