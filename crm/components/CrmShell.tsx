@@ -53,7 +53,7 @@ export default function CrmShell({ children }: CrmShellProps) {
           ) : (
             <BrandWordmark variant="header" />
           )}
-          <p className="crm-brand-tag">Advisor CRM</p>
+          <p className="crm-brand-tag">Valtoris CRM</p>
         </div>
         {nav}
         {role ? <p className="crm-sidebar-role">Role: {role}</p> : null}

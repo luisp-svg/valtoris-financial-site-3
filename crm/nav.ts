@@ -8,7 +8,7 @@ export type CrmNavItem = {
 export const CRM_NAV_ITEMS: CrmNavItem[] = [
   { label: 'Home', path: '/crm' },
   { label: 'Leads', path: '/crm/leads', placeholder: true },
-  { label: 'Households', path: '/crm/households', placeholder: true },
+  { label: 'Households', path: '/crm/households' },
   { label: 'Pipeline', path: '/crm/pipeline', placeholder: true },
   { label: 'Tasks', path: '/crm/tasks' },
   { label: 'Appointments', path: '/crm/appointments', placeholder: true },
