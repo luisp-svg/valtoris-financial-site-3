@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import { useCrmAuth } from '../../crm/auth/CrmAuthContext'
 import {
   createTask,
@@ -73,7 +73,7 @@ export default function CrmTasksPage() {
     setTasks(rows)
   }
 
-  async function loadFormOptions() {
+  const loadFormOptions = useCallback(async () => {
     if (!profile || !role) return
     const supabase = createSupabaseBrowserClient()
     setFormLoading(true)
@@ -131,7 +131,7 @@ export default function CrmTasksPage() {
     }
 
     setFormLoading(false)
-  }
+  }, [profile, role])
 
   useEffect(() => {
     let cancelled = false
@@ -156,7 +156,7 @@ export default function CrmTasksPage() {
   useEffect(() => {
     if (!showForm) return
     void loadFormOptions()
-  }, [showForm, profile?.id, role])
+  }, [showForm, loadFormOptions])
 
   useEffect(() => {
     if (!form.household_id) {

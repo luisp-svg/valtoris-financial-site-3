@@ -1127,7 +1127,7 @@ export function scoreRetirementAssessment(answers: RetirementAssessmentAnswers):
     strongestCategory,
     priorityCategory,
     priorities,
-    immediatePriorities: actionPlan.immediate,
+    immediatePriorities: [...actionPlan.immediate],
     actionPlan,
     blueprintRecommendations,
     blueprintBullets: blueprintRecommendations,

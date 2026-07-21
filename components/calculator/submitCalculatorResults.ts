@@ -30,9 +30,7 @@ function getFinalExpenseTotal(answers: CalculatorAnswers): number {
   return parseAmount(answers.finalExpenses.amount)
 }
 
-export function buildCalculatorSubmissionPayload(
-  answers: CalculatorAnswers,
-): CalculatorSubmissionPayload {
+export function buildCalculatorSubmissionPayload(answers: CalculatorAnswers) {
   const breakdown = calculateSelectedNeed(answers)
   const firstName = answers.family.firstName.trim()
   const lastName = answers.family.lastName.trim()
