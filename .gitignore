@@ -23,3 +23,6 @@ dist/
 
 # Supabase local CLI state (never commit)
 supabase/.temp/
+# Temporary development artifacts
+
+tmp/
