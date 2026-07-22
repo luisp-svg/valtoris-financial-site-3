@@ -1,21 +1,64 @@
 export type HouseholdStatus = 'lead' | 'prospect' | 'client' | 'inactive' | 'lost'
 
+/** DB enum values — includes legacy partner/dependent retained for existing rows. */
 export type MemberRelationship =
   | 'primary'
   | 'spouse'
   | 'partner'
   | 'child'
   | 'dependent'
+  | 'parent'
+  | 'grandparent'
+  | 'business_partner'
+  | 'employee'
+  | 'other'
+
+/** Relationships offered when creating a member (or editing non-legacy values). */
+export type MemberRelationshipCreateOption =
+  | 'primary'
+  | 'spouse'
+  | 'child'
+  | 'parent'
+  | 'grandparent'
+  | 'business_partner'
+  | 'employee'
   | 'other'
 
 export type AssessmentType = 'family' | 'business' | 'retirement' | 'protection'
 
 export type HouseholdMemberSummary = {
   id: string
+  household_id: string
   first_name: string
   last_name: string
   relationship: MemberRelationship
   is_primary_contact: boolean
+  email: string | null
+  phone: string | null
+  date_of_birth: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type CreateHouseholdMemberInput = {
+  household_id: string
+  first_name: string
+  last_name: string
+  relationship: MemberRelationship
+  is_primary_contact: boolean
+  email: string | null
+  phone: string | null
+  date_of_birth: string | null
+}
+
+export type UpdateHouseholdMemberInput = {
+  first_name: string
+  last_name: string
+  relationship: MemberRelationship
+  is_primary_contact: boolean
+  email: string | null
+  phone: string | null
+  date_of_birth: string | null
 }
 
 export type HouseholdAdvisorSummary = {

@@ -1,6 +1,8 @@
 import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js'
+import { normalizeEmail, normalizePhone } from './normalizeContact'
 import type {
   AssessmentType,
+  CreateHouseholdMemberInput,
   CrmHouseholdDetail,
   CrmHouseholdListItem,
   CrmHouseholdWorkspace,
@@ -13,6 +15,8 @@ import type {
   HouseholdOpenTaskSummary,
   HouseholdStageSummary,
   MemberRelationship,
+  MemberRelationshipCreateOption,
+  UpdateHouseholdMemberInput,
 } from './types'
 
 /**
@@ -20,6 +24,21 @@ import type {
  * pipeline_stages is pinned via relationship_stage_id for clarity.
  * Members are optional embeds; RLS may hide them for unassigned-pool rows.
  */
+const MEMBER_EMBED_SELECT = `
+    id,
+    household_id,
+    first_name,
+    last_name,
+    relationship,
+    is_primary_contact,
+    email,
+    phone,
+    date_of_birth,
+    created_at,
+    updated_at,
+    deleted_at
+`
+
 const HOUSEHOLD_LIST_SELECT = `
   id,
   display_name,
@@ -32,12 +51,7 @@ const HOUSEHOLD_LIST_SELECT = `
   assigned_advisor:advisor_profiles!assigned_advisor_id ( id, display_name ),
   relationship_stage:pipeline_stages!relationship_stage_id ( id, name, code ),
   members:household_members!household_id (
-    id,
-    first_name,
-    last_name,
-    relationship,
-    is_primary_contact,
-    deleted_at
+    ${MEMBER_EMBED_SELECT}
   )
 `
 
@@ -54,13 +68,23 @@ const HOUSEHOLD_DETAIL_SELECT = `
   assigned_advisor:advisor_profiles!assigned_advisor_id ( id, display_name ),
   relationship_stage:pipeline_stages!relationship_stage_id ( id, name, code ),
   members:household_members!household_id (
-    id,
-    first_name,
-    last_name,
-    relationship,
-    is_primary_contact,
-    deleted_at
+    ${MEMBER_EMBED_SELECT}
   )
+`
+
+const MEMBER_ROW_SELECT = `
+  id,
+  household_id,
+  first_name,
+  last_name,
+  relationship,
+  is_primary_contact,
+  email,
+  phone,
+  date_of_birth,
+  created_at,
+  updated_at,
+  deleted_at
 `
 
 const MEMBER_RELATIONSHIPS = new Set<MemberRelationship>([
@@ -69,8 +93,27 @@ const MEMBER_RELATIONSHIPS = new Set<MemberRelationship>([
   'partner',
   'child',
   'dependent',
+  'parent',
+  'grandparent',
+  'business_partner',
+  'employee',
   'other',
 ])
+
+/** Options shown for create / edit of non-legacy relationships. */
+export const MEMBER_RELATIONSHIP_CREATE_OPTIONS: {
+  value: MemberRelationshipCreateOption
+  label: string
+}[] = [
+  { value: 'primary', label: 'Self' },
+  { value: 'spouse', label: 'Spouse' },
+  { value: 'child', label: 'Child' },
+  { value: 'parent', label: 'Parent' },
+  { value: 'grandparent', label: 'Grandparent' },
+  { value: 'business_partner', label: 'Business Partner' },
+  { value: 'employee', label: 'Employee' },
+  { value: 'other', label: 'Other' },
+]
 
 const ASSESSMENT_TYPES = new Set<AssessmentType>([
   'family',
@@ -80,6 +123,9 @@ const ASSESSMENT_TYPES = new Set<AssessmentType>([
 ])
 
 export function formatSupabaseError(source: string, error: unknown): string {
+  if (error instanceof Error && error.name === 'PrimarySwitchMutationError') {
+    return error.message
+  }
   if (error && typeof error === 'object') {
     const e = error as Partial<PostgrestError> & { message?: string }
     const parts = [
@@ -109,37 +155,67 @@ function normalizeRelationship(value: unknown): MemberRelationship {
   return 'other'
 }
 
-function normalizeMembers(value: unknown): HouseholdMemberSummary[] {
+function sortMembers(members: HouseholdMemberSummary[]): HouseholdMemberSummary[] {
+  return [...members].sort((a, b) => {
+    if (a.is_primary_contact !== b.is_primary_contact) {
+      return a.is_primary_contact ? -1 : 1
+    }
+    return `${a.last_name} ${a.first_name}`.localeCompare(`${b.last_name} ${b.first_name}`)
+  })
+}
+
+function normalizeMemberRow(
+  member: Record<string, unknown>,
+  fallbackHouseholdId?: string,
+): HouseholdMemberSummary | null {
+  if (
+    typeof member.id !== 'string' ||
+    typeof member.first_name !== 'string' ||
+    typeof member.last_name !== 'string'
+  ) {
+    return null
+  }
+  if (member.deleted_at != null) return null
+
+  const householdId =
+    typeof member.household_id === 'string'
+      ? member.household_id
+      : fallbackHouseholdId
+  if (!householdId) return null
+
+  return {
+    id: member.id,
+    household_id: householdId,
+    first_name: member.first_name,
+    last_name: member.last_name,
+    relationship: normalizeRelationship(member.relationship),
+    is_primary_contact: Boolean(member.is_primary_contact),
+    email: (member.email as string | null) ?? null,
+    phone: (member.phone as string | null) ?? null,
+    date_of_birth: (member.date_of_birth as string | null) ?? null,
+    created_at: typeof member.created_at === 'string' ? member.created_at : '',
+    updated_at: typeof member.updated_at === 'string' ? member.updated_at : '',
+  }
+}
+
+function normalizeMembers(
+  value: unknown,
+  fallbackHouseholdId?: string,
+): HouseholdMemberSummary[] {
   if (!Array.isArray(value)) return []
-  return value
-    .filter((member): member is Record<string, unknown> => {
-      return (
-        !!member &&
-        typeof member === 'object' &&
-        typeof (member as HouseholdMemberSummary).id === 'string' &&
-        typeof (member as HouseholdMemberSummary).first_name === 'string' &&
-        typeof (member as HouseholdMemberSummary).last_name === 'string' &&
-        (member as { deleted_at?: string | null }).deleted_at == null
-      )
-    })
-    .map((member) => ({
-      id: String(member.id),
-      first_name: String(member.first_name),
-      last_name: String(member.last_name),
-      relationship: normalizeRelationship(member.relationship),
-      is_primary_contact: Boolean(member.is_primary_contact),
-    }))
-    .sort((a, b) => {
-      if (a.is_primary_contact !== b.is_primary_contact) {
-        return a.is_primary_contact ? -1 : 1
-      }
-      return `${a.last_name} ${a.first_name}`.localeCompare(`${b.last_name} ${b.first_name}`)
-    })
+  const members: HouseholdMemberSummary[] = []
+  for (const row of value) {
+    if (!row || typeof row !== 'object') continue
+    const normalized = normalizeMemberRow(row as Record<string, unknown>, fallbackHouseholdId)
+    if (normalized) members.push(normalized)
+  }
+  return sortMembers(members)
 }
 
 function normalizeHouseholdListItem(row: Record<string, unknown>): CrmHouseholdListItem {
+  const id = String(row.id)
   return {
-    id: String(row.id),
+    id,
     display_name: String(row.display_name),
     status: row.status as CrmHouseholdListItem['status'],
     primary_email: (row.primary_email as string | null) ?? null,
@@ -149,7 +225,7 @@ function normalizeHouseholdListItem(row: Record<string, unknown>): CrmHouseholdL
     updated_at: String(row.updated_at),
     assigned_advisor: asSingle<HouseholdAdvisorSummary>(row.assigned_advisor),
     relationship_stage: asSingle<HouseholdStageSummary>(row.relationship_stage),
-    members: normalizeMembers(row.members),
+    members: normalizeMembers(row.members, id),
   }
 }
 
@@ -196,7 +272,7 @@ export function getStatusLabel(status: CrmHouseholdListItem['status']): string {
 export function getRelationshipLabel(relationship: MemberRelationship): string {
   switch (relationship) {
     case 'primary':
-      return 'Primary'
+      return 'Self'
     case 'spouse':
       return 'Spouse'
     case 'partner':
@@ -205,9 +281,36 @@ export function getRelationshipLabel(relationship: MemberRelationship): string {
       return 'Child'
     case 'dependent':
       return 'Dependent'
+    case 'parent':
+      return 'Parent'
+    case 'grandparent':
+      return 'Grandparent'
+    case 'business_partner':
+      return 'Business Partner'
+    case 'employee':
+      return 'Employee'
     default:
       return 'Other'
   }
+}
+
+/** Dropdown options; legacy partner/dependent included only when editing that value. */
+export function getRelationshipSelectOptions(
+  current?: MemberRelationship | null,
+): { value: MemberRelationship; label: string }[] {
+  const options: { value: MemberRelationship; label: string }[] =
+    MEMBER_RELATIONSHIP_CREATE_OPTIONS.map((option) => ({
+      value: option.value,
+      label: option.label,
+    }))
+
+  if (current === 'partner') {
+    options.push({ value: 'partner', label: 'Partner' })
+  }
+  if (current === 'dependent') {
+    options.push({ value: 'dependent', label: 'Dependent' })
+  }
+  return options
 }
 
 export function getMemberDisplayName(member: HouseholdMemberSummary): string {
@@ -247,6 +350,284 @@ export async function fetchHouseholdById(
   if (error) throw error
   if (!data) return null
   return normalizeHouseholdDetail(data as Record<string, unknown>)
+}
+
+async function countActiveMembers(
+  supabase: SupabaseClient,
+  householdId: string,
+): Promise<number> {
+  const { count, error } = await supabase
+    .from('household_members')
+    .select('id', { count: 'exact', head: true })
+    .eq('household_id', householdId)
+    .is('deleted_at', null)
+
+  if (error) throw error
+  return count ?? 0
+}
+
+async function findPrimaryMemberId(
+  supabase: SupabaseClient,
+  householdId: string,
+): Promise<string | null> {
+  const { data, error } = await supabase
+    .from('household_members')
+    .select('id')
+    .eq('household_id', householdId)
+    .eq('is_primary_contact', true)
+    .is('deleted_at', null)
+    .maybeSingle()
+
+  if (error) throw error
+  return data?.id ?? null
+}
+
+async function setMemberPrimaryFlag(
+  supabase: SupabaseClient,
+  memberId: string,
+  isPrimary: boolean,
+): Promise<void> {
+  const { error } = await supabase
+    .from('household_members')
+    .update({ is_primary_contact: isPrimary })
+    .eq('id', memberId)
+    .is('deleted_at', null)
+
+  if (error) throw error
+}
+
+/**
+ * Raised when a primary-contact switch clears the previous primary, the follow-up
+ * write fails, and restoring the previous primary also fails.
+ */
+export class PrimarySwitchMutationError extends Error {
+  readonly context: string
+  readonly operationError: unknown
+  readonly restoreError: unknown
+  readonly previousPrimaryId: string
+  readonly primaryMayBeUnset = true as const
+
+  constructor(args: {
+    context: string
+    operationError: unknown
+    restoreError: unknown
+    previousPrimaryId: string
+  }) {
+    const operationMessage = formatSupabaseError(args.context, args.operationError)
+    const restoreMessage = formatSupabaseError(
+      `${args.context}_restore_primary`,
+      args.restoreError,
+    )
+    super(
+      `${args.context} failed after clearing the previous primary contact, and restoring the previous primary also failed. The household may currently have no primary contact. ${operationMessage} | ${restoreMessage}`,
+    )
+    this.name = 'PrimarySwitchMutationError'
+    this.context = args.context
+    this.operationError = args.operationError
+    this.restoreError = args.restoreError
+    this.previousPrimaryId = args.previousPrimaryId
+  }
+}
+
+/**
+ * After a failed create/update that cleared another member's primary flag, attempt
+ * restore. Never swallows the original or restore error.
+ * - Restore succeeds → rethrow the original operation error.
+ * - Restore fails → throw PrimarySwitchMutationError (explicit no-primary warning).
+ */
+export async function recoverFromPrimarySwitchFailure(args: {
+  context: string
+  previousPrimaryId: string | null
+  operationError: unknown
+  restorePrimary: (previousPrimaryId: string) => Promise<void>
+}): Promise<never> {
+  const { context, previousPrimaryId, operationError, restorePrimary } = args
+  if (!previousPrimaryId) {
+    throw operationError
+  }
+
+  try {
+    await restorePrimary(previousPrimaryId)
+  } catch (restoreError) {
+    if (import.meta.env.DEV) {
+      console.error(
+        '[crm/households/members]',
+        formatSupabaseError(`${context}_restore_primary`, restoreError),
+      )
+      console.error(
+        '[crm/households/members]',
+        formatSupabaseError(context, operationError),
+      )
+    }
+    throw new PrimarySwitchMutationError({
+      context,
+      operationError,
+      restoreError,
+      previousPrimaryId,
+    })
+  }
+
+  throw operationError
+}
+
+function buildMemberWritePayload(input: {
+  first_name: string
+  last_name: string
+  relationship: MemberRelationship
+  is_primary_contact: boolean
+  email: string | null
+  phone: string | null
+  date_of_birth: string | null
+}) {
+  const email = input.email?.trim() || null
+  const phone = input.phone?.trim() || null
+  return {
+    first_name: input.first_name.trim(),
+    last_name: input.last_name.trim(),
+    relationship: input.relationship,
+    is_primary_contact: input.is_primary_contact,
+    email,
+    normalized_email: normalizeEmail(email),
+    phone,
+    normalized_phone: normalizePhone(phone),
+    date_of_birth: input.date_of_birth?.trim() || null,
+  }
+}
+
+/**
+ * Creates a household member. The first active member of a household is always
+ * marked primary. Switching primary clears the previous primary first, with
+ * best-effort restoration if the create fails afterward.
+ */
+export async function createHouseholdMember(
+  supabase: SupabaseClient,
+  input: CreateHouseholdMemberInput,
+): Promise<HouseholdMemberSummary> {
+  const activeCount = await countActiveMembers(supabase, input.household_id)
+  const wantPrimary = activeCount === 0 ? true : Boolean(input.is_primary_contact)
+
+  let previousPrimaryId: string | null = null
+  if (wantPrimary) {
+    previousPrimaryId = await findPrimaryMemberId(supabase, input.household_id)
+    if (previousPrimaryId) {
+      await setMemberPrimaryFlag(supabase, previousPrimaryId, false)
+    }
+  }
+
+  const payload = {
+    household_id: input.household_id,
+    ...buildMemberWritePayload({ ...input, is_primary_contact: wantPrimary }),
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('household_members')
+      .insert(payload)
+      .select(MEMBER_ROW_SELECT)
+      .single()
+
+    if (error) throw error
+    const normalized = normalizeMemberRow(data as Record<string, unknown>)
+    if (!normalized) {
+      throw new Error('Created member could not be normalized')
+    }
+    return normalized
+  } catch (error) {
+    return recoverFromPrimarySwitchFailure({
+      context: 'create_member',
+      previousPrimaryId,
+      operationError: error,
+      restorePrimary: (id) => setMemberPrimaryFlag(supabase, id, true),
+    })
+  }
+}
+
+/**
+ * Updates a household member. When promoting to primary, clears the previous
+ * primary first and restores it if the update fails.
+ */
+export async function updateHouseholdMember(
+  supabase: SupabaseClient,
+  memberId: string,
+  householdId: string,
+  input: UpdateHouseholdMemberInput,
+): Promise<HouseholdMemberSummary> {
+  const wantPrimary = Boolean(input.is_primary_contact)
+  let previousPrimaryId: string | null = null
+
+  if (wantPrimary) {
+    previousPrimaryId = await findPrimaryMemberId(supabase, householdId)
+    if (previousPrimaryId && previousPrimaryId !== memberId) {
+      await setMemberPrimaryFlag(supabase, previousPrimaryId, false)
+    } else {
+      previousPrimaryId = null
+    }
+  }
+
+  const payload = buildMemberWritePayload(input)
+
+  try {
+    const { data, error } = await supabase
+      .from('household_members')
+      .update(payload)
+      .eq('id', memberId)
+      .eq('household_id', householdId)
+      .is('deleted_at', null)
+      .select(MEMBER_ROW_SELECT)
+      .maybeSingle()
+
+    if (error) throw error
+    if (!data) {
+      throw new Error('Member not found or no longer available')
+    }
+    const normalized = normalizeMemberRow(data as Record<string, unknown>)
+    if (!normalized) {
+      throw new Error('Updated member could not be normalized')
+    }
+    return normalized
+  } catch (error) {
+    return recoverFromPrimarySwitchFailure({
+      context: 'update_member',
+      previousPrimaryId,
+      operationError: error,
+      restorePrimary: (id) => setMemberPrimaryFlag(supabase, id, true),
+    })
+  }
+}
+
+/** Soft-deletes a member via soft_delete_household_member RPC. Does not auto-assign a replacement primary. */
+export async function softDeleteHouseholdMember(
+  supabase: SupabaseClient,
+  memberId: string,
+  householdId: string,
+): Promise<void> {
+  const { data, error } = await supabase.rpc('soft_delete_household_member', {
+    p_member_id: memberId,
+  })
+
+  if (error) throw error
+
+  if (data !== memberId) {
+    throw new Error(
+      'delete_member failed | Soft-delete RPC did not confirm the expected member id.',
+    )
+  }
+
+  // SELECT RLS hides soft-deleted rows; confirm the member is no longer visible as active.
+  const { data: stillActive, error: verifyError } = await supabase
+    .from('household_members')
+    .select('id')
+    .eq('id', memberId)
+    .eq('household_id', householdId)
+    .is('deleted_at', null)
+    .maybeSingle()
+
+  if (verifyError) throw verifyError
+  if (stillActive) {
+    throw new Error(
+      'delete_member failed | Soft-delete did not take effect; member is still active.',
+    )
+  }
 }
 
 async function fetchOpenTasksForHousehold(

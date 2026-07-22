@@ -5791,6 +5791,84 @@ p { color: var(--muted); line-height: 1.7; }
   line-height: 1.4;
 }
 
+.crm-field-error {
+  color: var(--crm-danger);
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.crm-checkbox-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--crm-text);
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.crm-checkbox-field input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--crm-blue);
+  cursor: pointer;
+}
+
+.crm-text-btn-danger {
+  color: var(--crm-danger);
+}
+
+.crm-danger-btn {
+  background: linear-gradient(135deg, #b42318 0%, #912018 100%);
+  box-shadow: 0 10px 24px rgba(180, 35, 24, 0.18);
+}
+
+.crm-member-form-panel,
+.crm-member-delete-panel {
+  gap: 14px;
+}
+
+.crm-member-form-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.crm-member-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.crm-members-tab-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.crm-members-add-btn {
+  min-height: 40px;
+  padding: 0 14px;
+  font-size: 0.9rem;
+}
+
+.crm-member-preview-actions {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.crm-household-members-table {
+  min-width: 720px;
+}
+
+.crm-household-members-table.is-dense {
+  min-width: 520px;
+}
+
+.crm-household-members-card-meta-full {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .crm-form-actions {
   display: flex;
   justify-content: flex-end;
@@ -6405,6 +6483,19 @@ p { color: var(--muted); line-height: 1.7; }
 
   .crm-form-grid {
     grid-template-columns: 1fr;
+  }
+
+  .crm-member-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .crm-household-members-card-meta-full {
+    grid-template-columns: 1fr;
+  }
+
+  .crm-members-tab-head-actions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
   }
 
   .crm-task-row {
