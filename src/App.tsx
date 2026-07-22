@@ -26,6 +26,7 @@ import NotFoundPage from '../pages/NotFoundPage'
 import CrmLoginPage from '../pages/crm/CrmLoginPage'
 import CrmHomePage from '../pages/crm/CrmHomePage'
 import CrmHouseholdsPage from '../pages/crm/CrmHouseholdsPage'
+import CrmHouseholdWorkspacePage from '../pages/crm/CrmHouseholdWorkspacePage'
 import CrmPlaceholderPage from '../pages/crm/CrmPlaceholderPage'
 import CrmTasksPage from '../pages/crm/CrmTasksPage'
 
@@ -136,6 +137,7 @@ export default function App() {
           <Route index element={<CrmHomePage />} />
           <Route path="leads" element={<CrmPlaceholderPage />} />
           <Route path="households" element={<CrmHouseholdsPage />} />
+          <Route path="households/:householdId" element={<CrmHouseholdWorkspacePage />} />
           <Route path="pipeline" element={<CrmPlaceholderPage />} />
           <Route path="tasks" element={<CrmTasksPage />} />
           <Route path="appointments" element={<CrmPlaceholderPage />} />

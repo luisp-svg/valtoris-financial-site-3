@@ -27,3 +27,7 @@ export const ROUTES = {
   crmDocuments: '/crm/documents',
   crmSettings: '/crm/settings',
 } as const
+
+export function crmHouseholdPath(householdId: string): string {
+  return `${ROUTES.crmHouseholds}/${householdId}`
+}

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   fetchVisibleHouseholds,
   formatSupabaseError,
@@ -11,6 +12,7 @@ import type {
   CrmHouseholdListItem,
   HouseholdAssignmentFilter,
 } from '../../crm/households/types'
+import { crmHouseholdPath } from '../../constants/routes'
 import { createSupabaseBrowserClient } from '../../lib/supabase/client'
 
 function formatUpdatedAt(value: string): string {
@@ -39,6 +41,7 @@ function matchesSearch(household: CrmHouseholdListItem, query: string): boolean 
 }
 
 export default function CrmHouseholdsPage() {
+  const navigate = useNavigate()
   const [households, setHouseholds] = useState<CrmHouseholdListItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -47,6 +50,10 @@ export default function CrmHouseholdsPage() {
   const [advisorFilter, setAdvisorFilter] = useState('all')
   const [assignmentFilter, setAssignmentFilter] =
     useState<HouseholdAssignmentFilter>('all')
+
+  function openHousehold(householdId: string) {
+    navigate(crmHouseholdPath(householdId))
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -309,9 +316,27 @@ export default function CrmHouseholdsPage() {
                 </thead>
                 <tbody>
                   {filteredHouseholds.map((household) => (
-                    <tr key={household.id}>
+                    <tr
+                      key={household.id}
+                      className="crm-households-row"
+                      tabIndex={0}
+                      aria-label={`Open ${household.display_name}`}
+                      onClick={() => openHousehold(household.id)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault()
+                          openHousehold(household.id)
+                        }
+                      }}
+                    >
                       <td>
-                        <span className="crm-households-name">{household.display_name}</span>
+                        <Link
+                          to={crmHouseholdPath(household.id)}
+                          className="crm-households-name-link"
+                          onClick={(event) => event.stopPropagation()}
+                        >
+                          {household.display_name}
+                        </Link>
                       </td>
                       <td>{getPrimaryContactLabel(household)}</td>
                       <td>
@@ -327,28 +352,34 @@ export default function CrmHouseholdsPage() {
 
             <ul className="crm-households-card-list">
               {filteredHouseholds.map((household) => (
-                <li key={household.id} className="crm-households-card">
-                  <p className="crm-households-name">{household.display_name}</p>
-                  <dl className="crm-households-card-meta">
-                    <div>
-                      <dt>Contact</dt>
-                      <dd>{getPrimaryContactLabel(household)}</dd>
-                    </div>
-                    <div>
-                      <dt>Stage</dt>
-                      <dd>
-                        <span className="crm-status-chip">{getStageLabel(household)}</span>
-                      </dd>
-                    </div>
-                    <div>
-                      <dt>Advisor</dt>
-                      <dd>{getAdvisorLabel(household)}</dd>
-                    </div>
-                    <div>
-                      <dt>Updated</dt>
-                      <dd>{formatUpdatedAt(household.updated_at)}</dd>
-                    </div>
-                  </dl>
+                <li key={household.id}>
+                  <Link
+                    to={crmHouseholdPath(household.id)}
+                    className="crm-households-card crm-households-card-link"
+                    aria-label={`Open ${household.display_name}`}
+                  >
+                    <p className="crm-households-name">{household.display_name}</p>
+                    <dl className="crm-households-card-meta">
+                      <div>
+                        <dt>Contact</dt>
+                        <dd>{getPrimaryContactLabel(household)}</dd>
+                      </div>
+                      <div>
+                        <dt>Stage</dt>
+                        <dd>
+                          <span className="crm-status-chip">{getStageLabel(household)}</span>
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Advisor</dt>
+                        <dd>{getAdvisorLabel(household)}</dd>
+                      </div>
+                      <div>
+                        <dt>Updated</dt>
+                        <dd>{formatUpdatedAt(household.updated_at)}</dd>
+                      </div>
+                    </dl>
+                  </Link>
                 </li>
               ))}
             </ul>
