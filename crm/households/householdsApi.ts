@@ -1,22 +1,31 @@
 import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js'
+import {
+  fetchHouseholdActivityRecords,
+  fetchHouseholdNotes,
+} from './notesApi'
 import { normalizeEmail, normalizePhone } from './normalizeContact'
+import { buildHouseholdTimeline } from './timeline'
 import type {
   AssessmentType,
   CreateHouseholdMemberInput,
   CrmHouseholdDetail,
   CrmHouseholdListItem,
   CrmHouseholdWorkspace,
+  HouseholdActivityRecord,
   HouseholdActivitySummary,
   HouseholdAdvisorSummary,
   HouseholdAnnualReviewSummary,
   HouseholdAssessmentSummary,
   HouseholdMemberSummary,
+  HouseholdNote,
   HouseholdOpenOpportunitySummary,
   HouseholdOpenTaskSummary,
   HouseholdStageSummary,
+  HouseholdTimelineItem,
   MemberRelationship,
   MemberRelationshipCreateOption,
   UpdateHouseholdMemberInput,
+  WorkspaceLoadResult,
 } from './types'
 
 /**
@@ -790,6 +799,7 @@ async function fetchRecentActivities(
   }))
 }
 
+/** Soft-fail helper for non-critical overview sections (tasks, assessments, etc.). */
 async function settledOrEmpty<T>(promise: Promise<T>, fallback: T, source: string): Promise<T> {
   try {
     return await promise
@@ -801,6 +811,44 @@ async function settledOrEmpty<T>(promise: Promise<T>, fallback: T, source: strin
   }
 }
 
+/**
+ * Settles a workspace section without throwing.
+ * Preserves a domain fallback while recording success vs failure.
+ */
+export async function settleWorkspaceLoad<T>(
+  promise: Promise<T>,
+  fallback: T,
+  source: string,
+): Promise<WorkspaceLoadResult<T>> {
+  try {
+    const value = await promise
+    return { ok: true, value }
+  } catch (error) {
+    const formatted = formatSupabaseError(source, error)
+    if (import.meta.env.DEV) {
+      console.error('[crm/households/workspace]', formatted)
+    }
+    return { ok: false, value: fallback, error: formatted }
+  }
+}
+
+/**
+ * Builds the merged timeline only when both sources loaded successfully.
+ * On partial/failed loads returns [] — callers must check timelineComplete.
+ */
+export function buildWorkspaceTimeline(
+  notesResult: WorkspaceLoadResult<HouseholdNote[]>,
+  activitiesResult: WorkspaceLoadResult<HouseholdActivityRecord[]>,
+): { timeline: HouseholdTimelineItem[]; timelineComplete: boolean } {
+  if (!notesResult.ok || !activitiesResult.ok) {
+    return { timeline: [], timelineComplete: false }
+  }
+  return {
+    timeline: buildHouseholdTimeline(notesResult.value, activitiesResult.value),
+    timelineComplete: true,
+  }
+}
+
 export async function fetchHouseholdWorkspace(
   supabase: SupabaseClient,
   householdId: string,
@@ -808,38 +856,57 @@ export async function fetchHouseholdWorkspace(
   const household = await fetchHouseholdById(supabase, householdId)
   if (!household) return null
 
-  const [openTasks, openOpportunities, assessments, annualReview, recentActivities] =
-    await Promise.all([
-      settledOrEmpty(
-        fetchOpenTasksForHousehold(supabase, householdId),
-        [] as HouseholdOpenTaskSummary[],
-        'open_tasks',
-      ),
-      settledOrEmpty(
-        fetchOpenOpportunitiesForHousehold(supabase, householdId),
-        [] as HouseholdOpenOpportunitySummary[],
-        'open_opportunities',
-      ),
-      settledOrEmpty(
-        fetchAssessmentsForHousehold(supabase, householdId),
-        {
-          familyAssessment: null,
-          businessAssessment: null,
-          protectionAssessment: null,
-        },
-        'assessments',
-      ),
-      settledOrEmpty(
-        fetchLatestAnnualReview(supabase, householdId),
-        null as HouseholdAnnualReviewSummary | null,
-        'annual_reviews',
-      ),
-      settledOrEmpty(
-        fetchRecentActivities(supabase, householdId),
-        [] as HouseholdActivitySummary[],
-        'activities',
-      ),
-    ])
+  const [
+    openTasks,
+    openOpportunities,
+    assessments,
+    annualReview,
+    recentActivities,
+    notes,
+    activities,
+  ] = await Promise.all([
+    settledOrEmpty(
+      fetchOpenTasksForHousehold(supabase, householdId),
+      [] as HouseholdOpenTaskSummary[],
+      'open_tasks',
+    ),
+    settledOrEmpty(
+      fetchOpenOpportunitiesForHousehold(supabase, householdId),
+      [] as HouseholdOpenOpportunitySummary[],
+      'open_opportunities',
+    ),
+    settledOrEmpty(
+      fetchAssessmentsForHousehold(supabase, householdId),
+      {
+        familyAssessment: null,
+        businessAssessment: null,
+        protectionAssessment: null,
+      },
+      'assessments',
+    ),
+    settledOrEmpty(
+      fetchLatestAnnualReview(supabase, householdId),
+      null as HouseholdAnnualReviewSummary | null,
+      'annual_reviews',
+    ),
+    settledOrEmpty(
+      fetchRecentActivities(supabase, householdId),
+      [] as HouseholdActivitySummary[],
+      'activities',
+    ),
+    settleWorkspaceLoad(
+      fetchHouseholdNotes(supabase, householdId),
+      [] as HouseholdNote[],
+      'notes',
+    ),
+    settleWorkspaceLoad(
+      fetchHouseholdActivityRecords(supabase, householdId),
+      [] as HouseholdActivityRecord[],
+      'activity_records',
+    ),
+  ])
+
+  const { timeline, timelineComplete } = buildWorkspaceTimeline(notes, activities)
 
   return {
     household,
@@ -850,5 +917,9 @@ export async function fetchHouseholdWorkspace(
     protectionAssessment: assessments.protectionAssessment,
     annualReview,
     recentActivities,
+    notes,
+    activities,
+    timeline,
+    timelineComplete,
   }
 }

@@ -129,6 +129,92 @@ export type HouseholdActivitySummary = {
   occurred_at: string
 }
 
+/** CRM-7 note row (active notes only; soft-deleted rows are never returned). */
+export type HouseholdNote = {
+  id: string
+  household_id: string
+  opportunity_id: string | null
+  author_user_id: string
+  author_display_name: string | null
+  body: string
+  visibility: 'internal'
+  created_at: string
+  updated_at: string
+}
+
+export type CreateHouseholdNoteInput = {
+  household_id: string
+  body: string
+}
+
+/** Full activity row used by the household timeline adapter. */
+export type HouseholdActivityRecord = {
+  id: string
+  household_id: string
+  actor_user_id: string | null
+  actor_display_name: string | null
+  activity_type: string
+  title: string
+  body: string | null
+  metadata: Record<string, unknown>
+  occurred_at: string
+  created_at: string
+}
+
+export type HouseholdTimelineSourceType = 'note' | 'activity'
+
+export type HouseholdTimelineActivityType =
+  | 'note'
+  | 'assignment_changed'
+  | 'stage_changed'
+  | 'recommendation_converted'
+  | 'task_created'
+  | 'task_completed'
+  | 'other'
+
+/** UI presentation hint only — not persisted and not an icon component. */
+export type HouseholdTimelineDisplayVariant =
+  | 'note'
+  | 'assignment'
+  | 'stage'
+  | 'recommendation'
+  | 'task'
+  | 'system'
+
+export type HouseholdTimelineItem = {
+  id: string
+  householdId: string
+  activityType: HouseholdTimelineActivityType
+  displayVariant: HouseholdTimelineDisplayVariant
+  title: string
+  body: string | null
+  actorUserId: string | null
+  actorDisplayName: string | null
+  occurredAt: string
+  updatedAt: string | null
+  sourceEntityType: HouseholdTimelineSourceType
+  sourceEntityId: string
+  isEditable: boolean
+  isDeletable: boolean
+  isEdited: boolean
+  metadata?: Record<string, unknown>
+}
+
+/**
+ * Distinguishes a successful empty load from a failed load.
+ * `value` is always populated (real data or domain fallback).
+ */
+export type WorkspaceLoadResult<T> =
+  | {
+      ok: true
+      value: T
+    }
+  | {
+      ok: false
+      value: T
+      error: string
+    }
+
 export type CrmHouseholdWorkspace = {
   household: CrmHouseholdDetail
   openTasks: HouseholdOpenTaskSummary[]
@@ -137,7 +223,21 @@ export type CrmHouseholdWorkspace = {
   businessAssessment: HouseholdAssessmentSummary | null
   protectionAssessment: HouseholdAssessmentSummary | null
   annualReview: HouseholdAnnualReviewSummary | null
+  /** Overview preview (activities only, limited). */
   recentActivities: HouseholdActivitySummary[]
+  /**
+   * CRM-7 domain payload for future Activity tab (UI not enabled yet).
+   * Use `.ok` / `.error` to distinguish empty success from load failure.
+   */
+  notes: WorkspaceLoadResult<HouseholdNote[]>
+  activities: WorkspaceLoadResult<HouseholdActivityRecord[]>
+  /**
+   * Merged timeline. Built only when both notes and activities loaded successfully.
+   * Empty when either source failed (do not treat as "no activity").
+   */
+  timeline: HouseholdTimelineItem[]
+  /** True only when both notes and activities results are ok. */
+  timelineComplete: boolean
 }
 
 export type HouseholdAssignmentFilter = 'all' | 'assigned' | 'unassigned'

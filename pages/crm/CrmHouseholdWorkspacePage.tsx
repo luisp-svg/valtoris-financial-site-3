@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { useCrmAuth } from '../../crm/auth/CrmAuthContext'
+import HouseholdActivityPanel from '../../crm/households/HouseholdActivityPanel'
 import HouseholdMemberFormPanel from '../../crm/households/HouseholdMemberFormPanel'
+import { WORKSPACE_TABS, type WorkspaceTabId } from '../../crm/households/activityTabConfig'
 import {
   formatActivityTypeLabel,
   formatSupabaseError,
@@ -20,27 +23,12 @@ import type {
 import { ROUTES } from '../../constants/routes'
 import { createSupabaseBrowserClient } from '../../lib/supabase/client'
 
-type WorkspaceTabId = 'overview' | 'members'
-
 type MemberFormState =
   | { open: false }
   | { open: true; mode: 'create' }
   | { open: true; mode: 'edit'; member: HouseholdMemberSummary }
 
 type DeleteConfirmState = HouseholdMemberSummary | null
-
-const WORKSPACE_TABS: {
-  id: WorkspaceTabId | 'tasks' | 'notes' | 'documents' | 'timeline'
-  label: string
-  enabled: boolean
-}[] = [
-  { id: 'overview', label: 'Overview', enabled: true },
-  { id: 'members', label: 'Members', enabled: true },
-  { id: 'tasks', label: 'Tasks', enabled: false },
-  { id: 'notes', label: 'Notes', enabled: false },
-  { id: 'documents', label: 'Documents', enabled: false },
-  { id: 'timeline', label: 'Timeline', enabled: false },
-]
 
 function formatDate(value: string | null | undefined): string {
   if (!value) return '—'
@@ -318,6 +306,7 @@ function MembersTable({
 
 export default function CrmHouseholdWorkspacePage() {
   const { householdId } = useParams<{ householdId: string }>()
+  const { profile } = useCrmAuth()
   const addMemberButtonRef = useRef<HTMLButtonElement>(null)
   const deleteHeadingId = useId()
 
@@ -553,7 +542,10 @@ export default function CrmHouseholdWorkspacePage() {
                   aria-controls={`crm-household-tab-${tab.id}-panel`}
                   tabIndex={activeTab === tab.id ? 0 : -1}
                   className={`crm-household-workspace-tab${activeTab === tab.id ? ' is-active' : ''}`}
-                  onClick={() => setActiveTab(tab.id as WorkspaceTabId)}
+                  onClick={() => {
+                    setActionSuccess(null)
+                    setActiveTab(tab.id as WorkspaceTabId)
+                  }}
                 >
                   {tab.label}
                 </button>
@@ -920,6 +912,56 @@ export default function CrmHouseholdWorkspacePage() {
                 ) : null}
               </section>
             </div>
+          ) : null}
+
+          {activeTab === 'activity' && profile ? (
+            <HouseholdActivityPanel
+              householdId={household.id}
+              authorUserId={profile.id}
+              workspace={workspace}
+              actionSuccess={actionSuccess}
+              onRefreshAfterMutation={async (successMessage) => {
+                try {
+                  await refreshAfterMutation(successMessage)
+                } catch (err) {
+                  setError(
+                    'Note saved, but the workspace could not be refreshed. Reload the page.',
+                  )
+                  if (import.meta.env.DEV) {
+                    console.error(
+                      '[crm/households/workspace]',
+                      formatSupabaseError('refresh_after_note_mutation', err),
+                    )
+                  }
+                }
+              }}
+              onRefreshAfterFailure={async () => {
+                try {
+                  await refreshWorkspaceFromDb({ clearSuccess: true })
+                } catch (err) {
+                  if (import.meta.env.DEV) {
+                    console.error(
+                      '[crm/households/workspace]',
+                      formatSupabaseError('refresh_after_note_failure', err),
+                    )
+                  }
+                }
+              }}
+              onRetryLoad={async () => {
+                setActionSuccess(null)
+                try {
+                  await refreshWorkspaceFromDb({ clearSuccess: true })
+                } catch (err) {
+                  setError('Unable to reload household workspace. Please try again.')
+                  if (import.meta.env.DEV) {
+                    console.error(
+                      '[crm/households/workspace]',
+                      formatSupabaseError('activity_retry', err),
+                    )
+                  }
+                }
+              }}
+            />
           ) : null}
         </>
       ) : null}
