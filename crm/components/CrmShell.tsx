@@ -36,7 +36,14 @@ export default function CrmShell({ children }: CrmShellProps) {
           key={item.path}
           to={item.path}
           end={item.path === '/crm'}
-          className={({ isActive }) => `crm-nav-link${isActive ? ' is-active' : ''}`}
+          className={({ isActive }) => {
+            // Opportunity detail lives under /crm/opportunities/:id while the list is /crm/pipeline.
+            // Keep Pipeline highlighted for parity with Households child routes.
+            const pipelineSectionActive =
+              item.path === '/crm/pipeline' &&
+              (pathname === '/crm/pipeline' || pathname.startsWith('/crm/opportunities/'))
+            return `crm-nav-link${isActive || pipelineSectionActive ? ' is-active' : ''}`
+          }}
         >
           <span>{item.label}</span>
         </NavLink>

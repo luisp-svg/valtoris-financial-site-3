@@ -20,7 +20,7 @@ import type {
   HouseholdAssessmentSummary,
   HouseholdMemberSummary,
 } from '../../crm/households/types'
-import { ROUTES } from '../../constants/routes'
+import { ROUTES, crmOpportunityPath } from '../../constants/routes'
 import { createSupabaseBrowserClient } from '../../lib/supabase/client'
 
 type MemberFormState =
@@ -617,7 +617,14 @@ export default function CrmHouseholdWorkspacePage() {
                       <ul className="crm-household-overview-list">
                         {workspace.openOpportunities.map((opportunity) => (
                           <li key={opportunity.id}>
-                            <p className="crm-task-title">{opportunity.title}</p>
+                            <p className="crm-task-title">
+                              <Link
+                                to={crmOpportunityPath(opportunity.id)}
+                                className="crm-opportunities-name-link"
+                              >
+                                {opportunity.title}
+                              </Link>
+                            </p>
                             <p className="crm-task-meta">
                               {opportunity.stage?.name ?? 'Stage unavailable'}
                               {opportunity.next_action ? ` · ${opportunity.next_action}` : ''}

@@ -9,7 +9,7 @@ export const CRM_NAV_ITEMS: CrmNavItem[] = [
   { label: 'Home', path: '/crm' },
   { label: 'Leads', path: '/crm/leads', placeholder: true },
   { label: 'Households', path: '/crm/households' },
-  { label: 'Pipeline', path: '/crm/pipeline', placeholder: true },
+  { label: 'Pipeline', path: '/crm/pipeline' },
   { label: 'Tasks', path: '/crm/tasks' },
   { label: 'Appointments', path: '/crm/appointments', placeholder: true },
   { label: 'Policies', path: '/crm/policies', placeholder: true },

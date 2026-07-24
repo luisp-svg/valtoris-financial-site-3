@@ -27,6 +27,8 @@ import CrmLoginPage from '../pages/crm/CrmLoginPage'
 import CrmHomePage from '../pages/crm/CrmHomePage'
 import CrmHouseholdsPage from '../pages/crm/CrmHouseholdsPage'
 import CrmHouseholdWorkspacePage from '../pages/crm/CrmHouseholdWorkspacePage'
+import CrmOpportunitiesPage from '../pages/crm/CrmOpportunitiesPage'
+import CrmOpportunityWorkspacePage from '../pages/crm/CrmOpportunityWorkspacePage'
 import CrmPlaceholderPage from '../pages/crm/CrmPlaceholderPage'
 import CrmTasksPage from '../pages/crm/CrmTasksPage'
 
@@ -138,7 +140,8 @@ export default function App() {
           <Route path="leads" element={<CrmPlaceholderPage />} />
           <Route path="households" element={<CrmHouseholdsPage />} />
           <Route path="households/:householdId" element={<CrmHouseholdWorkspacePage />} />
-          <Route path="pipeline" element={<CrmPlaceholderPage />} />
+          <Route path="pipeline" element={<CrmOpportunitiesPage />} />
+          <Route path="opportunities/:opportunityId" element={<CrmOpportunityWorkspacePage />} />
           <Route path="tasks" element={<CrmTasksPage />} />
           <Route path="appointments" element={<CrmPlaceholderPage />} />
           <Route path="policies" element={<CrmPlaceholderPage />} />

@@ -20,6 +20,7 @@ export const ROUTES = {
   crmLeads: '/crm/leads',
   crmHouseholds: '/crm/households',
   crmPipeline: '/crm/pipeline',
+  crmOpportunities: '/crm/opportunities',
   crmTasks: '/crm/tasks',
   crmAppointments: '/crm/appointments',
   crmPolicies: '/crm/policies',
@@ -30,4 +31,8 @@ export const ROUTES = {
 
 export function crmHouseholdPath(householdId: string): string {
   return `${ROUTES.crmHouseholds}/${householdId}`
+}
+
+export function crmOpportunityPath(opportunityId: string): string {
+  return `${ROUTES.crmOpportunities}/${opportunityId}`
 }
