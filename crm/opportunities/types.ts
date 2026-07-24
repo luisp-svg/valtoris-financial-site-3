@@ -119,3 +119,88 @@ export type FetchOpportunitiesFilters = {
   statusGroup?: OpportunityStatusGroup
   limit?: number
 }
+
+/** Create form options (RLS-scoped). */
+export type OpportunityHouseholdOption = {
+  id: string
+  display_name: string
+}
+
+export type OpportunityServiceVerticalOption = {
+  id: string
+  code: string
+  name: string
+}
+
+export type OpportunityPipelineOption = {
+  id: string
+  name: string
+  service_vertical_id: string | null
+  pipeline_type: string
+  is_default: boolean
+  is_active: boolean
+}
+
+export type OpportunityStageOption = {
+  id: string
+  pipeline_id: string
+  name: string
+  code: string
+  sort_order: number
+  is_won: boolean
+  is_lost: boolean
+  is_terminal: boolean
+}
+
+export type OpportunityAdvisorOption = {
+  id: string
+  display_name: string
+  user_id: string
+}
+
+/**
+ * Form-facing create values only (user-selectable).
+ * Audit/system fields are never collected here — createOpportunity builds them internally.
+ */
+export type CreateOpportunityFormValues = {
+  title: string
+  household_id: string
+  pipeline_id: string
+  stage_id: string
+  service_vertical_id: string
+  assigned_advisor_id: string | null
+  next_action?: string | null
+  next_action_due_at?: string | null
+  need_identified?: boolean
+}
+
+/** @deprecated Prefer CreateOpportunityFormValues — same shape; kept for existing imports. */
+export type CreateOpportunityInput = CreateOpportunityFormValues
+
+/**
+ * CRM-8.2A direct-update allowlist only.
+ * Never include household/pipeline/vertical/stage/status/closed_at/assignment.
+ */
+export type UpdateOpportunityInput = {
+  title: string
+  next_action?: string | null
+  next_action_due_at?: string | null
+  need_identified?: boolean
+}
+
+export type OpportunityFormField =
+  | 'title'
+  | 'household_id'
+  | 'pipeline_id'
+  | 'stage_id'
+  | 'service_vertical_id'
+  | 'assigned_advisor_id'
+  | 'next_action'
+  | 'next_action_due_at'
+  | 'form'
+
+export type OpportunityValidationResult = {
+  ok: boolean
+  fieldErrors: Partial<Record<OpportunityFormField, string>>
+  formError?: string
+}

@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { normalizeActivityToTimelineItem } from '../../crm/households/timeline'
 import HouseholdTimelineItemView from '../../crm/households/HouseholdTimelineItemView'
 import type { HouseholdActivityRecord, HouseholdTimelineItem } from '../../crm/households/types'
+import OpportunityFormDialog from '../../crm/opportunities/OpportunityFormDialog'
 import {
   fetchOpportunityWorkspace,
   formatOpportunityStatusLabel,
@@ -14,7 +15,7 @@ import {
   getOpportunityVerticalLabel,
 } from '../../crm/opportunities/opportunitiesApi'
 import { getOpportunityActivityViewState, getOpportunityWorkspaceViewState } from '../../crm/opportunities/listLoadState'
-import type { OpportunityWorkspace } from '../../crm/opportunities/types'
+import type { OpportunityDetail, OpportunityWorkspace } from '../../crm/opportunities/types'
 import { ROUTES, crmHouseholdPath } from '../../constants/routes'
 import { createSupabaseBrowserClient } from '../../lib/supabase/client'
 
@@ -87,6 +88,14 @@ export default function CrmOpportunityWorkspacePage() {
   const [notFound, setNotFound] = useState(false)
   const [activeTab, setActiveTab] = useState<WorkspaceTabId>('overview')
   const [reloadKey, setReloadKey] = useState(0)
+  const [showEdit, setShowEdit] = useState(false)
+  const [success, setSuccess] = useState<string | null>(null)
+
+  async function onEdited(opportunity: OpportunityDetail) {
+    setShowEdit(false)
+    setSuccess(`Opportunity “${opportunity.title}” updated.`)
+    setReloadKey((key) => key + 1)
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -199,13 +208,27 @@ export default function CrmOpportunityWorkspacePage() {
 
         {viewState.kind === 'ready' && workspace ? (
           <>
-            <p className="crm-page-eyebrow">Opportunity</p>
-            <h1 className="crm-page-title">{workspace.opportunity.title}</h1>
-            <p className="crm-page-subtitle">
-              {getOpportunityHouseholdLabel(workspace.opportunity)}
-              {' · '}
-              {getOpportunityVerticalLabel(workspace.opportunity)}
-            </p>
+            <div className="crm-opportunity-workspace-title-row">
+              <div>
+                <p className="crm-page-eyebrow">Opportunity</p>
+                <h1 className="crm-page-title">{workspace.opportunity.title}</h1>
+                <p className="crm-page-subtitle">
+                  {getOpportunityHouseholdLabel(workspace.opportunity)}
+                  {' · '}
+                  {getOpportunityVerticalLabel(workspace.opportunity)}
+                </p>
+              </div>
+              <button
+                type="button"
+                className="crm-secondary-btn"
+                onClick={() => {
+                  setSuccess(null)
+                  setShowEdit(true)
+                }}
+              >
+                Edit
+              </button>
+            </div>
             <div className="crm-opportunity-workspace-chips" aria-label="Opportunity summary">
               <span className="crm-status-chip">
                 {formatOpportunityStatusLabel(workspace.opportunity.status)}
@@ -220,6 +243,17 @@ export default function CrmOpportunityWorkspacePage() {
           </>
         ) : null}
       </header>
+
+      {success ? <p className="crm-banner crm-banner-success">{success}</p> : null}
+
+      {showEdit && workspace ? (
+        <OpportunityFormDialog
+          mode="edit"
+          opportunity={workspace.opportunity}
+          onCancel={() => setShowEdit(false)}
+          onSaved={onEdited}
+        />
+      ) : null}
 
       {viewState.kind === 'ready' && workspace ? (
         <>

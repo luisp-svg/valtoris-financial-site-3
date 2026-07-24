@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import OpportunityFormDialog from '../../crm/opportunities/OpportunityFormDialog'
 import {
   fetchOpportunities,
   filterOpportunityListItems,
@@ -12,7 +13,7 @@ import {
   getOpportunityVerticalLabel,
 } from '../../crm/opportunities/opportunitiesApi'
 import { getOpportunityListViewState } from '../../crm/opportunities/listLoadState'
-import type { OpportunityListItem, OpportunityStatusGroup } from '../../crm/opportunities/types'
+import type { OpportunityDetail, OpportunityListItem, OpportunityStatusGroup } from '../../crm/opportunities/types'
 import { crmHouseholdPath, crmOpportunityPath } from '../../constants/routes'
 import { createSupabaseBrowserClient } from '../../lib/supabase/client'
 
@@ -34,9 +35,17 @@ export default function CrmOpportunitiesPage() {
   const [search, setSearch] = useState('')
   const [statusGroup, setStatusGroup] = useState<OpportunityStatusGroup>('open')
   const [reloadKey, setReloadKey] = useState(0)
+  const [showCreate, setShowCreate] = useState(false)
+  const [success, setSuccess] = useState<string | null>(null)
 
   function openOpportunity(opportunityId: string) {
     navigate(crmOpportunityPath(opportunityId))
+  }
+
+  function onCreated(opportunity: OpportunityDetail) {
+    setShowCreate(false)
+    setSuccess(`Opportunity “${opportunity.title}” created.`)
+    navigate(crmOpportunityPath(opportunity.id))
   }
 
   useEffect(() => {
@@ -86,14 +95,36 @@ export default function CrmOpportunitiesPage() {
 
   return (
     <div className="crm-opportunities-page">
-      <header className="crm-page-header">
-        <p className="crm-page-eyebrow">Service pipeline</p>
-        <h1 className="crm-page-title">Opportunities</h1>
-        <p className="crm-page-subtitle">
-          Service opportunities linked to households you can access. Stages come from each
-          opportunity&apos;s pipeline — they are not hard-coded in the UI.
-        </p>
+      <header className="crm-page-header crm-opportunities-header">
+        <div>
+          <p className="crm-page-eyebrow">Service pipeline</p>
+          <h1 className="crm-page-title">Opportunities</h1>
+          <p className="crm-page-subtitle">
+            Service opportunities linked to households you can access. Stages come from each
+            opportunity&apos;s pipeline — they are not hard-coded in the UI.
+          </p>
+        </div>
+        <button
+          type="button"
+          className="crm-primary-btn"
+          onClick={() => {
+            setSuccess(null)
+            setShowCreate(true)
+          }}
+        >
+          New Opportunity
+        </button>
       </header>
+
+      {success ? <p className="crm-banner crm-banner-success">{success}</p> : null}
+
+      {showCreate ? (
+        <OpportunityFormDialog
+          mode="create"
+          onCancel={() => setShowCreate(false)}
+          onSaved={onCreated}
+        />
+      ) : null}
 
       {viewState.kind === 'error' ? (
         <div className="crm-banner crm-banner-error" role="alert">
@@ -207,6 +238,16 @@ export default function CrmOpportunitiesPage() {
               No opportunities are available for your account with the selected status. If you are
               an advisor, this usually means none are currently assigned to you or your households.
             </p>
+            <button
+              type="button"
+              className="crm-secondary-btn"
+              onClick={() => {
+                setSuccess(null)
+                setShowCreate(true)
+              }}
+            >
+              New Opportunity
+            </button>
           </div>
         ) : null}
 

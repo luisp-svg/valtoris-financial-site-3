@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useCrmAuth } from '../../crm/auth/CrmAuthContext'
 import HouseholdActivityPanel from '../../crm/households/HouseholdActivityPanel'
 import HouseholdMemberFormPanel from '../../crm/households/HouseholdMemberFormPanel'
@@ -20,6 +20,8 @@ import type {
   HouseholdAssessmentSummary,
   HouseholdMemberSummary,
 } from '../../crm/households/types'
+import OpportunityFormDialog from '../../crm/opportunities/OpportunityFormDialog'
+import type { OpportunityDetail } from '../../crm/opportunities/types'
 import { ROUTES, crmOpportunityPath } from '../../constants/routes'
 import { createSupabaseBrowserClient } from '../../lib/supabase/client'
 
@@ -305,6 +307,7 @@ function MembersTable({
 }
 
 export default function CrmHouseholdWorkspacePage() {
+  const navigate = useNavigate()
   const { householdId } = useParams<{ householdId: string }>()
   const { profile } = useCrmAuth()
   const addMemberButtonRef = useRef<HTMLButtonElement>(null)
@@ -320,6 +323,7 @@ export default function CrmHouseholdWorkspacePage() {
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [actionSuccess, setActionSuccess] = useState<string | null>(null)
+  const [showCreateOpportunity, setShowCreateOpportunity] = useState(false)
 
   const loadWorkspace = useCallback(async (id: string) => {
     const supabase = createSupabaseBrowserClient()
@@ -376,6 +380,7 @@ export default function CrmHouseholdWorkspacePage() {
     setDeleteConfirm(null)
     setDeleteError(null)
     setActionSuccess(null)
+    setShowCreateOpportunity(false)
     setActiveTab('members')
     setMemberForm({ open: true, mode: 'create' })
   }
@@ -386,6 +391,30 @@ export default function CrmHouseholdWorkspacePage() {
     setActionSuccess(null)
     setActiveTab('members')
     setMemberForm({ open: true, mode: 'edit', member })
+  }
+
+  function openCreateOpportunityForm() {
+    setDeleteConfirm(null)
+    setDeleteError(null)
+    setActionSuccess(null)
+    setMemberForm({ open: false })
+    setActiveTab('overview')
+    setShowCreateOpportunity(true)
+  }
+
+  async function onOpportunityCreated(opportunity: OpportunityDetail) {
+    setShowCreateOpportunity(false)
+    try {
+      await refreshWorkspaceFromDb()
+    } catch (err) {
+      if (import.meta.env.DEV) {
+        console.error(
+          '[crm/households/workspace]',
+          formatSupabaseError('refresh_after_opportunity_create', err),
+        )
+      }
+    }
+    navigate(crmOpportunityPath(opportunity.id))
   }
 
   function closeMemberForm() {
@@ -582,6 +611,16 @@ export default function CrmHouseholdWorkspacePage() {
                 <div className="crm-panel-head crm-household-overview-head">
                   <h2 id="crm-household-overview-heading">Overview</h2>
                 </div>
+
+                {showCreateOpportunity && householdId ? (
+                  <OpportunityFormDialog
+                    mode="create"
+                    defaultHouseholdId={householdId}
+                    onCancel={() => setShowCreateOpportunity(false)}
+                    onSaved={(opportunity) => void onOpportunityCreated(opportunity)}
+                  />
+                ) : null}
+
                 <div className="crm-household-overview-grid">
                   <article className="crm-panel crm-household-overview-card">
                     <h3>Open Tasks</h3>
@@ -607,7 +646,16 @@ export default function CrmHouseholdWorkspacePage() {
                   </article>
 
                   <article className="crm-panel crm-household-overview-card">
-                    <h3>Open Opportunities</h3>
+                    <div className="crm-household-overview-card-head">
+                      <h3>Open Opportunities</h3>
+                      <button
+                        type="button"
+                        className="crm-text-btn"
+                        onClick={openCreateOpportunityForm}
+                      >
+                        New Opportunity
+                      </button>
+                    </div>
                     <p className="crm-household-overview-metric">
                       {workspace.openOpportunities.length}
                     </p>
