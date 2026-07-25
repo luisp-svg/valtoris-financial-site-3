@@ -152,20 +152,38 @@ export function validateUpdateOpportunityInput(
   }
 }
 
+export function isOpenLifecycleStage(stage: OpportunityStageOption): boolean {
+  return !stage.is_won && !stage.is_lost && !stage.is_terminal
+}
+
+export function stageRequiresLifecycleConfirmation(stage: OpportunityStageOption): boolean {
+  return stage.is_won || stage.is_lost || stage.is_terminal
+}
+
+/**
+ * Validates a destination for move_opportunity_stage.
+ * Rejects same-stage and wrong-pipeline selections; does not invent sequence rules.
+ */
 export function validateStageMove(
   stageId: string,
   stages: OpportunityStageOption[],
   currentPipelineId: string,
+  currentStageId?: string | null,
+  options?: { requireOpenDestination?: boolean },
 ): OpportunityValidationResult {
   const fieldErrors: OpportunityValidationResult['fieldErrors'] = {}
   if (!trimOrEmpty(stageId)) {
     fieldErrors.stage_id = 'Stage is required.'
+  } else if (currentStageId && stageId === currentStageId) {
+    fieldErrors.stage_id = 'Choose a different stage. Same-stage moves are not allowed.'
   } else {
     const stage = stages.find((row) => row.id === stageId)
     if (!stage) {
       fieldErrors.stage_id = 'Selected stage is not available.'
     } else if (stage.pipeline_id !== currentPipelineId) {
       fieldErrors.stage_id = 'Stage does not belong to this opportunity’s pipeline.'
+    } else if (options?.requireOpenDestination && !isOpenLifecycleStage(stage)) {
+      fieldErrors.stage_id = 'Choose an open pipeline stage to reopen this opportunity.'
     }
   }
   const ok = Object.keys(fieldErrors).length === 0

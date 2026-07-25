@@ -518,11 +518,35 @@ describe('opportunity CRUD API', () => {
   it('moves stage via move_opportunity_stage RPC', async () => {
     const options: { rpcArgs?: Record<string, unknown> } = {}
     const supabase = mockOpportunityMutationClient(options) as never
-    await moveOpportunityStage(supabase, 'opp-1', 'stage-won', validationContext.stages, 'pipe-1')
+    await moveOpportunityStage(supabase, 'opp-1', 'stage-won', validationContext.stages, 'pipe-1', {
+      currentStageId: 'stage-1',
+    })
     expect(options.rpcArgs).toEqual({
       p_opportunity_id: 'opp-1',
       p_stage_id: 'stage-won',
     })
+  })
+
+  it('rejects same-stage moves before calling the RPC', async () => {
+    const options: { rpcArgs?: Record<string, unknown> } = {}
+    const supabase = mockOpportunityMutationClient(options) as never
+    await expect(
+      moveOpportunityStage(supabase, 'opp-1', 'stage-1', validationContext.stages, 'pipe-1', {
+        currentStageId: 'stage-1',
+      }),
+    ).rejects.toThrow(/different stage|same-stage/i)
+    expect(options.rpcArgs).toBeUndefined()
+  })
+
+  it('rejects wrong-pipeline stages before calling the RPC', async () => {
+    const options: { rpcArgs?: Record<string, unknown> } = {}
+    const supabase = mockOpportunityMutationClient(options) as never
+    await expect(
+      moveOpportunityStage(supabase, 'opp-1', 'stage-won', validationContext.stages, 'pipe-other', {
+        currentStageId: 'stage-1',
+      }),
+    ).rejects.toThrow(/pipeline|valid stage/i)
+    expect(options.rpcArgs).toBeUndefined()
   })
 
   it('refuses client soft-delete until soft_delete_opportunity RPC exists', async () => {

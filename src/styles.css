@@ -6820,6 +6820,40 @@ p { color: var(--muted); line-height: 1.7; }
   font-weight: 700;
 }
 
+.crm-opportunity-lifecycle {
+  display: grid;
+  gap: 12px;
+}
+
+.crm-opportunity-lifecycle-summary {
+  margin: 0 0 4px;
+}
+
+.crm-opportunity-lifecycle-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.crm-opportunity-lifecycle-actions .crm-secondary-btn {
+  min-height: 40px;
+}
+
+.crm-opportunity-lifecycle-panel {
+  margin-bottom: 16px;
+}
+
+@media (max-width: 640px) {
+  .crm-opportunity-lifecycle-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .crm-opportunity-lifecycle-actions .crm-secondary-btn {
+    width: 100%;
+  }
+}
+
 .crm-household-overview-card-head {
   display: flex;
   align-items: center;

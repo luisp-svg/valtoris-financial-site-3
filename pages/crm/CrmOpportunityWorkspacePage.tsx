@@ -4,18 +4,35 @@ import { normalizeActivityToTimelineItem } from '../../crm/households/timeline'
 import HouseholdTimelineItemView from '../../crm/households/HouseholdTimelineItemView'
 import type { HouseholdActivityRecord, HouseholdTimelineItem } from '../../crm/households/types'
 import OpportunityFormDialog from '../../crm/opportunities/OpportunityFormDialog'
+import OpportunityLifecycleDialog, {
+  type OpportunityLifecycleMode,
+} from '../../crm/opportunities/OpportunityLifecycleDialog'
 import {
+  buildLifecycleReloadFailureUi,
+  buildLifecycleReloadRetryUi,
+} from '../../crm/opportunities/lifecyclePartialSuccess'
+import {
+  fetchOpportunityStageOptions,
   fetchOpportunityWorkspace,
+  formatOpportunityStageChangeBody,
   formatOpportunityStatusLabel,
   formatSupabaseError,
   getOpportunityHouseholdLabel,
+  getOpportunityLifecycleActions,
   getOpportunityOwnerLabel,
   getOpportunityPipelineLabel,
   getOpportunityStageLabel,
   getOpportunityVerticalLabel,
 } from '../../crm/opportunities/opportunitiesApi'
-import { getOpportunityActivityViewState, getOpportunityWorkspaceViewState } from '../../crm/opportunities/listLoadState'
-import type { OpportunityDetail, OpportunityWorkspace } from '../../crm/opportunities/types'
+import {
+  getOpportunityActivityViewState,
+  getOpportunityWorkspaceViewState,
+} from '../../crm/opportunities/listLoadState'
+import type {
+  OpportunityDetail,
+  OpportunityStageOption,
+  OpportunityWorkspace,
+} from '../../crm/opportunities/types'
 import { ROUTES, crmHouseholdPath } from '../../constants/routes'
 import { createSupabaseBrowserClient } from '../../lib/supabase/client'
 
@@ -69,10 +86,18 @@ function toHouseholdActivityRecord(
 
 function buildOpportunityActivityTimeline(
   workspace: OpportunityWorkspace,
+  stageNameById: Map<string, string>,
 ): HouseholdTimelineItem[] {
   if (!workspace.activities.ok) return []
   return workspace.activities.value
-    .map((row) => normalizeActivityToTimelineItem(toHouseholdActivityRecord(row)))
+    .map((row) => {
+      const item = normalizeActivityToTimelineItem(toHouseholdActivityRecord(row))
+      if (row.activity_type === 'stage_changed') {
+        const body = formatOpportunityStageChangeBody(row, stageNameById)
+        return body ? { ...item, body } : item
+      }
+      return item
+    })
     .sort((a, b) => {
       const byTime = b.occurredAt.localeCompare(a.occurredAt)
       if (byTime !== 0) return byTime
@@ -83,18 +108,39 @@ function buildOpportunityActivityTimeline(
 export default function CrmOpportunityWorkspacePage() {
   const { opportunityId = '' } = useParams<{ opportunityId: string }>()
   const [workspace, setWorkspace] = useState<OpportunityWorkspace | null>(null)
+  const [pipelineStages, setPipelineStages] = useState<OpportunityStageOption[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [notFound, setNotFound] = useState(false)
   const [activeTab, setActiveTab] = useState<WorkspaceTabId>('overview')
   const [reloadKey, setReloadKey] = useState(0)
   const [showEdit, setShowEdit] = useState(false)
+  const [lifecycleMode, setLifecycleMode] = useState<OpportunityLifecycleMode | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [reloadWarning, setReloadWarning] = useState<string | null>(null)
 
   async function onEdited(opportunity: OpportunityDetail) {
     setShowEdit(false)
     setSuccess(`Opportunity “${opportunity.title}” updated.`)
+    setReloadWarning(null)
     setReloadKey((key) => key + 1)
+  }
+
+  async function onLifecycleMoved(opportunity: OpportunityDetail) {
+    setLifecycleMode(null)
+    setSuccess(
+      `Opportunity moved to ${getOpportunityStageLabel(opportunity)} (${formatOpportunityStatusLabel(opportunity.status)}).`,
+    )
+    setReloadWarning(null)
+    setReloadKey((key) => key + 1)
+  }
+
+  function onLifecycleReloadFailed(message: string) {
+    const ui = buildLifecycleReloadFailureUi(message)
+    setLifecycleMode(ui.lifecycleMode)
+    setSuccess(ui.success)
+    setReloadWarning(ui.reloadWarning)
+    // ui.bumpReloadKey is always false — Retry owns authoritative reload.
   }
 
   useEffect(() => {
@@ -103,6 +149,7 @@ export default function CrmOpportunityWorkspacePage() {
       if (!opportunityId) {
         setNotFound(true)
         setWorkspace(null)
+        setPipelineStages([])
         setLoading(false)
         return
       }
@@ -117,13 +164,37 @@ export default function CrmOpportunityWorkspacePage() {
         if (!result) {
           setNotFound(true)
           setWorkspace(null)
+          setPipelineStages([])
           return
         }
         setWorkspace(result)
+        // Authoritative reload succeeded — clear partial-success reload warning.
+        setReloadWarning(null)
+        try {
+          const stages = await fetchOpportunityStageOptions(
+            supabase,
+            result.opportunity.pipeline_id,
+          )
+          if (!cancelled) setPipelineStages(stages)
+        } catch (stageErr) {
+          if (!cancelled) {
+            setPipelineStages([])
+            if (import.meta.env.DEV) {
+              console.error(
+                '[crm/opportunities/workspace]',
+                formatSupabaseError('opportunity_pipeline_stages', stageErr),
+              )
+            }
+          }
+        }
       } catch (err) {
         if (!cancelled) {
-          setWorkspace(null)
+          // Keep last known row for this id (partial-success Retry must not wipe stale UI).
+          setWorkspace((prev) =>
+            prev?.opportunity.id === opportunityId ? prev : null,
+          )
           setError('Unable to load this opportunity. Please try again.')
+          // Keep reloadWarning if present — Retry failed, mutation still succeeded.
           if (import.meta.env.DEV) {
             console.error(
               '[crm/opportunities/workspace]',
@@ -141,8 +212,10 @@ export default function CrmOpportunityWorkspacePage() {
   }, [opportunityId, reloadKey])
 
   const viewState = getOpportunityWorkspaceViewState({
-    loading,
-    error,
+    // Keep last-known workspace visible during refresh / partial-success Retry.
+    loading: loading && !workspace,
+    // Reload-failure warning owns the messaging when mutation already succeeded.
+    error: workspace && reloadWarning ? null : error,
     notFound,
     hasOpportunity: Boolean(workspace),
   })
@@ -150,7 +223,20 @@ export default function CrmOpportunityWorkspacePage() {
   const activityView = workspace
     ? getOpportunityActivityViewState(workspace.activities)
     : { kind: 'empty' as const }
-  const activityTimeline = workspace ? buildOpportunityActivityTimeline(workspace) : []
+
+  const stageNameById = new Map<string, string>()
+  for (const stage of pipelineStages) stageNameById.set(stage.id, stage.name)
+  if (workspace?.opportunity.stage) {
+    stageNameById.set(workspace.opportunity.stage.id, workspace.opportunity.stage.name)
+  }
+
+  const activityTimeline = workspace
+    ? buildOpportunityActivityTimeline(workspace, stageNameById)
+    : []
+
+  const lifecycleActions = workspace
+    ? getOpportunityLifecycleActions(workspace.opportunity, pipelineStages)
+    : null
 
   return (
     <div className="crm-opportunity-workspace-page">
@@ -223,6 +309,7 @@ export default function CrmOpportunityWorkspacePage() {
                 className="crm-secondary-btn"
                 onClick={() => {
                   setSuccess(null)
+                  setLifecycleMode(null)
                   setShowEdit(true)
                 }}
               >
@@ -245,6 +332,23 @@ export default function CrmOpportunityWorkspacePage() {
       </header>
 
       {success ? <p className="crm-banner crm-banner-success">{success}</p> : null}
+      {reloadWarning ? (
+        <div className="crm-banner crm-banner-warning" role="status">
+          <p>{reloadWarning}</p>
+          <button
+            type="button"
+            className="crm-text-btn"
+            onClick={() => {
+              const retry = buildLifecycleReloadRetryUi()
+              if (retry.callMoveOpportunityStage) return
+              if (retry.bumpReloadKey) setReloadKey((key) => key + 1)
+              // clearReloadWarningImmediately is false — cleared only after successful load.
+            }}
+          >
+            Retry
+          </button>
+        </div>
+      ) : null}
 
       {showEdit && workspace ? (
         <OpportunityFormDialog
@@ -252,6 +356,16 @@ export default function CrmOpportunityWorkspacePage() {
           opportunity={workspace.opportunity}
           onCancel={() => setShowEdit(false)}
           onSaved={onEdited}
+        />
+      ) : null}
+
+      {lifecycleMode && workspace ? (
+        <OpportunityLifecycleDialog
+          mode={lifecycleMode}
+          opportunity={workspace.opportunity}
+          onCancel={() => setLifecycleMode(null)}
+          onMoved={onLifecycleMoved}
+          onMovedReloadFailed={onLifecycleReloadFailed}
         />
       ) : null}
 
@@ -275,84 +389,146 @@ export default function CrmOpportunityWorkspacePage() {
           </nav>
 
           {activeTab === 'overview' ? (
-            <section
-              className="crm-panel crm-opportunity-overview"
-              aria-labelledby="crm-opportunity-overview-heading"
-            >
-              <div className="crm-panel-head">
-                <h2 id="crm-opportunity-overview-heading">Overview</h2>
-              </div>
-
-              <dl className="crm-opportunity-overview-grid">
-                <div>
-                  <dt>Title</dt>
-                  <dd>{workspace.opportunity.title}</dd>
+            <>
+              <section
+                className="crm-panel crm-opportunity-lifecycle"
+                aria-labelledby="crm-opportunity-lifecycle-heading"
+              >
+                <div className="crm-panel-head">
+                  <h2 id="crm-opportunity-lifecycle-heading">Lifecycle</h2>
                 </div>
-                <div>
-                  <dt>Status</dt>
-                  <dd>{formatOpportunityStatusLabel(workspace.opportunity.status)}</dd>
-                </div>
-                <div>
-                  <dt>Pipeline</dt>
-                  <dd>{getOpportunityPipelineLabel(workspace.opportunity)}</dd>
-                </div>
-                <div>
-                  <dt>Current stage</dt>
-                  <dd>{getOpportunityStageLabel(workspace.opportunity)}</dd>
-                </div>
-                <div>
-                  <dt>Household</dt>
-                  <dd>
-                    <Link
-                      to={crmHouseholdPath(workspace.opportunity.household_id)}
-                      className="crm-opportunities-secondary-link"
+                <p className="crm-muted">
+                  Stage, status, and closed date are updated only through the database lifecycle RPC.
+                </p>
+                <div className="crm-opportunity-lifecycle-actions">
+                  <button
+                    type="button"
+                    className="crm-secondary-btn"
+                    disabled={!lifecycleActions?.canMove || Boolean(lifecycleMode) || showEdit}
+                    onClick={() => {
+                      setSuccess(null)
+                      setShowEdit(false)
+                      setLifecycleMode('move')
+                    }}
+                  >
+                    Move Stage
+                  </button>
+                  <button
+                    type="button"
+                    className="crm-secondary-btn"
+                    disabled={!lifecycleActions?.canCloseWon || Boolean(lifecycleMode) || showEdit}
+                    onClick={() => {
+                      setSuccess(null)
+                      setShowEdit(false)
+                      setLifecycleMode('close_won')
+                    }}
+                  >
+                    Close as Won
+                  </button>
+                  <button
+                    type="button"
+                    className="crm-secondary-btn"
+                    disabled={!lifecycleActions?.canCloseLost || Boolean(lifecycleMode) || showEdit}
+                    onClick={() => {
+                      setSuccess(null)
+                      setShowEdit(false)
+                      setLifecycleMode('close_lost')
+                    }}
+                  >
+                    Close as Lost
+                  </button>
+                  {lifecycleActions?.canReopen ? (
+                    <button
+                      type="button"
+                      className="crm-secondary-btn"
+                      disabled={Boolean(lifecycleMode) || showEdit}
+                      onClick={() => {
+                        setSuccess(null)
+                        setShowEdit(false)
+                        setLifecycleMode('reopen')
+                      }}
                     >
-                      {getOpportunityHouseholdLabel(workspace.opportunity)}
-                    </Link>
-                  </dd>
+                      Reopen Opportunity
+                    </button>
+                  ) : null}
                 </div>
-                <div>
-                  <dt>Owner</dt>
-                  <dd>{getOpportunityOwnerLabel(workspace.opportunity)}</dd>
-                </div>
-                <div>
-                  <dt>Service</dt>
-                  <dd>{getOpportunityVerticalLabel(workspace.opportunity)}</dd>
-                </div>
-                <div>
-                  <dt>Need identified</dt>
-                  <dd>{workspace.opportunity.need_identified ? 'Yes' : 'No'}</dd>
-                </div>
-                <div>
-                  <dt>Next action</dt>
-                  <dd>{workspace.opportunity.next_action ?? '—'}</dd>
-                </div>
-                <div>
-                  <dt>Next action due</dt>
-                  <dd>{formatDate(workspace.opportunity.next_action_due_at)}</dd>
-                </div>
-                <div>
-                  <dt>Stage entered</dt>
-                  <dd>{formatDateTime(workspace.opportunity.stage_entered_at)}</dd>
-                </div>
-                <div>
-                  <dt>Closed</dt>
-                  <dd>{formatDateTime(workspace.opportunity.closed_at)}</dd>
-                </div>
-                <div>
-                  <dt>Created</dt>
-                  <dd>{formatDateTime(workspace.opportunity.created_at)}</dd>
-                </div>
-                <div>
-                  <dt>Updated</dt>
-                  <dd>{formatDateTime(workspace.opportunity.updated_at)}</dd>
-                </div>
-              </dl>
+              </section>
 
-              <p className="crm-muted crm-opportunity-overview-note">
-                Stage changes and assignment edits are not available in this phase.
-              </p>
-            </section>
+              <section
+                className="crm-panel crm-opportunity-overview"
+                aria-labelledby="crm-opportunity-overview-heading"
+              >
+                <div className="crm-panel-head">
+                  <h2 id="crm-opportunity-overview-heading">Overview</h2>
+                </div>
+
+                <dl className="crm-opportunity-overview-grid">
+                  <div>
+                    <dt>Title</dt>
+                    <dd>{workspace.opportunity.title}</dd>
+                  </div>
+                  <div>
+                    <dt>Status</dt>
+                    <dd>{formatOpportunityStatusLabel(workspace.opportunity.status)}</dd>
+                  </div>
+                  <div>
+                    <dt>Pipeline</dt>
+                    <dd>{getOpportunityPipelineLabel(workspace.opportunity)}</dd>
+                  </div>
+                  <div>
+                    <dt>Current stage</dt>
+                    <dd>{getOpportunityStageLabel(workspace.opportunity)}</dd>
+                  </div>
+                  <div>
+                    <dt>Household</dt>
+                    <dd>
+                      <Link
+                        to={crmHouseholdPath(workspace.opportunity.household_id)}
+                        className="crm-opportunities-secondary-link"
+                      >
+                        {getOpportunityHouseholdLabel(workspace.opportunity)}
+                      </Link>
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Owner</dt>
+                    <dd>{getOpportunityOwnerLabel(workspace.opportunity)}</dd>
+                  </div>
+                  <div>
+                    <dt>Service</dt>
+                    <dd>{getOpportunityVerticalLabel(workspace.opportunity)}</dd>
+                  </div>
+                  <div>
+                    <dt>Need identified</dt>
+                    <dd>{workspace.opportunity.need_identified ? 'Yes' : 'No'}</dd>
+                  </div>
+                  <div>
+                    <dt>Next action</dt>
+                    <dd>{workspace.opportunity.next_action ?? '—'}</dd>
+                  </div>
+                  <div>
+                    <dt>Next action due</dt>
+                    <dd>{formatDate(workspace.opportunity.next_action_due_at)}</dd>
+                  </div>
+                  <div>
+                    <dt>Stage entered</dt>
+                    <dd>{formatDateTime(workspace.opportunity.stage_entered_at)}</dd>
+                  </div>
+                  <div>
+                    <dt>Closed</dt>
+                    <dd>{formatDateTime(workspace.opportunity.closed_at)}</dd>
+                  </div>
+                  <div>
+                    <dt>Created</dt>
+                    <dd>{formatDateTime(workspace.opportunity.created_at)}</dd>
+                  </div>
+                  <div>
+                    <dt>Updated</dt>
+                    <dd>{formatDateTime(workspace.opportunity.updated_at)}</dd>
+                  </div>
+                </dl>
+              </section>
+            </>
           ) : null}
 
           {activeTab === 'activity' ? (

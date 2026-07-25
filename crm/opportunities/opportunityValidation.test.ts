@@ -176,6 +176,25 @@ describe('validateStageMove', () => {
     expect(validateStageMove('stage-won', stages, 'pipe-life').ok).toBe(true)
     expect(validateStageMove('stage-won', stages, 'pipe-other').ok).toBe(false)
   })
+
+  it('rejects same-stage moves', () => {
+    const result = validateStageMove('stage-1', stages, 'pipe-life', 'stage-1')
+    expect(result.ok).toBe(false)
+    expect(result.fieldErrors.stage_id).toMatch(/different stage|same-stage/i)
+  })
+
+  it('requires an open destination when reopening', () => {
+    expect(
+      validateStageMove('stage-won', stages, 'pipe-life', 'stage-1', {
+        requireOpenDestination: true,
+      }).ok,
+    ).toBe(false)
+    expect(
+      validateStageMove('stage-1', stages, 'pipe-life', 'stage-won', {
+        requireOpenDestination: true,
+      }).ok,
+    ).toBe(true)
+  })
 })
 
 describe('normalize helpers', () => {

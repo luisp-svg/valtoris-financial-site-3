@@ -929,6 +929,24 @@ export async function updateOpportunity(
 }
 
 /**
+ * Thrown after move_opportunity_stage RPC succeeds when the follow-up SELECT fails.
+ * UI must treat this as partial success — never as a failed mutation.
+ */
+export const OPPORTUNITY_STAGE_RELOAD_FAILED_MESSAGE =
+  'Opportunity stage updated, but the record could not be reloaded.'
+
+export const OPPORTUNITY_STAGE_RELOAD_FAILED_USER_MESSAGE =
+  'Stage updated successfully, but the latest Opportunity data could not be reloaded. Retry to refresh the workspace.'
+
+export function isOpportunityStageReloadFailure(error: unknown): boolean {
+  if (!(error instanceof Error)) return false
+  return (
+    error.message === OPPORTUNITY_STAGE_RELOAD_FAILED_MESSAGE ||
+    /updated, but the record could not be reloaded/i.test(error.message)
+  )
+}
+
+/**
  * Stage / status / closed_at — only via existing move_opportunity_stage RPC.
  * DB derives status + closed_at from stage flags; client must not set those columns.
  */
@@ -938,10 +956,22 @@ export async function moveOpportunityStage(
   stageId: string,
   stages: OpportunityStageOption[],
   pipelineId: string,
+  options?: {
+    currentStageId?: string | null
+    requireOpenDestination?: boolean
+  },
 ): Promise<OpportunityDetail> {
-  const validation = validateStageMove(stageId, stages, pipelineId)
+  const validation = validateStageMove(
+    stageId,
+    stages,
+    pipelineId,
+    options?.currentStageId,
+    { requireOpenDestination: options?.requireOpenDestination },
+  )
   if (!validation.ok) {
-    throw new Error(validation.formError ?? 'Invalid stage.')
+    throw new Error(
+      validation.fieldErrors.stage_id ?? validation.formError ?? 'Invalid stage.',
+    )
   }
 
   const { error: rpcError } = await supabase.rpc('move_opportunity_stage', {
@@ -951,11 +981,17 @@ export async function moveOpportunityStage(
 
   if (rpcError) throw rpcError
 
-  const detail = await fetchOpportunityById(supabase, opportunityId)
-  if (!detail) {
-    throw new Error('Opportunity stage updated, but the record could not be reloaded.')
+  // RPC already committed. Any follow-up read failure is partial success, not mutation failure.
+  try {
+    const detail = await fetchOpportunityById(supabase, opportunityId)
+    if (!detail) {
+      throw new Error(OPPORTUNITY_STAGE_RELOAD_FAILED_MESSAGE)
+    }
+    return detail
+  } catch (reloadErr) {
+    if (isOpportunityStageReloadFailure(reloadErr)) throw reloadErr
+    throw new Error(OPPORTUNITY_STAGE_RELOAD_FAILED_MESSAGE)
   }
-  return detail
 }
 
 /**
@@ -996,4 +1032,74 @@ export function findCloseStage(
     return stages.find((row) => row.is_won) ?? null
   }
   return stages.find((row) => row.is_lost) ?? stages.find((row) => row.is_terminal) ?? null
+}
+
+/** Destinations for Move Stage — all pipeline stages except the current one. */
+export function listMoveDestinationStages(
+  stages: OpportunityStageOption[],
+  currentStageId: string | null | undefined,
+): OpportunityStageOption[] {
+  return stages
+    .filter((row) => row.id !== currentStageId)
+    .slice()
+    .sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name))
+}
+
+/** Open (non-won/lost/terminal) destinations for Reopen. */
+export function listReopenDestinationStages(
+  stages: OpportunityStageOption[],
+): OpportunityStageOption[] {
+  return stages
+    .filter((row) => !row.is_won && !row.is_lost && !row.is_terminal)
+    .slice()
+    .sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name))
+}
+
+export function canReopenOpportunity(status: OpportunityStatus): boolean {
+  return status === 'won' || status === 'lost'
+}
+
+export type OpportunityLifecycleActionAvailability = {
+  canMove: boolean
+  canCloseWon: boolean
+  canCloseLost: boolean
+  canReopen: boolean
+  wonStage: OpportunityStageOption | null
+  lostStage: OpportunityStageOption | null
+}
+
+export function getOpportunityLifecycleActions(
+  opportunity: Pick<OpportunityDetail, 'stage_id' | 'status'>,
+  stages: OpportunityStageOption[],
+): OpportunityLifecycleActionAvailability {
+  const wonStage = findCloseStage(stages, 'won')
+  const lostStage = findCloseStage(stages, 'lost')
+  return {
+    canMove: listMoveDestinationStages(stages, opportunity.stage_id).length > 0,
+    canCloseWon: Boolean(wonStage && wonStage.id !== opportunity.stage_id),
+    canCloseLost: Boolean(lostStage && lostStage.id !== opportunity.stage_id),
+    canReopen: canReopenOpportunity(opportunity.status),
+    wonStage,
+    lostStage,
+  }
+}
+
+/**
+ * Prefer "Old Stage → New Stage" when metadata stage ids resolve; otherwise keep body.
+ */
+export function formatOpportunityStageChangeBody(
+  activity: Pick<OpportunityActivityRecord, 'body' | 'metadata'>,
+  stageNameById: Map<string, string>,
+): string | null {
+  const fromId =
+    typeof activity.metadata.from_stage_id === 'string'
+      ? activity.metadata.from_stage_id
+      : null
+  const toId =
+    typeof activity.metadata.to_stage_id === 'string' ? activity.metadata.to_stage_id : null
+  const fromName = fromId ? stageNameById.get(fromId) : null
+  const toName = toId ? stageNameById.get(toId) : null
+  if (fromName && toName) return `${fromName} → ${toName}`
+  if (toName) return toName
+  return activity.body
 }
