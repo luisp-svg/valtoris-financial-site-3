@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import OpportunityFormDialog from '../../crm/opportunities/OpportunityFormDialog'
 import {
   fetchOpportunities,
@@ -13,9 +13,17 @@ import {
   getOpportunityVerticalLabel,
 } from '../../crm/opportunities/opportunitiesApi'
 import { getOpportunityListViewState } from '../../crm/opportunities/listLoadState'
-import type { OpportunityDetail, OpportunityListItem, OpportunityStatusGroup } from '../../crm/opportunities/types'
+import type {
+  OpportunityDetail,
+  OpportunityListItem,
+  OpportunityStatus,
+  OpportunityStatusGroup,
+} from '../../crm/opportunities/types'
 import { crmHouseholdPath, crmOpportunityPath } from '../../constants/routes'
 import { createSupabaseBrowserClient } from '../../lib/supabase/client'
+
+/** Combined status control: group filters plus exact won/lost for dashboard deep-links. */
+type StatusFilterValue = OpportunityStatusGroup | 'won' | 'lost'
 
 function formatUpdatedAt(value: string): string {
   const date = new Date(value)
@@ -27,13 +35,24 @@ function formatUpdatedAt(value: string): string {
   })
 }
 
+function statusFilterFromSearchParams(params: URLSearchParams): StatusFilterValue {
+  const exact = params.get('status')
+  if (exact === 'won' || exact === 'lost') return exact
+  const group = params.get('statusGroup')
+  if (group === 'open' || group === 'closed' || group === 'all') return group
+  return 'open'
+}
+
 export default function CrmOpportunitiesPage() {
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [opportunities, setOpportunities] = useState<OpportunityListItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
-  const [statusGroup, setStatusGroup] = useState<OpportunityStatusGroup>('open')
+  const [statusFilter, setStatusFilter] = useState<StatusFilterValue>(() =>
+    statusFilterFromSearchParams(searchParams),
+  )
   const [reloadKey, setReloadKey] = useState(0)
   const [showCreate, setShowCreate] = useState(false)
   const [success, setSuccess] = useState<string | null>(null)
@@ -49,13 +68,24 @@ export default function CrmOpportunitiesPage() {
   }
 
   useEffect(() => {
+    setStatusFilter(statusFilterFromSearchParams(searchParams))
+  }, [searchParams])
+
+  useEffect(() => {
     let cancelled = false
     ;(async () => {
       setLoading(true)
       setError(null)
       try {
         const supabase = createSupabaseBrowserClient()
-        const rows = await fetchOpportunities(supabase, { statusGroup })
+        const rows =
+          statusFilter === 'won' || statusFilter === 'lost'
+            ? await fetchOpportunities(supabase, {
+                status: statusFilter as OpportunityStatus,
+              })
+            : await fetchOpportunities(supabase, {
+                statusGroup: statusFilter as OpportunityStatusGroup,
+              })
         if (!cancelled) setOpportunities(rows)
       } catch (err) {
         if (!cancelled) {
@@ -72,7 +102,7 @@ export default function CrmOpportunitiesPage() {
     return () => {
       cancelled = true
     }
-  }, [statusGroup, reloadKey])
+  }, [statusFilter, reloadKey])
 
   const filteredOpportunities = useMemo(
     () => filterOpportunityListItems(opportunities, { search }),
@@ -86,11 +116,26 @@ export default function CrmOpportunitiesPage() {
     filteredCount: filteredOpportunities.length,
   })
 
-  const hasActiveFilters = search.trim() !== '' || statusGroup !== 'open'
+  const hasActiveFilters = search.trim() !== '' || statusFilter !== 'open'
+
+  function applyStatusFilter(next: StatusFilterValue) {
+    setStatusFilter(next)
+    const nextParams = new URLSearchParams(searchParams)
+    nextParams.delete('status')
+    nextParams.delete('statusGroup')
+    if (next === 'won' || next === 'lost') {
+      nextParams.set('status', next)
+    } else if (next !== 'open') {
+      nextParams.set('statusGroup', next)
+    } else {
+      nextParams.set('statusGroup', 'open')
+    }
+    setSearchParams(nextParams, { replace: true })
+  }
 
   function resetFilters() {
     setSearch('')
-    setStatusGroup('open')
+    applyStatusFilter('open')
   }
 
   return (
@@ -200,11 +245,13 @@ export default function CrmOpportunitiesPage() {
           <label className="crm-field">
             Status
             <select
-              value={statusGroup}
-              onChange={(e) => setStatusGroup(e.target.value as OpportunityStatusGroup)}
+              value={statusFilter}
+              onChange={(e) => applyStatusFilter(e.target.value as StatusFilterValue)}
               disabled={loading}
             >
               <option value="open">Open</option>
+              <option value="won">Won</option>
+              <option value="lost">Lost</option>
               <option value="closed">Closed</option>
               <option value="all">All statuses</option>
             </select>
