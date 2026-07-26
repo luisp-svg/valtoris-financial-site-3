@@ -90,7 +90,8 @@ describe('computeHouseholdFinancialProgress', () => {
 
       if (
         category.categoryId === 'protection_insurance' ||
-        category.categoryId === 'debt_management'
+        category.categoryId === 'debt_management' ||
+        category.categoryId === 'emergency_fund'
       ) {
         expect(category.status).toBe('insufficient_data')
         expect(category.score).toBeNull()
@@ -156,7 +157,7 @@ describe('computeHouseholdFinancialProgress', () => {
     ).toThrow(/missing calculator for category/)
   })
 
-  it('surfaces Protection and Debt recommendations without publishing an overall score', () => {
+  it('surfaces Protection, Debt, and Emergency Fund when data exists without publishing overall', () => {
     const result = computeHouseholdFinancialProgress(
       makeInput({
         policies: [
@@ -181,6 +182,7 @@ describe('computeHouseholdFinancialProgress', () => {
               financial: {
                 householdIncome: '100000',
                 totalDebt: '25000',
+                emergencyFundMonths: '6',
               },
               protection: {
                 currentLifeInsurance: '250000',
@@ -193,6 +195,9 @@ describe('computeHouseholdFinancialProgress', () => {
               creditCardUtilization: 0.2,
               apr: 0.24,
               debtPayoffStrategy: 'avalanche',
+              dedicatedEmergencyFund: 'yes',
+              emergencyFundLiquidity: 'savings',
+              automaticEmergencySavings: 'yes',
             },
           },
         },
@@ -205,17 +210,32 @@ describe('computeHouseholdFinancialProgress', () => {
     const debt = result.categories.find(
       (category) => category.categoryId === 'debt_management',
     )
+    const emergency = result.categories.find(
+      (category) => category.categoryId === 'emergency_fund',
+    )
     expect(protection?.status).toBe('computed')
     expect(protection?.score).toBeGreaterThanOrEqual(0)
     expect(debt?.status).toBe('computed')
     expect(debt?.score).toBeGreaterThanOrEqual(0)
     expect(debt?.evidence).toHaveLength(4)
-    expect(result.completedCategoryCount).toBe(2)
-    expect(result.completedAvailablePoints).toBe(35)
+    expect(emergency?.status).toBe('computed')
+    expect(emergency?.score).toBe(10)
+    expect(emergency?.evidence).toHaveLength(4)
+    expect(result.completedCategoryCount).toBe(3)
+    expect(result.completedAvailablePoints).toBe(45)
     expect(result.overall.status).toBe('partial')
     expect(result.overall.score).toBeNull()
     expect(result.overall.grade).toBeNull()
     expect(result.recommendations.length).toBeGreaterThan(0)
+
+    const placeholders = result.categories.filter((category) => category.status === 'placeholder')
+    expect(placeholders.map((category) => category.categoryId)).toEqual([
+      'cash_flow_budget',
+      'retirement_readiness',
+      'estate_legacy',
+      'credit_health',
+      'financial_independence',
+    ])
   })
 })
 
