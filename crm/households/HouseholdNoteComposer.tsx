@@ -1,4 +1,4 @@
-import { useId, useState, type FormEvent } from 'react'
+import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import {
   assertValidNoteBody,
   createHouseholdNote,
@@ -12,6 +12,8 @@ type HouseholdNoteComposerProps = {
   authorUserId: string
   disabled?: boolean
   disabledReason?: string | null
+  /** Increment to request focus on the note body (e.g. Quick Action → Notes). */
+  focusRequestId?: number
   onSaved: () => void | Promise<void>
   onSaveFailed?: () => void | Promise<void>
 }
@@ -21,14 +23,21 @@ export default function HouseholdNoteComposer({
   authorUserId,
   disabled = false,
   disabledReason = null,
+  focusRequestId = 0,
   onSaved,
   onSaveFailed,
 }: HouseholdNoteComposerProps) {
   const headingId = useId()
+  const bodyRef = useRef<HTMLTextAreaElement>(null)
   const [body, setBody] = useState('')
   const [fieldError, setFieldError] = useState<string | null>(null)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+
+  useEffect(() => {
+    if (!focusRequestId || disabled) return
+    queueMicrotask(() => bodyRef.current?.focus())
+  }, [focusRequestId, disabled])
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault()
@@ -91,6 +100,7 @@ export default function HouseholdNoteComposer({
         <label className="crm-field">
           Internal note
           <textarea
+            ref={bodyRef}
             value={body}
             onChange={(e) => setBody(e.target.value)}
             rows={4}

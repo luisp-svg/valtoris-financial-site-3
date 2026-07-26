@@ -14,12 +14,15 @@ import type {
   HouseholdActivityRecord,
   HouseholdActivitySummary,
   HouseholdAdvisorSummary,
+  FinancialProgressPlaceholder,
   HouseholdAnnualReviewSummary,
   HouseholdAssessmentSummary,
+  HouseholdDocumentSummary,
   HouseholdMemberSummary,
   HouseholdNote,
   HouseholdOpenOpportunitySummary,
   HouseholdOpenTaskSummary,
+  HouseholdPolicySummary,
   HouseholdStageSummary,
   HouseholdTimelineItem,
   MemberRelationship,
@@ -70,6 +73,11 @@ const HOUSEHOLD_DETAIL_SELECT = `
   status,
   primary_email,
   primary_phone,
+  address_line1,
+  address_line2,
+  city,
+  state,
+  postal_code,
   assigned_advisor_id,
   relationship_stage_id,
   created_at,
@@ -80,6 +88,27 @@ const HOUSEHOLD_DETAIL_SELECT = `
     ${MEMBER_EMBED_SELECT}
   )
 `
+
+const FINANCIAL_PROGRESS_PLACEHOLDER: FinancialProgressPlaceholder = {
+  score: null,
+  label: 'Not scored yet',
+  status: 'placeholder',
+}
+
+/** Policies treated as active for workspace KPI (excludes terminal statuses). */
+const INACTIVE_POLICY_STATUSES = new Set(['cancelled', 'canceled', 'lapsed', 'expired', 'replaced'])
+
+/**
+ * Intentional bounds for one-shot workspace preview collections.
+ * Timeline notes/activities use `TIMELINE_FETCH_LIMIT` (50) in notesApi.
+ */
+export const WORKSPACE_PREVIEW_LIMITS = {
+  openTasks: 8,
+  openOpportunities: 8,
+  recentActivities: 12,
+  recentDocuments: 8,
+  activePolicies: 50,
+} as const
 
 const MEMBER_ROW_SELECT = `
   id,
@@ -242,7 +271,30 @@ function normalizeHouseholdDetail(row: Record<string, unknown>): CrmHouseholdDet
   return {
     ...normalizeHouseholdListItem(row),
     created_at: String(row.created_at),
+    address_line1: (row.address_line1 as string | null) ?? null,
+    address_line2: (row.address_line2 as string | null) ?? null,
+    city: (row.city as string | null) ?? null,
+    state: (row.state as string | null) ?? null,
+    postal_code: (row.postal_code as string | null) ?? null,
   }
+}
+
+export function formatHouseholdAddress(household: {
+  address_line1: string | null
+  address_line2: string | null
+  city: string | null
+  state: string | null
+  postal_code: string | null
+}): string | null {
+  const line1 = household.address_line1?.trim()
+  const line2 = household.address_line2?.trim()
+  const city = household.city?.trim()
+  const state = household.state?.trim()
+  const postal = household.postal_code?.trim()
+  const cityState = [city, state].filter(Boolean).join(', ')
+  const cityStatePostal = [cityState, postal].filter(Boolean).join(' ')
+  const parts = [line1, line2, cityStatePostal].filter(Boolean)
+  return parts.length > 0 ? parts.join(', ') : null
 }
 
 export function getPrimaryContactName(household: CrmHouseholdListItem): string | null {
@@ -651,7 +703,7 @@ async function fetchOpenTasksForHousehold(
     .in('status', ['open', 'in_progress'])
     .order('due_date', { ascending: true, nullsFirst: false })
     .order('created_at', { ascending: false })
-    .limit(8)
+    .limit(WORKSPACE_PREVIEW_LIMITS.openTasks)
 
   if (error) throw error
   return (data ?? []).map((row) => ({
@@ -682,7 +734,7 @@ async function fetchOpenOpportunitiesForHousehold(
     .eq('status', 'open')
     .is('deleted_at', null)
     .order('updated_at', { ascending: false })
-    .limit(8)
+    .limit(WORKSPACE_PREVIEW_LIMITS.openOpportunities)
 
   if (error) throw error
   return (data ?? []).map((row) => {
@@ -787,7 +839,7 @@ async function fetchRecentActivities(
     .eq('household_id', householdId)
     .is('deleted_at', null)
     .order('occurred_at', { ascending: false })
-    .limit(12)
+    .limit(WORKSPACE_PREVIEW_LIMITS.recentActivities)
 
   if (error) throw error
   return (data ?? []).map((row) => ({
@@ -796,6 +848,58 @@ async function fetchRecentActivities(
     title: String(row.title),
     body: (row.body as string | null) ?? null,
     occurred_at: String(row.occurred_at),
+  }))
+}
+
+async function fetchActivePoliciesForHousehold(
+  supabase: SupabaseClient,
+  householdId: string,
+): Promise<HouseholdPolicySummary[]> {
+  const { data, error } = await supabase
+    .from('policies')
+    .select('id, carrier, policy_type, status, coverage_amount, renewal_or_review_date')
+    .eq('household_id', householdId)
+    .is('deleted_at', null)
+    .order('updated_at', { ascending: false })
+    .limit(WORKSPACE_PREVIEW_LIMITS.activePolicies)
+
+  if (error) throw error
+
+  return (data ?? [])
+    .map((row) => ({
+      id: String(row.id),
+      carrier: String(row.carrier),
+      policy_type: String(row.policy_type),
+      status: String(row.status),
+      coverage_amount:
+        typeof row.coverage_amount === 'number'
+          ? row.coverage_amount
+          : row.coverage_amount == null
+            ? null
+            : Number(row.coverage_amount),
+      renewal_or_review_date: (row.renewal_or_review_date as string | null) ?? null,
+    }))
+    .filter((policy) => !INACTIVE_POLICY_STATUSES.has(policy.status.toLowerCase()))
+}
+
+async function fetchRecentDocumentsForHousehold(
+  supabase: SupabaseClient,
+  householdId: string,
+): Promise<HouseholdDocumentSummary[]> {
+  const { data, error } = await supabase
+    .from('documents')
+    .select('id, file_name, doc_type, created_at')
+    .eq('household_id', householdId)
+    .is('deleted_at', null)
+    .order('created_at', { ascending: false })
+    .limit(WORKSPACE_PREVIEW_LIMITS.recentDocuments)
+
+  if (error) throw error
+  return (data ?? []).map((row) => ({
+    id: String(row.id),
+    file_name: String(row.file_name),
+    doc_type: String(row.doc_type),
+    created_at: String(row.created_at),
   }))
 }
 
@@ -864,6 +968,8 @@ export async function fetchHouseholdWorkspace(
     recentActivities,
     notes,
     activities,
+    activePolicies,
+    recentDocuments,
   ] = await Promise.all([
     settledOrEmpty(
       fetchOpenTasksForHousehold(supabase, householdId),
@@ -904,6 +1010,16 @@ export async function fetchHouseholdWorkspace(
       [] as HouseholdActivityRecord[],
       'activity_records',
     ),
+    settledOrEmpty(
+      fetchActivePoliciesForHousehold(supabase, householdId),
+      [] as HouseholdPolicySummary[],
+      'active_policies',
+    ),
+    settledOrEmpty(
+      fetchRecentDocumentsForHousehold(supabase, householdId),
+      [] as HouseholdDocumentSummary[],
+      'recent_documents',
+    ),
   ])
 
   const { timeline, timelineComplete } = buildWorkspaceTimeline(notes, activities)
@@ -921,5 +1037,9 @@ export async function fetchHouseholdWorkspace(
     activities,
     timeline,
     timelineComplete,
+    openCasesCount: 0,
+    activePolicies,
+    recentDocuments,
+    financialProgress: FINANCIAL_PROGRESS_PLACEHOLDER,
   }
 }

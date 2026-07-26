@@ -25,6 +25,10 @@ type HouseholdActivityPanelProps = {
   onRefreshAfterMutation: (successMessage: string) => Promise<void>
   onRefreshAfterFailure: () => Promise<void>
   onRetryLoad: () => Promise<void>
+  /** Optional a11y overrides when embedded in Client Workspace Timeline tab. */
+  panelId?: string
+  labelledBy?: string
+  heading?: string
 }
 
 function ActivityEmptyIcon() {
@@ -65,6 +69,9 @@ export default function HouseholdActivityPanel({
   onRefreshAfterMutation,
   onRefreshAfterFailure,
   onRetryLoad,
+  panelId = 'crm-household-tab-activity-panel',
+  labelledBy = 'crm-household-tab-activity',
+  heading = 'Activity',
 }: HouseholdActivityPanelProps) {
   const [noteUi, setNoteUi] = useState<NoteUiState>({ mode: 'idle' })
   const [retrying, setRetrying] = useState(false)
@@ -77,6 +84,7 @@ export default function HouseholdActivityPanel({
   )
   const composerEnabled = canComposeNotes(workspace.notes)
   const actionsDisabled = noteUi.mode !== 'idle'
+  const headingId = `${panelId}-heading`
 
   async function handleRetry() {
     setRetrying(true)
@@ -89,9 +97,9 @@ export default function HouseholdActivityPanel({
 
   return (
     <div
-      id="crm-household-tab-activity-panel"
+      id={panelId}
       role="tabpanel"
-      aria-labelledby="crm-household-tab-activity"
+      aria-labelledby={labelledBy}
       className="crm-household-workspace-tab-panel crm-activity-tab-panel"
     >
       {actionSuccess ? <p className="crm-banner crm-banner-success">{actionSuccess}</p> : null}
@@ -135,9 +143,9 @@ export default function HouseholdActivityPanel({
         />
       ) : null}
 
-      <section className="crm-panel" aria-labelledby="crm-activity-timeline-heading">
+      <section className="crm-panel" aria-labelledby={headingId}>
         <div className="crm-panel-head">
-          <h2 id="crm-activity-timeline-heading">Activity</h2>
+          <h2 id={headingId}>{heading}</h2>
           {viewState.kind === 'timeline' ? (
             <span className="crm-count-pill">{workspace.timeline.length}</span>
           ) : null}

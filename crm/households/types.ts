@@ -88,6 +88,11 @@ export type CrmHouseholdListItem = {
 
 export type CrmHouseholdDetail = CrmHouseholdListItem & {
   created_at: string
+  address_line1: string | null
+  address_line2: string | null
+  city: string | null
+  state: string | null
+  postal_code: string | null
 }
 
 export type HouseholdOpenTaskSummary = {
@@ -215,6 +220,29 @@ export type WorkspaceLoadResult<T> =
       error: string
     }
 
+/** Placeholder until Financial Progress Engine ships. */
+export type FinancialProgressPlaceholder = {
+  score: number | null
+  label: string
+  status: 'placeholder'
+}
+
+export type HouseholdPolicySummary = {
+  id: string
+  carrier: string
+  policy_type: string
+  status: string
+  coverage_amount: number | null
+  renewal_or_review_date: string | null
+}
+
+export type HouseholdDocumentSummary = {
+  id: string
+  file_name: string
+  doc_type: string
+  created_at: string
+}
+
 export type CrmHouseholdWorkspace = {
   household: CrmHouseholdDetail
   openTasks: HouseholdOpenTaskSummary[]
@@ -226,7 +254,7 @@ export type CrmHouseholdWorkspace = {
   /** Overview preview (activities only, limited). */
   recentActivities: HouseholdActivitySummary[]
   /**
-   * CRM-7 domain payload for future Activity tab (UI not enabled yet).
+   * CRM-7 domain payload for Activity / Timeline / Notes.
    * Use `.ok` / `.error` to distinguish empty success from load failure.
    */
   notes: WorkspaceLoadResult<HouseholdNote[]>
@@ -238,6 +266,15 @@ export type CrmHouseholdWorkspace = {
   timeline: HouseholdTimelineItem[]
   /** True only when both notes and activities results are ok. */
   timelineComplete: boolean
+  /**
+   * No `cases` table exists yet — always 0 until a Cases domain is introduced.
+   * Kept on the workspace payload so KPI/widgets share one source of truth.
+   */
+  openCasesCount: number
+  activePolicies: HouseholdPolicySummary[]
+  recentDocuments: HouseholdDocumentSummary[]
+  /** Placeholder only — not a scored engine result. */
+  financialProgress: FinancialProgressPlaceholder
 }
 
 export type HouseholdAssignmentFilter = 'all' | 'assigned' | 'unassigned'
