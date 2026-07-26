@@ -9,11 +9,12 @@ import RecentActivitySection from '../../crm/dashboard/RecentActivitySection'
 import RecentHouseholdsSection from '../../crm/dashboard/RecentHouseholdsSection'
 import TasksDueSection from '../../crm/dashboard/TasksDueSection'
 import { useCrmDashboard } from '../../crm/dashboard/useCrmDashboard'
+import OwnerOpsHome from '../../crm/ownerOps/OwnerOpsHome'
 import OpportunityFormDialog from '../../crm/opportunities/OpportunityFormDialog'
 import type { OpportunityDetail } from '../../crm/opportunities/types'
 import { crmOpportunityPath } from '../../constants/routes'
 
-export default function CrmHomePage() {
+function AdvisorCommandCenter() {
   const { email, role, profile } = useCrmAuth()
   const navigate = useNavigate()
   const {
@@ -110,4 +111,14 @@ export default function CrmHomePage() {
       ) : null}
     </div>
   )
+}
+
+export default function CrmHomePage() {
+  const { role } = useCrmAuth()
+
+  if (role === 'owner') {
+    return <OwnerOpsHome />
+  }
+
+  return <AdvisorCommandCenter />
 }

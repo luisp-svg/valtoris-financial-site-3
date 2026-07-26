@@ -5746,6 +5746,155 @@ p { color: var(--muted); line-height: 1.7; }
   text-align: right;
 }
 
+.crm-owner-ops-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.crm-owner-ops-health-stats {
+  list-style: none;
+  margin: 0 0 14px;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.crm-owner-ops-health-stats li {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fff;
+  border: 1px solid var(--crm-border);
+  color: var(--crm-muted);
+  font-size: 0.88rem;
+}
+
+.crm-owner-ops-health-stats strong {
+  color: var(--crm-navy);
+  font-variant-numeric: tabular-nums;
+}
+
+.crm-owner-ops-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.crm-owner-ops-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.crm-owner-ops-table th,
+.crm-owner-ops-table td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--crm-border);
+  white-space: nowrap;
+}
+
+.crm-owner-ops-table th {
+  color: var(--crm-muted);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.crm-owner-ops-table td {
+  color: var(--crm-navy);
+  font-variant-numeric: tabular-nums;
+}
+
+.crm-owner-ops-table tr.is-unassigned td {
+  background: #f8fafc;
+}
+
+.crm-owner-ops-advisor-link {
+  color: inherit;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.crm-owner-ops-advisor-link:hover,
+.crm-owner-ops-advisor-link:focus-visible {
+  color: var(--crm-blue);
+  outline: none;
+}
+
+.crm-owner-ops-alert-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.crm-owner-ops-alert {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--crm-border);
+  background: #fff;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.crm-owner-ops-alert:hover,
+.crm-owner-ops-alert:focus-visible {
+  border-color: var(--crm-blue);
+  background: var(--crm-blue-soft);
+  outline: none;
+}
+
+.crm-owner-ops-alert-count {
+  min-width: 2.25rem;
+  height: 2.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  background: #e8eef8;
+  color: var(--crm-navy);
+}
+
+.crm-owner-ops-alert--high .crm-owner-ops-alert-count {
+  background: #fde8e8;
+  color: #9b1c1c;
+}
+
+.crm-owner-ops-alert--medium .crm-owner-ops-alert-count {
+  background: #fff4e5;
+  color: #9a5b00;
+}
+
+.crm-owner-ops-alert-body {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.crm-owner-ops-alert-title {
+  color: var(--crm-navy);
+  font-weight: 700;
+}
+
+.crm-owner-ops-alert-detail {
+  color: var(--crm-muted);
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
 .crm-placeholder-panel,
 .crm-placeholder-page .crm-placeholder-panel,
 .crm-access-denied {
@@ -7142,6 +7291,20 @@ p { color: var(--muted); line-height: 1.7; }
 
   .crm-dashboard-metric-row {
     grid-template-columns: 1fr;
+  }
+
+  .crm-owner-ops-metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .crm-owner-ops-health-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .crm-owner-ops-table th,
+  .crm-owner-ops-table td {
+    padding: 10px 8px;
+    font-size: 0.86rem;
   }
 
   .crm-dashboard-stage-row {
