@@ -135,7 +135,7 @@ describe('protection-need methodology (deferred reuse)', () => {
     )
     expect(signals.recordedProtectionNeed).toBeNull()
     expect(scoreLifeInsuranceAdequacy(signals).status).toBe('incomplete')
-    expect(scoreLifeInsuranceAdequacy(signals).evidence).toMatch(/protection-need analysis/i)
+    expect(scoreLifeInsuranceAdequacy(signals).explanation).toMatch(/protection-need analysis/i)
   })
 })
 
@@ -152,7 +152,7 @@ describe('beneficiary review scoring', () => {
     )
     const confirmedOutcome = scoreBeneficiaryReview(confirmed)
     expect(confirmedOutcome.points).toBe(2)
-    expect(confirmedOutcome.evidence).toMatch(/Confirmed review/i)
+    expect(confirmedOutcome.explanation).toMatch(/Confirmed review/i)
 
     const explicitNo = extractProtectionSignals(
       makeInput({
@@ -172,7 +172,7 @@ describe('beneficiary review scoring', () => {
     )
     const recordedOutcome = scoreBeneficiaryReview(recordedOnly)
     expect(recordedOutcome.points).toBe(1)
-    expect(recordedOutcome.evidence).toMatch(/Recorded beneficiaries only/i)
+    expect(recordedOutcome.explanation).toMatch(/Recorded beneficiaries only/i)
 
     const missing = extractProtectionSignals(
       makeInput({
@@ -181,13 +181,13 @@ describe('beneficiary review scoring', () => {
     )
     const missingOutcome = scoreBeneficiaryReview(missing)
     expect(missingOutcome.points).toBe(0)
-    expect(missingOutcome.evidence).toMatch(/Missing beneficiaries/i)
+    expect(missingOutcome.explanation).toMatch(/Missing beneficiaries/i)
 
     const insufficient = scoreBeneficiaryReview(
       extractProtectionSignals(makeInput({ policies: [] })),
     )
     expect(insufficient.status).toBe('incomplete')
-    expect(insufficient.evidence).toMatch(/Insufficient data/i)
+    expect(insufficient.explanation).toMatch(/Insufficient data/i)
   })
 })
 
@@ -209,8 +209,8 @@ describe('LTC applicability', () => {
     expect(LTC_PLANNING_APPLICABILITY_AGE).toBe(50)
     expect(outcome.status).toBe('not_applicable')
     expect(outcome.points).toBe(2)
-    expect(outcome.evidence).toMatch(/Not applicable/i)
-    expect(outcome.evidence).toMatch(/Neutral credit/i)
+    expect(outcome.explanation).toMatch(/Not applicable/i)
+    expect(outcome.explanation).toMatch(/Neutral credit/i)
   })
 
   it('treats threshold age as applicable', () => {
@@ -223,7 +223,7 @@ describe('LTC applicability', () => {
     )
     const outcome = scoreLongTermCarePlanning(signals)
     expect(outcome.status).toBe('incomplete')
-    expect(outcome.evidence).toMatch(/Applicable/i)
+    expect(outcome.explanation).toMatch(/Applicable/i)
   })
 
   it('scores above-threshold households with plan evidence', () => {
@@ -246,13 +246,13 @@ describe('LTC applicability', () => {
       }),
     )
     expect(scoreLongTermCarePlanning(above).points).toBe(2)
-    expect(scoreLongTermCarePlanning(above).evidence).toMatch(/self-fund/)
+    expect(scoreLongTermCarePlanning(above).explanation).toMatch(/self-fund/)
   })
 
   it('handles missing ages, existing coverage, and no-plan', () => {
     const missingAges = scoreLongTermCarePlanning(extractProtectionSignals(makeInput()))
     expect(missingAges.status).toBe('incomplete')
-    expect(missingAges.evidence).toMatch(/no relevant adult ages/i)
+    expect(missingAges.explanation).toMatch(/no relevant adult ages/i)
 
     const withCoverage = scoreLongTermCarePlanning(
       extractProtectionSignals(

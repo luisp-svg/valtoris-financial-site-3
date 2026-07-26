@@ -10,6 +10,7 @@ import {
   buildProtectionRecommendations,
   scoreAllProtectionCriteria,
   summarizeProtectionScore,
+  toProtectionEvidence,
 } from './protectionInsurance/scoreCriteria'
 
 /**
@@ -45,6 +46,7 @@ export const protectionInsuranceCalculator: CategoryCalculator = {
         grade: null,
         status: summarized.status,
         summary: summarized.summary,
+        evidence: toProtectionEvidence(outcomes),
       },
       recommendations: buildProtectionRecommendations(outcomes),
     }

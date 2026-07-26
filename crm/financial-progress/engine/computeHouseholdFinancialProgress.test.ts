@@ -88,7 +88,10 @@ describe('computeHouseholdFinancialProgress', () => {
       expect(category.weight).toBe(definition.weight)
       expect(category.weight).toBe(category.maxPoints / 100)
 
-      if (category.categoryId === 'protection_insurance') {
+      if (
+        category.categoryId === 'protection_insurance' ||
+        category.categoryId === 'debt_management'
+      ) {
         expect(category.status).toBe('insufficient_data')
         expect(category.score).toBeNull()
       } else {
@@ -153,7 +156,7 @@ describe('computeHouseholdFinancialProgress', () => {
     ).toThrow(/missing calculator for category/)
   })
 
-  it('surfaces Protection recommendations without publishing an overall score', () => {
+  it('surfaces Protection and Debt recommendations without publishing an overall score', () => {
     const result = computeHouseholdFinancialProgress(
       makeInput({
         policies: [
@@ -175,13 +178,22 @@ describe('computeHouseholdFinancialProgress', () => {
             overall_grade: 'D',
             completed_at: '2026-06-01T00:00:00.000Z',
             answers: {
+              financial: {
+                householdIncome: '100000',
+                totalDebt: '25000',
+              },
               protection: {
                 currentLifeInsurance: '250000',
                 hasDisabilityProtection: 'no',
                 beneficiariesReviewed: 'no',
               },
             },
-            derived_metrics: { protectionNeed: 500000 },
+            derived_metrics: {
+              protectionNeed: 500000,
+              creditCardUtilization: 0.2,
+              apr: 0.24,
+              debtPayoffStrategy: 'avalanche',
+            },
           },
         },
       }),
@@ -190,10 +202,16 @@ describe('computeHouseholdFinancialProgress', () => {
     const protection = result.categories.find(
       (category) => category.categoryId === 'protection_insurance',
     )
+    const debt = result.categories.find(
+      (category) => category.categoryId === 'debt_management',
+    )
     expect(protection?.status).toBe('computed')
     expect(protection?.score).toBeGreaterThanOrEqual(0)
-    expect(result.completedCategoryCount).toBe(1)
-    expect(result.completedAvailablePoints).toBe(15)
+    expect(debt?.status).toBe('computed')
+    expect(debt?.score).toBeGreaterThanOrEqual(0)
+    expect(debt?.evidence).toHaveLength(4)
+    expect(result.completedCategoryCount).toBe(2)
+    expect(result.completedAvailablePoints).toBe(35)
     expect(result.overall.status).toBe('partial')
     expect(result.overall.score).toBeNull()
     expect(result.overall.grade).toBeNull()

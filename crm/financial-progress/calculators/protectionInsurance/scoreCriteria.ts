@@ -1,13 +1,17 @@
-import type { ActionPriority, Recommendation } from '../../types'
+import type {
+  ActionPriority,
+  CriterionEvidence,
+  CriterionStatus,
+  Recommendation,
+} from '../../types'
 import {
   LTC_PLANNING_APPLICABILITY_AGE,
   PROTECTION_CATEGORY_ID,
+  PROTECTION_CRITERION_LABELS,
   PROTECTION_CRITERION_MAX_POINTS,
   type ProtectionCriterionId,
 } from './constants'
 import type { ProtectionSignals } from './extractSignals'
-
-export type CriterionStatus = 'met' | 'unmet' | 'incomplete' | 'not_applicable'
 
 export type CriterionOutcome = {
   id: ProtectionCriterionId
@@ -15,11 +19,20 @@ export type CriterionOutcome = {
   /** Points awarded toward the criterion budget (includes neutral N/A credit). */
   points: number
   status: CriterionStatus
-  /**
-   * Evidence explaining how the outcome was determined
-   * (confirmed review, recorded beneficiaries only, missing data, N/A age, etc.).
-   */
-  evidence: string
+  /** Category-specific explanation preserved on shared CriterionEvidence.explanation. */
+  explanation: string
+}
+
+export function toProtectionEvidence(
+  outcomes: readonly CriterionOutcome[],
+): CriterionEvidence[] {
+  return outcomes.map((outcome) => ({
+    criterion: PROTECTION_CRITERION_LABELS[outcome.id],
+    earnedPoints: outcome.points,
+    maxPoints: outcome.maxPoints,
+    status: outcome.status,
+    explanation: outcome.explanation,
+  }))
 }
 
 /**
@@ -38,7 +51,7 @@ export function scoreLifeInsuranceAdequacy(signals: ProtectionSignals): Criterio
       maxPoints,
       points: 0,
       status: 'incomplete',
-      evidence:
+      explanation:
         'Insufficient data: life insurance adequacy requires current coverage and a recorded protection-need analysis. Completing the Family Protection Analysis provides the authoritative need.',
     }
   }
@@ -60,7 +73,7 @@ export function scoreLifeInsuranceAdequacy(signals: ProtectionSignals): Criterio
     maxPoints,
     points,
     status: points >= maxPoints ? 'met' : coverage > 0 ? 'met' : 'unmet',
-    evidence: `Coverage ${Math.round(coverage)} vs recorded protection need ${Math.round(need)} (${Math.round(ratio * 100)}% of need).`,
+    explanation: `Coverage ${Math.round(coverage)} vs recorded protection need ${Math.round(need)} (${Math.round(ratio * 100)}% of need).`,
   }
 }
 
@@ -76,7 +89,7 @@ export function scoreDisabilityCoverage(signals: ProtectionSignals): CriterionOu
       maxPoints,
       points: maxPoints,
       status: 'met',
-      evidence: signals.hasDisabilityPolicy
+      explanation: signals.hasDisabilityPolicy
         ? 'Active disability policy on file.'
         : 'Disability protection reported on assessment.',
     }
@@ -88,7 +101,7 @@ export function scoreDisabilityCoverage(signals: ProtectionSignals): CriterionOu
       maxPoints,
       points: 0,
       status: 'unmet',
-      evidence: 'Assessment indicates no disability protection.',
+      explanation: 'Assessment indicates no disability protection.',
     }
   }
 
@@ -97,7 +110,7 @@ export function scoreDisabilityCoverage(signals: ProtectionSignals): CriterionOu
     maxPoints,
     points: 0,
     status: 'incomplete',
-    evidence: 'Insufficient data: no disability policy or assessment answer available.',
+    explanation: 'Insufficient data: no disability policy or assessment answer available.',
   }
 }
 
@@ -113,7 +126,7 @@ export function scoreCriticalIllnessCoverage(signals: ProtectionSignals): Criter
       maxPoints,
       points: maxPoints,
       status: 'met',
-      evidence: 'Active critical illness policy on file.',
+      explanation: 'Active critical illness policy on file.',
     }
   }
 
@@ -123,7 +136,7 @@ export function scoreCriticalIllnessCoverage(signals: ProtectionSignals): Criter
       maxPoints,
       points: 0,
       status: 'incomplete',
-      evidence: 'Insufficient data: policy inventory unavailable.',
+      explanation: 'Insufficient data: policy inventory unavailable.',
     }
   }
 
@@ -132,7 +145,7 @@ export function scoreCriticalIllnessCoverage(signals: ProtectionSignals): Criter
     maxPoints,
     points: 0,
     status: 'unmet',
-    evidence: 'No critical illness policy found in active policies.',
+    explanation: 'No critical illness policy found in active policies.',
   }
 }
 
@@ -185,7 +198,7 @@ export function scoreLongTermCarePlanning(signals: ProtectionSignals): Criterion
       maxPoints,
       points: maxPoints,
       status: 'met',
-      evidence: 'Active long-term care policy on file.',
+      explanation: 'Active long-term care policy on file.',
     }
   }
 
@@ -196,7 +209,7 @@ export function scoreLongTermCarePlanning(signals: ProtectionSignals): Criterion
       maxPoints,
       points: maxPoints,
       status: 'met',
-      evidence: `Retirement assessment long-term care plan: ${plan}.`,
+      explanation: `Retirement assessment long-term care plan: ${plan}.`,
     }
   }
 
@@ -206,7 +219,7 @@ export function scoreLongTermCarePlanning(signals: ProtectionSignals): Criterion
       maxPoints,
       points: 1,
       status: 'met',
-      evidence: 'Long-term care plan relies on family support.',
+      explanation: 'Long-term care plan relies on family support.',
     }
   }
 
@@ -216,7 +229,7 @@ export function scoreLongTermCarePlanning(signals: ProtectionSignals): Criterion
       maxPoints,
       points: 0,
       status: 'unmet',
-      evidence: `Long-term care plan reported as "${plan}".`,
+      explanation: `Long-term care plan reported as "${plan}".`,
     }
   }
 
@@ -227,7 +240,7 @@ export function scoreLongTermCarePlanning(signals: ProtectionSignals): Criterion
       maxPoints,
       points: maxPoints,
       status: 'not_applicable',
-      evidence: `${applicability.reason} Neutral credit applied; not evidence of LTC coverage.`,
+      explanation: `${applicability.reason} Neutral credit applied; not evidence of LTC coverage.`,
     }
   }
 
@@ -237,7 +250,7 @@ export function scoreLongTermCarePlanning(signals: ProtectionSignals): Criterion
       maxPoints,
       points: 0,
       status: 'incomplete',
-      evidence: applicability.reason,
+      explanation: applicability.reason,
     }
   }
 
@@ -247,7 +260,7 @@ export function scoreLongTermCarePlanning(signals: ProtectionSignals): Criterion
     maxPoints,
     points: 0,
     status: 'incomplete',
-    evidence: `${applicability.reason} No LTC policy or planning answer on file.`,
+    explanation: `${applicability.reason} No LTC policy or planning answer on file.`,
   }
 }
 
@@ -269,7 +282,7 @@ export function scoreBeneficiaryReview(signals: ProtectionSignals): CriterionOut
       maxPoints,
       points: maxPoints,
       status: 'met',
-      evidence: 'Confirmed review: assessment reports beneficiaries have been reviewed.',
+      explanation: 'Confirmed review: assessment reports beneficiaries have been reviewed.',
     }
   }
 
@@ -279,7 +292,7 @@ export function scoreBeneficiaryReview(signals: ProtectionSignals): CriterionOut
       maxPoints,
       points: 0,
       status: 'unmet',
-      evidence: 'Assessment indicates beneficiaries have not been reviewed.',
+      explanation: 'Assessment indicates beneficiaries have not been reviewed.',
     }
   }
 
@@ -290,7 +303,7 @@ export function scoreBeneficiaryReview(signals: ProtectionSignals): CriterionOut
         maxPoints,
         points: 0,
         status: 'unmet',
-        evidence: `Missing beneficiaries: ${signals.lifePoliciesMissingBeneficiary} of ${signals.lifePolicyCount} life policy(ies) lack beneficiary information.`,
+        explanation: `Missing beneficiaries: ${signals.lifePoliciesMissingBeneficiary} of ${signals.lifePolicyCount} life policy(ies) lack beneficiary information.`,
       }
     }
     return {
@@ -298,7 +311,7 @@ export function scoreBeneficiaryReview(signals: ProtectionSignals): CriterionOut
       maxPoints,
       points: 1,
       status: 'met',
-      evidence:
+      explanation:
         'Recorded beneficiaries only: all life policies have a named beneficiary, but a beneficiary review is not confirmed.',
     }
   }
@@ -308,7 +321,7 @@ export function scoreBeneficiaryReview(signals: ProtectionSignals): CriterionOut
     maxPoints,
     points: 0,
     status: 'incomplete',
-    evidence: 'Insufficient data: no beneficiary-review answer or life-policy beneficiary records.',
+    explanation: 'Insufficient data: no beneficiary-review answer or life-policy beneficiary records.',
   }
 }
 
@@ -374,7 +387,7 @@ function recommendationForCriterion(outcome: CriterionOutcome): Recommendation |
       body:
         outcome.status === 'incomplete'
           ? 'Record a beneficiary review for life and related policies.'
-          : outcome.evidence.includes('Recorded beneficiaries only')
+          : outcome.explanation.includes('Recorded beneficiaries only')
             ? 'Confirm a beneficiary review even though designations are already recorded on life policies.'
             : 'Complete a beneficiary review to confirm designations are current and intentional.',
       priority: 'high',

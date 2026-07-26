@@ -12,6 +12,14 @@ export const PROTECTION_CRITERION_MAX_POINTS = {
 
 export type ProtectionCriterionId = keyof typeof PROTECTION_CRITERION_MAX_POINTS
 
+export const PROTECTION_CRITERION_LABELS: Record<ProtectionCriterionId, string> = {
+  life_insurance_adequacy: 'Life Insurance Adequacy',
+  disability_coverage: 'Disability Coverage',
+  critical_illness_coverage: 'Critical Illness Coverage',
+  long_term_care_planning: 'Long-Term Care Planning',
+  beneficiary_review: 'Beneficiary Review',
+}
+
 export const PROTECTION_CATEGORY_ID = 'protection_insurance' as const
 
 /**

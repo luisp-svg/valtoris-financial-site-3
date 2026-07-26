@@ -66,6 +66,23 @@ export type HouseholdFinancialProgressInput = {
   asOf?: string
 }
 
+/** Shared criterion status for Protection, Debt, and future calculators. */
+export type CriterionStatus =
+  | 'met'
+  | 'partial'
+  | 'unmet'
+  | 'incomplete'
+  | 'not_applicable'
+
+/** Shared per-criterion scoring evidence produced by real category calculators. */
+export type CriterionEvidence = {
+  criterion: string
+  earnedPoints: number
+  maxPoints: number
+  status: CriterionStatus
+  explanation: string
+}
+
 /** Category Progress — one scored dimension within Household Financial Progress. */
 export type CategoryProgress = {
   categoryId: FinancialProgressCategoryId
@@ -81,6 +98,8 @@ export type CategoryProgress = {
   grade: FinancialProgressGrade | null
   status: FinancialProgressScoreStatus
   summary: string
+  /** Optional criterion-level evidence from real calculators; omitted by placeholders. */
+  evidence?: CriterionEvidence[]
 }
 
 /** Overall Progress Score + grade for the household. */

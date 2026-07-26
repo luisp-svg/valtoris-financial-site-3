@@ -55,6 +55,8 @@ export type {
   CategoryCalculation,
   CategoryCalculator,
   CategoryProgress,
+  CriterionEvidence,
+  CriterionStatus,
   FinancialProgressCategoryDefinition,
   FinancialProgressCategoryId,
   FinancialProgressGrade,
