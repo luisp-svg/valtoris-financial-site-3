@@ -71,7 +71,7 @@ describe('shared debt constants', () => {
   it('documents high-interest APR threshold and DTI-position bands', () => {
     expect(HIGH_INTEREST_APR_THRESHOLD).toBe(0.2)
     expect(DEBT_TO_INCOME_POSITION_BANDS.map((band) => band.points)).toEqual([5, 5, 4, 3, 1, 0])
-    expect(FINANCIAL_PROGRESS_ENGINE_VERSION).toBe('0.4.0')
+    expect(FINANCIAL_PROGRESS_ENGINE_VERSION).toBe('0.5.0')
   })
 })
 

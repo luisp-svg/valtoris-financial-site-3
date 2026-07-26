@@ -89,6 +89,7 @@ describe('computeHouseholdFinancialProgress', () => {
       expect(category.weight).toBe(category.maxPoints / 100)
 
       if (
+        category.categoryId === 'cash_flow_budget' ||
         category.categoryId === 'protection_insurance' ||
         category.categoryId === 'debt_management' ||
         category.categoryId === 'emergency_fund'
@@ -157,7 +158,7 @@ describe('computeHouseholdFinancialProgress', () => {
     ).toThrow(/missing calculator for category/)
   })
 
-  it('surfaces Protection, Debt, and Emergency Fund when data exists without publishing overall', () => {
+  it('surfaces Protection, Debt, Emergency Fund, and Cash Flow when data exists without publishing overall', () => {
     const result = computeHouseholdFinancialProgress(
       makeInput({
         policies: [
@@ -180,9 +181,10 @@ describe('computeHouseholdFinancialProgress', () => {
             completed_at: '2026-06-01T00:00:00.000Z',
             answers: {
               financial: {
-                householdIncome: '100000',
+                householdIncome: '120000',
                 totalDebt: '25000',
                 emergencyFundMonths: '6',
+                monthlyCashFlow: 'save-most-months',
               },
               protection: {
                 currentLifeInsurance: '250000',
@@ -198,12 +200,22 @@ describe('computeHouseholdFinancialProgress', () => {
               dedicatedEmergencyFund: 'yes',
               emergencyFundLiquidity: 'savings',
               automaticEmergencySavings: 'yes',
+              monthlyIncome: 10000,
+              monthlyExpenses: 7000,
+              hasDocumentedBudget: 'yes',
+              budgetingMethod: 'zero-based',
+              budgetUse: 'active',
+              savingsRate: 0.2,
+              expenseTrackingFrequency: 'monthly',
             },
           },
         },
       }),
     )
 
+    const cashFlow = result.categories.find(
+      (category) => category.categoryId === 'cash_flow_budget',
+    )
     const protection = result.categories.find(
       (category) => category.categoryId === 'protection_insurance',
     )
@@ -213,6 +225,9 @@ describe('computeHouseholdFinancialProgress', () => {
     const emergency = result.categories.find(
       (category) => category.categoryId === 'emergency_fund',
     )
+    expect(cashFlow?.status).toBe('computed')
+    expect(cashFlow?.score).toBe(15)
+    expect(cashFlow?.evidence).toHaveLength(4)
     expect(protection?.status).toBe('computed')
     expect(protection?.score).toBeGreaterThanOrEqual(0)
     expect(debt?.status).toBe('computed')
@@ -221,8 +236,10 @@ describe('computeHouseholdFinancialProgress', () => {
     expect(emergency?.status).toBe('computed')
     expect(emergency?.score).toBe(10)
     expect(emergency?.evidence).toHaveLength(4)
-    expect(result.completedCategoryCount).toBe(3)
-    expect(result.completedAvailablePoints).toBe(45)
+    expect(result.completedCategoryCount).toBe(4)
+    expect(result.completedAvailablePoints).toBe(60)
+    expect(result.totalCategoryCount).toBe(8)
+    expect(result.totalAvailablePoints).toBe(100)
     expect(result.overall.status).toBe('partial')
     expect(result.overall.score).toBeNull()
     expect(result.overall.grade).toBeNull()
@@ -230,7 +247,6 @@ describe('computeHouseholdFinancialProgress', () => {
 
     const placeholders = result.categories.filter((category) => category.status === 'placeholder')
     expect(placeholders.map((category) => category.categoryId)).toEqual([
-      'cash_flow_budget',
       'retirement_readiness',
       'estate_legacy',
       'credit_health',
