@@ -1,6 +1,7 @@
 import type { RefObject } from 'react'
-import type { CrmHouseholdWorkspace, HouseholdMemberSummary } from '../types'
+import type { HouseholdMemberSummary } from '../types'
 import type { OpportunityDetail } from '../../opportunities/types'
+import type { ClientWorkspaceModel } from './financialProgress/attachFinancialProgress'
 
 export type ClientWorkspaceTabId =
   | 'overview'
@@ -41,10 +42,12 @@ export type QuickActionDefinition = {
 
 /** Shared props for tab components that consume the once-loaded workspace. */
 export type ClientWorkspaceTabProps = {
-  workspace: CrmHouseholdWorkspace
+  workspace: ClientWorkspaceModel
   householdId: string
   onNavigateTab: (tab: ClientWorkspaceTabId) => void
 }
+
+export type { ClientWorkspaceModel }
 
 export type ClientWorkspaceMembersHandlers = {
   onOpenCreateMember: () => void

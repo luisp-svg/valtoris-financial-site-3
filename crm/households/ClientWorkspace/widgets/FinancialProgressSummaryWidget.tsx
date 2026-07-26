@@ -1,10 +1,15 @@
 import EmptyState from '../../../components/ui/EmptyState'
 import Widget from '../../../components/ui/Widget'
-import type { CrmHouseholdWorkspace } from '../../types'
+import type { ClientWorkspaceModel } from '../financialProgress/attachFinancialProgress'
+import {
+  formatLastCalculated,
+  formatProgressScoreValue,
+  isProgressPlaceholder,
+} from '../financialProgress/formatProgressDisplay'
 import type { ClientWorkspaceTabId } from '../types'
 
 type Props = {
-  workspace: CrmHouseholdWorkspace
+  workspace: ClientWorkspaceModel
   onNavigateTab: (tab: ClientWorkspaceTabId) => void
 }
 
@@ -13,6 +18,7 @@ export default function FinancialProgressSummaryWidget({
   onNavigateTab,
 }: Props) {
   const { financialProgress } = workspace
+  const placeholder = isProgressPlaceholder(financialProgress)
 
   return (
     <Widget
@@ -28,16 +34,32 @@ export default function FinancialProgressSummaryWidget({
         </button>
       }
     >
-      {financialProgress.score == null ? (
+      {placeholder ? (
         <EmptyState
-          title="Progress not scored yet"
-          description="Financial Progress scoring will appear here when the engine is connected."
+          title="Not Yet Calculated"
+          description="Complete household assessment to generate score."
         />
       ) : (
-        <>
-          <p className="crm-stat-card-value">{financialProgress.score}</p>
-          <p className="crm-stat-card-caption">{financialProgress.label}</p>
-        </>
+        <dl className="crm-client-workspace-info-list">
+          <div>
+            <dt>Progress Score</dt>
+            <dd className="crm-financial-progress-score-emphasis">
+              {formatProgressScoreValue(financialProgress.overall.score)}
+            </dd>
+          </div>
+          <div>
+            <dt>Grade</dt>
+            <dd>{financialProgress.overall.grade ?? '—'}</dd>
+          </div>
+          <div>
+            <dt>Last Calculated</dt>
+            <dd>{formatLastCalculated(financialProgress)}</dd>
+          </div>
+          <div>
+            <dt>Methodology</dt>
+            <dd>{financialProgress.methodologyVersion}</dd>
+          </div>
+        </dl>
       )}
     </Widget>
   )

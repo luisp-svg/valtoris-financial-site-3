@@ -5,30 +5,40 @@ import {
   formatSupabaseError,
 } from '../../householdsApi'
 import type { CrmHouseholdWorkspace } from '../../types'
+import {
+  attachFinancialProgress,
+  type ClientWorkspaceModel,
+} from '../financialProgress/attachFinancialProgress'
 
 export type UseHouseholdWorkspaceResult = {
-  workspace: CrmHouseholdWorkspace | null
+  workspace: ClientWorkspaceModel | null
   loading: boolean
   error: string | null
   notFound: boolean
-  reload: (options?: { clearError?: boolean }) => Promise<CrmHouseholdWorkspace | null>
+  reload: (options?: { clearError?: boolean }) => Promise<ClientWorkspaceModel | null>
   setError: (message: string | null) => void
-  setWorkspace: (workspace: CrmHouseholdWorkspace | null) => void
+  setWorkspace: (workspace: ClientWorkspaceModel | null) => void
+}
+
+function toWorkspaceModel(data: CrmHouseholdWorkspace): ClientWorkspaceModel {
+  return attachFinancialProgress(data)
 }
 
 /**
- * Loads the household workspace once and exposes a shared reload helper.
- * Tabs and widgets must consume this data — do not re-fetch per tab.
+ * Loads the household workspace once, computes Household Financial Progress once,
+ * and exposes a shared reload helper. Tabs/widgets must not recompute progress.
  */
 export function useHouseholdWorkspace(householdId: string | undefined): UseHouseholdWorkspaceResult {
-  const [workspace, setWorkspace] = useState<CrmHouseholdWorkspace | null>(null)
+  const [workspace, setWorkspace] = useState<ClientWorkspaceModel | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [notFound, setNotFound] = useState(false)
 
   const loadWorkspace = useCallback(async (id: string) => {
     const supabase = createSupabaseBrowserClient()
-    return fetchHouseholdWorkspace(supabase, id)
+    const data = await fetchHouseholdWorkspace(supabase, id)
+    if (!data) return null
+    return toWorkspaceModel(data)
   }, [])
 
   const reload = useCallback(

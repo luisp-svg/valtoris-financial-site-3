@@ -220,13 +220,6 @@ export type WorkspaceLoadResult<T> =
       error: string
     }
 
-/** Placeholder until Financial Progress Engine ships. */
-export type FinancialProgressPlaceholder = {
-  score: number | null
-  label: string
-  status: 'placeholder'
-}
-
 export type HouseholdPolicySummary = {
   id: string
   carrier: string
@@ -243,6 +236,11 @@ export type HouseholdDocumentSummary = {
   created_at: string
 }
 
+/**
+ * Household workspace payload from `fetchHouseholdWorkspace`.
+ * Household Financial Progress is computed once in the Client Workspace hook
+ * (not stored here — avoids coupling the fetch layer to the engine).
+ */
 export type CrmHouseholdWorkspace = {
   household: CrmHouseholdDetail
   openTasks: HouseholdOpenTaskSummary[]
@@ -273,8 +271,6 @@ export type CrmHouseholdWorkspace = {
   openCasesCount: number
   activePolicies: HouseholdPolicySummary[]
   recentDocuments: HouseholdDocumentSummary[]
-  /** Placeholder only — not a scored engine result. */
-  financialProgress: FinancialProgressPlaceholder
 }
 
 export type HouseholdAssignmentFilter = 'all' | 'assigned' | 'unassigned'

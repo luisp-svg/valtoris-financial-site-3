@@ -4,7 +4,8 @@ import {
   getStageLabel,
   getStatusLabel,
 } from '../../householdsApi'
-import type { CrmHouseholdWorkspace } from '../../types'
+import type { ClientWorkspaceModel } from '../financialProgress/attachFinancialProgress'
+import FinancialProgressKpiCard from '../financialProgress/FinancialProgressKpiCard'
 import {
   formatWorkspaceDate,
   getNextReviewLabel,
@@ -12,15 +13,13 @@ import {
 } from '../format'
 
 type WorkspaceHeaderProps = {
-  workspace: CrmHouseholdWorkspace
+  workspace: ClientWorkspaceModel
 }
 
 export default function WorkspaceHeader({ workspace }: WorkspaceHeaderProps) {
   const { household, financialProgress, openTasks, activePolicies, annualReview } = workspace
   const reviewDue = getReviewDueLabel(annualReview)
   const nextReview = getNextReviewLabel(annualReview)
-  const financialValue =
-    financialProgress.score != null ? String(financialProgress.score) : '—'
 
   return (
     <header className="crm-client-workspace-header">
@@ -51,12 +50,7 @@ export default function WorkspaceHeader({ workspace }: WorkspaceHeaderProps) {
       </div>
 
       <div className="crm-client-workspace-kpi-strip" aria-label="Workspace KPIs">
-        <StatCard
-          label="Financial Progress"
-          value={financialValue}
-          caption={financialProgress.label}
-          empty={financialProgress.score == null}
-        />
+        <FinancialProgressKpiCard progress={financialProgress} />
         <StatCard
           label="Open Cases"
           value={workspace.openCasesCount}

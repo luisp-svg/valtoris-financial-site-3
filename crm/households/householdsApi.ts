@@ -14,7 +14,6 @@ import type {
   HouseholdActivityRecord,
   HouseholdActivitySummary,
   HouseholdAdvisorSummary,
-  FinancialProgressPlaceholder,
   HouseholdAnnualReviewSummary,
   HouseholdAssessmentSummary,
   HouseholdDocumentSummary,
@@ -88,12 +87,6 @@ const HOUSEHOLD_DETAIL_SELECT = `
     ${MEMBER_EMBED_SELECT}
   )
 `
-
-const FINANCIAL_PROGRESS_PLACEHOLDER: FinancialProgressPlaceholder = {
-  score: null,
-  label: 'Not scored yet',
-  status: 'placeholder',
-}
 
 /** Policies treated as active for workspace KPI (excludes terminal statuses). */
 const INACTIVE_POLICY_STATUSES = new Set(['cancelled', 'canceled', 'lapsed', 'expired', 'replaced'])
@@ -1040,6 +1033,5 @@ export async function fetchHouseholdWorkspace(
     openCasesCount: 0,
     activePolicies,
     recentDocuments,
-    financialProgress: FINANCIAL_PROGRESS_PLACEHOLDER,
   }
 }
