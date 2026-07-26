@@ -93,7 +93,8 @@ describe('computeHouseholdFinancialProgress', () => {
         category.categoryId === 'protection_insurance' ||
         category.categoryId === 'debt_management' ||
         category.categoryId === 'emergency_fund' ||
-        category.categoryId === 'retirement_readiness'
+        category.categoryId === 'retirement_readiness' ||
+        category.categoryId === 'estate_legacy'
       ) {
         expect(category.status).toBe('insufficient_data')
         expect(category.score).toBeNull()
@@ -159,7 +160,7 @@ describe('computeHouseholdFinancialProgress', () => {
     ).toThrow(/missing calculator for category/)
   })
 
-  it('surfaces five real categories when data exists without publishing overall', () => {
+  it('surfaces six real categories when data exists without publishing overall', () => {
     const result = computeHouseholdFinancialProgress(
       makeInput({
         policies: [
@@ -190,7 +191,10 @@ describe('computeHouseholdFinancialProgress', () => {
               protection: {
                 currentLifeInsurance: '250000',
                 hasDisabilityProtection: 'no',
-                beneficiariesReviewed: 'no',
+                beneficiariesReviewed: 'yes',
+                hasWill: 'yes',
+                hasTrust: 'yes',
+                guardianDocumented: 'yes',
               },
             },
             derived_metrics: {
@@ -208,6 +212,10 @@ describe('computeHouseholdFinancialProgress', () => {
               budgetUse: 'active',
               savingsRate: 0.2,
               expenseTrackingFrequency: 'monthly',
+              healthcareDirective: 'yes',
+              estateInformationOrganized: 'yes',
+              finalWishesDocumented: 'yes',
+              hasMinorChildren: 'yes',
             },
           },
           retirement: {
@@ -221,6 +229,10 @@ describe('computeHouseholdFinancialProgress', () => {
               lifestyle: { estimatedMonthlyRetirementSpending: '8000' },
               vision: { planClarity: 'very-clear' },
               savings: { employerMatch: 'full-match' },
+              estate: {
+                hasPowerOfAttorney: 'yes',
+                legacyIntent: 'strong',
+              },
             },
             derived_metrics: {
               retirementContributionRate: 0.15,
@@ -246,6 +258,9 @@ describe('computeHouseholdFinancialProgress', () => {
     const retirement = result.categories.find(
       (category) => category.categoryId === 'retirement_readiness',
     )
+    const estate = result.categories.find(
+      (category) => category.categoryId === 'estate_legacy',
+    )
     expect(cashFlow?.status).toBe('computed')
     expect(cashFlow?.score).toBe(15)
     expect(cashFlow?.evidence).toHaveLength(4)
@@ -260,8 +275,11 @@ describe('computeHouseholdFinancialProgress', () => {
     expect(retirement?.status).toBe('computed')
     expect(retirement?.score).toBe(15)
     expect(retirement?.evidence).toHaveLength(4)
-    expect(result.completedCategoryCount).toBe(5)
-    expect(result.completedAvailablePoints).toBe(75)
+    expect(estate?.status).toBe('computed')
+    expect(estate?.score).toBe(10)
+    expect(estate?.evidence).toHaveLength(4)
+    expect(result.completedCategoryCount).toBe(6)
+    expect(result.completedAvailablePoints).toBe(85)
     expect(result.totalCategoryCount).toBe(8)
     expect(result.totalAvailablePoints).toBe(100)
     expect(result.overall.status).toBe('partial')
@@ -271,7 +289,6 @@ describe('computeHouseholdFinancialProgress', () => {
 
     const placeholders = result.categories.filter((category) => category.status === 'placeholder')
     expect(placeholders.map((category) => category.categoryId)).toEqual([
-      'estate_legacy',
       'credit_health',
       'financial_independence',
     ])
