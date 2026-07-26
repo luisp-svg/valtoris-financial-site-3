@@ -101,7 +101,7 @@ describe('cash flow budget constants', () => {
     expect(CASH_FLOW_NET_FALLBACK_POINTS.positive).toBe(3)
     expect(CASH_FLOW_SOURCE_CONFLICT_TOLERANCE).toBe(0.1)
     expect(RETIREMENT_ONLY_SAVINGS_PARTIAL_POINTS).toBe(1)
-    expect(FINANCIAL_PROGRESS_ENGINE_VERSION).toBe('0.5.0')
+    expect(FINANCIAL_PROGRESS_ENGINE_VERSION).toBe('0.6.0')
     expect(valuesMateriallyConflict(100, 109)).toBe(false)
     expect(valuesMateriallyConflict(100, 112)).toBe(true)
   })

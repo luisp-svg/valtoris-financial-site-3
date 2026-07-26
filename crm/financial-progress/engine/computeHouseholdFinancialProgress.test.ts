@@ -92,7 +92,8 @@ describe('computeHouseholdFinancialProgress', () => {
         category.categoryId === 'cash_flow_budget' ||
         category.categoryId === 'protection_insurance' ||
         category.categoryId === 'debt_management' ||
-        category.categoryId === 'emergency_fund'
+        category.categoryId === 'emergency_fund' ||
+        category.categoryId === 'retirement_readiness'
       ) {
         expect(category.status).toBe('insufficient_data')
         expect(category.score).toBeNull()
@@ -158,7 +159,7 @@ describe('computeHouseholdFinancialProgress', () => {
     ).toThrow(/missing calculator for category/)
   })
 
-  it('surfaces Protection, Debt, Emergency Fund, and Cash Flow when data exists without publishing overall', () => {
+  it('surfaces five real categories when data exists without publishing overall', () => {
     const result = computeHouseholdFinancialProgress(
       makeInput({
         policies: [
@@ -209,6 +210,23 @@ describe('computeHouseholdFinancialProgress', () => {
               expenseTrackingFrequency: 'monthly',
             },
           },
+          retirement: {
+            id: 'a-ret',
+            assessment_type: 'retirement',
+            overall_score: 70,
+            overall_grade: 'C',
+            completed_at: '2026-06-01T00:00:00.000Z',
+            answers: {
+              household: { currentAge: '50', targetRetirementAge: '65' },
+              lifestyle: { estimatedMonthlyRetirementSpending: '8000' },
+              vision: { planClarity: 'very-clear' },
+              savings: { employerMatch: 'full-match' },
+            },
+            derived_metrics: {
+              retirementContributionRate: 0.15,
+              retirementFundingRatio: 1,
+            },
+          },
         },
       }),
     )
@@ -225,6 +243,9 @@ describe('computeHouseholdFinancialProgress', () => {
     const emergency = result.categories.find(
       (category) => category.categoryId === 'emergency_fund',
     )
+    const retirement = result.categories.find(
+      (category) => category.categoryId === 'retirement_readiness',
+    )
     expect(cashFlow?.status).toBe('computed')
     expect(cashFlow?.score).toBe(15)
     expect(cashFlow?.evidence).toHaveLength(4)
@@ -236,8 +257,11 @@ describe('computeHouseholdFinancialProgress', () => {
     expect(emergency?.status).toBe('computed')
     expect(emergency?.score).toBe(10)
     expect(emergency?.evidence).toHaveLength(4)
-    expect(result.completedCategoryCount).toBe(4)
-    expect(result.completedAvailablePoints).toBe(60)
+    expect(retirement?.status).toBe('computed')
+    expect(retirement?.score).toBe(15)
+    expect(retirement?.evidence).toHaveLength(4)
+    expect(result.completedCategoryCount).toBe(5)
+    expect(result.completedAvailablePoints).toBe(75)
     expect(result.totalCategoryCount).toBe(8)
     expect(result.totalAvailablePoints).toBe(100)
     expect(result.overall.status).toBe('partial')
@@ -247,7 +271,6 @@ describe('computeHouseholdFinancialProgress', () => {
 
     const placeholders = result.categories.filter((category) => category.status === 'placeholder')
     expect(placeholders.map((category) => category.categoryId)).toEqual([
-      'retirement_readiness',
       'estate_legacy',
       'credit_health',
       'financial_independence',
