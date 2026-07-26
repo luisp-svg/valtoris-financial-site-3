@@ -1,16 +1,22 @@
 import { PLACEHOLDER_OVERALL_SUMMARY } from '../constants'
 import type { CategoryProgress, ProgressScore } from '../types'
 import { clampProgressScore, gradeFromProgressScore } from './gradeFromProgressScore'
+import {
+  buildOverallCompletionMetadata,
+  isOverallScorePublishable,
+} from './overallCompletion'
 
 /**
  * Aggregates Category Progress into an overall Progress Score + grade.
- * Placeholder sprint: returns null score/grade while categories are unscored placeholders.
+ *
+ * Publishes score/grade only when the minimum-completion rule is met
+ * (all eight categories status `computed`). Partial calculation must not
+ * normalize a subset (e.g. Protection's 15 points) into a 0–100 overall.
  */
 export function buildOverallGrade(categories: readonly CategoryProgress[]): ProgressScore {
-  const allPlaceholder =
-    categories.length > 0 && categories.every((category) => category.status === 'placeholder')
+  const completion = buildOverallCompletionMetadata(categories)
 
-  if (allPlaceholder || categories.length === 0) {
+  if (completion.overallStatus === 'placeholder') {
     return {
       grade: null,
       score: null,
@@ -19,29 +25,27 @@ export function buildOverallGrade(categories: readonly CategoryProgress[]): Prog
     }
   }
 
-  const scored = categories.filter(
-    (category) => category.score != null && Number.isFinite(category.score),
-  )
-
-  if (scored.length === 0) {
+  if (!isOverallScorePublishable(categories)) {
+    const status = completion.overallStatus
     return {
       grade: null,
       score: null,
-      status: 'insufficient_data',
-      summary: 'No Category Progress available to compute a Progress Score.',
+      status,
+      summary:
+        status === 'partial'
+          ? `Overall Progress not yet available. ${completion.completedCategoryCount} of ${completion.totalCategoryCount} categories calculated.`
+          : 'No Category Progress available to compute a Progress Score.',
     }
   }
 
-  // Points earned / total available among scored categories, scaled to 0–100.
-  const earned = scored.reduce((sum, category) => sum + (category.score as number), 0)
-  const available = scored.reduce((sum, category) => sum + category.maxPoints, 0)
-  const raw = available > 0 ? (earned / available) * 100 : 0
-  const score = clampProgressScore(raw)
+  // All categories completed — sum earned points on the 100-point methodology scale.
+  const earned = categories.reduce((sum, category) => sum + (category.score ?? 0), 0)
+  const score = clampProgressScore(earned)
 
   return {
     score,
     grade: gradeFromProgressScore(score),
     status: 'computed',
-    summary: 'Progress Score derived from available Category Progress.',
+    summary: 'Progress Score derived from all eight Category Progress results.',
   }
 }

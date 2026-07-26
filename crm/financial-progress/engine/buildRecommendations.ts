@@ -1,11 +1,11 @@
-import type { CategoryProgress, Recommendation } from '../types'
+import type { CategoryCalculation, Recommendation } from '../types'
 
 /**
- * Derives recommendations from Category Progress.
- * Placeholder sprint returns an empty list — no fabricated actions.
+ * Collects recommendations produced by category calculators.
+ * Order follows calculator composition order; empty when all placeholders.
  */
 export function buildRecommendations(
-  _categories: readonly CategoryProgress[],
+  calculations: readonly CategoryCalculation[],
 ): Recommendation[] {
-  return []
+  return calculations.flatMap((calculation) => calculation.recommendations)
 }

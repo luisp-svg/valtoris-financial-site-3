@@ -23,7 +23,7 @@ export function toFinancialProgressInput(
       family: workspace.familyAssessment,
       business: workspace.businessAssessment,
       protection: workspace.protectionAssessment,
-      retirement: null,
+      retirement: workspace.retirementAssessment,
     },
     policies: workspace.activePolicies,
     openTasks: workspace.openTasks,

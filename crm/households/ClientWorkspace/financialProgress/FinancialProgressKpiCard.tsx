@@ -1,7 +1,9 @@
 import type { HouseholdFinancialProgressResult } from '../../../financial-progress'
 import {
+  formatCategoriesCalculatedCaption,
   formatLastCalculated,
   formatProgressScoreValue,
+  isOverallProgressAvailable,
   isProgressPlaceholder,
 } from './formatProgressDisplay'
 
@@ -12,10 +14,11 @@ type FinancialProgressKpiCardProps = {
 /** Header KPI for Household Financial Progress (engine-driven). */
 export default function FinancialProgressKpiCard({ progress }: FinancialProgressKpiCardProps) {
   const placeholder = isProgressPlaceholder(progress)
+  const overallAvailable = isOverallProgressAvailable(progress)
 
   return (
     <article
-      className={`crm-stat-card crm-financial-progress-kpi${placeholder ? ' is-placeholder' : ''}`}
+      className={`crm-stat-card crm-financial-progress-kpi${placeholder || !overallAvailable ? ' is-placeholder' : ''}`}
       aria-label="Household Financial Progress"
     >
       <h3 className="crm-stat-card-label">Household Financial Progress</h3>
@@ -27,7 +30,7 @@ export default function FinancialProgressKpiCard({ progress }: FinancialProgress
             Complete household assessment to generate score.
           </p>
         </>
-      ) : (
+      ) : overallAvailable ? (
         <>
           <p className="crm-stat-card-value">
             {formatProgressScoreValue(progress.overall.score)}
@@ -41,6 +44,10 @@ export default function FinancialProgressKpiCard({ progress }: FinancialProgress
               <dd>{progress.overall.grade ?? '—'}</dd>
             </div>
             <div>
+              <dt>Categories</dt>
+              <dd>{formatCategoriesCalculatedCaption(progress)}</dd>
+            </div>
+            <div>
               <dt>Last Calculated</dt>
               <dd>{formatLastCalculated(progress)}</dd>
             </div>
@@ -49,6 +56,13 @@ export default function FinancialProgressKpiCard({ progress }: FinancialProgress
               <dd>{progress.methodologyVersion}</dd>
             </div>
           </dl>
+        </>
+      ) : (
+        <>
+          <p className="crm-stat-card-value is-empty">Overall Progress Not Yet Available</p>
+          <p className="crm-stat-card-caption">
+            {formatCategoriesCalculatedCaption(progress)}
+          </p>
         </>
       )}
     </article>

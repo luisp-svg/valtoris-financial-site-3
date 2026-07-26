@@ -16,6 +16,8 @@ export function formatCategoryStatus(status: FinancialProgressScoreStatus): stri
       return 'Not Yet Calculated'
     case 'insufficient_data':
       return 'Insufficient data'
+    case 'partial':
+      return 'Partial'
     case 'computed':
       return 'Calculated'
     default:
@@ -40,4 +42,17 @@ export function isProgressPlaceholder(
   progress: HouseholdFinancialProgressResult,
 ): boolean {
   return progress.isPlaceholder || progress.overall.status === 'placeholder'
+}
+
+/** Overall score/grade are withheld until all categories are computed. */
+export function isOverallProgressAvailable(
+  progress: HouseholdFinancialProgressResult,
+): boolean {
+  return progress.overall.status === 'computed' && progress.overall.score != null
+}
+
+export function formatCategoriesCalculatedCaption(
+  progress: HouseholdFinancialProgressResult,
+): string {
+  return `${progress.completedCategoryCount} of ${progress.totalCategoryCount} categories calculated`
 }

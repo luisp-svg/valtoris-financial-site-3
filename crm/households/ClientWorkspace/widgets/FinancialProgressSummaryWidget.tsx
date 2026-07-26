@@ -2,8 +2,10 @@ import EmptyState from '../../../components/ui/EmptyState'
 import Widget from '../../../components/ui/Widget'
 import type { ClientWorkspaceModel } from '../financialProgress/attachFinancialProgress'
 import {
+  formatCategoriesCalculatedCaption,
   formatLastCalculated,
   formatProgressScoreValue,
+  isOverallProgressAvailable,
   isProgressPlaceholder,
 } from '../financialProgress/formatProgressDisplay'
 import type { ClientWorkspaceTabId } from '../types'
@@ -19,6 +21,7 @@ export default function FinancialProgressSummaryWidget({
 }: Props) {
   const { financialProgress } = workspace
   const placeholder = isProgressPlaceholder(financialProgress)
+  const overallAvailable = isOverallProgressAvailable(financialProgress)
 
   return (
     <Widget
@@ -39,7 +42,7 @@ export default function FinancialProgressSummaryWidget({
           title="Not Yet Calculated"
           description="Complete household assessment to generate score."
         />
-      ) : (
+      ) : overallAvailable ? (
         <dl className="crm-client-workspace-info-list">
           <div>
             <dt>Progress Score</dt>
@@ -52,6 +55,10 @@ export default function FinancialProgressSummaryWidget({
             <dd>{financialProgress.overall.grade ?? '—'}</dd>
           </div>
           <div>
+            <dt>Categories Calculated</dt>
+            <dd>{formatCategoriesCalculatedCaption(financialProgress)}</dd>
+          </div>
+          <div>
             <dt>Last Calculated</dt>
             <dd>{formatLastCalculated(financialProgress)}</dd>
           </div>
@@ -60,6 +67,11 @@ export default function FinancialProgressSummaryWidget({
             <dd>{financialProgress.methodologyVersion}</dd>
           </div>
         </dl>
+      ) : (
+        <EmptyState
+          title="Overall Progress Not Yet Available"
+          description={formatCategoriesCalculatedCaption(financialProgress)}
+        />
       )}
     </Widget>
   )

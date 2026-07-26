@@ -12,7 +12,8 @@ import type {
 } from '../types'
 import { buildOverallGrade } from './buildOverallGrade'
 import { buildRecommendations } from './buildRecommendations'
-import { composeCategoryScores } from './composeCategoryScores'
+import { composeCategoryCalculations } from './composeCategoryScores'
+import { buildOverallCompletionMetadata } from './overallCompletion'
 
 export type ComputeHouseholdFinancialProgressOptions = {
   /** Override default calculators (tests / selective category sets). */
@@ -52,9 +53,11 @@ export function computeHouseholdFinancialProgress(
   const calculators = options.calculators ?? DEFAULT_CATEGORY_CALCULATORS
   assertCalculatorCoverage(calculators)
 
-  const categories = composeCategoryScores(input, calculators)
+  const calculations = composeCategoryCalculations(input, calculators)
+  const categories = calculations.map((calculation) => calculation.progress)
   const overall = buildOverallGrade(categories)
-  const recommendations = buildRecommendations(categories)
+  const recommendations = buildRecommendations(calculations)
+  const completion = buildOverallCompletionMetadata(categories)
   const computedAt = input.asOf ?? new Date().toISOString()
 
   const snapshot: ScoreSnapshot = {
@@ -62,6 +65,10 @@ export function computeHouseholdFinancialProgress(
     computedAt,
     overall,
     categories,
+    totalCategoryCount: completion.totalCategoryCount,
+    completedCategoryCount: completion.completedCategoryCount,
+    totalAvailablePoints: completion.totalAvailablePoints,
+    completedAvailablePoints: completion.completedAvailablePoints,
     engineVersion: FINANCIAL_PROGRESS_ENGINE_VERSION,
     methodologyVersion: FINANCIAL_PROGRESS_METHODOLOGY_VERSION,
   }
@@ -77,6 +84,10 @@ export function computeHouseholdFinancialProgress(
     snapshot,
     recommendations,
     isPlaceholder,
+    totalCategoryCount: completion.totalCategoryCount,
+    completedCategoryCount: completion.completedCategoryCount,
+    totalAvailablePoints: completion.totalAvailablePoints,
+    completedAvailablePoints: completion.completedAvailablePoints,
     engineVersion: FINANCIAL_PROGRESS_ENGINE_VERSION,
     methodologyVersion: FINANCIAL_PROGRESS_METHODOLOGY_VERSION,
   }

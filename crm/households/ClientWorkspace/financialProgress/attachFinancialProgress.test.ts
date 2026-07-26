@@ -29,6 +29,7 @@ function makeWorkspace(): CrmHouseholdWorkspace {
     familyAssessment: null,
     businessAssessment: null,
     protectionAssessment: null,
+    retirementAssessment: null,
     annualReview: null,
     recentActivities: [],
     notes: { ok: true, value: [] },
@@ -51,11 +52,19 @@ describe('attachFinancialProgress', () => {
     expect(model.financialProgress.methodologyVersion).toBe(
       FINANCIAL_PROGRESS_METHODOLOGY_VERSION,
     )
-    expect(model.financialProgress.isPlaceholder).toBe(true)
+    expect(model.financialProgress.isPlaceholder).toBe(false)
     expect(model.financialProgress.categories.map((c) => c.categoryId)).toEqual([
       ...FINANCIAL_PROGRESS_CATEGORY_IDS,
     ])
-    expect(model.financialProgress.recommendations).toEqual([])
+    const protection = model.financialProgress.categories.find(
+      (category) => category.categoryId === 'protection_insurance',
+    )
+    expect(protection?.status).not.toBe('placeholder')
+    expect(model.financialProgress.totalCategoryCount).toBe(8)
+    expect(model.financialProgress.overall.score).toBeNull()
+    expect(model.financialProgress.overall.grade).toBeNull()
+    expect(['partial', 'insufficient_data']).toContain(model.financialProgress.overall.status)
+    expect(model.financialProgress.recommendations.length).toBeGreaterThan(0)
   })
 
   it('maps workspace fields into engine input without inventing household models', () => {
@@ -64,5 +73,6 @@ describe('attachFinancialProgress', () => {
     expect(input.household).toBe(workspace.household)
     expect(input.policies).toBe(workspace.activePolicies)
     expect(input.openTasks).toBe(workspace.openTasks)
+    expect(input.assessments?.retirement).toBe(workspace.retirementAssessment)
   })
 })

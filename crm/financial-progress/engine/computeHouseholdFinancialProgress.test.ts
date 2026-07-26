@@ -13,8 +13,8 @@ import {
   getCategoryDefinition,
 } from '../constants'
 import type {
+  CategoryCalculation,
   CategoryCalculator,
-  CategoryProgress,
   HouseholdFinancialProgressInput,
 } from '../types'
 import { buildOverallGrade } from './buildOverallGrade'
@@ -55,28 +55,27 @@ function makeInput(
 }
 
 describe('computeHouseholdFinancialProgress', () => {
-  it('returns a structured placeholder Household Financial Progress result', () => {
-    const result = computeHouseholdFinancialProgress(makeInput())
+  it('returns structured progress with Protection scored and overall withheld', () => {
+    const result = computeHouseholdFinancialProgress(makeInput({ policies: undefined }))
 
     expect(result.householdId).toBe('hh-progress-1')
     expect(result.engineVersion).toBe(FINANCIAL_PROGRESS_ENGINE_VERSION)
     expect(result.methodologyVersion).toBe(FINANCIAL_PROGRESS_METHODOLOGY_VERSION)
-    expect(result.methodologyVersion).toBe('household-progress-v1')
-    expect(result.isPlaceholder).toBe(true)
-    expect(result.overall).toEqual({
-      grade: null,
-      score: null,
-      status: 'placeholder',
-      summary: expect.stringContaining('not implemented yet'),
-    })
-    expect(result.recommendations).toEqual([])
-    expect(result.snapshot.methodologyVersion).toBe(FINANCIAL_PROGRESS_METHODOLOGY_VERSION)
-    expect(result.snapshot.engineVersion).toBe(FINANCIAL_PROGRESS_ENGINE_VERSION)
+    expect(result.isPlaceholder).toBe(false)
+    expect(result.totalCategoryCount).toBe(8)
+    expect(result.completedCategoryCount).toBe(0)
+    expect(result.totalAvailablePoints).toBe(100)
+    expect(result.completedAvailablePoints).toBe(0)
+    expect(result.overall.status).toBe('insufficient_data')
+    expect(result.overall.score).toBeNull()
+    expect(result.overall.grade).toBeNull()
+    expect(result.recommendations.length).toBeGreaterThan(0)
+    expect(result.snapshot.completedCategoryCount).toBe(0)
     expect(result.snapshot.computedAt).toBe('2026-07-25T15:00:00.000Z')
   })
 
   it('composes Category Progress for all eight approved categories with maxPoints', () => {
-    const result = computeHouseholdFinancialProgress(makeInput())
+    const result = computeHouseholdFinancialProgress(makeInput({ policies: undefined }))
     const categoryIds = result.categories.map((category) => category.categoryId)
 
     expect(categoryIds).toEqual([...FINANCIAL_PROGRESS_CATEGORY_IDS])
@@ -84,29 +83,38 @@ describe('computeHouseholdFinancialProgress', () => {
 
     for (const category of result.categories) {
       const definition = getCategoryDefinition(category.categoryId)
-      expect(category.status).toBe('placeholder')
-      expect(category.score).toBeNull()
-      expect(category.grade).toBeNull()
       expect(category.maxPoints).toBe(definition.maxPoints)
       expect(category.maxPoints).toBe(FINANCIAL_PROGRESS_CATEGORY_MAX_POINTS[category.categoryId])
       expect(category.weight).toBe(definition.weight)
       expect(category.weight).toBe(category.maxPoints / 100)
+
+      if (category.categoryId === 'protection_insurance') {
+        expect(category.status).toBe('insufficient_data')
+        expect(category.score).toBeNull()
+      } else {
+        expect(category.status).toBe('placeholder')
+        expect(category.score).toBeNull()
+        expect(category.grade).toBeNull()
+      }
     }
   })
 
-  it('allows custom composable calculators while requiring full category coverage', () => {
+  it('allows custom composable calculators while withholding overall until all are complete', () => {
     const custom: CategoryCalculator = {
       categoryId: 'debt_management',
-      calculate: (): CategoryProgress => {
+      calculate: (): CategoryCalculation => {
         const definition = getCategoryDefinition('debt_management')
         return {
-          categoryId: 'debt_management',
-          score: 16,
-          maxPoints: definition.maxPoints,
-          weight: definition.weight,
-          grade: null,
-          status: 'computed',
-          summary: 'Custom debt Category Progress',
+          progress: {
+            categoryId: 'debt_management',
+            score: 16,
+            maxPoints: definition.maxPoints,
+            weight: definition.weight,
+            grade: null,
+            status: 'computed',
+            summary: 'Custom debt Category Progress',
+          },
+          recommendations: [],
         }
       },
     }
@@ -122,9 +130,11 @@ describe('computeHouseholdFinancialProgress', () => {
     expect(debt?.score).toBe(16)
     expect(debt?.maxPoints).toBe(20)
     expect(result.isPlaceholder).toBe(false)
-    expect(result.overall.status).toBe('computed')
-    expect(result.overall.score).toBe(80)
-    expect(result.overall.grade).toBe('B')
+    expect(result.completedCategoryCount).toBe(1)
+    expect(result.completedAvailablePoints).toBe(20)
+    expect(result.overall.status).toBe('partial')
+    expect(result.overall.score).toBeNull()
+    expect(result.overall.grade).toBeNull()
   })
 
   it('rejects input without a household id', () => {
@@ -142,6 +152,53 @@ describe('computeHouseholdFinancialProgress', () => {
       }),
     ).toThrow(/missing calculator for category/)
   })
+
+  it('surfaces Protection recommendations without publishing an overall score', () => {
+    const result = computeHouseholdFinancialProgress(
+      makeInput({
+        policies: [
+          {
+            id: 'p1',
+            carrier: 'Acme',
+            policy_type: 'Term Life',
+            status: 'active',
+            coverage_amount: 250000,
+            renewal_or_review_date: null,
+            beneficiary: null,
+          },
+        ],
+        assessments: {
+          family: {
+            id: 'a1',
+            assessment_type: 'family',
+            overall_score: 60,
+            overall_grade: 'D',
+            completed_at: '2026-06-01T00:00:00.000Z',
+            answers: {
+              protection: {
+                currentLifeInsurance: '250000',
+                hasDisabilityProtection: 'no',
+                beneficiariesReviewed: 'no',
+              },
+            },
+            derived_metrics: { protectionNeed: 500000 },
+          },
+        },
+      }),
+    )
+
+    const protection = result.categories.find(
+      (category) => category.categoryId === 'protection_insurance',
+    )
+    expect(protection?.status).toBe('computed')
+    expect(protection?.score).toBeGreaterThanOrEqual(0)
+    expect(result.completedCategoryCount).toBe(1)
+    expect(result.completedAvailablePoints).toBe(15)
+    expect(result.overall.status).toBe('partial')
+    expect(result.overall.score).toBeNull()
+    expect(result.overall.grade).toBeNull()
+    expect(result.recommendations.length).toBeGreaterThan(0)
+  })
 })
 
 describe('composeCategoryScores', () => {
@@ -154,13 +211,16 @@ describe('composeCategoryScores', () => {
           calls.push(categoryId)
           const definition = getCategoryDefinition(categoryId)
           return {
-            categoryId,
-            score: null,
-            maxPoints: definition.maxPoints,
-            weight: definition.weight,
-            grade: null,
-            status: 'placeholder' as const,
-            summary: categoryId,
+            progress: {
+              categoryId,
+              score: null,
+              maxPoints: definition.maxPoints,
+              weight: definition.weight,
+              grade: null,
+              status: 'placeholder' as const,
+              summary: categoryId,
+            },
+            recommendations: [],
           }
         },
       }),
@@ -174,7 +234,10 @@ describe('composeCategoryScores', () => {
 
 describe('buildOverallGrade', () => {
   it('returns placeholder Progress Score when all categories are placeholders', () => {
-    const categories = composeCategoryScores(makeInput(), DEFAULT_CATEGORY_CALCULATORS)
+    const categories = composeCategoryScores(
+      makeInput(),
+      FINANCIAL_PROGRESS_CATEGORY_IDS.map((categoryId) => createPlaceholderCalculator(categoryId)),
+    )
     expect(buildOverallGrade(categories).status).toBe('placeholder')
     expect(buildOverallGrade(categories).grade).toBeNull()
   })

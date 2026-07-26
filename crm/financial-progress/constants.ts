@@ -6,7 +6,7 @@ import type {
 } from './types'
 
 /** Bump when engine packaging / API shape changes. */
-export const FINANCIAL_PROGRESS_ENGINE_VERSION = '0.1.0-placeholder'
+export const FINANCIAL_PROGRESS_ENGINE_VERSION = '0.2.0'
 
 /**
  * Identifies the approved Household Financial Progress scoring methodology.

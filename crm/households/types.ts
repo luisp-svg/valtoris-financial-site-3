@@ -117,6 +117,16 @@ export type HouseholdAssessmentSummary = {
   overall_score: number | null
   overall_grade: string | null
   completed_at: string
+  /**
+   * Raw assessment answers JSON from `assessments.answers`.
+   * Used by Financial Progress calculators; UI widgets ignore this field.
+   */
+  answers: Record<string, unknown> | null
+  /**
+   * Stored derived metrics from `assessments.derived_metrics`.
+   * May include a previously calculated protection need for adequacy scoring.
+   */
+  derived_metrics: Record<string, unknown> | null
 }
 
 export type HouseholdAnnualReviewSummary = {
@@ -227,6 +237,8 @@ export type HouseholdPolicySummary = {
   status: string
   coverage_amount: number | null
   renewal_or_review_date: string | null
+  /** Named beneficiary text from `policies.beneficiary` when present. */
+  beneficiary: string | null
 }
 
 export type HouseholdDocumentSummary = {
@@ -248,6 +260,7 @@ export type CrmHouseholdWorkspace = {
   familyAssessment: HouseholdAssessmentSummary | null
   businessAssessment: HouseholdAssessmentSummary | null
   protectionAssessment: HouseholdAssessmentSummary | null
+  retirementAssessment: HouseholdAssessmentSummary | null
   annualReview: HouseholdAnnualReviewSummary | null
   /** Overview preview (activities only, limited). */
   recentActivities: HouseholdActivitySummary[]

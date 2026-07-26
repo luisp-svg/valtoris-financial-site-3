@@ -35,18 +35,24 @@ export {
 } from './calculators'
 
 export {
+  OVERALL_SCORE_REQUIRED_COMPLETED_CATEGORIES,
+  buildOverallCompletionMetadata,
   buildOverallGrade,
   buildRecommendations,
   clampProgressScore,
+  composeCategoryCalculations,
   composeCategoryScores,
   computeHouseholdFinancialProgress,
   gradeFromProgressScore,
+  isCategoryCompleted,
+  isOverallScorePublishable,
   roundScoreForDisplay,
   type ComputeHouseholdFinancialProgressOptions,
 } from './engine'
 
 export type {
   ActionPriority,
+  CategoryCalculation,
   CategoryCalculator,
   CategoryProgress,
   FinancialProgressCategoryDefinition,

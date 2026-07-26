@@ -34,6 +34,8 @@ export type FinancialProgressScoreStatus =
   | 'placeholder'
   | 'computed'
   | 'insufficient_data'
+  /** Some categories computed, but overall score is not yet publishable. */
+  | 'partial'
 
 /** Canonical category definition — maxPoints is source of truth; weight is derived. */
 export type FinancialProgressCategoryDefinition = {
@@ -99,6 +101,10 @@ export type ScoreSnapshot = {
   computedAt: string
   overall: ProgressScore
   categories: CategoryProgress[]
+  totalCategoryCount: number
+  completedCategoryCount: number
+  totalAvailablePoints: number
+  completedAvailablePoints: number
   engineVersion: string
   methodologyVersion: string
 }
@@ -124,8 +130,25 @@ export type HouseholdFinancialProgressResult = {
   recommendations: Recommendation[]
   /** True when every category (and overall) is still placeholder. */
   isPlaceholder: boolean
+  /** Approved methodology category count (always 8). */
+  totalCategoryCount: number
+  /** Categories with status `computed` (placeholders / insufficient_data excluded). */
+  completedCategoryCount: number
+  /** Methodology total points (100). */
+  totalAvailablePoints: number
+  /** Max points from completed categories only (e.g. 15 while only Protection is done). */
+  completedAvailablePoints: number
   engineVersion: string
   methodologyVersion: string
+}
+
+/**
+ * Full output of one category calculator — Progress Score plus any actions.
+ * Placeholders return an empty recommendations list.
+ */
+export type CategoryCalculation = {
+  progress: CategoryProgress
+  recommendations: Recommendation[]
 }
 
 /**
@@ -134,5 +157,5 @@ export type HouseholdFinancialProgressResult = {
  */
 export type CategoryCalculator = {
   readonly categoryId: FinancialProgressCategoryId
-  calculate: (input: HouseholdFinancialProgressInput) => CategoryProgress
+  calculate: (input: HouseholdFinancialProgressInput) => CategoryCalculation
 }

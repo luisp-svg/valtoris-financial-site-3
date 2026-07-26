@@ -4,8 +4,8 @@ import {
   PLACEHOLDER_CATEGORY_SUMMARY,
 } from '../constants'
 import type {
+  CategoryCalculation,
   CategoryCalculator,
-  CategoryProgress,
   FinancialProgressCategoryId,
   HouseholdFinancialProgressInput,
 } from '../types'
@@ -21,15 +21,18 @@ export function createPlaceholderCalculator(
 
   return {
     categoryId,
-    calculate(_input: HouseholdFinancialProgressInput): CategoryProgress {
+    calculate(_input: HouseholdFinancialProgressInput): CategoryCalculation {
       return {
-        categoryId,
-        score: null,
-        maxPoints: definition.maxPoints,
-        weight: definition.weight,
-        grade: null,
-        status: 'placeholder',
-        summary: `${FINANCIAL_PROGRESS_CATEGORY_LABELS[categoryId]}: ${PLACEHOLDER_CATEGORY_SUMMARY}`,
+        progress: {
+          categoryId,
+          score: null,
+          maxPoints: definition.maxPoints,
+          weight: definition.weight,
+          grade: null,
+          status: 'placeholder',
+          summary: `${FINANCIAL_PROGRESS_CATEGORY_LABELS[categoryId]}: ${PLACEHOLDER_CATEGORY_SUMMARY}`,
+        },
+        recommendations: [],
       }
     },
   }

@@ -742,6 +742,16 @@ async function fetchOpenOpportunitiesForHousehold(
   })
 }
 
+function normalizeAssessmentAnswers(
+  value: unknown,
+): Record<string, unknown> | null {
+  if (value == null) return null
+  if (typeof value === 'object' && !Array.isArray(value)) {
+    return value as Record<string, unknown>
+  }
+  return null
+}
+
 function normalizeAssessment(row: Record<string, unknown>): HouseholdAssessmentSummary | null {
   const assessmentType = row.assessment_type
   if (typeof assessmentType !== 'string' || !ASSESSMENT_TYPES.has(assessmentType as AssessmentType)) {
@@ -758,6 +768,8 @@ function normalizeAssessment(row: Record<string, unknown>): HouseholdAssessmentS
           : Number(row.overall_score),
     overall_grade: (row.overall_grade as string | null) ?? null,
     completed_at: String(row.completed_at),
+    answers: normalizeAssessmentAnswers(row.answers),
+    derived_metrics: normalizeAssessmentAnswers(row.derived_metrics),
   }
 }
 
@@ -768,12 +780,15 @@ async function fetchAssessmentsForHousehold(
   familyAssessment: HouseholdAssessmentSummary | null
   businessAssessment: HouseholdAssessmentSummary | null
   protectionAssessment: HouseholdAssessmentSummary | null
+  retirementAssessment: HouseholdAssessmentSummary | null
 }> {
   const { data, error } = await supabase
     .from('assessments')
-    .select('id, assessment_type, overall_score, overall_grade, completed_at')
+    .select(
+      'id, assessment_type, overall_score, overall_grade, completed_at, answers, derived_metrics',
+    )
     .eq('household_id', householdId)
-    .in('assessment_type', ['family', 'business', 'protection'])
+    .in('assessment_type', ['family', 'business', 'protection', 'retirement'])
     .is('deleted_at', null)
     .order('completed_at', { ascending: false })
 
@@ -782,6 +797,7 @@ async function fetchAssessmentsForHousehold(
   let familyAssessment: HouseholdAssessmentSummary | null = null
   let businessAssessment: HouseholdAssessmentSummary | null = null
   let protectionAssessment: HouseholdAssessmentSummary | null = null
+  let retirementAssessment: HouseholdAssessmentSummary | null = null
 
   for (const row of data ?? []) {
     const assessment = normalizeAssessment(row as Record<string, unknown>)
@@ -792,10 +808,17 @@ async function fetchAssessmentsForHousehold(
       businessAssessment = assessment
     } else if (assessment.assessment_type === 'protection' && !protectionAssessment) {
       protectionAssessment = assessment
+    } else if (assessment.assessment_type === 'retirement' && !retirementAssessment) {
+      retirementAssessment = assessment
     }
   }
 
-  return { familyAssessment, businessAssessment, protectionAssessment }
+  return {
+    familyAssessment,
+    businessAssessment,
+    protectionAssessment,
+    retirementAssessment,
+  }
 }
 
 async function fetchLatestAnnualReview(
@@ -850,7 +873,9 @@ async function fetchActivePoliciesForHousehold(
 ): Promise<HouseholdPolicySummary[]> {
   const { data, error } = await supabase
     .from('policies')
-    .select('id, carrier, policy_type, status, coverage_amount, renewal_or_review_date')
+    .select(
+      'id, carrier, policy_type, status, coverage_amount, renewal_or_review_date, beneficiary',
+    )
     .eq('household_id', householdId)
     .is('deleted_at', null)
     .order('updated_at', { ascending: false })
@@ -871,6 +896,10 @@ async function fetchActivePoliciesForHousehold(
             ? null
             : Number(row.coverage_amount),
       renewal_or_review_date: (row.renewal_or_review_date as string | null) ?? null,
+      beneficiary:
+        typeof row.beneficiary === 'string' && row.beneficiary.trim() !== ''
+          ? row.beneficiary.trim()
+          : null,
     }))
     .filter((policy) => !INACTIVE_POLICY_STATUSES.has(policy.status.toLowerCase()))
 }
@@ -980,6 +1009,7 @@ export async function fetchHouseholdWorkspace(
         familyAssessment: null,
         businessAssessment: null,
         protectionAssessment: null,
+        retirementAssessment: null,
       },
       'assessments',
     ),
@@ -1024,6 +1054,7 @@ export async function fetchHouseholdWorkspace(
     familyAssessment: assessments.familyAssessment,
     businessAssessment: assessments.businessAssessment,
     protectionAssessment: assessments.protectionAssessment,
+    retirementAssessment: assessments.retirementAssessment,
     annualReview,
     recentActivities,
     notes,
