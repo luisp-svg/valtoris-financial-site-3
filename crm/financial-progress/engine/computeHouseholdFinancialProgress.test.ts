@@ -20,6 +20,7 @@ import type {
 import { buildOverallGrade } from './buildOverallGrade'
 import { composeCategoryScores } from './composeCategoryScores'
 import { computeHouseholdFinancialProgress } from './computeHouseholdFinancialProgress'
+import { gradeFromProgressScore } from './gradeFromProgressScore'
 
 function makeHousehold(overrides: Partial<CrmHouseholdDetail> = {}): CrmHouseholdDetail {
   return {
@@ -88,22 +89,8 @@ describe('computeHouseholdFinancialProgress', () => {
       expect(category.weight).toBe(definition.weight)
       expect(category.weight).toBe(category.maxPoints / 100)
 
-      if (
-        category.categoryId === 'cash_flow_budget' ||
-        category.categoryId === 'protection_insurance' ||
-        category.categoryId === 'debt_management' ||
-        category.categoryId === 'emergency_fund' ||
-        category.categoryId === 'retirement_readiness' ||
-        category.categoryId === 'estate_legacy' ||
-        category.categoryId === 'credit_health'
-      ) {
-        expect(category.status).toBe('insufficient_data')
-        expect(category.score).toBeNull()
-      } else {
-        expect(category.status).toBe('placeholder')
-        expect(category.score).toBeNull()
-        expect(category.grade).toBeNull()
-      }
+      expect(category.status).toBe('insufficient_data')
+      expect(category.score).toBeNull()
     }
   })
 
@@ -161,94 +148,98 @@ describe('computeHouseholdFinancialProgress', () => {
     ).toThrow(/missing calculator for category/)
   })
 
-  it('surfaces seven real categories when data exists without publishing overall', () => {
-    const result = computeHouseholdFinancialProgress(
-      makeInput({
-        policies: [
-          {
-            id: 'p1',
-            carrier: 'Acme',
-            policy_type: 'Term Life',
-            status: 'active',
-            coverage_amount: 250000,
-            renewal_or_review_date: null,
-            beneficiary: null,
-          },
-        ],
-        assessments: {
-          family: {
-            id: 'a1',
-            assessment_type: 'family',
-            overall_score: 60,
-            overall_grade: 'D',
-            completed_at: '2026-06-01T00:00:00.000Z',
-            answers: {
-              financial: {
-                householdIncome: '120000',
-                totalDebt: '25000',
-                emergencyFundMonths: '6',
-                monthlyCashFlow: 'save-most-months',
-              },
-              protection: {
-                currentLifeInsurance: '250000',
-                hasDisabilityProtection: 'no',
-                beneficiariesReviewed: 'yes',
-                hasWill: 'yes',
-                hasTrust: 'yes',
-                guardianDocumented: 'yes',
-              },
+  it('surfaces all eight real categories and publishes overall score when complete', () => {
+    const fullInput = makeInput({
+      policies: [
+        {
+          id: 'p1',
+          carrier: 'Acme',
+          policy_type: 'Term Life',
+          status: 'active',
+          coverage_amount: 250000,
+          renewal_or_review_date: null,
+          beneficiary: null,
+        },
+      ],
+      assessments: {
+        family: {
+          id: 'a1',
+          assessment_type: 'family',
+          overall_score: 60,
+          overall_grade: 'D',
+          completed_at: '2026-06-01T00:00:00.000Z',
+          answers: {
+            financial: {
+              householdIncome: '120000',
+              totalDebt: '25000',
+              emergencyFundMonths: '6',
+              monthlyCashFlow: 'save-most-months',
             },
-            derived_metrics: {
-              protectionNeed: 500000,
-              creditCardUtilization: 0.05,
-              apr: 0.24,
-              debtPayoffStrategy: 'avalanche',
-              dedicatedEmergencyFund: 'yes',
-              emergencyFundLiquidity: 'savings',
-              automaticEmergencySavings: 'yes',
-              monthlyIncome: 10000,
-              monthlyExpenses: 7000,
-              hasDocumentedBudget: 'yes',
-              budgetingMethod: 'zero-based',
-              budgetUse: 'active',
-              savingsRate: 0.2,
-              expenseTrackingFrequency: 'monthly',
-              healthcareDirective: 'yes',
-              estateInformationOrganized: 'yes',
-              finalWishesDocumented: 'yes',
-              hasMinorChildren: 'yes',
-              currentOnPayments: 'yes',
-              latePaymentCount: 0,
-              oldestAccountAgeMonths: 120,
-              recentInquiries12m: 0,
-              newAccounts12m: 0,
-              creditMonitoringEnabled: 'yes',
+            protection: {
+              currentLifeInsurance: '250000',
+              hasDisabilityProtection: 'no',
+              beneficiariesReviewed: 'yes',
+              hasWill: 'yes',
+              hasTrust: 'yes',
+              guardianDocumented: 'yes',
             },
           },
-          retirement: {
-            id: 'a-ret',
-            assessment_type: 'retirement',
-            overall_score: 70,
-            overall_grade: 'C',
-            completed_at: '2026-06-01T00:00:00.000Z',
-            answers: {
-              household: { currentAge: '50', targetRetirementAge: '65' },
-              lifestyle: { estimatedMonthlyRetirementSpending: '8000' },
-              vision: { planClarity: 'very-clear' },
-              savings: { employerMatch: 'full-match' },
-              estate: {
-                hasPowerOfAttorney: 'yes',
-                legacyIntent: 'strong',
-              },
-            },
-            derived_metrics: {
-              retirementContributionRate: 0.15,
-              retirementFundingRatio: 1,
-            },
+          derived_metrics: {
+            protectionNeed: 500000,
+            creditCardUtilization: 0.05,
+            apr: 0.24,
+            debtPayoffStrategy: 'avalanche',
+            dedicatedEmergencyFund: 'yes',
+            emergencyFundLiquidity: 'savings',
+            automaticEmergencySavings: 'yes',
+            monthlyIncome: 10000,
+            monthlyExpenses: 7000,
+            hasDocumentedBudget: 'yes',
+            budgetingMethod: 'zero-based',
+            budgetUse: 'active',
+            savingsRate: 0.2,
+            expenseTrackingFrequency: 'monthly',
+            healthcareDirective: 'yes',
+            estateInformationOrganized: 'yes',
+            finalWishesDocumented: 'yes',
+            hasMinorChildren: 'yes',
+            currentOnPayments: 'yes',
+            latePaymentCount: 0,
+            oldestAccountAgeMonths: 120,
+            recentInquiries12m: 0,
+            newAccounts12m: 0,
+            creditMonitoringEnabled: 'yes',
+            financialIndependenceGoalDocumented: 'yes',
+            financialIndependenceTarget: 1000000,
+            fiEligibleAssets: 800000,
+            fiFundingStrategyDocumented: 'yes',
           },
         },
-      }),
-    )
+        retirement: {
+          id: 'a-ret',
+          assessment_type: 'retirement',
+          overall_score: 70,
+          overall_grade: 'C',
+          completed_at: '2026-06-01T00:00:00.000Z',
+          answers: {
+            household: { currentAge: '50', targetRetirementAge: '65' },
+            lifestyle: { estimatedMonthlyRetirementSpending: '8000' },
+            vision: { planClarity: 'very-clear' },
+            savings: { employerMatch: 'full-match' },
+            estate: {
+              hasPowerOfAttorney: 'yes',
+              legacyIntent: 'strong',
+            },
+          },
+          derived_metrics: {
+            retirementContributionRate: 0.15,
+            retirementFundingRatio: 1,
+          },
+        },
+      },
+    })
+
+    const result = computeHouseholdFinancialProgress(fullInput)
 
     const cashFlow = result.categories.find(
       (category) => category.categoryId === 'cash_flow_budget',
@@ -271,6 +262,9 @@ describe('computeHouseholdFinancialProgress', () => {
     const credit = result.categories.find(
       (category) => category.categoryId === 'credit_health',
     )
+    const independence = result.categories.find(
+      (category) => category.categoryId === 'financial_independence',
+    )
     expect(cashFlow?.status).toBe('computed')
     expect(cashFlow?.score).toBe(15)
     expect(cashFlow?.evidence).toHaveLength(4)
@@ -291,19 +285,56 @@ describe('computeHouseholdFinancialProgress', () => {
     expect(credit?.status).toBe('computed')
     expect(credit?.score).toBe(10)
     expect(credit?.evidence).toHaveLength(4)
-    expect(result.completedCategoryCount).toBe(7)
-    expect(result.completedAvailablePoints).toBe(95)
+    expect(independence?.status).toBe('computed')
+    expect(independence?.score).toBe(5)
+    expect(independence?.evidence).toHaveLength(4)
+    expect(result.completedCategoryCount).toBe(8)
+    expect(result.completedAvailablePoints).toBe(100)
     expect(result.totalCategoryCount).toBe(8)
     expect(result.totalAvailablePoints).toBe(100)
-    expect(result.overall.status).toBe('partial')
-    expect(result.overall.score).toBeNull()
-    expect(result.overall.grade).toBeNull()
+    expect(result.engineVersion).toBe('1.0.0')
+    expect(result.methodologyVersion).toBe('household-progress-v1')
+    expect(result.categories.every((category) => category.status !== 'placeholder')).toBe(true)
+
+    const categorySum = result.categories.reduce(
+      (sum, category) => sum + (category.score ?? 0),
+      0,
+    )
+    expect(result.overall.status).toBe('computed')
+    expect(result.overall.score).toBe(categorySum)
+    expect(result.overall.score).toBeGreaterThanOrEqual(0)
+    expect(result.overall.score).toBeLessThanOrEqual(100)
+    expect(result.overall.grade).toBe(gradeFromProgressScore(categorySum))
     expect(result.recommendations.length).toBeGreaterThan(0)
 
-    const placeholders = result.categories.filter((category) => category.status === 'placeholder')
-    expect(placeholders.map((category) => category.categoryId)).toEqual([
-      'financial_independence',
-    ])
+    // Removing FI evidence returns overall publication to partial.
+    const withoutFi = computeHouseholdFinancialProgress(
+      makeInput({
+        ...fullInput,
+        assessments: {
+          ...fullInput.assessments,
+          family: {
+            ...fullInput.assessments!.family!,
+            derived_metrics: {
+              ...(fullInput.assessments!.family!.derived_metrics as Record<string, unknown>),
+              financialIndependenceGoalDocumented: undefined,
+              financialIndependenceTarget: undefined,
+              fiEligibleAssets: undefined,
+              fiFundingStrategyDocumented: undefined,
+            },
+          },
+        },
+      }),
+    )
+    expect(
+      withoutFi.categories.find((category) => category.categoryId === 'financial_independence')
+        ?.status,
+    ).toBe('insufficient_data')
+    expect(withoutFi.completedCategoryCount).toBe(7)
+    expect(withoutFi.completedAvailablePoints).toBe(95)
+    expect(withoutFi.overall.status).toBe('partial')
+    expect(withoutFi.overall.score).toBeNull()
+    expect(withoutFi.overall.grade).toBeNull()
   })
 })
 

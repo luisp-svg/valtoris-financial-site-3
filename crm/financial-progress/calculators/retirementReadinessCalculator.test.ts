@@ -117,7 +117,7 @@ describe('retirement readiness constants', () => {
       points: 5,
     })
     expect(RETIREMENT_SOURCE_CONFLICT_TOLERANCE).toBe(0.1)
-    expect(FINANCIAL_PROGRESS_ENGINE_VERSION).toBe('0.8.0')
+    expect(FINANCIAL_PROGRESS_ENGINE_VERSION).toBe('1.0.0')
     expect(valuesMateriallyConflict(100, 109)).toBe(false)
     expect(valuesMateriallyConflict(100, 112)).toBe(true)
   })

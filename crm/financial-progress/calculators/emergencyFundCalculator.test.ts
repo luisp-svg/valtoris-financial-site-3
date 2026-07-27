@@ -76,7 +76,7 @@ describe('emergency fund constants', () => {
   it('documents months bands and engine version bump', () => {
     expect(EMERGENCY_FUND_TARGET_MONTHS).toBe(6)
     expect(EMERGENCY_FUND_MONTHS_BANDS[0]).toMatchObject({ minMonthsInclusive: 6, points: 5 })
-    expect(FINANCIAL_PROGRESS_ENGINE_VERSION).toBe('0.8.0')
+    expect(FINANCIAL_PROGRESS_ENGINE_VERSION).toBe('1.0.0')
   })
 })
 

@@ -99,7 +99,7 @@ describe('credit health constants', () => {
     expect(PAYMENT_HISTORY_RECENT_MONTHS).toBe(24)
     expect(CREDIT_REVIEW_CURRENT_MONTHS).toBe(12)
     expect(CREDIT_UTILIZATION_BANDS[0]).toMatchObject({ maxExclusive: 0.1, points: 3 })
-    expect(FINANCIAL_PROGRESS_ENGINE_VERSION).toBe('0.8.0')
+    expect(FINANCIAL_PROGRESS_ENGINE_VERSION).toBe('1.0.0')
   })
 })
 
