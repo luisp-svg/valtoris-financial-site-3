@@ -106,7 +106,7 @@ describe('estate legacy constants', () => {
   it('documents budgets, review window, and engine version', () => {
     expect(ESTATE_LEGACY_CRITERION_MAX_POINTS.core_estate_documents).toBe(4)
     expect(BENEFICIARY_REVIEW_CURRENT_MONTHS).toBe(24)
-    expect(FINANCIAL_PROGRESS_ENGINE_VERSION).toBe('0.7.0')
+    expect(FINANCIAL_PROGRESS_ENGINE_VERSION).toBe('0.8.0')
   })
 })
 

@@ -94,7 +94,8 @@ describe('computeHouseholdFinancialProgress', () => {
         category.categoryId === 'debt_management' ||
         category.categoryId === 'emergency_fund' ||
         category.categoryId === 'retirement_readiness' ||
-        category.categoryId === 'estate_legacy'
+        category.categoryId === 'estate_legacy' ||
+        category.categoryId === 'credit_health'
       ) {
         expect(category.status).toBe('insufficient_data')
         expect(category.score).toBeNull()
@@ -160,7 +161,7 @@ describe('computeHouseholdFinancialProgress', () => {
     ).toThrow(/missing calculator for category/)
   })
 
-  it('surfaces six real categories when data exists without publishing overall', () => {
+  it('surfaces seven real categories when data exists without publishing overall', () => {
     const result = computeHouseholdFinancialProgress(
       makeInput({
         policies: [
@@ -199,7 +200,7 @@ describe('computeHouseholdFinancialProgress', () => {
             },
             derived_metrics: {
               protectionNeed: 500000,
-              creditCardUtilization: 0.2,
+              creditCardUtilization: 0.05,
               apr: 0.24,
               debtPayoffStrategy: 'avalanche',
               dedicatedEmergencyFund: 'yes',
@@ -216,6 +217,12 @@ describe('computeHouseholdFinancialProgress', () => {
               estateInformationOrganized: 'yes',
               finalWishesDocumented: 'yes',
               hasMinorChildren: 'yes',
+              currentOnPayments: 'yes',
+              latePaymentCount: 0,
+              oldestAccountAgeMonths: 120,
+              recentInquiries12m: 0,
+              newAccounts12m: 0,
+              creditMonitoringEnabled: 'yes',
             },
           },
           retirement: {
@@ -261,6 +268,9 @@ describe('computeHouseholdFinancialProgress', () => {
     const estate = result.categories.find(
       (category) => category.categoryId === 'estate_legacy',
     )
+    const credit = result.categories.find(
+      (category) => category.categoryId === 'credit_health',
+    )
     expect(cashFlow?.status).toBe('computed')
     expect(cashFlow?.score).toBe(15)
     expect(cashFlow?.evidence).toHaveLength(4)
@@ -278,8 +288,11 @@ describe('computeHouseholdFinancialProgress', () => {
     expect(estate?.status).toBe('computed')
     expect(estate?.score).toBe(10)
     expect(estate?.evidence).toHaveLength(4)
-    expect(result.completedCategoryCount).toBe(6)
-    expect(result.completedAvailablePoints).toBe(85)
+    expect(credit?.status).toBe('computed')
+    expect(credit?.score).toBe(10)
+    expect(credit?.evidence).toHaveLength(4)
+    expect(result.completedCategoryCount).toBe(7)
+    expect(result.completedAvailablePoints).toBe(95)
     expect(result.totalCategoryCount).toBe(8)
     expect(result.totalAvailablePoints).toBe(100)
     expect(result.overall.status).toBe('partial')
@@ -289,7 +302,6 @@ describe('computeHouseholdFinancialProgress', () => {
 
     const placeholders = result.categories.filter((category) => category.status === 'placeholder')
     expect(placeholders.map((category) => category.categoryId)).toEqual([
-      'credit_health',
       'financial_independence',
     ])
   })
