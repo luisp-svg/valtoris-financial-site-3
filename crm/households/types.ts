@@ -282,7 +282,18 @@ export type CrmHouseholdWorkspace = {
    * Kept on the workspace payload so KPI/widgets share one source of truth.
    */
   openCasesCount: number
+  /** Preview-limited active policies for UI display. */
   activePolicies: HouseholdPolicySummary[]
+  /**
+   * Complete active policies for Financial Progress scoring.
+   * When present, the adapter prefers this over the preview-limited UI list.
+   */
+  financialProgressPolicies: HouseholdPolicySummary[]
+  /**
+   * Complete open tasks for Financial Progress scoring.
+   * When present, the adapter prefers this over the preview-limited UI list.
+   */
+  financialProgressOpenTasks: HouseholdOpenTaskSummary[]
   recentDocuments: HouseholdDocumentSummary[]
 }
 

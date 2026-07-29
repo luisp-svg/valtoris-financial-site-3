@@ -6,7 +6,10 @@ import {
   formatLastCalculated,
   formatProgressScoreValue,
   isOverallProgressAvailable,
+  isProgressPartial,
   isProgressPlaceholder,
+  PARTIAL_PROGRESS_MESSAGE,
+  PLACEHOLDER_PROGRESS_MESSAGE,
 } from '../financialProgress/formatProgressDisplay'
 import type { ClientWorkspaceTabId } from '../types'
 
@@ -22,6 +25,7 @@ export default function FinancialProgressSummaryWidget({
   const { financialProgress } = workspace
   const placeholder = isProgressPlaceholder(financialProgress)
   const overallAvailable = isOverallProgressAvailable(financialProgress)
+  const partial = isProgressPartial(financialProgress)
 
   return (
     <Widget
@@ -40,7 +44,7 @@ export default function FinancialProgressSummaryWidget({
       {placeholder ? (
         <EmptyState
           title="Not Yet Calculated"
-          description="Complete household assessment to generate score."
+          description={PLACEHOLDER_PROGRESS_MESSAGE}
         />
       ) : overallAvailable ? (
         <dl className="crm-client-workspace-info-list">
@@ -66,12 +70,32 @@ export default function FinancialProgressSummaryWidget({
             <dt>Methodology</dt>
             <dd>{financialProgress.methodologyVersion}</dd>
           </div>
+          <div>
+            <dt>Engine</dt>
+            <dd>{financialProgress.engineVersion}</dd>
+          </div>
         </dl>
       ) : (
-        <EmptyState
-          title="Overall Progress Not Yet Available"
-          description={formatCategoriesCalculatedCaption(financialProgress)}
-        />
+        <>
+          <EmptyState
+            title={partial ? 'Overall Score Withheld' : 'Overall Progress Not Yet Available'}
+            description={PARTIAL_PROGRESS_MESSAGE}
+          />
+          <dl className="crm-client-workspace-info-list">
+            <div>
+              <dt>Categories Calculated</dt>
+              <dd>{formatCategoriesCalculatedCaption(financialProgress)}</dd>
+            </div>
+            <div>
+              <dt>Methodology</dt>
+              <dd>{financialProgress.methodologyVersion}</dd>
+            </div>
+            <div>
+              <dt>Engine</dt>
+              <dd>{financialProgress.engineVersion}</dd>
+            </div>
+          </dl>
+        </>
       )}
     </Widget>
   )

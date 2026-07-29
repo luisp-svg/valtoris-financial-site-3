@@ -6,7 +6,10 @@ import {
   formatLastCalculated,
   formatProgressScoreValue,
   isOverallProgressAvailable,
+  isProgressPartial,
   isProgressPlaceholder,
+  PARTIAL_PROGRESS_MESSAGE,
+  PLACEHOLDER_PROGRESS_MESSAGE,
 } from './formatProgressDisplay'
 
 type OverallProgressCardProps = {
@@ -16,6 +19,7 @@ type OverallProgressCardProps = {
 export default function OverallProgressCard({ progress }: OverallProgressCardProps) {
   const placeholder = isProgressPlaceholder(progress)
   const overallAvailable = isOverallProgressAvailable(progress)
+  const partial = isProgressPartial(progress)
 
   return (
     <Panel labelledBy="crm-fp-overall-heading" className="crm-financial-progress-overall">
@@ -32,12 +36,20 @@ export default function OverallProgressCard({ progress }: OverallProgressCardPro
             <dd>—</dd>
           </div>
           <div>
+            <dt>Status</dt>
+            <dd>{PLACEHOLDER_PROGRESS_MESSAGE}</dd>
+          </div>
+          <div>
             <dt>Last Calculated</dt>
             <dd>{formatLastCalculated(progress)}</dd>
           </div>
           <div>
             <dt>Methodology Version</dt>
             <dd>{progress.methodologyVersion}</dd>
+          </div>
+          <div>
+            <dt>Engine Version</dt>
+            <dd>{progress.engineVersion}</dd>
           </div>
         </dl>
       ) : overallAvailable ? (
@@ -64,16 +76,24 @@ export default function OverallProgressCard({ progress }: OverallProgressCardPro
             <dt>Methodology Version</dt>
             <dd>{progress.methodologyVersion}</dd>
           </div>
+          <div>
+            <dt>Engine Version</dt>
+            <dd>{progress.engineVersion}</dd>
+          </div>
         </dl>
       ) : (
         <dl className="crm-client-workspace-info-list">
           <div>
             <dt>Progress Score</dt>
-            <dd>Overall Progress Not Yet Available</dd>
+            <dd>{partial ? 'Overall Score Withheld' : 'Overall Progress Not Yet Available'}</dd>
           </div>
           <div>
             <dt>Grade</dt>
             <dd>—</dd>
+          </div>
+          <div>
+            <dt>Status</dt>
+            <dd>{PARTIAL_PROGRESS_MESSAGE}</dd>
           </div>
           <div>
             <dt>Categories Calculated</dt>
@@ -86,6 +106,10 @@ export default function OverallProgressCard({ progress }: OverallProgressCardPro
           <div>
             <dt>Methodology Version</dt>
             <dd>{progress.methodologyVersion}</dd>
+          </div>
+          <div>
+            <dt>Engine Version</dt>
+            <dd>{progress.engineVersion}</dd>
           </div>
         </dl>
       )}

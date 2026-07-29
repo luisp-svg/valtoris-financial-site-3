@@ -4,7 +4,10 @@ import {
   formatLastCalculated,
   formatProgressScoreValue,
   isOverallProgressAvailable,
+  isProgressPartial,
   isProgressPlaceholder,
+  PARTIAL_PROGRESS_MESSAGE,
+  PLACEHOLDER_PROGRESS_MESSAGE,
 } from './formatProgressDisplay'
 
 type FinancialProgressKpiCardProps = {
@@ -15,6 +18,7 @@ type FinancialProgressKpiCardProps = {
 export default function FinancialProgressKpiCard({ progress }: FinancialProgressKpiCardProps) {
   const placeholder = isProgressPlaceholder(progress)
   const overallAvailable = isOverallProgressAvailable(progress)
+  const partial = isProgressPartial(progress)
 
   return (
     <article
@@ -26,9 +30,17 @@ export default function FinancialProgressKpiCard({ progress }: FinancialProgress
       {placeholder ? (
         <>
           <p className="crm-stat-card-value is-empty">Not Yet Calculated</p>
-          <p className="crm-stat-card-caption">
-            Complete household assessment to generate score.
-          </p>
+          <p className="crm-stat-card-caption">{PLACEHOLDER_PROGRESS_MESSAGE}</p>
+          <dl className="crm-financial-progress-kpi-meta">
+            <div>
+              <dt>Methodology</dt>
+              <dd>{progress.methodologyVersion}</dd>
+            </div>
+            <div>
+              <dt>Engine</dt>
+              <dd>{progress.engineVersion}</dd>
+            </div>
+          </dl>
         </>
       ) : overallAvailable ? (
         <>
@@ -55,14 +67,36 @@ export default function FinancialProgressKpiCard({ progress }: FinancialProgress
               <dt>Methodology</dt>
               <dd>{progress.methodologyVersion}</dd>
             </div>
+            <div>
+              <dt>Engine</dt>
+              <dd>{progress.engineVersion}</dd>
+            </div>
           </dl>
         </>
       ) : (
         <>
-          <p className="crm-stat-card-value is-empty">Overall Progress Not Yet Available</p>
-          <p className="crm-stat-card-caption">
-            {formatCategoriesCalculatedCaption(progress)}
+          <p className="crm-stat-card-value is-empty">
+            {partial ? 'Overall Score Withheld' : 'Overall Progress Not Yet Available'}
           </p>
+          <p className="crm-stat-card-caption">{PARTIAL_PROGRESS_MESSAGE}</p>
+          <dl className="crm-financial-progress-kpi-meta">
+            <div>
+              <dt>Categories</dt>
+              <dd>{formatCategoriesCalculatedCaption(progress)}</dd>
+            </div>
+            <div>
+              <dt>Last Calculated</dt>
+              <dd>{formatLastCalculated(progress)}</dd>
+            </div>
+            <div>
+              <dt>Methodology</dt>
+              <dd>{progress.methodologyVersion}</dd>
+            </div>
+            <div>
+              <dt>Engine</dt>
+              <dd>{progress.engineVersion}</dd>
+            </div>
+          </dl>
         </>
       )}
     </article>

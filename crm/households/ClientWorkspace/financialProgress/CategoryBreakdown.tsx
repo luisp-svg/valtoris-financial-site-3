@@ -2,8 +2,8 @@ import Panel from '../../../components/ui/Panel'
 import SectionHeader from '../../../components/ui/SectionHeader'
 import type { CategoryProgress } from '../../../financial-progress'
 import {
+  formatCategoryScoreDisplay,
   formatCategoryStatus,
-  formatProgressScoreValue,
   getCategoryDisplayName,
 } from './formatProgressDisplay'
 
@@ -22,7 +22,9 @@ export default function CategoryBreakdown({ categories }: CategoryBreakdownProps
 
       <ul className="crm-financial-progress-category-list">
         {categories.map((category) => {
-          const notCalculated = category.status === 'placeholder' || category.score == null
+          const scoreDisplay = formatCategoryScoreDisplay(category)
+          const gradeSuffix =
+            scoreDisplay.available && category.grade ? ` (${category.grade})` : ''
 
           return (
             <li key={category.categoryId} className="crm-financial-progress-category-row">
@@ -32,17 +34,19 @@ export default function CategoryBreakdown({ categories }: CategoryBreakdownProps
                   Maximum Points: {category.maxPoints}
                   {' · '}
                   Status: {formatCategoryStatus(category.status)}
+                  {scoreDisplay.incompleteNote
+                    ? ` · ${scoreDisplay.incompleteNote}`
+                    : null}
                 </p>
               </div>
               <div className="crm-financial-progress-category-score">
-                {notCalculated ? (
-                  <span className="crm-muted">Not Yet Calculated</span>
-                ) : (
+                {scoreDisplay.available ? (
                   <span>
-                    {formatProgressScoreValue(category.score)}
-                    {category.grade ? ` (${category.grade})` : ''}
-                    <span className="crm-muted"> / {category.maxPoints}</span>
+                    {scoreDisplay.label}
+                    {gradeSuffix}
                   </span>
+                ) : (
+                  <span className="crm-muted">{scoreDisplay.label}</span>
                 )}
               </div>
             </li>

@@ -103,6 +103,28 @@ export const WORKSPACE_PREVIEW_LIMITS = {
   activePolicies: 50,
 } as const
 
+/**
+ * Split complete scoring collections into preview-limited UI lists while
+ * preserving full arrays for Financial Progress engine input.
+ * Single fetch → no duplicate queries; UI limits stay unchanged.
+ */
+export function partitionWorkspaceScoringCollections(args: {
+  openTasks: HouseholdOpenTaskSummary[]
+  activePolicies: HouseholdPolicySummary[]
+}): {
+  openTasks: HouseholdOpenTaskSummary[]
+  activePolicies: HouseholdPolicySummary[]
+  financialProgressOpenTasks: HouseholdOpenTaskSummary[]
+  financialProgressPolicies: HouseholdPolicySummary[]
+} {
+  return {
+    openTasks: args.openTasks.slice(0, WORKSPACE_PREVIEW_LIMITS.openTasks),
+    activePolicies: args.activePolicies.slice(0, WORKSPACE_PREVIEW_LIMITS.activePolicies),
+    financialProgressOpenTasks: args.openTasks,
+    financialProgressPolicies: args.activePolicies,
+  }
+}
+
 const MEMBER_ROW_SELECT = `
   id,
   household_id,
@@ -684,6 +706,11 @@ export async function softDeleteHouseholdMember(
   }
 }
 
+/**
+ * Loads all open/in-progress tasks for the household.
+ * Preview slicing happens in `partitionWorkspaceScoringCollections` so Financial
+ * Progress scoring receives the complete set (task-title signals).
+ */
 async function fetchOpenTasksForHousehold(
   supabase: SupabaseClient,
   householdId: string,
@@ -696,7 +723,6 @@ async function fetchOpenTasksForHousehold(
     .in('status', ['open', 'in_progress'])
     .order('due_date', { ascending: true, nullsFirst: false })
     .order('created_at', { ascending: false })
-    .limit(WORKSPACE_PREVIEW_LIMITS.openTasks)
 
   if (error) throw error
   return (data ?? []).map((row) => ({
@@ -867,6 +893,11 @@ async function fetchRecentActivities(
   }))
 }
 
+/**
+ * Loads all non-deleted policies, then keeps active ones.
+ * Preview slicing happens in `partitionWorkspaceScoringCollections` so Financial
+ * Progress scoring receives complete policy type/coverage/beneficiary signals.
+ */
 async function fetchActivePoliciesForHousehold(
   supabase: SupabaseClient,
   householdId: string,
@@ -879,7 +910,6 @@ async function fetchActivePoliciesForHousehold(
     .eq('household_id', householdId)
     .is('deleted_at', null)
     .order('updated_at', { ascending: false })
-    .limit(WORKSPACE_PREVIEW_LIMITS.activePolicies)
 
   if (error) throw error
 
@@ -1046,10 +1076,14 @@ export async function fetchHouseholdWorkspace(
   ])
 
   const { timeline, timelineComplete } = buildWorkspaceTimeline(notes, activities)
+  const scoringCollections = partitionWorkspaceScoringCollections({
+    openTasks,
+    activePolicies,
+  })
 
   return {
     household,
-    openTasks,
+    openTasks: scoringCollections.openTasks,
     openOpportunities,
     familyAssessment: assessments.familyAssessment,
     businessAssessment: assessments.businessAssessment,
@@ -1062,7 +1096,9 @@ export async function fetchHouseholdWorkspace(
     timeline,
     timelineComplete,
     openCasesCount: 0,
-    activePolicies,
+    activePolicies: scoringCollections.activePolicies,
+    financialProgressPolicies: scoringCollections.financialProgressPolicies,
+    financialProgressOpenTasks: scoringCollections.financialProgressOpenTasks,
     recentDocuments,
   }
 }

@@ -1,6 +1,16 @@
 import { describe, expect, it } from 'vitest'
-import { buildWorkspaceTimeline, settleWorkspaceLoad } from './householdsApi'
-import type { HouseholdActivityRecord, HouseholdNote } from './types'
+import {
+  buildWorkspaceTimeline,
+  partitionWorkspaceScoringCollections,
+  settleWorkspaceLoad,
+  WORKSPACE_PREVIEW_LIMITS,
+} from './householdsApi'
+import type {
+  HouseholdActivityRecord,
+  HouseholdNote,
+  HouseholdOpenTaskSummary,
+  HouseholdPolicySummary,
+} from './types'
 
 function makeNote(id: string, createdAt: string): HouseholdNote {
   return {
@@ -31,6 +41,28 @@ function makeActivity(id: string, occurredAt: string): HouseholdActivityRecord {
   }
 }
 
+function makeTask(id: string): HouseholdOpenTaskSummary {
+  return {
+    id,
+    title: `Task ${id}`,
+    due_date: null,
+    priority: 'medium',
+    status: 'open',
+  }
+}
+
+function makePolicy(id: string): HouseholdPolicySummary {
+  return {
+    id,
+    carrier: 'Acme',
+    policy_type: 'Life',
+    status: 'active',
+    coverage_amount: 100000,
+    renewal_or_review_date: null,
+    beneficiary: null,
+  }
+}
+
 describe('settleWorkspaceLoad', () => {
   it('marks successful loads as ok with the resolved value', async () => {
     const result = await settleWorkspaceLoad(Promise.resolve(['a', 'b']), [], 'notes')
@@ -55,6 +87,46 @@ describe('settleWorkspaceLoad', () => {
     expect(result.error).toContain('notes failed')
     expect(result.error).toContain('message=boom')
     expect(result.error).toContain('code=PGRST301')
+  })
+})
+
+describe('partitionWorkspaceScoringCollections', () => {
+  it('keeps UI preview limits while preserving complete scoring collections', () => {
+    const openTasks = Array.from({ length: 12 }, (_, index) => makeTask(`t-${index}`))
+    const activePolicies = Array.from({ length: 55 }, (_, index) =>
+      makePolicy(`p-${index}`),
+    )
+
+    const partitioned = partitionWorkspaceScoringCollections({
+      openTasks,
+      activePolicies,
+    })
+
+    expect(partitioned.openTasks).toHaveLength(WORKSPACE_PREVIEW_LIMITS.openTasks)
+    expect(partitioned.activePolicies).toHaveLength(WORKSPACE_PREVIEW_LIMITS.activePolicies)
+    expect(partitioned.financialProgressOpenTasks).toHaveLength(12)
+    expect(partitioned.financialProgressPolicies).toHaveLength(55)
+    expect(partitioned.financialProgressOpenTasks).toBe(openTasks)
+    expect(partitioned.financialProgressPolicies).toBe(activePolicies)
+    expect(partitioned.openTasks).toEqual(
+      openTasks.slice(0, WORKSPACE_PREVIEW_LIMITS.openTasks),
+    )
+    expect(partitioned.activePolicies).toEqual(
+      activePolicies.slice(0, WORKSPACE_PREVIEW_LIMITS.activePolicies),
+    )
+  })
+
+  it('passes through short collections unchanged for both UI and scoring', () => {
+    const openTasks = [makeTask('t-1')]
+    const activePolicies = [makePolicy('p-1')]
+    const partitioned = partitionWorkspaceScoringCollections({
+      openTasks,
+      activePolicies,
+    })
+    expect(partitioned.openTasks).toEqual(openTasks)
+    expect(partitioned.activePolicies).toEqual(activePolicies)
+    expect(partitioned.financialProgressOpenTasks).toEqual(openTasks)
+    expect(partitioned.financialProgressPolicies).toEqual(activePolicies)
   })
 })
 
