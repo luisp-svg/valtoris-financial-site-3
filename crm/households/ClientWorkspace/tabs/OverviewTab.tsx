@@ -1,5 +1,6 @@
 import OpportunityFormDialog from '../../../opportunities/OpportunityFormDialog'
 import WidgetGrid from '../../../components/ui/WidgetGrid'
+import OnboardingEntryWidget from '../../onboarding/OnboardingEntryWidget'
 import CurrentOpportunitiesWidget from '../widgets/CurrentOpportunitiesWidget'
 import FinancialProgressSummaryWidget from '../widgets/FinancialProgressSummaryWidget'
 import HouseholdSummaryWidget from '../widgets/HouseholdSummaryWidget'
@@ -41,6 +42,7 @@ export default function OverviewTab({
 
       <WidgetGrid>
         <HouseholdSummaryWidget workspace={workspace} onNavigateTab={onNavigateTab} />
+        <OnboardingEntryWidget householdId={householdId} />
         <FinancialProgressSummaryWidget workspace={workspace} onNavigateTab={onNavigateTab} />
         <CurrentOpportunitiesWidget
           workspace={workspace}

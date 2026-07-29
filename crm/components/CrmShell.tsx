@@ -1,9 +1,10 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import BrandLogo from '../../components/BrandLogo'
 import BrandWordmark from '../../components/BrandWordmark'
 import { CRM_NAV_ITEMS } from '../nav'
 import { useCrmAuth } from '../auth/CrmAuthContext'
+import { CrmNavigationGuardProvider } from '../navigation/CrmNavigationGuardContext'
 import CrmUserMenu from './CrmUserMenu'
 
 type CrmShellProps = {
@@ -15,6 +16,7 @@ export default function CrmShell({ children }: CrmShellProps) {
   const { role } = useCrmAuth()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [logoFailed, setLogoFailed] = useState(false)
+  const shellRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     setMobileOpen(false)
@@ -37,8 +39,6 @@ export default function CrmShell({ children }: CrmShellProps) {
           to={item.path}
           end={item.path === '/crm'}
           className={({ isActive }) => {
-            // Opportunity detail lives under /crm/opportunities/:id while the list is /crm/pipeline.
-            // Keep Pipeline highlighted for parity with Households child routes.
             const pipelineSectionActive =
               item.path === '/crm/pipeline' &&
               (pathname === '/crm/pipeline' || pathname.startsWith('/crm/opportunities/'))
@@ -52,52 +52,54 @@ export default function CrmShell({ children }: CrmShellProps) {
   )
 
   return (
-    <div className="crm-shell">
-      <aside className="crm-sidebar" aria-label="CRM sidebar">
-        <div className="crm-brand">
-          {!logoFailed ? (
-            <BrandLogo className="crm-brand-logo" onMissing={() => setLogoFailed(true)} />
-          ) : (
-            <BrandWordmark variant="header" />
-          )}
-          <p className="crm-brand-tag">Valtoris CRM</p>
-        </div>
-        {nav}
-        {role ? <p className="crm-sidebar-role">Role: {role}</p> : null}
-      </aside>
-
-      <div className="crm-main">
-        <header className="crm-topbar">
-          <button
-            type="button"
-            className="crm-menu-toggle"
-            aria-expanded={mobileOpen}
-            aria-controls="crm-mobile-nav"
-            onClick={() => setMobileOpen((open) => !open)}
-          >
-            <span className="crm-menu-toggle-bars" aria-hidden="true" />
-            <span className="crm-sr-only">Menu</span>
-          </button>
-
-          <div className="crm-topbar-brand">
+    <div className="crm-shell" ref={shellRef}>
+      <CrmNavigationGuardProvider rootRef={shellRef}>
+        <aside className="crm-sidebar" aria-label="CRM sidebar">
+          <div className="crm-brand">
             {!logoFailed ? (
-              <BrandLogo className="crm-topbar-logo" onMissing={() => setLogoFailed(true)} />
+              <BrandLogo className="crm-brand-logo" onMissing={() => setLogoFailed(true)} />
             ) : (
-              <span className="crm-topbar-wordmark">Valtoris Financial</span>
+              <BrandWordmark variant="header" />
             )}
+            <p className="crm-brand-tag">Valtoris CRM</p>
           </div>
+          {nav}
+          {role ? <p className="crm-sidebar-role">Role: {role}</p> : null}
+        </aside>
 
-          <CrmUserMenu />
-        </header>
+        <div className="crm-main">
+          <header className="crm-topbar">
+            <button
+              type="button"
+              className="crm-menu-toggle"
+              aria-expanded={mobileOpen}
+              aria-controls="crm-mobile-nav"
+              onClick={() => setMobileOpen((open) => !open)}
+            >
+              <span className="crm-menu-toggle-bars" aria-hidden="true" />
+              <span className="crm-sr-only">Menu</span>
+            </button>
 
-        {mobileOpen ? (
-          <div className="crm-mobile-nav-wrap" id="crm-mobile-nav">
-            <div className="crm-mobile-nav">{nav}</div>
-          </div>
-        ) : null}
+            <div className="crm-topbar-brand">
+              {!logoFailed ? (
+                <BrandLogo className="crm-topbar-logo" onMissing={() => setLogoFailed(true)} />
+              ) : (
+                <span className="crm-topbar-wordmark">Valtoris Financial</span>
+              )}
+            </div>
 
-        <div className="crm-content">{children}</div>
-      </div>
+            <CrmUserMenu />
+          </header>
+
+          {mobileOpen ? (
+            <div className="crm-mobile-nav-wrap" id="crm-mobile-nav">
+              <div className="crm-mobile-nav">{nav}</div>
+            </div>
+          ) : null}
+
+          <div className="crm-content">{children}</div>
+        </div>
+      </CrmNavigationGuardProvider>
     </div>
   )
 }

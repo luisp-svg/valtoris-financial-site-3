@@ -33,6 +33,21 @@ export function crmHouseholdPath(householdId: string): string {
   return `${ROUTES.crmHouseholds}/${householdId}`
 }
 
+/**
+ * Household Onboarding route. Optional section becomes `?section=`.
+ * Invalid sections are normalized by the onboarding page.
+ */
+export function crmHouseholdOnboardingPath(
+  householdId: string,
+  section?: string,
+): string {
+  const base = `${crmHouseholdPath(householdId)}/onboarding`
+  if (!section) return base
+  const params = new URLSearchParams()
+  params.set('section', section)
+  return `${base}?${params.toString()}`
+}
+
 export function crmOpportunityPath(opportunityId: string): string {
   return `${ROUTES.crmOpportunities}/${opportunityId}`
 }
