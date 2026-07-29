@@ -24,7 +24,26 @@ export type MemberRelationshipCreateOption =
   | 'employee'
   | 'other'
 
-export type AssessmentType = 'family' | 'business' | 'retirement' | 'protection'
+/** All persisted `public.assessment_type` values. */
+export type AssessmentType =
+  | 'family'
+  | 'business'
+  | 'retirement'
+  | 'protection'
+  | 'household_onboarding'
+
+/**
+ * Assessment types loaded into Client Workspace as latest-completed summaries.
+ * Excludes `household_onboarding` (dedicated onboarding APIs only in this sprint).
+ */
+export type WorkspaceAssessmentType =
+  | 'family'
+  | 'business'
+  | 'retirement'
+  | 'protection'
+
+/** `public.assessment_status` lifecycle values. */
+export type AssessmentLifecycleStatus = 'draft' | 'completed'
 
 export type HouseholdMemberSummary = {
   id: string
@@ -111,11 +130,13 @@ export type HouseholdOpenOpportunitySummary = {
   stage: { id: string; name: string } | null
 }
 
+/** Latest completed family/business/retirement/protection summary for workspace. */
 export type HouseholdAssessmentSummary = {
   id: string
-  assessment_type: AssessmentType
+  assessment_type: WorkspaceAssessmentType
   overall_score: number | null
   overall_grade: string | null
+  /** Always set for workspace summaries (completed assessments only). */
   completed_at: string
   /**
    * Raw assessment answers JSON from `assessments.answers`.
@@ -127,6 +148,36 @@ export type HouseholdAssessmentSummary = {
    * May include a previously calculated protection need for adequacy scoring.
    */
   derived_metrics: Record<string, unknown> | null
+}
+
+/** CRM Household Onboarding row (`assessment_type = household_onboarding`). */
+export type HouseholdOnboardingAssessment = {
+  id: string
+  household_id: string
+  assessment_type: 'household_onboarding'
+  status: AssessmentLifecycleStatus
+  /** Null while draft; required ISO timestamp when completed. */
+  completed_at: string | null
+  answers: Record<string, unknown>
+  derived_metrics: Record<string, unknown>
+  created_at: string
+  updated_at: string
+}
+
+/** Create draft — optional initial JSON documents (default `{}`). */
+export type CreateHouseholdOnboardingDraftInput = {
+  household_id: string
+  answers?: Record<string, unknown>
+  derived_metrics?: Record<string, unknown>
+}
+
+/**
+ * Update draft JSON documents.
+ * Provided keys fully replace that column; omitted keys are left unchanged.
+ */
+export type UpdateHouseholdOnboardingDraftInput = {
+  answers?: Record<string, unknown>
+  derived_metrics?: Record<string, unknown>
 }
 
 export type HouseholdAnnualReviewSummary = {

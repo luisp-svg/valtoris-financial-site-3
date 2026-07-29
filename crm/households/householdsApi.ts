@@ -6,7 +6,6 @@ import {
 import { normalizeEmail, normalizePhone } from './normalizeContact'
 import { buildHouseholdTimeline } from './timeline'
 import type {
-  AssessmentType,
   CreateHouseholdMemberInput,
   CrmHouseholdDetail,
   CrmHouseholdListItem,
@@ -27,6 +26,7 @@ import type {
   MemberRelationship,
   MemberRelationshipCreateOption,
   UpdateHouseholdMemberInput,
+  WorkspaceAssessmentType,
   WorkspaceLoadResult,
 } from './types'
 
@@ -168,12 +168,18 @@ export const MEMBER_RELATIONSHIP_CREATE_OPTIONS: {
   { value: 'other', label: 'Other' },
 ]
 
-const ASSESSMENT_TYPES = new Set<AssessmentType>([
+/**
+ * Completed assessment types returned by workspace loading.
+ * Intentionally excludes `household_onboarding` (dedicated onboarding APIs).
+ */
+export const WORKSPACE_ASSESSMENT_TYPES: readonly WorkspaceAssessmentType[] = [
   'family',
   'business',
   'retirement',
   'protection',
-])
+] as const
+
+const WORKSPACE_ASSESSMENT_TYPE_SET = new Set<string>(WORKSPACE_ASSESSMENT_TYPES)
 
 export function formatSupabaseError(source: string, error: unknown): string {
   if (error instanceof Error && error.name === 'PrimarySwitchMutationError') {
@@ -778,14 +784,32 @@ function normalizeAssessmentAnswers(
   return null
 }
 
-function normalizeAssessment(row: Record<string, unknown>): HouseholdAssessmentSummary | null {
+/**
+ * Normalizes a completed workspace assessment row.
+ * Rejects onboarding types, drafts, missing completed_at, and soft-deleted rows.
+ */
+export function normalizeWorkspaceAssessment(
+  row: Record<string, unknown>,
+): HouseholdAssessmentSummary | null {
+  if (row.deleted_at != null && row.deleted_at !== '') return null
+
   const assessmentType = row.assessment_type
-  if (typeof assessmentType !== 'string' || !ASSESSMENT_TYPES.has(assessmentType as AssessmentType)) {
+  if (
+    typeof assessmentType !== 'string' ||
+    !WORKSPACE_ASSESSMENT_TYPE_SET.has(assessmentType)
+  ) {
     return null
   }
+
+  // Prefer explicit lifecycle status when present (migration 019+).
+  if (row.status != null && row.status !== 'completed') return null
+
+  const completedAt = row.completed_at
+  if (typeof completedAt !== 'string' || completedAt.trim() === '') return null
+
   return {
     id: String(row.id),
-    assessment_type: assessmentType as AssessmentType,
+    assessment_type: assessmentType as WorkspaceAssessmentType,
     overall_score:
       typeof row.overall_score === 'number'
         ? row.overall_score
@@ -793,40 +817,31 @@ function normalizeAssessment(row: Record<string, unknown>): HouseholdAssessmentS
           ? null
           : Number(row.overall_score),
     overall_grade: (row.overall_grade as string | null) ?? null,
-    completed_at: String(row.completed_at),
+    completed_at: completedAt,
     answers: normalizeAssessmentAnswers(row.answers),
     derived_metrics: normalizeAssessmentAnswers(row.derived_metrics),
   }
 }
 
-async function fetchAssessmentsForHousehold(
-  supabase: SupabaseClient,
-  householdId: string,
-): Promise<{
+/**
+ * Picks the latest completed assessment per workspace type from already-fetched rows.
+ * Pure helper for tests and fetchAssessmentsForHousehold.
+ */
+export function selectLatestWorkspaceAssessments(
+  rows: readonly Record<string, unknown>[],
+): {
   familyAssessment: HouseholdAssessmentSummary | null
   businessAssessment: HouseholdAssessmentSummary | null
   protectionAssessment: HouseholdAssessmentSummary | null
   retirementAssessment: HouseholdAssessmentSummary | null
-}> {
-  const { data, error } = await supabase
-    .from('assessments')
-    .select(
-      'id, assessment_type, overall_score, overall_grade, completed_at, answers, derived_metrics',
-    )
-    .eq('household_id', householdId)
-    .in('assessment_type', ['family', 'business', 'protection', 'retirement'])
-    .is('deleted_at', null)
-    .order('completed_at', { ascending: false })
-
-  if (error) throw error
-
+} {
   let familyAssessment: HouseholdAssessmentSummary | null = null
   let businessAssessment: HouseholdAssessmentSummary | null = null
   let protectionAssessment: HouseholdAssessmentSummary | null = null
   let retirementAssessment: HouseholdAssessmentSummary | null = null
 
-  for (const row of data ?? []) {
-    const assessment = normalizeAssessment(row as Record<string, unknown>)
+  for (const row of rows) {
+    const assessment = normalizeWorkspaceAssessment(row)
     if (!assessment) continue
     if (assessment.assessment_type === 'family' && !familyAssessment) {
       familyAssessment = assessment
@@ -845,6 +860,32 @@ async function fetchAssessmentsForHousehold(
     protectionAssessment,
     retirementAssessment,
   }
+}
+
+async function fetchAssessmentsForHousehold(
+  supabase: SupabaseClient,
+  householdId: string,
+): Promise<{
+  familyAssessment: HouseholdAssessmentSummary | null
+  businessAssessment: HouseholdAssessmentSummary | null
+  protectionAssessment: HouseholdAssessmentSummary | null
+  retirementAssessment: HouseholdAssessmentSummary | null
+}> {
+  const { data, error } = await supabase
+    .from('assessments')
+    .select(
+      'id, assessment_type, status, overall_score, overall_grade, completed_at, answers, derived_metrics, deleted_at',
+    )
+    .eq('household_id', householdId)
+    .in('assessment_type', [...WORKSPACE_ASSESSMENT_TYPES])
+    .eq('status', 'completed')
+    .not('completed_at', 'is', null)
+    .is('deleted_at', null)
+    .order('completed_at', { ascending: false })
+
+  if (error) throw error
+
+  return selectLatestWorkspaceAssessments((data ?? []) as Record<string, unknown>[])
 }
 
 async function fetchLatestAnnualReview(
