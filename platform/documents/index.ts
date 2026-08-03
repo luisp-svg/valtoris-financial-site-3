@@ -38,12 +38,14 @@ export {
 
 export {
   DOCUMENT_TYPE_DEFINITIONS,
+  collectDocumentWorkflowDependencyErrors,
   getDocumentTypeDefinition,
   isKnownDocumentType,
   listDocumentTypeDefinitions,
   listDocumentTypeKeys,
   requireDocumentTypeDefinition,
   validateDocumentRegistry,
+  type DocumentWorkflowLookup,
 } from './documentRegistry'
 
 export {

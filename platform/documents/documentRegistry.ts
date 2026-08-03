@@ -5,6 +5,10 @@
 
 import { isKnownCaseType } from '../cases/caseTypeRegistry'
 import { getModule } from '../registry'
+import {
+  getWorkflowDefinition,
+  isKnownWorkflowKey,
+} from '../workflows/workflowRegistry'
 import { DOCUMENT_CATEGORIES, isKnownDocumentCategory } from './categories'
 import { isKnownDocumentValidationRule } from './validationRules'
 import type {
@@ -14,6 +18,55 @@ import type {
   DocumentValidationRuleKey,
   DocumentVisibility,
 } from './types'
+
+/**
+ * Injected workflow lookups keep document ↔ workflow validation cycle-safe.
+ * Defaults use the Workflow Engine registry (workflows does not import documents).
+ */
+export type DocumentWorkflowLookup = {
+  isKnownWorkflowKey: (workflowKey: string) => boolean
+  getWorkflowStageKeys: (workflowKey: string) => readonly string[] | undefined
+}
+
+function defaultWorkflowLookup(): DocumentWorkflowLookup {
+  return {
+    isKnownWorkflowKey,
+    getWorkflowStageKeys: (workflowKey) =>
+      getWorkflowDefinition(workflowKey)?.stages.map((stage) => stage.key),
+  }
+}
+
+/**
+ * Validate document workflowDependencies against a workflow lookup.
+ * Pure helper — used by validateDocumentRegistry and unit tests.
+ */
+export function collectDocumentWorkflowDependencyErrors(
+  definitions: readonly DocumentTypeDefinition[],
+  lookup: DocumentWorkflowLookup = defaultWorkflowLookup(),
+): string[] {
+  const errors: string[] = []
+  for (const definition of definitions) {
+    for (const dependency of definition.workflowDependencies ?? []) {
+      const workflowKey = dependency.workflowKey
+      if (!workflowKey) continue
+      if (!lookup.isKnownWorkflowKey(workflowKey)) {
+        errors.push(
+          `Document "${definition.key}" references unknown workflowKey "${workflowKey}"`,
+        )
+        continue
+      }
+      const stageKey = dependency.stageKey
+      if (!stageKey) continue
+      const stageKeys = lookup.getWorkflowStageKeys(workflowKey)
+      if (!stageKeys || !stageKeys.includes(stageKey)) {
+        errors.push(
+          `Document "${definition.key}" references unknown stage "${stageKey}" for workflow "${workflowKey}"`,
+        )
+      }
+    }
+  }
+  return errors
+}
 
 const PDF_IMAGE = ['application/pdf', 'image/jpeg', 'image/png'] as const
 const PDF_ONLY = ['application/pdf'] as const
@@ -619,8 +672,13 @@ export function isKnownDocumentType(key: string): boolean {
 /**
  * Validate registry integrity. Pure test/helper — does not grant authorization
  * and does not touch storage.
+ *
+ * Optional workflowLookup supports cycle-safe unit tests; production/default
+ * validation uses the Workflow Engine registry.
  */
-export function validateDocumentRegistry(): { ok: true } | { ok: false; errors: string[] } {
+export function validateDocumentRegistry(options?: {
+  workflowLookup?: DocumentWorkflowLookup
+}): { ok: true } | { ok: false; errors: string[] } {
   const errors: string[] = []
   const keys = new Set<string>()
   const categoryKeys = DOCUMENT_CATEGORIES.map((item) => item.key)
@@ -689,6 +747,13 @@ export function validateDocumentRegistry(): { ok: true } | { ok: false; errors: 
       }
     }
   }
+
+  errors.push(
+    ...collectDocumentWorkflowDependencyErrors(
+      DOCUMENT_TYPE_DEFINITIONS,
+      options?.workflowLookup ?? defaultWorkflowLookup(),
+    ),
+  )
 
   return errors.length === 0 ? { ok: true } : { ok: false, errors }
 }

@@ -5,6 +5,7 @@
  * - Case Engine (Sprint 4B.4 foundation — TypeScript only, no DB table)
  * - Workflow Engine (Sprint 4B.5 foundation — TypeScript only, no execution)
  * - Document Engine (Sprint 4B.6 foundation — TypeScript only, no storage)
+ * - Permission Engine (Sprint 4B.7 foundation — TypeScript only, RLS remains authoritative)
  */
 
 export * from './registry'
@@ -12,3 +13,4 @@ export * as activities from './activities'
 export * as cases from './cases'
 export * as workflows from './workflows'
 export * as documents from './documents'
+export * as permissions from './permissions'

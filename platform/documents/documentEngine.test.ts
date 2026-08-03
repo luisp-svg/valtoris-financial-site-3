@@ -12,7 +12,9 @@ import {
   buildIfdReportDocumentExample,
   buildInsuranceApplicationDocumentExample,
   buildOnboardingIdentityDocumentExample,
+  collectDocumentWorkflowDependencyErrors,
   createDocumentRequirementDraft,
+  DOCUMENT_TYPE_DEFINITIONS,
   getDocumentTypeDefinition,
   isKnownDocumentCategory,
   isKnownDocumentType,
@@ -151,6 +153,125 @@ describe('Document Engine registry', () => {
     expect(
       validateCreateDocumentRequirementDraftInput({ documentTypeKey: 'not_a_document' }),
     ).toEqual({ ok: false, error: 'Unknown documentTypeKey' })
+  })
+
+  it('validates all current workflowDependencies against the Workflow Engine', () => {
+    expect(validateDocumentRegistry()).toEqual({ ok: true })
+
+    const deps = DOCUMENT_TYPE_DEFINITIONS.flatMap((definition) =>
+      (definition.workflowDependencies ?? [])
+        .filter((item) => item.workflowKey)
+        .map((item) => ({
+          doc: definition.key,
+          workflowKey: item.workflowKey!,
+          stageKey: item.stageKey,
+        })),
+    )
+    expect(deps).toHaveLength(8)
+    expect(deps).toEqual(
+      expect.arrayContaining([
+        {
+          doc: 'driver_license',
+          workflowKey: 'household_onboarding_workflow',
+          stageKey: 'in_progress',
+        },
+        {
+          doc: 'credit_report',
+          workflowKey: 'credit_repair_workflow',
+          stageKey: 'credit_reports_imported',
+        },
+        {
+          doc: 'credit_authorization',
+          workflowKey: 'credit_repair_workflow',
+          stageKey: 'enrollment',
+        },
+        {
+          doc: 'insurance_application',
+          workflowKey: 'insurance_case_workflow',
+          stageKey: 'submitted',
+        },
+        {
+          doc: 'id_verification',
+          workflowKey: 'insurance_case_workflow',
+          stageKey: 'needs_documents',
+        },
+        {
+          doc: 'estate_questionnaire',
+          workflowKey: 'estate_planning_workflow',
+          stageKey: 'intake',
+        },
+        {
+          doc: 'funding_application',
+          workflowKey: 'business_funding_workflow',
+          stageKey: 'application',
+        },
+        {
+          doc: 'ifd_report',
+          workflowKey: 'ifd_review_workflow',
+          stageKey: 'recommendation_prepared',
+        },
+      ]),
+    )
+    expect(collectDocumentWorkflowDependencyErrors(DOCUMENT_TYPE_DEFINITIONS)).toEqual([])
+  })
+
+  it('fails clearly for unknown workflow keys and unknown stages', () => {
+    const sample = [
+      {
+        ...getDocumentTypeDefinition('driver_license')!,
+        key: 'workflow_dep_probe',
+        workflowDependencies: [
+          { workflowKey: 'not_a_real_workflow', stageKey: 'in_progress' },
+        ],
+      },
+    ]
+    expect(collectDocumentWorkflowDependencyErrors(sample)).toEqual([
+      'Document "workflow_dep_probe" references unknown workflowKey "not_a_real_workflow"',
+    ])
+
+    const unknownStageLookup = {
+      isKnownWorkflowKey: (key: string) => key === 'household_onboarding_workflow',
+      getWorkflowStageKeys: (key: string) =>
+        key === 'household_onboarding_workflow' ? (['in_progress'] as const) : undefined,
+    }
+    expect(
+      collectDocumentWorkflowDependencyErrors(
+        [
+          {
+            ...getDocumentTypeDefinition('driver_license')!,
+            key: 'stage_dep_probe',
+            workflowDependencies: [
+              {
+                workflowKey: 'household_onboarding_workflow',
+                stageKey: 'not_a_real_stage',
+              },
+            ],
+          },
+        ],
+        unknownStageLookup,
+      ),
+    ).toEqual([
+      'Document "stage_dep_probe" references unknown stage "not_a_real_stage" for workflow "household_onboarding_workflow"',
+    ])
+
+    // Valid dependency via injected lookup.
+    expect(
+      collectDocumentWorkflowDependencyErrors(
+        [
+          {
+            ...getDocumentTypeDefinition('driver_license')!,
+            key: 'valid_dep_probe',
+            workflowDependencies: [
+              {
+                workflowKey: 'household_onboarding_workflow',
+                stageKey: 'in_progress',
+              },
+            ],
+          },
+        ],
+        unknownStageLookup,
+      ),
+    ).toEqual([])
   })
 })
 
