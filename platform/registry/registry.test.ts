@@ -95,7 +95,7 @@ describe('Module Registry', () => {
     expect(requireModule('initial_financial_diagnostic').kind).toBe('diagnostic')
     expect(requireModule('financial_progress').kind).toBe('intelligence')
     expect(requireModule('module_registry').kind).toBe('platform')
-    expect(requireModule('cases').status).toBe('registered')
+    expect(requireModule('cases').status).toBe('active')
     expect(requireModule('ai').status).toBe('registered')
   })
 
@@ -135,7 +135,8 @@ describe('Module Registry semantics: registered vs enabled vs visible vs declare
     expect(enabledKeys.has('appointments')).toBe(true) // placeholder but feature-enabled for nav
     expect(enabledKeys.has('credit_repair')).toBe(false)
     expect(enabledKeys.has('ai')).toBe(false)
-    expect(enabledKeys.has('cases')).toBe(false)
+    // Case Engine foundation is enabled as a platform service (no sidebar nav).
+    expect(enabledKeys.has('cases')).toBe(true)
   })
 
   it('excludes invisible modules from sidebar helpers even when registered', () => {
@@ -158,9 +159,13 @@ describe('Module Registry semantics: registered vs enabled vs visible vs declare
       const module = requireModule(key)
       expect(module.navigation.visible).toBe(false)
       expect(sidebarKeys.has(key)).toBe(false)
-      expect(getCrmSidebarNavItems().some((item) => item.path === module.navigation.route)).toBe(
-        false,
-      )
+      // Registered/disabled modules have no sidebar route; active platform engines
+      // like `cases` also stay out of the CRM sidebar.
+      if (module.navigation.route) {
+        expect(getCrmSidebarNavItems().some((item) => item.path === module.navigation.route)).toBe(
+          false,
+        )
+      }
     }
   })
 
