@@ -9,6 +9,7 @@ export default defineConfig({
       'server/**/*.test.ts',
       'lib/**/*.test.ts',
       'api/**/*.test.ts',
+      'platform/**/*.test.ts',
     ],
   },
 })

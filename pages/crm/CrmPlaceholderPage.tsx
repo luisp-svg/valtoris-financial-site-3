@@ -1,15 +1,16 @@
 import { useLocation } from 'react-router-dom'
-import { CRM_NAV_ITEMS } from '../../crm/nav'
+import { findModuleByNavPath } from '../../platform/registry'
 
 export default function CrmPlaceholderPage() {
   const { pathname } = useLocation()
-  const item = CRM_NAV_ITEMS.find((nav) => nav.path === pathname)
+  const module = findModuleByNavPath(pathname)
+  const title = module?.navigation.label ?? module?.displayName ?? 'CRM'
 
   return (
     <div className="crm-placeholder-page">
       <header className="crm-page-header">
         <p className="crm-page-eyebrow">Coming next</p>
-        <h1 className="crm-page-title">{item?.label ?? 'CRM'}</h1>
+        <h1 className="crm-page-title">{title}</h1>
         <p className="crm-page-subtitle">
           This section is a navigation placeholder. Feature workflows and database queries will be
           added in a later phase.

@@ -2,10 +2,13 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 import BrandLogo from '../../components/BrandLogo'
 import BrandWordmark from '../../components/BrandWordmark'
-import { CRM_NAV_ITEMS } from '../nav'
+import { getCrmSidebarNavItems } from '../../platform/registry'
 import { useCrmAuth } from '../auth/CrmAuthContext'
 import { CrmNavigationGuardProvider } from '../navigation/CrmNavigationGuardContext'
 import CrmUserMenu from './CrmUserMenu'
+
+/** Registry-driven sidebar; evaluated once per module load (static catalog). */
+const CRM_SIDEBAR_NAV = getCrmSidebarNavItems()
 
 type CrmShellProps = {
   children: ReactNode
@@ -33,7 +36,7 @@ export default function CrmShell({ children }: CrmShellProps) {
 
   const nav = (
     <nav className="crm-nav" aria-label="CRM">
-      {CRM_NAV_ITEMS.map((item) => (
+      {CRM_SIDEBAR_NAV.map((item) => (
         <NavLink
           key={item.path}
           to={item.path}

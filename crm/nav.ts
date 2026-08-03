@@ -1,19 +1,14 @@
-export type CrmNavItem = {
-  label: string
-  path: string
-  /** When true, route is a placeholder until Phase 3+ */
-  placeholder?: boolean
-}
+/**
+ * CRM navigation — derived from the Platform Module Registry.
+ * Public shape preserved for existing CrmShell / placeholder consumers.
+ */
 
-export const CRM_NAV_ITEMS: CrmNavItem[] = [
-  { label: 'Home', path: '/crm' },
-  { label: 'Intake', path: '/crm/intake' },
-  { label: 'Households', path: '/crm/households' },
-  { label: 'Pipeline', path: '/crm/pipeline' },
-  { label: 'Tasks', path: '/crm/tasks' },
-  { label: 'Appointments', path: '/crm/appointments', placeholder: true },
-  { label: 'Policies', path: '/crm/policies', placeholder: true },
-  { label: 'Annual Reviews', path: '/crm/annual-reviews', placeholder: true },
-  { label: 'Documents', path: '/crm/documents', placeholder: true },
-  { label: 'Settings', path: '/crm/settings', placeholder: true },
-]
+import { getCrmSidebarNavItems, type CrmNavItem } from '../platform/registry'
+
+export type { CrmNavItem }
+
+/**
+ * Sidebar items — same labels, paths, order, and placeholders as pre-registry nav.
+ * Source of truth: platform/registry/catalog.ts
+ */
+export const CRM_NAV_ITEMS: CrmNavItem[] = getCrmSidebarNavItems()
