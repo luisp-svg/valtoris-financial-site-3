@@ -1,4 +1,5 @@
 import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js'
+import { enrichHouseholdActivityMetadata } from '../../platform/activities'
 import type { CreateHouseholdNoteInput, HouseholdActivityRecord, HouseholdNote } from './types'
 
 export class HouseholdNoteValidationError extends Error {
@@ -164,7 +165,7 @@ function normalizeActivityRow(
       ? (row.metadata as Record<string, unknown>)
       : {}
 
-  return {
+  const base: HouseholdActivityRecord = {
     id: String(row.id),
     household_id: String(row.household_id),
     actor_user_id: actorUserId,
@@ -179,6 +180,12 @@ function normalizeActivityRow(
     metadata,
     occurred_at: String(row.occurred_at),
     created_at: String(row.created_at),
+  }
+
+  // Activity Engine: enrich metadata with eventKey/module/visibility (read-path only).
+  return {
+    ...base,
+    metadata: enrichHouseholdActivityMetadata(base),
   }
 }
 

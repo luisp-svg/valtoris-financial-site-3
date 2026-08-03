@@ -1,4 +1,5 @@
 import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js'
+import { formatActivityTypeLabel as formatPlatformActivityTypeLabel } from '../../platform/activities'
 import {
   fetchHouseholdActivityRecords,
   fetchHouseholdNotes,
@@ -442,7 +443,8 @@ export function getMemberDisplayName(member: HouseholdMemberSummary): string {
 }
 
 export function formatActivityTypeLabel(activityType: string): string {
-  return activityType.replace(/_/g, ' ')
+  // Delegate to Activity Engine labels (Sprint 4B.3) for consistent wording.
+  return formatPlatformActivityTypeLabel(activityType)
 }
 
 export async function fetchVisibleHouseholds(

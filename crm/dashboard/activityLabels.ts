@@ -1,13 +1,6 @@
-/** Human labels for activity types that are actually written today. */
+/** Human labels for activity types — backed by the Activity Engine. */
+import { formatActivityTypeLabel as formatPlatformActivityTypeLabel } from '../../platform/activities'
+
 export function formatActivityTypeLabel(activityType: string): string {
-  switch (activityType) {
-    case 'stage_changed':
-      return 'Stage changed'
-    case 'assignment_changed':
-      return 'Assignment changed'
-    case 'recommendation_converted':
-      return 'Recommendation converted'
-    default:
-      return activityType.replace(/_/g, ' ')
-  }
+  return formatPlatformActivityTypeLabel(activityType)
 }

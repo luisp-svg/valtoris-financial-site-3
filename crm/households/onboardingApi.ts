@@ -1,4 +1,5 @@
 import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js'
+import { recordActivityBestEffort } from '../../platform/activities'
 import type {
   AssessmentLifecycleStatus,
   CreateHouseholdOnboardingDraftInput,
@@ -347,5 +348,27 @@ export async function completeHouseholdOnboardingDraft(
       'normalize_failed',
     )
   }
+
+  // Activity Engine: best-effort timeline publish AFTER successful completion.
+  // Completion itself is gated on status=draft; a retry after success fails with
+  // draft_not_completable and therefore does not write a second activity.
+  // Soft idempotency hint only (no unique DB constraint / no migration).
+  await recordActivityBestEffort(supabase, {
+    householdId: hid,
+    eventKey: 'onboarding.completed',
+    title: 'Household Onboarding completed',
+    body: null,
+    moduleKey: 'households',
+    entityType: 'assessment',
+    entityId: normalized.id,
+    assessmentId: normalized.id,
+    actorKind: 'user',
+    occurredAt: normalized.completed_at,
+    metadata: {
+      assessmentType: HOUSEHOLD_ONBOARDING_ASSESSMENT_TYPE,
+      idempotencyKey: `onboarding.completed:${normalized.id}`,
+    },
+  })
+
   return normalized
 }

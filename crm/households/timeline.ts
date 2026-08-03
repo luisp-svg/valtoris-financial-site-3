@@ -1,7 +1,11 @@
+import {
+  enrichHouseholdActivityMetadata,
+  mapActivityToTimelinePresentation,
+  normalizeHouseholdActivityRecord,
+} from '../../platform/activities'
 import type {
   HouseholdActivityRecord,
   HouseholdNote,
-  HouseholdTimelineActivityType,
   HouseholdTimelineDisplayVariant,
   HouseholdTimelineItem,
 } from './types'
@@ -21,32 +25,14 @@ export function isNoteEdited(createdAt: string, updatedAt: string): boolean {
   return updated > created
 }
 
-function mapActivityType(rawType: string): {
-  activityType: HouseholdTimelineActivityType
-  displayVariant: HouseholdTimelineDisplayVariant
-} {
-  switch (rawType) {
-    case 'assignment_changed':
-      return { activityType: 'assignment_changed', displayVariant: 'assignment' }
-    case 'stage_changed':
-      return { activityType: 'stage_changed', displayVariant: 'stage' }
-    case 'recommendation_converted':
-    case 'recommendation_created':
-    case 'recommendation_reviewed':
-      return {
-        activityType:
-          rawType === 'recommendation_converted' ? 'recommendation_converted' : 'other',
-        displayVariant: 'recommendation',
-      }
-    case 'task_created':
-      return { activityType: 'task_created', displayVariant: 'task' }
-    case 'task_completed':
-      return { activityType: 'task_completed', displayVariant: 'task' }
-    case 'note_added':
-      return { activityType: 'note', displayVariant: 'note' }
-    default:
-      return { activityType: 'other', displayVariant: 'system' }
-  }
+/**
+ * Map engine display variants onto existing CRM CSS variants (no visual redesign).
+ */
+function toCrmDisplayVariant(
+  variant: ReturnType<typeof mapActivityToTimelinePresentation>['displayVariant'],
+): HouseholdTimelineDisplayVariant {
+  if (variant === 'diagnostic') return 'system'
+  return variant
 }
 
 export function normalizeNoteToTimelineItem(note: HouseholdNote): HouseholdTimelineItem {
@@ -72,12 +58,15 @@ export function normalizeNoteToTimelineItem(note: HouseholdNote): HouseholdTimel
 export function normalizeActivityToTimelineItem(
   activity: HouseholdActivityRecord,
 ): HouseholdTimelineItem {
-  const mapped = mapActivityType(activity.activity_type)
+  const platform = normalizeHouseholdActivityRecord(activity)
+  const presentation = mapActivityToTimelinePresentation(platform)
+  const enrichedMetadata = enrichHouseholdActivityMetadata(activity)
+
   return {
     id: activityTimelineId(activity.id),
     householdId: activity.household_id,
-    activityType: mapped.activityType,
-    displayVariant: mapped.displayVariant,
+    activityType: presentation.timelineActivityType,
+    displayVariant: toCrmDisplayVariant(presentation.displayVariant),
     title: activity.title || 'Activity',
     body: activity.body,
     actorUserId: activity.actor_user_id,
@@ -89,7 +78,7 @@ export function normalizeActivityToTimelineItem(
     isEditable: false,
     isDeletable: false,
     isEdited: false,
-    metadata: activity.metadata,
+    metadata: enrichedMetadata,
   }
 }
 

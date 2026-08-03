@@ -1,4 +1,5 @@
 import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js'
+import { recordActivityBestEffort } from '../../platform/activities'
 import { reconcileLeadFollowUpTaskState } from './followUp/reconcileLeadFollowUp'
 import type {
   AssigneeOption,
@@ -141,6 +142,32 @@ export async function createTask(
         `${reconciled.error} The task was created, but lead follow-up status still needs reconciliation.`,
       )
     }
+  }
+
+  // Activity Engine: best-effort timeline publish (never blocks task creation).
+  // Automated Family ingest tasks are created via RPC (already writes activities).
+  const sourceType = input.source_type ?? 'manual'
+  if (sourceType === 'manual') {
+    await recordActivityBestEffort(supabase, {
+      householdId: created.household_id,
+      eventKey: 'tasks.manual.created',
+      title: created.title.trim() || 'Task created',
+      // Do not copy task description / contact content into the timeline body.
+      body: null,
+      moduleKey: 'tasks',
+      entityType: 'task',
+      entityId: created.id,
+      leadId: created.lead_id ?? null,
+      assessmentId: created.assessment_id ?? null,
+      opportunityId: created.opportunity_id,
+      actorKind: 'user',
+      metadata: {
+        taskId: created.id,
+        workflowType: created.workflow_type ?? null,
+        sourceType,
+        idempotencyKey: `task_created:${created.id}`,
+      },
+    })
   }
 
   return created

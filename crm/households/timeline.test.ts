@@ -102,7 +102,12 @@ describe('normalizeActivityToTimelineItem', () => {
     expect(item.isEditable).toBe(false)
     expect(item.isDeletable).toBe(false)
     expect(item.isEdited).toBe(false)
-    expect(item.metadata).toEqual({ reason: 'manual' })
+    expect(item.metadata).toMatchObject({
+      reason: 'manual',
+      eventKey: 'crm.household.assigned',
+      module: 'households',
+      visibility: 'internal',
+    })
   })
 
   it('maps activity.occurred_at to occurredAt', () => {

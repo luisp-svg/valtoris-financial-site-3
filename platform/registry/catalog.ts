@@ -145,6 +145,13 @@ export const MODULE_CATALOG: readonly ModuleManifest[] = [
     route: '/crm/households',
     category: 'advisor_os',
     permissions: ['crm.nav.view', 'household.read'],
+    activityTypes: [
+      { eventKey: 'crm.household.assigned' },
+      { eventKey: 'crm.household.stage_changed' },
+      { eventKey: 'onboarding.completed' },
+      { eventKey: 'notes.added' },
+    ],
+    dependencies: ['activities'],
   }),
   shellNav({
     key: 'pipeline',
@@ -169,6 +176,12 @@ export const MODULE_CATALOG: readonly ModuleManifest[] = [
       { workflowType: 'review_initial_diagnostic' },
       { workflowType: 'resolve_possible_duplicate' },
     ],
+    activityTypes: [
+      { eventKey: 'tasks.manual.created' },
+      { eventKey: 'tasks.automated.created' },
+      { eventKey: 'tasks.completed' },
+    ],
+    dependencies: ['activities'],
   }),
   shellNav({
     key: 'appointments',
@@ -355,7 +368,45 @@ export const MODULE_CATALOG: readonly ModuleManifest[] = [
     dependencies: ['documents', 'notifications'],
   }),
 
-  // ----- Platform engines (registered; implementation sprints later) -----
+  // ----- Platform engines -----
+  {
+    key: 'activities',
+    displayName: 'Activity Engine',
+    description:
+      'Universal household timeline and activity publish/normalize services for all AOS modules.',
+    kind: 'platform',
+    category: 'platform_engine',
+    icon: 'activities',
+    status: 'active',
+    featureFlag: { enabled: true },
+    permissions: ['activity.read', 'activity.write'],
+    navigation: { visible: false, placement: 'none', order: 1000 },
+    activityTypes: [
+      { eventKey: 'crm.lead.created' },
+      { eventKey: 'diagnostic.ifd.submitted' },
+      { eventKey: 'crm.duplicate.resolved' },
+      { eventKey: 'tasks.automated.created' },
+      { eventKey: 'tasks.manual.created' },
+      { eventKey: 'tasks.completed' },
+      { eventKey: 'crm.household.stage_changed' },
+      { eventKey: 'crm.opportunity.stage_changed' },
+      { eventKey: 'crm.household.assigned' },
+      { eventKey: 'crm.recommendation.converted' },
+      { eventKey: 'onboarding.completed' },
+      { eventKey: 'notes.added' },
+    ],
+    taskWorkflows: [],
+    supportedDocuments: [],
+    supportedNotifications: [],
+    aiCapabilities: [{ useCase: 'activity.summarize', description: 'Future AI timeline summary' }],
+    caseTypes: [],
+    futureExtensions: {
+      engine: 'activity_engine',
+      sprint: '4B.3',
+      caseIdSupport: 'metadata.caseId',
+      schemaStrategy: 'reuse_public_activities_plus_metadata',
+    },
+  },
   registeredModule({
     key: 'cases',
     displayName: 'Case Engine',
@@ -365,7 +416,7 @@ export const MODULE_CATALOG: readonly ModuleManifest[] = [
     icon: 'cases',
     permissions: ['case.read', 'case.write'],
     caseTypes: [],
-    dependencies: ['tasks'],
+    dependencies: ['tasks', 'activities'],
   }),
   registeredModule({
     key: 'workflows',
