@@ -97,6 +97,7 @@ describe('Module Registry', () => {
     expect(requireModule('module_registry').kind).toBe('platform')
     expect(requireModule('cases').status).toBe('active')
     expect(requireModule('workflows').status).toBe('active')
+    expect(requireModule('documents').status).toBe('active')
     expect(requireModule('ai').status).toBe('registered')
   })
 
@@ -136,9 +137,10 @@ describe('Module Registry semantics: registered vs enabled vs visible vs declare
     expect(enabledKeys.has('appointments')).toBe(true) // placeholder but feature-enabled for nav
     expect(enabledKeys.has('credit_repair')).toBe(false)
     expect(enabledKeys.has('ai')).toBe(false)
-    // Case / Workflow Engine foundations are enabled as platform services (no sidebar nav).
+    // Case / Workflow / Document Engine foundations are enabled as platform services (no sidebar nav).
     expect(enabledKeys.has('cases')).toBe(true)
     expect(enabledKeys.has('workflows')).toBe(true)
+    expect(enabledKeys.has('documents')).toBe(true)
   })
 
   it('excludes invisible modules from sidebar helpers even when registered', () => {
@@ -157,7 +159,14 @@ describe('Module Registry semantics: registered vs enabled vs visible vs declare
     expect(findModuleByNavPath('/crm/intake')?.key).toBe('intake')
 
     // Registered-only modules never surface as sidebar destinations.
-    for (const key of ['credit_repair', 'business_funding', 'ai', 'workflows', 'cases'] as const) {
+    for (const key of [
+      'credit_repair',
+      'business_funding',
+      'ai',
+      'workflows',
+      'cases',
+      'documents',
+    ] as const) {
       const module = requireModule(key)
       expect(module.navigation.visible).toBe(false)
       expect(sidebarKeys.has(key)).toBe(false)
