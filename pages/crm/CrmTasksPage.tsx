@@ -31,6 +31,8 @@ const EMPTY_FORM: CreateTaskInput & { lead_id: string } = {
   household_id: '',
   opportunity_id: null,
   lead_id: '',
+  source_type: 'manual',
+  workflow_type: null,
 }
 
 function formatDueDate(value: string | null): string {
@@ -249,6 +251,9 @@ export default function CrmTasksPage() {
           assigned_user_id: form.assigned_user_id,
           household_id: form.household_id,
           opportunity_id: form.opportunity_id,
+          lead_id: form.lead_id || null,
+          source_type: 'manual',
+          workflow_type: form.workflow_type ?? null,
         },
         profile.id,
       )
@@ -434,9 +439,39 @@ export default function CrmTasksPage() {
                   ))}
                 </select>
                 <span className="crm-field-hint">
-                  Sets the household only — tasks have no lead_id column.
+                  Sets the household from the selected lead. Manual tasks may link lead_id; they never
+                  receive an automation idempotency key.
                 </span>
               </label>
+
+              <div className="crm-field">
+                <button
+                  type="button"
+                  className="platform-btn platform-btn-outline"
+                  disabled={submitting}
+                  onClick={() => {
+                    // Safe default suggestion: review-only wording (no outreach instructions).
+                    setForm((prev) => ({
+                      ...prev,
+                      title: 'Review Initial Financial Diagnostic — no contact permission',
+                      description: [
+                        'Internal CRM review task for a public Family Report Card Initial Financial Diagnostic.',
+                        'Contact permission was not granted.',
+                        'Internal review only. Do not initiate outreach based solely on this submission.',
+                        'Completing this task does not mark the diagnostic as advisor-reviewed.',
+                      ].join('\n'),
+                      workflow_type: 'review_initial_diagnostic',
+                      source_type: 'manual',
+                    }))
+                  }}
+                >
+                  Suggest review-only diagnostic wording
+                </button>
+                <span className="crm-field-hint">
+                  Prefills internal review language without call/text/email outreach instructions.
+                  Confirm consent before changing wording.
+                </span>
+              </div>
 
               <label className="crm-field">
                 Opportunity (optional)

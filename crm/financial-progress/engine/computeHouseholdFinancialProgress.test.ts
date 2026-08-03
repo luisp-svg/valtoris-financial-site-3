@@ -165,6 +165,7 @@ describe('computeHouseholdFinancialProgress', () => {
         family: {
           id: 'a1',
           assessment_type: 'family',
+          capture_channel: 'unknown',
           overall_score: 60,
           overall_grade: 'D',
           completed_at: '2026-06-01T00:00:00.000Z',
@@ -218,6 +219,7 @@ describe('computeHouseholdFinancialProgress', () => {
         retirement: {
           id: 'a-ret',
           assessment_type: 'retirement',
+          capture_channel: 'unknown',
           overall_score: 70,
           overall_grade: 'C',
           completed_at: '2026-06-01T00:00:00.000Z',

@@ -1,0 +1,239 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { scoreFamilyAssessment } from '../../assessment/scoring/scoreFamilyAssessment'
+import { validFamilyAnswersFixture } from '../../../server/ingest/familyReportCard/testFixtures'
+import { completeFamilyReportCardCrmSubmission } from './completeFamilyReportCardSubmission'
+import { INITIAL_FAMILY_CONSENT_STATE } from './familyConsent'
+import {
+  beginNewFamilyAssessmentSession,
+  clearFamilyIngestSession,
+  ensureFamilySubmissionId,
+} from './submissionSession'
+
+function installMemorySessionStorage() {
+  const store = new Map<string, string>()
+  Object.defineProperty(globalThis, 'sessionStorage', {
+    configurable: true,
+    value: {
+      get length() {
+        return store.size
+      },
+      clear: () => store.clear(),
+      getItem: (key: string) => (store.has(key) ? store.get(key)! : null),
+      key: (index: number) => [...store.keys()][index] ?? null,
+      removeItem: (key: string) => {
+        store.delete(key)
+      },
+      setItem: (key: string, value: string) => {
+        store.set(key, String(value))
+      },
+    } satisfies Storage,
+  })
+}
+
+const requiredConsent = {
+  ...INITIAL_FAMILY_CONSENT_STATE,
+  assessmentStorageAcknowledged: true,
+  privacyAcknowledged: true,
+}
+
+describe('completeFamilyReportCardCrmSubmission', () => {
+  beforeEach(() => {
+    installMemorySessionStorage()
+    clearFamilyIngestSession()
+  })
+
+  afterEach(() => {
+    clearFamilyIngestSession()
+    vi.unstubAllGlobals()
+  })
+
+  it('stays on form when required consent is missing', async () => {
+    const session = beginNewFamilyAssessmentSession({ nowIso: '2026-07-28T20:00:00.000Z' })
+    const { result } = await completeFamilyReportCardCrmSubmission({
+      answers: validFamilyAnswersFixture(),
+      consent: INITIAL_FAMILY_CONSENT_STATE,
+      session,
+    })
+    expect(result.ok).toBe(false)
+    expect(result.navigateToResults).toBe(false)
+    if (!result.ok) expect(result.code).toBe('consent_required')
+  })
+
+  it('navigates on CRM success even when Sheets sync failed', async () => {
+    const session = beginNewFamilyAssessmentSession({ nowIso: '2026-07-28T20:00:00.000Z' })
+    const fetchImpl = vi.fn(async () =>
+      new Response(
+        JSON.stringify({
+          ok: true,
+          created: true,
+          submissionId: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+          assessmentId: 'assess-1',
+          matchStatus: 'new_prospect',
+          sheetsSync: { status: 'failed', errorCategory: 'timeout' },
+        }),
+        { status: 201 },
+      ),
+    )
+
+    const { result, session: nextSession } = await completeFamilyReportCardCrmSubmission({
+      answers: validFamilyAnswersFixture(),
+      consent: requiredConsent,
+      session,
+      randomUuid: () => 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+      submitOptions: { fetchImpl: fetchImpl as never },
+    })
+
+    expect(result.ok).toBe(true)
+    expect(result.navigateToResults).toBe(true)
+    if (result.ok) {
+      expect(result.crm.sheetsSyncStatus).toBe('failed')
+      expect(result.submissionId).toBe('aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee')
+    }
+    expect(nextSession.status).toBe('succeeded')
+    expect(fetchImpl).toHaveBeenCalledTimes(1)
+  })
+
+  it('stays on form on CRM failure and reuses the same submission ID on retry', async () => {
+    let session = beginNewFamilyAssessmentSession({ nowIso: '2026-07-28T20:00:00.000Z' })
+    const failingFetch = vi.fn(async () => new Response(JSON.stringify({ ok: false }), { status: 500 }))
+
+    const first = await completeFamilyReportCardCrmSubmission({
+      answers: validFamilyAnswersFixture(),
+      consent: requiredConsent,
+      session,
+      randomUuid: () => 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+      submitOptions: { fetchImpl: failingFetch as never },
+    })
+    expect(first.result.ok).toBe(false)
+    expect(first.result.navigateToResults).toBe(false)
+    expect(first.session.submissionId).toBe('aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee')
+    expect(first.session.status).toBe('failed')
+
+    session = first.session
+    const successFetch = vi.fn(async () =>
+      new Response(
+        JSON.stringify({
+          ok: true,
+          created: false,
+          submissionId: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+          assessmentId: 'assess-1',
+          matchStatus: 'new_prospect',
+          sheetsSync: { status: 'succeeded' },
+        }),
+        { status: 200 },
+      ),
+    )
+
+    const retry = await completeFamilyReportCardCrmSubmission({
+      answers: validFamilyAnswersFixture(),
+      consent: requiredConsent,
+      session,
+      randomUuid: () => 'ffffffff-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+      submitOptions: { fetchImpl: successFetch as never },
+    })
+
+    expect(retry.result.ok).toBe(true)
+    if (retry.result.ok) {
+      expect(retry.result.submissionId).toBe('aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee')
+    }
+    expect(successFetch).toHaveBeenCalled()
+    const retryCalls = successFetch.mock.calls as unknown as Array<[unknown, RequestInit?]>
+    const retryBody = JSON.parse(String(retryCalls[0]?.[1]?.body ?? '{}'))
+    expect(retryBody.submissionId).toBe('aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee')
+  })
+
+  it('preserves client score comparison fields without changing scoring output', async () => {
+    const answers = validFamilyAnswersFixture()
+    const expected = scoreFamilyAssessment(answers)
+    const session = beginNewFamilyAssessmentSession({ nowIso: '2026-07-28T20:00:00.000Z' })
+    const fetchImpl = vi.fn(async () =>
+      new Response(
+        JSON.stringify({
+          ok: true,
+          created: true,
+          submissionId: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+          assessmentId: 'assess-1',
+          matchStatus: 'new_prospect',
+          sheetsSync: { status: 'succeeded' },
+        }),
+        { status: 201 },
+      ),
+    )
+
+    await completeFamilyReportCardCrmSubmission({
+      answers,
+      consent: requiredConsent,
+      session,
+      randomUuid: () => 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+      submitOptions: { fetchImpl: fetchImpl as never },
+    })
+
+    expect(fetchImpl).toHaveBeenCalled()
+    const calls = fetchImpl.mock.calls as unknown as Array<[unknown, RequestInit?]>
+    const body = JSON.parse(String(calls[0]?.[1]?.body ?? '{}'))
+    expect(body.clientReportedScore).toBe(expected.overallScore)
+    expect(body.clientReportedGrade).toBe(expected.overallGrade)
+    expect(body.website).toBe('')
+    expect(body.assessmentType).toBe('family')
+  })
+
+  it('navigates on CRM success when API omits task-automation details (task failure must not block)', async () => {
+    const session = beginNewFamilyAssessmentSession({ nowIso: '2026-07-28T20:00:00.000Z' })
+    const fetchImpl = vi.fn(async () =>
+      new Response(
+        JSON.stringify({
+          ok: true,
+          created: true,
+          submissionId: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+          assessmentId: 'assess-1',
+          matchStatus: 'new_prospect',
+          sheetsSync: { status: 'succeeded' },
+          // Public contract does not require task automation fields on the visitor response.
+        }),
+        { status: 201 },
+      ),
+    )
+
+    const { result } = await completeFamilyReportCardCrmSubmission({
+      answers: validFamilyAnswersFixture(),
+      consent: requiredConsent,
+      session,
+      randomUuid: () => 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+      submitOptions: { fetchImpl: fetchImpl as never },
+    })
+
+    expect(result.ok).toBe(true)
+    expect(result.navigateToResults).toBe(true)
+    expect(JSON.stringify(result)).not.toMatch(/task_failed|CRM_TASK|soft_deleted/i)
+  })
+
+  it('does not call Google Sheets from the browser orchestration path', async () => {
+    const session = beginNewFamilyAssessmentSession({ nowIso: '2026-07-28T20:00:00.000Z' })
+    ensureFamilySubmissionId(session, () => 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee')
+    const fetchImpl = vi.fn(async (url: string) => {
+      expect(String(url)).not.toMatch(/script\.google\.com/)
+      return new Response(
+        JSON.stringify({
+          ok: true,
+          created: true,
+          submissionId: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+          assessmentId: 'assess-1',
+          matchStatus: 'new_prospect',
+          sheetsSync: { status: 'succeeded' },
+        }),
+        { status: 201 },
+      )
+    })
+
+    await completeFamilyReportCardCrmSubmission({
+      answers: validFamilyAnswersFixture(),
+      consent: requiredConsent,
+      session,
+      randomUuid: () => 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+      submitOptions: { fetchImpl: fetchImpl as never },
+    })
+
+    expect(fetchImpl).toHaveBeenCalledTimes(1)
+    expect(String(fetchImpl.mock.calls[0]?.[0])).toBe('/api/ingest-family-report-card')
+  })
+})

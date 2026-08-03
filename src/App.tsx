@@ -22,14 +22,17 @@ import FamilyReportCardPage from '../pages/FamilyReportCardPage'
 import ProtectionAnalysisPage from '../pages/ProtectionAnalysisPage'
 import SolutionsPage from '../pages/SolutionsPage'
 import ScheduleReportCardPage from '../pages/ScheduleReportCardPage'
+import PrivacyPolicyPage from '../pages/PrivacyPolicyPage'
 import NotFoundPage from '../pages/NotFoundPage'
 import CrmLoginPage from '../pages/crm/CrmLoginPage'
 import CrmHomePage from '../pages/crm/CrmHomePage'
 import CrmHouseholdsPage from '../pages/crm/CrmHouseholdsPage'
 import CrmHouseholdWorkspacePage from '../pages/crm/CrmHouseholdWorkspacePage'
 import CrmHouseholdOnboardingPage from '../pages/crm/CrmHouseholdOnboardingPage'
+import CrmHouseholdAssessmentsPage from '../pages/crm/CrmHouseholdAssessmentsPage'
 import CrmOpportunitiesPage from '../pages/crm/CrmOpportunitiesPage'
 import CrmOpportunityWorkspacePage from '../pages/crm/CrmOpportunityWorkspacePage'
+import CrmIntakePage from '../pages/crm/CrmIntakePage'
 import CrmPlaceholderPage from '../pages/crm/CrmPlaceholderPage'
 import CrmTasksPage from '../pages/crm/CrmTasksPage'
 
@@ -130,6 +133,14 @@ export default function App() {
           </SiteLayout>
         }
       />
+      <Route
+        path={ROUTES.privacy}
+        element={
+          <SiteLayout>
+            <PrivacyPolicyPage />
+          </SiteLayout>
+        }
+      />
       <Route path="/business" element={<Navigate to={ROUTES.businessReportCard} replace />} />
 
       <Route path="/crm" element={<CrmAuthLayout />}>
@@ -138,11 +149,20 @@ export default function App() {
         </Route>
         <Route element={<CrmProtectedGate />}>
           <Route index element={<CrmHomePage />} />
-          <Route path="leads" element={<CrmPlaceholderPage />} />
+          <Route path="intake" element={<CrmIntakePage />} />
+          <Route path="leads" element={<Navigate to={ROUTES.crmIntake} replace />} />
           <Route path="households" element={<CrmHouseholdsPage />} />
           <Route
             path="households/:householdId/onboarding"
             element={<CrmHouseholdOnboardingPage />}
+          />
+          <Route
+            path="households/:householdId/assessments/:assessmentId"
+            element={<CrmHouseholdAssessmentsPage />}
+          />
+          <Route
+            path="households/:householdId/assessments"
+            element={<CrmHouseholdAssessmentsPage />}
           />
           <Route path="households/:householdId" element={<CrmHouseholdWorkspacePage />} />
           <Route path="pipeline" element={<CrmOpportunitiesPage />} />

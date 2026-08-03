@@ -6,6 +6,7 @@ import {
 import { normalizeEmail, normalizePhone } from './normalizeContact'
 import { buildHouseholdTimeline } from './timeline'
 import type {
+  AssessmentCaptureChannel,
   CreateHouseholdMemberInput,
   CrmHouseholdDetail,
   CrmHouseholdListItem,
@@ -180,6 +181,47 @@ export const WORKSPACE_ASSESSMENT_TYPES: readonly WorkspaceAssessmentType[] = [
 ] as const
 
 const WORKSPACE_ASSESSMENT_TYPE_SET = new Set<string>(WORKSPACE_ASSESSMENT_TYPES)
+
+const ASSESSMENT_CAPTURE_CHANNELS = new Set<string>([
+  'public_self_report',
+  'advisor_onboarding',
+  'advisor_reviewed',
+  'imported',
+  'unknown',
+])
+
+export function normalizeAssessmentCaptureChannel(
+  value: unknown,
+): AssessmentCaptureChannel {
+  if (typeof value === 'string' && ASSESSMENT_CAPTURE_CHANNELS.has(value)) {
+    return value as AssessmentCaptureChannel
+  }
+  // Pre-020 rows / missing column → unknown (not trusted advisor evidence by accident).
+  return 'unknown'
+}
+
+/**
+ * Whether a completed workspace assessment may feed Household Financial Progress.
+ * Excludes public self-report Initial Financial Diagnostics by provenance — not by type alone.
+ */
+export function isEligibleForFinancialProgressEvidence(
+  assessment: Pick<HouseholdAssessmentSummary, 'capture_channel'>,
+): boolean {
+  return assessment.capture_channel !== 'public_self_report'
+}
+
+/**
+ * Public Family Report Card / Initial Financial Diagnostic rows remain queryable
+ * for CRM diagnostic history (separate from Financial Progress evidence).
+ */
+export function isPublicFamilyDiagnostic(
+  assessment: Pick<HouseholdAssessmentSummary, 'assessment_type' | 'capture_channel'>,
+): boolean {
+  return (
+    assessment.assessment_type === 'family' &&
+    assessment.capture_channel === 'public_self_report'
+  )
+}
 
 export function formatSupabaseError(source: string, error: unknown): string {
   if (error instanceof Error && error.name === 'PrimarySwitchMutationError') {
@@ -723,7 +765,7 @@ async function fetchOpenTasksForHousehold(
 ): Promise<HouseholdOpenTaskSummary[]> {
   const { data, error } = await supabase
     .from('tasks')
-    .select('id, title, due_date, priority, status')
+    .select('id, title, due_date, priority, status, assigned_user_id, workflow_type, assessment_id, lead_id')
     .eq('household_id', householdId)
     .is('deleted_at', null)
     .in('status', ['open', 'in_progress'])
@@ -737,6 +779,10 @@ async function fetchOpenTasksForHousehold(
     due_date: (row.due_date as string | null) ?? null,
     priority: String(row.priority),
     status: String(row.status),
+    assigned_user_id: (row.assigned_user_id as string | null) ?? null,
+    workflow_type: (row.workflow_type as string | null) ?? null,
+    assessment_id: (row.assessment_id as string | null) ?? null,
+    lead_id: (row.lead_id as string | null) ?? null,
   }))
 }
 
@@ -787,6 +833,7 @@ function normalizeAssessmentAnswers(
 /**
  * Normalizes a completed workspace assessment row.
  * Rejects onboarding types, drafts, missing completed_at, and soft-deleted rows.
+ * Does not filter by capture_channel — callers decide FP vs diagnostic eligibility.
  */
 export function normalizeWorkspaceAssessment(
   row: Record<string, unknown>,
@@ -818,13 +865,16 @@ export function normalizeWorkspaceAssessment(
           : Number(row.overall_score),
     overall_grade: (row.overall_grade as string | null) ?? null,
     completed_at: completedAt,
+    capture_channel: normalizeAssessmentCaptureChannel(row.capture_channel),
     answers: normalizeAssessmentAnswers(row.answers),
     derived_metrics: normalizeAssessmentAnswers(row.derived_metrics),
+    priorities: Array.isArray(row.priorities) ? row.priorities : null,
   }
 }
 
 /**
- * Picks the latest completed assessment per workspace type from already-fetched rows.
+ * Picks the latest completed assessment per workspace type that is eligible for
+ * Household Financial Progress evidence (excludes public_self_report).
  * Pure helper for tests and fetchAssessmentsForHousehold.
  */
 export function selectLatestWorkspaceAssessments(
@@ -843,6 +893,7 @@ export function selectLatestWorkspaceAssessments(
   for (const row of rows) {
     const assessment = normalizeWorkspaceAssessment(row)
     if (!assessment) continue
+    if (!isEligibleForFinancialProgressEvidence(assessment)) continue
     if (assessment.assessment_type === 'family' && !familyAssessment) {
       familyAssessment = assessment
     } else if (assessment.assessment_type === 'business' && !businessAssessment) {
@@ -862,6 +913,21 @@ export function selectLatestWorkspaceAssessments(
   }
 }
 
+/**
+ * Latest completed public Family Initial Financial Diagnostic for CRM display.
+ * Does not feed Financial Progress; history is never deleted by this helper.
+ */
+export function selectLatestPublicFamilyDiagnostic(
+  rows: readonly Record<string, unknown>[],
+): HouseholdAssessmentSummary | null {
+  for (const row of rows) {
+    const assessment = normalizeWorkspaceAssessment(row)
+    if (!assessment) continue
+    if (isPublicFamilyDiagnostic(assessment)) return assessment
+  }
+  return null
+}
+
 async function fetchAssessmentsForHousehold(
   supabase: SupabaseClient,
   householdId: string,
@@ -870,11 +936,13 @@ async function fetchAssessmentsForHousehold(
   businessAssessment: HouseholdAssessmentSummary | null
   protectionAssessment: HouseholdAssessmentSummary | null
   retirementAssessment: HouseholdAssessmentSummary | null
+  publicFamilyDiagnostic: HouseholdAssessmentSummary | null
+  publicFamilyDiagnosticCount: number
 }> {
   const { data, error } = await supabase
     .from('assessments')
     .select(
-      'id, assessment_type, status, overall_score, overall_grade, completed_at, answers, derived_metrics, deleted_at',
+      'id, assessment_type, status, overall_score, overall_grade, completed_at, capture_channel, answers, derived_metrics, priorities, deleted_at',
     )
     .eq('household_id', householdId)
     .in('assessment_type', [...WORKSPACE_ASSESSMENT_TYPES])
@@ -882,10 +950,25 @@ async function fetchAssessmentsForHousehold(
     .not('completed_at', 'is', null)
     .is('deleted_at', null)
     .order('completed_at', { ascending: false })
+    .order('id', { ascending: false })
 
   if (error) throw error
 
-  return selectLatestWorkspaceAssessments((data ?? []) as Record<string, unknown>[])
+  const rows = (data ?? []) as Record<string, unknown>[]
+  const selected = selectLatestWorkspaceAssessments(rows)
+  let publicFamilyDiagnosticCount = 0
+  for (const row of rows) {
+    const assessment = normalizeWorkspaceAssessment(row)
+    if (assessment && isPublicFamilyDiagnostic(assessment)) {
+      publicFamilyDiagnosticCount += 1
+    }
+  }
+
+  return {
+    ...selected,
+    publicFamilyDiagnostic: selectLatestPublicFamilyDiagnostic(rows),
+    publicFamilyDiagnosticCount,
+  }
 }
 
 async function fetchLatestAnnualReview(
@@ -1081,6 +1164,8 @@ export async function fetchHouseholdWorkspace(
         businessAssessment: null,
         protectionAssessment: null,
         retirementAssessment: null,
+        publicFamilyDiagnostic: null,
+        publicFamilyDiagnosticCount: 0,
       },
       'assessments',
     ),
@@ -1130,6 +1215,8 @@ export async function fetchHouseholdWorkspace(
     businessAssessment: assessments.businessAssessment,
     protectionAssessment: assessments.protectionAssessment,
     retirementAssessment: assessments.retirementAssessment,
+    publicFamilyDiagnostic: assessments.publicFamilyDiagnostic,
+    publicFamilyDiagnosticCount: assessments.publicFamilyDiagnosticCount,
     annualReview,
     recentActivities,
     notes,

@@ -167,6 +167,85 @@ The service role bypasses RLS.
 
 ---
 
+## Public Family Report Card ingest (migration 020)
+
+`020_public_family_diagnostic_ingest.sql` adds the server-side foundation for the public Family
+Report Card calculator to write directly into the CRM:
+
+- `assessments.capture_channel` — provenance enum; public self-reports use `public_self_report` and
+  are excluded from Household Financial Progress evidence (`isEligibleForFinancialProgressEvidence`
+  in `crm/households/householdsApi.ts`).
+- `leads.public_ingest_idempotency_key`, `sheets_sync_status`, `sheets_sync_error_category`,
+  `consent_snapshot`, `ingest_match_status` — idempotency, dual-write (Sheets) tracking, and identity
+  match classification for public submissions.
+- `public.ingest_public_family_report_card(p_payload jsonb)` — atomic, `service_role`-only RPC that
+  creates/matches a household, writes the lead + assessment history, and is idempotent on
+  `public_ingest_idempotency_key`.
+- `public.update_lead_sheets_sync(...)` — `service_role`-only RPC to record the secondary Sheets
+  write outcome on a lead.
+
+The application-layer endpoint is `api/ingest-family-report-card.ts`, backed by
+`server/ingest/familyReportCard/` (validation, scoring recalculation, identity matching, and RPC
+orchestration). It uses `lib/supabase/admin.ts` (`createSupabaseAdminClient`), which requires
+`SUPABASE_SERVICE_ROLE_KEY` and must never run in browser code.
+
+**Phase 3 client wiring:** `/family-assessment` posts only to `/api/ingest-family-report-card`.
+The browser no longer dual-writes Family assessment submissions to Google Sheets; Sheets is
+secondary via the server ingest path. Business / Retirement / Protection Gap / LeadForm browser
+Sheets paths remain unchanged.
+
+**Vercel / server env for Family CRM capture:** `SUPABASE_URL` (or `VITE_SUPABASE_URL` fallback),
+`SUPABASE_SERVICE_ROLE_KEY` (never `VITE_*`), and optionally `GOOGLE_SHEETS_CALCULATOR_WEBHOOK_URL`.
+
+---
+
+## Public Family duplicate resolution (migration 021)
+
+`021_public_family_duplicate_resolution.sql` adds owner-only transactional resolution for Intake
+possible matches:
+
+- `public.resolve_public_family_duplicate_review(p_duplicate_review_id, p_action, p_resolution_notes)`
+  — authenticated + `crm_is_owner()` inside; actions `confirm_same_household` | `keep_separate`.
+- Confirm re-links lead + public assessment to the candidate household, sets provisional
+  `merged_into_household_id`, preserves `capture_channel = public_self_report`, never overwrites
+  canonical contact fields, and aborts if the provisional household has unexpected dependents.
+- Keep separate resolves the review as `confirmed_unique` and leaves the provisional household active.
+- CRM UI: `/crm/intake` owner confirmation dialogs call the RPC via the authenticated browser client
+  (no service-role). Advisors cannot resolve (intentional v1).
+
+Smoke SQL: `scripts/sql/verify-021-duplicate-resolution.sql` (not an applied migration).
+
+---
+
+## Public Family follow-up task automation (migration 022)
+
+`022_public_family_task_automation.sql` adds consent-aware **internal** CRM tasks after Family ingest
+and after duplicate resolution:
+
+- Tasks: `lead_id`, `assessment_id`, `source_type`, `workflow_type`, `automation_idempotency_key`, `metadata`
+- Leads: `follow_up_task_automation_status`, `follow_up_task_id`, attempt/error bookkeeping
+- `create_public_family_follow_up_task` — owner + `service_role` (not anon)
+- `update_public_family_task_automation_status` — `service_role` only
+- Workflows: `review_initial_diagnostic` | `resolve_possible_duplicate` only
+- Idempotency key: `public_family:{assessment_id}:{workflow_type}` (partial unique; soft-deleted keys are not silently recreated)
+
+**Failure semantics:** task automation failure never rolls back lead/assessment/household persistence.
+Public visitor responses omit task IDs/errors. Manual diagnostic tasks reconcile lead status under
+authenticated RLS via `crm/tasks/followUp/reconcileLeadFollowUp.ts` (no migration 023).
+
+Remote apply order after 019: **020 → 021 → 022 → 023**.
+
+Migration **023** (`023_confirm_same_allows_ingest_resolve_task.sql`) lets
+`confirm_same_household` ignore the expected automatic `resolve_possible_duplicate`
+task and completes that task on successful resolution. See
+`docs/proposed-migration-023-confirm-same-resolve-task.md`.
+
+Local CRM scenario seed (optional): `scripts/sql/qa-sprint-4a3/`.
+
+Release checklist: `docs/sprint-4a3-release-checklist.md`.
+
+---
+
 ## Storage policy assumptions (migration 013)
 
 1. Migrator has rights to insert `storage.buckets` and create policies on `storage.objects`.

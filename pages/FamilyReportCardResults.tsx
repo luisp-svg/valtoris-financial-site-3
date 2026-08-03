@@ -43,6 +43,15 @@ export default function FamilyReportCardResults() {
           <AssessmentBrandHeader />
         </header>
 
+        <p className="family-results-diagnostic-label">
+          Family Financial Report Card™ · Initial Financial Diagnostic
+        </p>
+        <p className="family-results-disclaimer">
+          These results are educational estimates based on self-reported information. They are not
+          financial, legal, tax, investment, credit, or insurance advice, and they are not a
+          guarantee. An advisor review may reach different conclusions.
+        </p>
+
         {submissionWarning ? (
           <p className="submission-notice" role="status">
             {submissionWarning}

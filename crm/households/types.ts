@@ -45,6 +45,17 @@ export type WorkspaceAssessmentType =
 /** `public.assessment_status` lifecycle values. */
 export type AssessmentLifecycleStatus = 'draft' | 'completed'
 
+/**
+ * `public.assessment_capture_channel` provenance values (migration 020).
+ * Public self-reports must not feed Household Financial Progress evidence.
+ */
+export type AssessmentCaptureChannel =
+  | 'public_self_report'
+  | 'advisor_onboarding'
+  | 'advisor_reviewed'
+  | 'imported'
+  | 'unknown'
+
 export type HouseholdMemberSummary = {
   id: string
   household_id: string
@@ -120,6 +131,10 @@ export type HouseholdOpenTaskSummary = {
   due_date: string | null
   priority: string
   status: string
+  assigned_user_id?: string | null
+  workflow_type?: string | null
+  assessment_id?: string | null
+  lead_id?: string | null
 }
 
 export type HouseholdOpenOpportunitySummary = {
@@ -139,6 +154,11 @@ export type HouseholdAssessmentSummary = {
   /** Always set for workspace summaries (completed assessments only). */
   completed_at: string
   /**
+   * Provenance channel (migration 020). Missing/legacy rows behave as `unknown`.
+   * `public_self_report` is excluded from Financial Progress evidence selection.
+   */
+  capture_channel: AssessmentCaptureChannel
+  /**
    * Raw assessment answers JSON from `assessments.answers`.
    * Used by Financial Progress calculators; UI widgets ignore this field.
    */
@@ -148,6 +168,11 @@ export type HouseholdAssessmentSummary = {
    * May include a previously calculated protection need for adequacy scoring.
    */
   derived_metrics: Record<string, unknown> | null
+  /**
+   * Optional stored priorities JSON (`assessments.priorities`).
+   * Used by Initial Financial Diagnostic overview/history; FP calculators ignore it.
+   */
+  priorities?: unknown[] | null
 }
 
 /** CRM Household Onboarding row (`assessment_type = household_onboarding`). */
@@ -312,6 +337,13 @@ export type CrmHouseholdWorkspace = {
   businessAssessment: HouseholdAssessmentSummary | null
   protectionAssessment: HouseholdAssessmentSummary | null
   retirementAssessment: HouseholdAssessmentSummary | null
+  /**
+   * Latest completed public Family Initial Financial Diagnostic.
+   * Never used as Financial Progress evidence.
+   */
+  publicFamilyDiagnostic: HouseholdAssessmentSummary | null
+  /** Count of completed public Family diagnostics (for history CTA). */
+  publicFamilyDiagnosticCount: number
   annualReview: HouseholdAnnualReviewSummary | null
   /** Overview preview (activities only, limited). */
   recentActivities: HouseholdActivitySummary[]

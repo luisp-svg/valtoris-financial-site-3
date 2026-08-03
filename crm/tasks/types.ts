@@ -5,6 +5,8 @@ export type CrmTask = {
   id: string
   household_id: string
   opportunity_id: string | null
+  lead_id?: string | null
+  assessment_id?: string | null
   title: string
   description: string | null
   due_date: string | null
@@ -12,6 +14,10 @@ export type CrmTask = {
   status: TaskStatus
   assigned_user_id: string | null
   created_by_user_id: string | null
+  source_type?: string | null
+  workflow_type?: string | null
+  automation_idempotency_key?: string | null
+  metadata?: Record<string, unknown>
   created_at: string
   completed_at: string | null
   deleted_at: string | null
@@ -51,4 +57,12 @@ export type CreateTaskInput = {
   assigned_user_id: string | null
   household_id: string
   opportunity_id: string | null
+  /** Optional lead linkage (migration 022). */
+  lead_id?: string | null
+  /** Optional assessment linkage (migration 022). */
+  assessment_id?: string | null
+  /** manual by default; never set automation idempotency key from the browser. */
+  source_type?: 'manual' | 'public_family_ingest' | 'duplicate_resolution' | 'system'
+  workflow_type?: 'review_initial_diagnostic' | 'resolve_possible_duplicate' | null
+  metadata?: Record<string, unknown>
 }

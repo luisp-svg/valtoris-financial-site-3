@@ -49,6 +49,7 @@ function makeFamilyAssessment(
   return {
     id: 'assess-family',
     assessment_type: 'family',
+    capture_channel: 'unknown',
     overall_score: 70,
     overall_grade: 'C',
     completed_at: '2026-06-01T00:00:00.000Z',

@@ -15,9 +15,11 @@ export const ROUTES = {
   retirementReportCardResults: '/retirement-results',
   checkup: '/checkup',
   schedule: '/schedule',
+  privacy: '/privacy',
   crm: '/crm',
   crmLogin: '/crm/login',
   crmLeads: '/crm/leads',
+  crmIntake: '/crm/intake',
   crmHouseholds: '/crm/households',
   crmPipeline: '/crm/pipeline',
   crmOpportunities: '/crm/opportunities',
@@ -31,6 +33,23 @@ export const ROUTES = {
 
 export function crmHouseholdPath(householdId: string): string {
   return `${ROUTES.crmHouseholds}/${householdId}`
+}
+
+/**
+ * Household assessment history (Initial Financial Diagnostic and future types).
+ */
+export function crmHouseholdAssessmentsPath(householdId: string): string {
+  return `${crmHouseholdPath(householdId)}/assessments`
+}
+
+/**
+ * Detail for one household assessment (public Family diagnostic in Phase 5).
+ */
+export function crmHouseholdAssessmentDetailPath(
+  householdId: string,
+  assessmentId: string,
+): string {
+  return `${crmHouseholdAssessmentsPath(householdId)}/${assessmentId}`
 }
 
 /**

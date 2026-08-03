@@ -39,6 +39,14 @@ export function getServerSupabaseAnonKey(): string {
   return readProcessEnv('SUPABASE_ANON_KEY') || readProcessEnv('VITE_SUPABASE_ANON_KEY')
 }
 
+/**
+ * SERVER ONLY — service-role secret. Never read from VITE_* / import.meta.env,
+ * and never expose the return value to the browser or client bundles.
+ */
+export function getServerSupabaseServiceRoleKey(): string {
+  return readProcessEnv('SUPABASE_SERVICE_ROLE_KEY')
+}
+
 export function assertPublicSupabaseEnv(): { url: string; anonKey: string } {
   const url = getSupabaseUrl()
   const anonKey = getSupabaseAnonKey()

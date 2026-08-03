@@ -1,4 +1,5 @@
 import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js'
+import { reconcileLeadFollowUpTaskState } from './followUp/reconcileLeadFollowUp'
 import type {
   AssigneeOption,
   CreateTaskInput,
@@ -12,6 +13,8 @@ const TASK_SELECT = `
   id,
   household_id,
   opportunity_id,
+  lead_id,
+  assessment_id,
   title,
   description,
   due_date,
@@ -19,6 +22,10 @@ const TASK_SELECT = `
   status,
   assigned_user_id,
   created_by_user_id,
+  source_type,
+  workflow_type,
+  automation_idempotency_key,
+  metadata,
   created_at,
   completed_at,
   deleted_at,
@@ -106,13 +113,37 @@ export async function createTask(
       assigned_user_id: input.assigned_user_id,
       household_id: input.household_id,
       opportunity_id: input.opportunity_id,
+      lead_id: input.lead_id ?? null,
+      assessment_id: input.assessment_id ?? null,
+      source_type: input.source_type ?? 'manual',
+      workflow_type: input.workflow_type ?? null,
+      automation_idempotency_key: null,
+      metadata: input.metadata ?? {},
       created_by_user_id: createdByUserId,
     })
     .select(TASK_SELECT)
     .single()
 
   if (error) throw error
-  return normalizeTask(data as Record<string, unknown>)
+
+  const created = normalizeTask(data as Record<string, unknown>)
+
+  // Manual diagnostic tasks must reconcile lead automation state under RLS.
+  // Failures are not swallowed — stale task_failed/task_pending is release risk.
+  if (input.lead_id && input.workflow_type) {
+    const reconciled = await reconcileLeadFollowUpTaskState(supabase, {
+      leadId: input.lead_id,
+      taskId: created.id,
+      status: 'task_manually_created',
+    })
+    if (!reconciled.ok) {
+      throw new Error(
+        `${reconciled.error} The task was created, but lead follow-up status still needs reconciliation.`,
+      )
+    }
+  }
+
+  return created
 }
 
 export async function fetchHouseholdOptions(

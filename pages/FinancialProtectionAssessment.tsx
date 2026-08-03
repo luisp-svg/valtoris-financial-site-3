@@ -1,11 +1,22 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ROUTES } from '../constants/routes'
-import { CALCULATOR_SUBMISSION_WARNING } from '../constants/urls'
 import AssessmentLayout from '../components/assessment/AssessmentLayout'
 import NavigationButtons from '../components/assessment/NavigationButtons'
 import { DEMO_ANSWERS_STORAGE_KEY, DEMO_ASSESSMENT_STEPS } from '../components/assessment/constants'
-import { submitFamilyReportCardLead } from '../components/reportCard/submitReportCardLead'
+import { completeFamilyReportCardCrmSubmission } from '../components/reportCard/familyIngest/completeFamilyReportCardSubmission'
+import {
+  applyPhoneChangeToConsent,
+  INITIAL_FAMILY_CONSENT_STATE,
+  type FamilyConsentField,
+  type FamilyConsentState,
+} from '../components/reportCard/familyIngest/familyConsent'
+import {
+  beginNewFamilyAssessmentSession,
+  ensureFamilyIngestSession,
+  type FamilyIngestSession,
+} from '../components/reportCard/familyIngest/submissionSession'
+import FamilyConsentSection from '../components/assessment/steps/FamilyConsentSection'
 import StepFiveGoals from '../components/assessment/steps/StepFiveGoals'
 import StepFourGuardian from '../components/assessment/steps/StepFourGuardian'
 import StepFourProtection from '../components/assessment/steps/StepFourProtection'
@@ -27,18 +38,63 @@ function childCount(family: FamilyAnswers): number {
   return Number.isFinite(count) && count > 0 ? count : 0
 }
 
+function readBrowserSearch(): string {
+  if (typeof window === 'undefined') return ''
+  return window.location.search
+}
+
+function readBrowserReferrer(): string | null {
+  if (typeof document === 'undefined') return null
+  return document.referrer || null
+}
+
 export default function FinancialProtectionAssessment() {
   const navigate = useNavigate()
   const [currentStep, setCurrentStep] = useState(1)
   const [protectionSubStep, setProtectionSubStep] = useState<1 | 2>(1)
   const [answers, setAnswers] = useState<DemoAssessmentAnswers>(INITIAL_DEMO_ANSWERS)
+  const [consent, setConsent] = useState<FamilyConsentState>(INITIAL_FAMILY_CONSENT_STATE)
+  const [honeypotWebsite, setHoneypotWebsite] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [consentMissing, setConsentMissing] = useState<
+    Array<'assessmentStorageAcknowledged' | 'privacyAcknowledged'>
+  >([])
+  const [showConsentErrors, setShowConsentErrors] = useState(false)
+  const [ingestSession, setIngestSession] = useState<FamilyIngestSession>(() =>
+    ensureFamilyIngestSession({
+      search: readBrowserSearch(),
+      referrer: readBrowserReferrer(),
+    }),
+  )
   const answersRef = useRef(answers)
+  const consentRef = useRef(consent)
+  const sessionRef = useRef(ingestSession)
+  const honeypotRef = useRef(honeypotWebsite)
   const previousStepRef = useRef(currentStep)
+  const statusRegionRef = useRef<HTMLParagraphElement | null>(null)
 
   useEffect(() => {
     answersRef.current = answers
   }, [answers])
+
+  useEffect(() => {
+    consentRef.current = consent
+  }, [consent])
+
+  useEffect(() => {
+    sessionRef.current = ingestSession
+  }, [ingestSession])
+
+  useEffect(() => {
+    honeypotRef.current = honeypotWebsite
+  }, [honeypotWebsite])
+
+  useEffect(() => {
+    if (submitError && statusRegionRef.current) {
+      statusRegionRef.current.focus()
+    }
+  }, [submitError])
 
   const hasChildren = childCount(answers.family) > 0
 
@@ -57,10 +113,16 @@ export default function FinancialProtectionAssessment() {
   }, [currentStep, protectionSubStep, answers])
 
   function updateFamily(field: keyof FamilyAnswers, value: string) {
-    setAnswers((current) => ({
-      ...current,
-      family: { ...current.family, [field]: value },
-    }))
+    setAnswers((current) => {
+      const nextFamily = { ...current.family, [field]: value }
+      if (field === 'phone') {
+        setConsent((prev) => applyPhoneChangeToConsent(prev, value))
+      }
+      return {
+        ...current,
+        family: nextFamily,
+      }
+    })
   }
 
   function updateFinancial(field: keyof FinancialAnswers, value: string) {
@@ -84,6 +146,33 @@ export default function FinancialProtectionAssessment() {
     }))
   }
 
+  function updateConsent(field: FamilyConsentField, value: boolean) {
+    setConsent((current) => {
+      if (field === 'smsMarketingConsent' && value && answersRef.current.family.phone.trim() === '') {
+        return current
+      }
+      return { ...current, [field]: value }
+    })
+    setShowConsentErrors(false)
+    setConsentMissing([])
+    setSubmitError(null)
+  }
+
+  function handleBeginAssessment() {
+    const session = beginNewFamilyAssessmentSession({
+      search: readBrowserSearch(),
+      referrer: readBrowserReferrer(),
+    })
+    setIngestSession(session)
+    setConsent(INITIAL_FAMILY_CONSENT_STATE)
+    setHoneypotWebsite('')
+    setSubmitError(null)
+    setShowConsentErrors(false)
+    setConsentMissing([])
+    setIsSubmitting(false)
+    setCurrentStep(2)
+  }
+
   function handleBack() {
     if (currentStep === 4 && protectionSubStep === 2) {
       setProtectionSubStep(1)
@@ -98,24 +187,42 @@ export default function FinancialProtectionAssessment() {
   }
 
   async function completeFamilyAssessment(finalAnswers: DemoAssessmentAnswers) {
-    let submissionWarning: string | undefined
+    setSubmitError(null)
 
+    // Preserve answers locally for the results page (results still compute client-side).
     try {
       sessionStorage.setItem(DEMO_ANSWERS_STORAGE_KEY, JSON.stringify(finalAnswers))
-
-      const submission = await submitFamilyReportCardLead(finalAnswers)
-      if (!submission.ok) {
-        console.error('Google Sheets submission failed:', submission.error)
-        submissionWarning = CALCULATOR_SUBMISSION_WARNING
-      }
-    } catch (error) {
-      console.error('Google Sheets submission failed:', error)
-      submissionWarning = CALCULATOR_SUBMISSION_WARNING
-    } finally {
-      navigate(ROUTES.reportCardResults, {
-        state: { answers: finalAnswers, submissionWarning },
-      })
+    } catch {
+      // Non-fatal — navigation state still carries answers on success.
     }
+
+    const { result, session } = await completeFamilyReportCardCrmSubmission({
+      answers: finalAnswers,
+      consent: consentRef.current,
+      session: sessionRef.current,
+      honeypotWebsite: honeypotRef.current,
+    })
+    setIngestSession(session)
+
+    if (!result.ok) {
+      if (result.code === 'consent_required') {
+        setShowConsentErrors(true)
+        setConsentMissing(result.consentMissing ?? [])
+      }
+      setSubmitError(result.error)
+      setIsSubmitting(false)
+      return
+    }
+
+    // CRM success (Sheets may have failed server-side) → results.
+    // Do not surface Sheets sync errors to the visitor.
+    navigate(ROUTES.reportCardResults, {
+      state: {
+        answers: finalAnswers,
+        submissionSaved: true,
+        submissionId: result.submissionId,
+      },
+    })
   }
 
   async function handleContinue() {
@@ -135,6 +242,12 @@ export default function FinancialProtectionAssessment() {
     await completeFamilyAssessment(answersRef.current)
   }
 
+  async function handleRetrySubmit() {
+    if (isSubmitting) return
+    setIsSubmitting(true)
+    await completeFamilyAssessment(answersRef.current)
+  }
+
   return (
     <AssessmentLayout
       currentStep={currentStep}
@@ -147,7 +260,7 @@ export default function FinancialProtectionAssessment() {
             continueDisabled={!canContinue || isSubmitting}
             continueLabel={
               isSubmitting
-                ? 'Saving...'
+                ? 'Saving your Initial Financial Diagnostic…'
                 : currentStep === DEMO_ASSESSMENT_STEPS
                   ? 'View My Report Card'
                   : 'Continue'
@@ -158,7 +271,7 @@ export default function FinancialProtectionAssessment() {
     >
       {currentStep === 1 && (
         <StepWelcome
-          onBegin={() => setCurrentStep(2)}
+          onBegin={handleBeginAssessment}
           onBack={() => navigate(ROUTES.reportCard)}
         />
       )}
@@ -173,7 +286,43 @@ export default function FinancialProtectionAssessment() {
         <StepFourGuardian answers={answers.protection} onChange={updateProtection} />
       )}
       {currentStep === 5 && (
-        <StepFiveGoals answers={answers.goals} onChange={updateGoals} />
+        <>
+          <StepFiveGoals answers={answers.goals} onChange={updateGoals} />
+          <FamilyConsentSection
+            consent={consent}
+            phone={answers.family.phone}
+            showErrors={showConsentErrors}
+            missing={consentMissing}
+            onChange={updateConsent}
+            honeypotValue={honeypotWebsite}
+            onHoneypotChange={setHoneypotWebsite}
+          />
+          {isSubmitting ? (
+            <p className="family-submit-status" role="status" aria-live="polite">
+              Saving your Initial Financial Diagnostic…
+            </p>
+          ) : null}
+          {submitError ? (
+            <div className="family-submit-error-panel">
+              <p
+                ref={statusRegionRef}
+                className="family-submit-error"
+                role="alert"
+                tabIndex={-1}
+              >
+                {submitError}
+              </p>
+              <button
+                type="button"
+                className="platform-btn platform-btn-outline family-submit-retry"
+                onClick={handleRetrySubmit}
+                disabled={isSubmitting}
+              >
+                Try again
+              </button>
+            </div>
+          ) : null}
+        </>
       )}
     </AssessmentLayout>
   )

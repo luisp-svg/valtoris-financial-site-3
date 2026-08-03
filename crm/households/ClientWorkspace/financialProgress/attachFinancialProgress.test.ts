@@ -15,8 +15,10 @@ function makeAssessment(
   return {
     overall_score: null,
     overall_grade: null,
+    capture_channel: 'unknown',
     answers: null,
     derived_metrics: null,
+    priorities: null,
     ...overrides,
   }
 }
@@ -50,6 +52,8 @@ function makeWorkspace(
     businessAssessment: null,
     protectionAssessment: null,
     retirementAssessment: null,
+    publicFamilyDiagnostic: null,
+    publicFamilyDiagnosticCount: 0,
     annualReview: null,
     recentActivities: [],
     notes: { ok: true, value: [] },

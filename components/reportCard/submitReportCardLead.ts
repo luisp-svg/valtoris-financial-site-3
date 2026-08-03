@@ -3,7 +3,6 @@ import { scoreBusinessAssessment } from '../assessment/scoring/scoreBusinessAsse
 import { RetirementAssessmentAnswers } from '../assessment/retirement/types'
 import { scoreRetirementAssessment } from '../assessment/scoring/scoreRetirementAssessment'
 import { DemoAssessmentAnswers } from '../assessment/types'
-import { scoreFamilyAssessment } from '../assessment/scoring/scoreFamilyAssessment'
 import { formatCurrency, parseAmount } from '../calculator/calculations'
 import { ROUTES } from '../../constants/routes'
 import { buildMasterLeadPayload } from '../../utils/masterLeadPayload'
@@ -43,43 +42,18 @@ function revenueBandMidpoint(revenue: string): number | '' {
 }
 
 export async function submitFamilyReportCardLead(answers: DemoAssessmentAnswers) {
-  const scored = scoreFamilyAssessment(answers)
-  const firstName = answers.family.firstName.trim()
-  const lastName = answers.family.lastName.trim()
-  const fullName = [firstName, lastName].filter(Boolean).join(' ')
-  const monthlyHousing = parseAmount(answers.financial.monthlyHousingPayment)
-  const totalDebt = parseAmount(answers.financial.totalDebt)
-
-  const payload = buildMasterLeadPayload({
-    firstName,
-    lastName,
-    fullName,
-    email: answers.family.email.trim(),
-    phone: answers.family.phone.trim(),
-    age: answers.family.age.trim(),
-    state: answers.family.state.trim(),
-    maritalStatus: answers.family.maritalStatus.trim(),
-    children: answers.family.numberOfChildren.trim(),
-    annualIncome: parseAmount(answers.financial.householdIncome),
-    annualHousing: monthlyHousing > 0 ? monthlyHousing * 12 : '',
-    creditCards: totalDebt,
-    existingCoverage: parseAmount(answers.protection.currentLifeInsurance),
-    overallScore: scored.overallScore,
-    overallGrade: scored.overallGrade,
-    protectionGap: scored.protectionGapFormatted,
-    topPriority1: scored.priorities[0]?.title ?? '',
-    topPriority2: scored.priorities[1]?.title ?? '',
-    topPriority3: scored.priorities[2]?.title ?? '',
-    calendlyBooked: '',
-    strategySessionDate: '',
-    leadStatus: '',
-    assignedAdvisor: '',
-    notes: '',
-    sourcePage: getSourcePage() || ROUTES.familyAssessment,
-    rawAnswers: JSON.stringify(answers),
-  })
-
-  return submitLeadToGoogleSheets('Family Report Card', payload)
+  /**
+   * @deprecated Phase 3 — the live Family assessment uses
+   * `completeFamilyReportCardCrmSubmission` (CRM primary; Sheets via server).
+   * This helper remains only for accidental imports and must not dual-write Sheets.
+   */
+  void answers
+  return {
+    ok: false as const,
+    error: new Error(
+      'submitFamilyReportCardLead is retired. Use completeFamilyReportCardCrmSubmission.',
+    ),
+  }
 }
 
 export async function submitFamilyLeadFormLead(

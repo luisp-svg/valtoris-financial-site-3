@@ -3,6 +3,12 @@ import { defineConfig } from 'vitest/config'
 export default defineConfig({
   test: {
     environment: 'node',
-    include: ['components/**/*.test.ts', 'crm/**/*.test.ts'],
+    include: [
+      'components/**/*.test.ts',
+      'crm/**/*.test.ts',
+      'server/**/*.test.ts',
+      'lib/**/*.test.ts',
+      'api/**/*.test.ts',
+    ],
   },
 })
