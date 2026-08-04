@@ -27,7 +27,12 @@ export function normalizePublicHref(value: unknown): string | null {
   }
 }
 
-/** Durable public card path used by future /c pages (not a live route in this phase). */
+/** Durable public card path (canonical address for QR/NFC). */
 export function buildPublicCardPath(publicKey: string): string {
   return `/c/k/${publicKey}`
+}
+
+/** Human-readable public card path by slug. */
+export function buildPublicCardSlugPath(slug: string): string {
+  return `/c/${slug}`
 }

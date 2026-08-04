@@ -63,7 +63,7 @@ export type {
 
 export { isValidIdentityPublicKey, isValidIdentitySlug, normalizeIdentitySlug } from './slug'
 
-export { buildPublicCardPath, normalizePublicHref } from './urls'
+export { buildPublicCardPath, buildPublicCardSlugPath, normalizePublicHref } from './urls'
 
 export {
   contactExchangeCreatesCase,

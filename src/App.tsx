@@ -24,6 +24,7 @@ import SolutionsPage from '../pages/SolutionsPage'
 import ScheduleReportCardPage from '../pages/ScheduleReportCardPage'
 import PrivacyPolicyPage from '../pages/PrivacyPolicyPage'
 import NotFoundPage from '../pages/NotFoundPage'
+import PublicAdvisorCardPage from '../pages/PublicAdvisorCardPage'
 import CrmLoginPage from '../pages/crm/CrmLoginPage'
 import CrmHomePage from '../pages/crm/CrmHomePage'
 import CrmHouseholdsPage from '../pages/crm/CrmHouseholdsPage'
@@ -142,6 +143,10 @@ export default function App() {
         }
       />
       <Route path="/business" element={<Navigate to={ROUTES.businessReportCard} replace />} />
+
+      {/* Public Digital Advisor Card — bare shell (no marketing chrome). Key route before slug. */}
+      <Route path={ROUTES.publicCardByKey} element={<PublicAdvisorCardPage />} />
+      <Route path={ROUTES.publicCardBySlug} element={<PublicAdvisorCardPage />} />
 
       <Route path="/crm" element={<CrmAuthLayout />}>
         <Route element={<CrmLoginGate />}>

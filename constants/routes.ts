@@ -16,6 +16,10 @@ export const ROUTES = {
   checkup: '/checkup',
   schedule: '/schedule',
   privacy: '/privacy',
+  /** Durable public advisor card by opaque key (QR/NFC-safe). */
+  publicCardByKey: '/c/k/:key',
+  /** Human-readable public advisor card slug. */
+  publicCardBySlug: '/c/:slug',
   crm: '/crm',
   crmLogin: '/crm/login',
   crmLeads: '/crm/leads',
@@ -69,4 +73,14 @@ export function crmHouseholdOnboardingPath(
 
 export function crmOpportunityPath(opportunityId: string): string {
   return `${ROUTES.crmOpportunities}/${opportunityId}`
+}
+
+/** Public advisor card path by durable public key. */
+export function publicCardKeyPath(publicKey: string): string {
+  return `/c/k/${publicKey}`
+}
+
+/** Public advisor card path by human-readable slug. */
+export function publicCardSlugPath(slug: string): string {
+  return `/c/${slug}`
 }
