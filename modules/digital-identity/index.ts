@@ -1,11 +1,12 @@
 /**
- * Digital Identity & Relationship Platform — TypeScript foundation (Sprint 5.2).
+ * Digital Identity & Relationship Platform — TypeScript contracts.
  *
  * Module key: digital_identity
  * v1 experience: advisor_card
  * Public CTA: Let's Connect
  *
- * No routes, UI, ingest API, or migration in this phase.
+ * Public card *lookup* lives under server/digitalIdentity (admin client).
+ * This package stays free of service-role imports.
  */
 
 export {
@@ -50,7 +51,19 @@ export {
   toIdentitySurfacePublicDto,
 } from './publicDto'
 
+export {
+  assemblePublishedCardDto,
+  normalizePublicCtaItems,
+  responseContainsInternalIds,
+} from './assemblePublishedCard'
+export type {
+  AdvisorProfilePublicSource,
+  DigitalCardPublicSource,
+} from './assemblePublishedCard'
+
 export { isValidIdentityPublicKey, isValidIdentitySlug, normalizeIdentitySlug } from './slug'
+
+export { buildPublicCardPath, normalizePublicHref } from './urls'
 
 export {
   contactExchangeCreatesCase,
