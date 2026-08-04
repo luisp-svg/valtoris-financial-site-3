@@ -137,6 +137,21 @@ export const MODULE_CATALOG: readonly ModuleManifest[] = [
     dependencies: ['initial_financial_diagnostic', 'tasks'],
   }),
   shellNav({
+    key: 'campaigns',
+    displayName: 'Campaigns',
+    description: 'Digital Identity campaign and event attribution links.',
+    icon: 'campaigns',
+    order: 25,
+    route: '/crm/campaigns',
+    category: 'advisor_os',
+    permissions: [
+      'crm.nav.view',
+      'digital_identity.campaigns.manage_own',
+      'digital_identity.campaigns.admin',
+    ],
+    dependencies: ['digital_identity'],
+  }),
+  shellNav({
     key: 'households',
     displayName: 'Households',
     description: 'Household list and client workspace.',
@@ -413,6 +428,18 @@ export const MODULE_CATALOG: readonly ModuleManifest[] = [
         eventKey: 'digital_identity.relationship_photo_replaced',
         description: 'Relationship Photo replaced in CRM',
       },
+      {
+        eventKey: 'digital_identity.campaign_attributed',
+        description: 'Digital Identity relationship attributed to a trusted campaign',
+      },
+      {
+        eventKey: 'digital_identity.event_attributed',
+        description: 'Digital Identity relationship attributed to a trusted event',
+      },
+      {
+        eventKey: 'digital_identity.relationship_connected_at_event',
+        description: 'Relationship connected in the context of a Digital Identity event',
+      },
     ],
     taskWorkflows: [
       {
@@ -427,7 +454,7 @@ export const MODULE_CATALOG: readonly ModuleManifest[] = [
     dependencies: ['households', 'intake', 'tasks', 'activities', 'documents'],
     futureExtensions: {
       module: 'digital_identity',
-      sprint: '5.2',
+      sprint: '5.9',
       v1Experience: 'advisor_card',
       primaryCtaLabel: "Let's Connect",
       reservedSurfaceKinds: [
@@ -440,7 +467,7 @@ export const MODULE_CATALOG: readonly ModuleManifest[] = [
       anonymousAnalytics: 'separate_from_household_activities',
       caseCreation: 'never_automatic_on_contact_exchange',
       selfieCapture: 'relationship_photo_optional_no_biometrics',
-      persistence: 'typescript_contracts_only_migration_025_pending_approval',
+      persistence: 'migration_025_027_028_campaign_attribution',
     },
   }),
 

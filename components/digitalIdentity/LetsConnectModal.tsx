@@ -22,6 +22,7 @@ import {
   submitRelationshipPhoto,
   type RelationshipPhotoClientAvailability,
 } from './relationshipPhotoClient'
+import { getCardAttributionSession } from './campaignAttributionSession'
 import { submitLetsConnect } from './submitLetsConnect'
 import { vCardDownloadErrorCopy } from './publicCardViewModel'
 
@@ -169,15 +170,27 @@ export default function LetsConnectModal({
     setPhase('submitting')
     setSubmitError(null)
 
+    const sessionAttrib = getCardAttributionSession(cardPublicKey)
+    const first = sessionAttrib?.firstTouch
     const body = buildLetsConnectSubmitBody({
       values,
       cardPublicKey,
       submissionId,
       formStartedAt: startedAt,
       formSubmittedAt: submittedAt,
-      sourcePage,
-      campaignCode,
-      eventCode,
+      sourcePage:
+        typeof window !== 'undefined'
+          ? `${window.location.pathname}${window.location.search || ''}`
+          : sourcePage,
+      campaignCode: first?.campaignCode ?? campaignCode,
+      eventCode: first?.eventCode ?? eventCode,
+      sourceChannel: first?.sourceChannel ?? null,
+      utmSource: first?.utmSource ?? null,
+      utmMedium: first?.utmMedium ?? null,
+      utmCampaign: first?.utmCampaign ?? null,
+      utmTerm: first?.utmTerm ?? null,
+      utmContent: first?.utmContent ?? null,
+      referrer: typeof document !== 'undefined' ? document.referrer || null : null,
     })
 
     const result = await submitLetsConnect(body)

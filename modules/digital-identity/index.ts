@@ -85,6 +85,24 @@ export {
 } from './vcard'
 
 export {
+  buildCampaignAttributionSearchParams,
+  buildCampaignLink,
+  buildCampaignQrDestinationPath,
+  buildCampaignQrDestinationUrl,
+  buildDefaultCardLink,
+  buildEventLink,
+  buildPublicCardPathWithAttribution,
+  buildShareLink,
+  extractReferrerHost,
+  normalizeCampaignAttributionQuery,
+  parseCampaignAttributionFromSearch,
+} from './campaignUrls'
+export type {
+  CampaignAttributionQuery,
+  NormalizedCampaignAttribution,
+} from './campaignUrls'
+
+export {
   PUBLIC_CARD_QR_FORMATS,
   buildQrDestinationPath,
   buildQrDestinationUrl,

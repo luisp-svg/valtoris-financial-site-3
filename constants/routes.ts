@@ -32,6 +32,7 @@ export const ROUTES = {
   crmPolicies: '/crm/policies',
   crmAnnualReviews: '/crm/annual-reviews',
   crmDocuments: '/crm/documents',
+  crmCampaigns: '/crm/campaigns',
   crmSettings: '/crm/settings',
 } as const
 

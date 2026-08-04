@@ -17,6 +17,7 @@ export type ResolveCardForIngestInput = {
 
 export type ResolveCardForIngestSuccess = {
   ok: true
+  digitalCardId: string
   advisorProfileId: string
   advisorSlug: string | null
   advisorDisplayName: string | null
@@ -43,6 +44,7 @@ type AdvisorJoinRow = {
 }
 
 type DigitalCardRow = {
+  id: string
   public_key: string
   slug: string
   status: string
@@ -52,6 +54,7 @@ type DigitalCardRow = {
 }
 
 const CARD_SELECT = `
+  id,
   public_key,
   slug,
   status,
@@ -93,8 +96,13 @@ function mapRow(row: DigitalCardRow | null): ResolveCardForIngestResult {
     return { ok: false, code: 'card_not_found', error: 'This advisor card is not available.' }
   }
 
+  if (typeof row.id !== 'string' || !row.id) {
+    return { ok: false, code: 'card_not_found', error: 'This advisor card is not available.' }
+  }
+
   return {
     ok: true,
+    digitalCardId: row.id,
     advisorProfileId,
     advisorSlug: typeof advisor.slug === 'string' ? advisor.slug : null,
     advisorDisplayName:

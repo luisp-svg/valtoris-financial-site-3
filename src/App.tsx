@@ -36,6 +36,7 @@ import CrmOpportunityWorkspacePage from '../pages/crm/CrmOpportunityWorkspacePag
 import CrmIntakePage from '../pages/crm/CrmIntakePage'
 import CrmPlaceholderPage from '../pages/crm/CrmPlaceholderPage'
 import CrmTasksPage from '../pages/crm/CrmTasksPage'
+import CrmCampaignsPage from '../pages/crm/CrmCampaignsPage'
 
 function SiteLayout({ children }: { children: ReactNode }) {
   return (
@@ -155,6 +156,7 @@ export default function App() {
         <Route element={<CrmProtectedGate />}>
           <Route index element={<CrmHomePage />} />
           <Route path="intake" element={<CrmIntakePage />} />
+          <Route path="campaigns" element={<CrmCampaignsPage />} />
           <Route path="leads" element={<Navigate to={ROUTES.crmIntake} replace />} />
           <Route path="households" element={<CrmHouseholdsPage />} />
           <Route

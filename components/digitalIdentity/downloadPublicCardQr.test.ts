@@ -58,6 +58,50 @@ describe('downloadPublicCardQr', () => {
     }
   })
 
+  it('passes campaign/event codes for SVG, PNG, and print downloads on public_key destinations', async () => {
+    for (const format of ['svg', 'png', 'png-hires'] as const) {
+      const destination =
+        'https://valtoris.example/c/k/pk_live_abcdefghijklmnop?c=rr-chamber-2026&e=breakfast-aug-12&src=qr'
+      let calledUrl = ''
+      const fetchImpl = vi.fn(async (input: RequestInfo | URL) => {
+        calledUrl = String(input)
+        return new Response(
+          format === 'svg'
+            ? '<svg xmlns="http://www.w3.org/2000/svg"></svg>'
+            : new Uint8Array([0x89, 0x50, 0x4e, 0x47, ...Array(20).fill(1)]),
+          {
+            status: 200,
+            headers: {
+              'Content-Type': format === 'svg' ? 'image/svg+xml' : 'image/png',
+              'X-Valtoris-QR-Destination': destination,
+            },
+          },
+        )
+      })
+      const result = await downloadPublicCardQr(
+        {
+          key: 'pk_live_abcdefghijklmnop',
+          format,
+          campaignCode: 'rr-chamber-2026',
+          eventCode: 'breakfast-aug-12',
+        },
+        { fetchImpl: fetchImpl as never },
+      )
+      expect(result.ok).toBe(true)
+      if (result.ok) {
+        expect(result.destinationUrl).toBe(destination)
+        expect(result.destinationUrl).toContain('/c/k/')
+        expect(result.destinationUrl).not.toContain('/c/jane')
+      }
+      expect(calledUrl).toContain('key=pk_live_abcdefghijklmnop')
+      expect(calledUrl).toContain(`format=${format}`)
+      expect(calledUrl).toContain('c=rr-chamber-2026')
+      expect(calledUrl).toContain('e=breakfast-aug-12')
+      expect(calledUrl).not.toContain('slug=')
+      expect(calledUrl).not.toContain('camp-uuid')
+    }
+  })
+
   it('maps unavailable and network failures safely', async () => {
     const unavailable = await downloadPublicCardQr(
       { key: 'pk_live_abcdefghijklmnop', format: 'svg' },

@@ -7,6 +7,11 @@
  * Never encode slug routes — slugs may change.
  */
 
+import {
+  buildCampaignQrDestinationPath,
+  buildCampaignQrDestinationUrl,
+  type CampaignAttributionQuery,
+} from './campaignUrls'
 import { buildAbsolutePublicCardUrl } from './vcard'
 import { buildPublicCardPath } from './urls'
 
@@ -46,19 +51,49 @@ export function parsePublicCardQrFormat(value: unknown): PublicCardQrFormat | nu
   return normalized as PublicCardQrFormat
 }
 
-/** Durable path only — never builds `/c/{slug}`. */
-export function buildQrDestinationPath(publicKey: string): string {
+/** Durable path only — never builds `/c/{slug}`. Optional campaign attribution query. */
+export function buildQrDestinationPath(
+  publicKey: string,
+  attribution: CampaignAttributionQuery = {},
+): string {
+  const hasAttribution = Boolean(
+    attribution.campaignCode ||
+      attribution.eventCode ||
+      attribution.sourceChannel ||
+      attribution.utmSource ||
+      attribution.utmMedium ||
+      attribution.utmCampaign ||
+      attribution.utmTerm ||
+      attribution.utmContent,
+  )
+  if (hasAttribution) {
+    return buildCampaignQrDestinationPath(publicKey, attribution)
+  }
   return buildPublicCardPath(publicKey.trim())
 }
 
 /**
  * Absolute QR destination URL from request origin + public key.
- * Refuses slug-based paths.
+ * Refuses slug-based paths. Optional campaign/event codes allowed as query only.
  */
 export function buildQrDestinationUrl(
   origin: string,
   publicKey: string,
+  attribution: CampaignAttributionQuery = {},
 ): string | null {
+  const hasAttribution = Boolean(
+    attribution.campaignCode ||
+      attribution.eventCode ||
+      attribution.sourceChannel ||
+      attribution.utmSource ||
+      attribution.utmMedium ||
+      attribution.utmCampaign ||
+      attribution.utmTerm ||
+      attribution.utmContent,
+  )
+  if (hasAttribution) {
+    return buildCampaignQrDestinationUrl(origin, publicKey, attribution)
+  }
   const path = buildQrDestinationPath(publicKey)
   if (!path.startsWith('/c/k/')) return null
   if (path.includes('/c/') && !path.startsWith('/c/k/')) return null
@@ -140,11 +175,12 @@ export function buildQrPdfPlaceholder(): {
   }
 }
 
-/** Assert destination never uses a slug route. */
+/** Assert destination never uses a slug route (query string allowed on /c/k/...). */
 export function isKeyBasedQrDestination(urlOrPath: string): boolean {
   try {
     if (urlOrPath.startsWith('/')) {
-      return /^\/c\/k\/[^/]+$/.test(urlOrPath)
+      const pathOnly = urlOrPath.split(/[?#]/)[0] || ''
+      return /^\/c\/k\/[^/]+$/.test(pathOnly)
     }
     const parsed = new URL(urlOrPath)
     return /^\/c\/k\/[^/]+$/.test(parsed.pathname)

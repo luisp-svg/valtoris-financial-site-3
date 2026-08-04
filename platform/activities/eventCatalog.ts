@@ -205,6 +205,33 @@ export const ACTIVITY_EVENT_DEFINITIONS: readonly ActivityEventDefinition[] = [
     description: 'Relationship Photo replaced in CRM',
     timeline: { timelineActivityType: 'other', displayVariant: 'system' },
   },
+  {
+    eventKey: 'digital_identity.campaign_attributed',
+    activityType: 'system',
+    moduleKey: 'digital_identity',
+    defaultEntityType: 'lead',
+    defaultActorKind: 'system',
+    description: 'Digital Identity relationship attributed to a trusted campaign',
+    timeline: { timelineActivityType: 'other', displayVariant: 'system' },
+  },
+  {
+    eventKey: 'digital_identity.event_attributed',
+    activityType: 'system',
+    moduleKey: 'digital_identity',
+    defaultEntityType: 'lead',
+    defaultActorKind: 'system',
+    description: 'Digital Identity relationship attributed to a trusted event',
+    timeline: { timelineActivityType: 'other', displayVariant: 'system' },
+  },
+  {
+    eventKey: 'digital_identity.relationship_connected_at_event',
+    activityType: 'system',
+    moduleKey: 'digital_identity',
+    defaultEntityType: 'lead',
+    defaultActorKind: 'system',
+    description: 'Relationship connected in the context of a Digital Identity event',
+    timeline: { timelineActivityType: 'other', displayVariant: 'system' },
+  },
 ] as const
 
 const BY_EVENT_KEY = new Map(
@@ -252,7 +279,10 @@ export function inferEventKeyFromLegacyRow(input: {
     legacyEvent === 'digital_identity.duplicate_resolved' ||
     legacyEvent === 'digital_identity.relationship_photo_added' ||
     legacyEvent === 'digital_identity.relationship_photo_removed' ||
-    legacyEvent === 'digital_identity.relationship_photo_replaced'
+    legacyEvent === 'digital_identity.relationship_photo_replaced' ||
+    legacyEvent === 'digital_identity.campaign_attributed' ||
+    legacyEvent === 'digital_identity.event_attributed' ||
+    legacyEvent === 'digital_identity.relationship_connected_at_event'
   ) {
     return legacyEvent
   }

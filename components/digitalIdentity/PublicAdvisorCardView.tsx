@@ -429,7 +429,9 @@ function ReadyCard({ card }: { card: IdentitySurfacePublicDto }) {
         cardPublicKey={card.publicKey}
         cardDisplayName={card.displayName}
         sourcePage={
-          typeof window !== 'undefined' ? window.location.pathname : card.cardUrl
+          typeof window !== 'undefined'
+            ? `${window.location.pathname}${window.location.search || ''}`
+            : card.cardUrl
         }
         onClose={() => setConnectOpen(false)}
       />

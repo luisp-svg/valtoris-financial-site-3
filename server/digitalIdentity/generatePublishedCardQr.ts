@@ -27,6 +27,9 @@ export type GeneratePublishedCardQrQuery = {
   format?: string | null
   /** Required to absolutize the QR destination URL. */
   origin: string
+  /** Optional trusted campaign/event codes (validated against card). */
+  campaignCode?: string | null
+  eventCode?: string | null
 }
 
 export type GeneratePublishedCardQrSuccess = {
@@ -83,15 +86,14 @@ export async function generatePublishedCardQr(
     return { status: 'invalid_request', reason: 'missing_origin' }
   }
 
-  const destinationUrl = buildQrDestinationUrl(origin, key)
-  if (!destinationUrl || !isKeyBasedQrDestination(destinationUrl)) {
-    return { status: 'invalid_request', reason: 'invalid_destination' }
-  }
-
-  // Defense: never encode a slug path even if helpers regress.
-  if (destinationUrl.includes('/c/') && !destinationUrl.includes('/c/k/')) {
-    return { status: 'server_error' }
-  }
+  const campaignCode =
+    typeof query.campaignCode === 'string' && query.campaignCode.trim()
+      ? query.campaignCode.trim()
+      : null
+  const eventCode =
+    typeof query.eventCode === 'string' && query.eventCode.trim()
+      ? query.eventCode.trim()
+      : null
 
   const lookupByKey = deps.lookupByKey ?? lookupPublishedCardByPublicKey
   let lookup: PublicCardLookupResult
@@ -107,9 +109,55 @@ export async function generatePublishedCardQr(
   if (lookup.status === 'server_error') return { status: 'server_error' }
   if (lookup.status !== 'found') return { status: 'unavailable' }
 
+  let attribution: { campaignCode?: string; eventCode?: string; sourceChannel?: string } = {}
+  if (campaignCode) {
+    try {
+      const admin =
+        deps.admin ?? (await import('../../lib/supabase/admin')).createSupabaseAdminClient()
+      const { data: cardRow, error: cardErr } = await admin
+        .from('digital_cards')
+        .select('id')
+        .eq('public_key', lookup.card.publicKey)
+        .is('deleted_at', null)
+        .maybeSingle()
+      if (cardErr || !cardRow?.id) {
+        return { status: 'invalid_request', reason: 'invalid_campaign' }
+      }
+      const { data: campaign, error } = await admin
+        .from('digital_card_campaigns')
+        .select('campaign_code, event_code, status')
+        .eq('digital_card_id', cardRow.id)
+        .eq('campaign_code', campaignCode)
+        .is('deleted_at', null)
+        .maybeSingle()
+      if (error || !campaign || campaign.status !== 'active') {
+        return { status: 'invalid_request', reason: 'invalid_campaign' }
+      }
+      if (eventCode) {
+        if (!campaign.event_code || campaign.event_code !== eventCode) {
+          return { status: 'invalid_request', reason: 'invalid_event' }
+        }
+      }
+      attribution = {
+        campaignCode: campaign.campaign_code,
+        eventCode: eventCode || campaign.event_code || undefined,
+        sourceChannel: 'qr',
+      }
+    } catch {
+      return { status: 'server_error' }
+    }
+  } else if (eventCode) {
+    return { status: 'invalid_request', reason: 'invalid_campaign' }
+  }
+
   // Prefer durable key from the published card record (not request echo alone).
-  const canonicalUrl = buildQrDestinationUrl(origin, lookup.card.publicKey)
+  const canonicalUrl = buildQrDestinationUrl(origin, lookup.card.publicKey, attribution)
   if (!canonicalUrl || !isKeyBasedQrDestination(canonicalUrl)) {
+    return { status: 'server_error' }
+  }
+
+  // Defense: never encode a slug path even if helpers regress.
+  if (canonicalUrl.includes('/c/') && !canonicalUrl.includes('/c/k/')) {
     return { status: 'server_error' }
   }
 

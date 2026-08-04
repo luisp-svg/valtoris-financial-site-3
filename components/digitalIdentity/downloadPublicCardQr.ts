@@ -95,7 +95,14 @@ export function qrDownloadMenuItems(): readonly {
  * Slug lookup is intentionally unsupported.
  */
 export async function downloadPublicCardQr(
-  input: { key: string; format: PublicCardQrFormat },
+  input: {
+    key: string
+    format: PublicCardQrFormat
+    /** Optional campaign code (validated server-side against the card). */
+    campaignCode?: string | null
+    /** Optional event code (validated server-side against the campaign). */
+    eventCode?: string | null
+  },
   options: DownloadPublicCardQrOptions = {},
 ): Promise<DownloadPublicCardQrResult> {
   const key = input.key?.trim()
@@ -115,6 +122,10 @@ export async function downloadPublicCardQr(
     key,
     format: input.format,
   })
+  const campaignCode = input.campaignCode?.trim()
+  if (campaignCode) params.set('c', campaignCode)
+  const eventCode = input.eventCode?.trim()
+  if (eventCode) params.set('e', eventCode)
 
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs)

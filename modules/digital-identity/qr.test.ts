@@ -46,6 +46,25 @@ describe('QR destination URL', () => {
       false,
     )
   })
+
+  it('allows campaign/event query on public_key QR destinations', () => {
+    const path = buildQrDestinationPath('pk_live_abcdefghijklmnop', {
+      campaignCode: 'summit',
+      eventCode: 'day1',
+      sourceChannel: 'qr',
+    })
+    expect(path).toBe('/c/k/pk_live_abcdefghijklmnop?c=summit&e=day1&src=qr')
+    expect(isKeyBasedQrDestination(path)).toBe(true)
+    const absolute = buildQrDestinationUrl(
+      'https://valtoris.example',
+      'pk_live_abcdefghijklmnop',
+      { campaignCode: 'summit' },
+    )
+    expect(absolute).toBe(
+      'https://valtoris.example/c/k/pk_live_abcdefghijklmnop?c=summit&src=qr',
+    )
+    expect(isKeyBasedQrDestination(absolute!)).toBe(true)
+  })
 })
 
 describe('QR render specs', () => {

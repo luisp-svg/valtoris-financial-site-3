@@ -4,6 +4,7 @@ import OnboardingEntryWidget from '../../onboarding/OnboardingEntryWidget'
 import CurrentOpportunitiesWidget from '../widgets/CurrentOpportunitiesWidget'
 import FinancialProgressSummaryWidget from '../widgets/FinancialProgressSummaryWidget'
 import HouseholdSummaryWidget from '../widgets/HouseholdSummaryWidget'
+import HowWeMetWidget from '../widgets/HowWeMetWidget'
 import InitialFinancialDiagnosticWidget from '../widgets/InitialFinancialDiagnosticWidget'
 import OpenCasesWidget from '../widgets/OpenCasesWidget'
 import RecentDocumentsWidget from '../widgets/RecentDocumentsWidget'
@@ -43,6 +44,7 @@ export default function OverviewTab({
 
       <WidgetGrid>
         <HouseholdSummaryWidget workspace={workspace} onNavigateTab={onNavigateTab} />
+        <HowWeMetWidget workspace={workspace} onNavigateTab={onNavigateTab} />
         <OnboardingEntryWidget householdId={householdId} />
         <InitialFinancialDiagnosticWidget workspace={workspace} householdId={householdId} />
         <FinancialProgressSummaryWidget workspace={workspace} onNavigateTab={onNavigateTab} />

@@ -60,6 +60,7 @@ export function matchCandidateFixture(
 
 export function resolveCardSuccessFixture(
   overrides: Partial<{
+    digitalCardId: string
     advisorProfileId: string
     advisorSlug: string | null
     advisorDisplayName: string | null
@@ -69,6 +70,7 @@ export function resolveCardSuccessFixture(
 ) {
   return {
     ok: true as const,
+    digitalCardId: '22222222-2222-4222-8222-222222222222',
     advisorProfileId: '11111111-1111-4111-8111-111111111111',
     advisorSlug: 'jane-advisor',
     advisorDisplayName: 'Jane Advisor',

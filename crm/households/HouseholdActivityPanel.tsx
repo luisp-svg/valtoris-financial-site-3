@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import HowWeMetBlock from '../intake/HowWeMetBlock'
+import { buildHowWeMetFromActivities } from '../intake/howWeMet'
 import {
   canComposeNotes,
   getActivityTabViewState,
@@ -85,6 +87,15 @@ export default function HouseholdActivityPanel({
   const composerEnabled = canComposeNotes(workspace.notes)
   const actionsDisabled = noteUi.mode !== 'idle'
   const headingId = `${panelId}-heading`
+  const howWeMet = buildHowWeMetFromActivities(
+    workspace.activities.ok ? workspace.activities.value : [],
+    {
+      cardOwnerName: workspace.household.assigned_advisor?.display_name ?? null,
+      hasRelationshipPhoto: workspace.recentDocuments.some(
+        (doc) => doc.doc_type === 'relationship_photo',
+      ),
+    },
+  )
 
   async function handleRetry() {
     setRetrying(true)
@@ -103,6 +114,10 @@ export default function HouseholdActivityPanel({
       className="crm-household-workspace-tab-panel crm-activity-tab-panel"
     >
       {actionSuccess ? <p className="crm-banner crm-banner-success">{actionSuccess}</p> : null}
+
+      {howWeMet ? (
+        <HowWeMetBlock model={howWeMet} headingId={`${panelId}-how-we-met`} />
+      ) : null}
 
       <HouseholdNoteComposer
         householdId={householdId}

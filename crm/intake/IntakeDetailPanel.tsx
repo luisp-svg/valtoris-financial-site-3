@@ -7,6 +7,8 @@ import type {
   IntakeQueueItem,
 } from './types'
 import { DUPLICATE_RESOLUTION_OWNER_ONLY_MESSAGE } from './types'
+import HowWeMetBlock from './HowWeMetBlock'
+import { buildHowWeMetViewModel } from './howWeMet'
 import {
   intakeProductLabel,
   isDigitalIdentityLead,
@@ -230,6 +232,23 @@ export default function IntakeDetailPanel({
             </div>
           </dl>
         </section>
+
+        {(() => {
+          const howWeMet = buildHowWeMetViewModel({
+            originalCampaign: item.originalCampaign,
+            originalSourceMetadata: item.sourceMetadata,
+            submittedAt: item.submittedAt,
+            cardOwnerName:
+              digitalIdentity?.advisorSlug ||
+              item.originalAdvisorSlug ||
+              item.assignedAdvisor?.displayName ||
+              null,
+            sourcePage: item.sourcePage,
+            hasRelationshipPhoto: Boolean(digitalIdentity?.relationshipPhoto),
+          })
+          if (!howWeMet) return null
+          return <HowWeMetBlock model={howWeMet} headingId="crm-intake-how-we-met-heading" />
+        })()}
 
         {isDi ? (
           <section className="crm-intake-detail-section" aria-labelledby="crm-intake-di-heading">

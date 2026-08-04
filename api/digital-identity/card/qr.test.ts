@@ -81,6 +81,8 @@ describe('GET /api/digital-identity/card/qr', () => {
       key: 'pk_test_public_key01',
       format: 'svg',
       origin: 'https://valtoris.example',
+      campaignCode: null,
+      eventCode: null,
     })
     expect(res.status).toHaveBeenCalledWith(200)
     expect(res.headers['Content-Type']).toMatch(/image\/svg\+xml/)

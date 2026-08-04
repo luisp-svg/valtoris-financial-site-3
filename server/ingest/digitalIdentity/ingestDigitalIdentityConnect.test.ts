@@ -284,4 +284,171 @@ describe('ingestDigitalIdentityConnect', () => {
     if (!result.ok) expect(result.code).toBe('bot_suspected')
     expect(persist).not.toHaveBeenCalled()
   })
+
+  it('applies trusted campaign attribution and writes last-touch + activities on create', async () => {
+    let insertedRows: Array<{ metadata: Record<string, unknown> }> = []
+    const insert = vi.fn(async (rows: Array<{ metadata: Record<string, unknown> }>) => {
+      insertedRows = rows
+      return { data: null, error: null }
+    })
+    const updateEq = vi.fn(async () => ({ data: null, error: null }))
+    const admin = {
+      rpc: vi.fn(),
+      from: vi.fn((table: string) => {
+        if (table === 'leads') {
+          return {
+            update: vi.fn(() => ({ eq: updateEq })),
+          }
+        }
+        if (table === 'activities') {
+          return { insert }
+        }
+        return {}
+      }),
+    } as unknown as SupabaseClient
+
+    let capturedPayload: Record<string, unknown> | undefined
+    const result = await ingestDigitalIdentityConnect(
+      validConnectRequestBodyFixture({
+        campaignCode: 'spoofed',
+        eventCode: 'wrong',
+      }),
+      {
+        admin,
+        resolveCard: async () => resolveCardSuccessFixture(),
+        findCandidates: async () => [],
+        resolveCampaign: async () => ({
+          trusted: true,
+          campaignCode: 'rr-chamber-2026',
+          eventCode: 'breakfast-aug-12',
+          campaignLabel: 'Chamber Breakfast',
+          sourceChannel: 'qr',
+          firstTouchMetadata: {
+            cardPublicKey: 'pk_live_abcdefghijklmnop',
+            campaignCode: 'rr-chamber-2026',
+            eventCode: 'breakfast-aug-12',
+            sourceChannel: 'qr',
+            campaignLabel: 'Chamber Breakfast',
+            utms: { utmSource: 'flyer' },
+            referrer: 'partner.example',
+            occurredAt: '2026-08-03T18:00:05.000Z',
+            firstSeenAt: '2026-08-03T18:00:05.000Z',
+          },
+          lastTouchMetadata: {
+            cardPublicKey: 'pk_live_abcdefghijklmnop',
+            campaignCode: 'rr-chamber-2026',
+            eventCode: 'breakfast-aug-12',
+            sourceChannel: 'qr',
+            utms: { utmSource: 'flyer' },
+            referrer: 'partner.example',
+            occurredAt: '2026-08-03T18:00:05.000Z',
+          },
+        }),
+        persist: async (_admin, payload) => {
+          capturedPayload = payload
+          return {
+            ok: true,
+            created: true,
+            leadId: 'lead-1',
+            householdId: 'hh-1',
+            matchStatus: 'new_prospect',
+            duplicateReviewId: null,
+          }
+        },
+        orchestrateFollowUpTask: vi.fn().mockResolvedValue({
+          status: 'task_created',
+          taskId: 'task-1',
+          errorCategory: null,
+          needsManualReview: false,
+        }),
+        issuePhotoGrant: vi.fn(async () => ({
+          available: true as const,
+          uploadToken: 'a'.repeat(64),
+          expiresAt: '2026-08-03T18:20:05.000Z',
+        })),
+        now: () => new Date('2026-08-03T18:00:05.000Z'),
+      },
+    )
+
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.relationshipPhoto?.available).toBe(true)
+      expect(result).not.toHaveProperty('assessmentId')
+      expect(result).not.toHaveProperty('caseId')
+    }
+    expect(capturedPayload?.campaign_code).toBe('rr-chamber-2026')
+    expect(capturedPayload?.event_code).toBe('breakfast-aug-12')
+    expect(capturedPayload?.assessment_id).toBeUndefined()
+    expect(updateEq).toHaveBeenCalledWith('id', 'lead-1')
+    expect(insert).toHaveBeenCalled()
+    const eventKeys = insertedRows.map((row) => row.metadata.eventKey)
+    expect(eventKeys).toContain('digital_identity.campaign_attributed')
+    expect(eventKeys).toContain('digital_identity.event_attributed')
+  })
+
+  it('strips untrusted campaign codes and still updates last-touch; skips activities on replay', async () => {
+    const insert = vi.fn(async () => ({ data: null, error: null }))
+    const updateEq = vi.fn(async () => ({ data: null, error: null }))
+    const admin = {
+      rpc: vi.fn(),
+      from: vi.fn((table: string) => {
+        if (table === 'leads') return { update: vi.fn(() => ({ eq: updateEq })) }
+        if (table === 'activities') return { insert }
+        return {}
+      }),
+    } as unknown as SupabaseClient
+
+    let capturedPayload: Record<string, unknown> | undefined
+    const result = await ingestDigitalIdentityConnect(
+      validConnectRequestBodyFixture({ campaignCode: 'unknown-code' }),
+      {
+        admin,
+        resolveCard: async () => resolveCardSuccessFixture(),
+        findCandidates: async () => [],
+        resolveCampaign: async () => ({
+          trusted: false,
+          campaignCode: null,
+          eventCode: null,
+          campaignLabel: null,
+          sourceChannel: 'link',
+          firstTouchMetadata: {
+            cardPublicKey: 'pk_live_abcdefghijklmnop',
+            campaignCode: null,
+            eventCode: null,
+            sourceChannel: 'link',
+            utms: {},
+            referrer: null,
+            occurredAt: '2026-08-03T18:00:05.000Z',
+            firstSeenAt: '2026-08-03T18:00:05.000Z',
+          },
+          lastTouchMetadata: {
+            cardPublicKey: 'pk_live_abcdefghijklmnop',
+            campaignCode: null,
+            eventCode: null,
+            sourceChannel: 'link',
+            utms: {},
+            referrer: null,
+            occurredAt: '2026-08-03T18:00:05.000Z',
+          },
+        }),
+        persist: async (_admin, payload) => {
+          capturedPayload = payload
+          return {
+            ok: true,
+            created: false,
+            leadId: 'lead-1',
+            householdId: 'hh-1',
+            matchStatus: 'new_prospect',
+            duplicateReviewId: null,
+          }
+        },
+        orchestrateFollowUpTask: vi.fn(),
+      },
+    )
+
+    expect(result.ok).toBe(true)
+    expect(capturedPayload?.campaign_code).toBeNull()
+    expect(updateEq).toHaveBeenCalled()
+    expect(insert).not.toHaveBeenCalled()
+  })
 })

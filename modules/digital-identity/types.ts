@@ -132,15 +132,23 @@ export type IdentitySurfacePublicDto = {
 
 export type IdentityCampaign = {
   id: string
-  /** Soft FK to surface (digital_cards.id in proposed migration). */
+  /** Soft FK to surface (digital_cards.id). */
   surfaceId: string
   surfacePublicKey: string
   campaignCode: string
   eventCode: string | null
   label: string
+  description: string | null
   status: IdentityCampaignStatus
   defaultUtms: IdentityUtmAttribution
   sourceChannelDefault: IdentitySourceChannel
+  startsAt: string | null
+  endsAt: string | null
+  locationLabel: string | null
+  organizer: string | null
+  /** Private CRM notes — never expose on public surfaces. */
+  advisorNotes: string | null
+  createdByUserId: string | null
   createdAt: string
   updatedAt: string
   deletedAt: string | null

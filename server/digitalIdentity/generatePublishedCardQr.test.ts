@@ -32,6 +32,117 @@ const found: PublicCardLookupResult = {
 }
 
 describe('generatePublishedCardQr', () => {
+  it('encodes campaign QR destinations on public_key path with src=qr', async () => {
+    const maybeSingleCampaign = vi.fn(async () => ({
+      data: {
+        campaign_code: 'summit',
+        event_code: 'day1',
+        status: 'active',
+      },
+      error: null,
+    }))
+    const maybeSingleCard = vi.fn(async () => ({
+      data: { id: 'card-1' },
+      error: null,
+    }))
+    const admin = {
+      from: vi.fn((table: string) => {
+        if (table === 'digital_cards') {
+          return {
+            select: vi.fn(() => ({
+              eq: vi.fn(() => ({
+                is: vi.fn(() => ({ maybeSingle: maybeSingleCard })),
+              })),
+            })),
+          }
+        }
+        return {
+          select: vi.fn(() => ({
+            eq: vi.fn(() => ({
+              eq: vi.fn(() => ({
+                is: vi.fn(() => ({ maybeSingle: maybeSingleCampaign })),
+              })),
+            })),
+          })),
+        }
+      }),
+    }
+
+    const toString = vi.fn(async (text: string) => {
+      expect(text).toBe(
+        'https://valtoris.example/c/k/pk_test_public_key01?c=summit&e=day1&src=qr',
+      )
+      return '<svg xmlns="http://www.w3.org/2000/svg"></svg>'
+    })
+
+    const result = await generatePublishedCardQr(
+      {
+        key: 'pk_test_public_key01',
+        format: 'svg',
+        origin: 'https://valtoris.example',
+        campaignCode: 'summit',
+        eventCode: 'day1',
+      },
+      {
+        admin: admin as never,
+        lookupByKey: async () => found,
+        qrcode: { toString, toBuffer: vi.fn() },
+      },
+    )
+    expect(result.status).toBe('found')
+    if (result.status === 'found') {
+      expect(result.destinationUrl).toContain('/c/k/pk_test_public_key01')
+      expect(result.destinationUrl).toContain('c=summit')
+      expect(result.destinationUrl).not.toContain('/c/luis-perez')
+    }
+  })
+
+  it('rejects unknown or disabled campaign codes safely', async () => {
+    const admin = {
+      from: vi.fn((table: string) => {
+        if (table === 'digital_cards') {
+          return {
+            select: vi.fn(() => ({
+              eq: vi.fn(() => ({
+                is: vi.fn(() => ({
+                  maybeSingle: vi.fn(async () => ({ data: { id: 'card-1' }, error: null })),
+                })),
+              })),
+            })),
+          }
+        }
+        return {
+          select: vi.fn(() => ({
+            eq: vi.fn(() => ({
+              eq: vi.fn(() => ({
+                is: vi.fn(() => ({
+                  maybeSingle: vi.fn(async () => ({ data: null, error: null })),
+                })),
+              })),
+            })),
+          })),
+        }
+      }),
+    }
+    const result = await generatePublishedCardQr(
+      {
+        key: 'pk_test_public_key01',
+        format: 'svg',
+        origin: 'https://valtoris.example',
+        campaignCode: 'missing',
+      },
+      {
+        admin: admin as never,
+        lookupByKey: async () => found,
+        qrcode: { toString: vi.fn(), toBuffer: vi.fn() },
+      },
+    )
+    expect(result.status).toBe('invalid_request')
+    if (result.status === 'invalid_request') {
+      expect(result.reason).toBe('invalid_campaign')
+    }
+  })
+
   it('generates SVG QR pointing at the public_key route', async () => {
     const toString = vi.fn(async (text: string) => {
       expect(text).toBe('https://valtoris.example/c/k/pk_test_public_key01')

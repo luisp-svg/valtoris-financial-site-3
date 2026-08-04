@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router-dom'
+import { captureCardAttributionFromLocation } from '../components/digitalIdentity/campaignAttributionSession'
 import PublicAdvisorCardView from '../components/digitalIdentity/PublicAdvisorCardView'
 import { fetchPublicCard } from '../components/digitalIdentity/fetchPublicCard'
 import {
@@ -23,6 +24,7 @@ type PageState =
  */
 export default function PublicAdvisorCardPage() {
   const params = useParams<{ key?: string; slug?: string }>()
+  const [searchParams] = useSearchParams()
   const key = params.key?.trim() || ''
   const slug = params.slug?.trim() || ''
   const [state, setState] = useState<PageState>({ status: 'loading', card: null })
@@ -50,6 +52,11 @@ export default function PublicAdvisorCardPage() {
       if (controller.signal.aborted) return
 
       if (result.ok) {
+        // Lock first-touch / refresh last-touch in session (no CRM write).
+        captureCardAttributionFromLocation(
+          result.card.publicKey,
+          searchParams.toString(),
+        )
         document.title = documentTitleForCard(result.card)
         setState({ status: 'ready', card: result.card })
         return
@@ -68,7 +75,7 @@ export default function PublicAdvisorCardPage() {
       controller.abort()
       document.title = previousTitle
     }
-  }, [key, slug])
+  }, [key, slug, searchParams])
 
   if (state.status === 'ready') {
     return <PublicAdvisorCardView status="ready" card={state.card} />

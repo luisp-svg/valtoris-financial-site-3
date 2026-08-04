@@ -46,6 +46,9 @@ export const DIGITAL_IDENTITY_CRM_ACTIVITY_EVENTS = [
   'digital_identity.relationship_photo_added',
   'digital_identity.relationship_photo_removed',
   'digital_identity.relationship_photo_replaced',
+  'digital_identity.campaign_attributed',
+  'digital_identity.event_attributed',
+  'digital_identity.relationship_connected_at_event',
 ] as const
 
 /** Document Engine type key for optional Let's Connect relationship photos. */

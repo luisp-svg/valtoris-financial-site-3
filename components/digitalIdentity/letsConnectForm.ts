@@ -150,6 +150,13 @@ export function buildLetsConnectSubmitBody(input: {
   sourcePage?: string | null
   campaignCode?: string | null
   eventCode?: string | null
+  sourceChannel?: string | null
+  utmSource?: string | null
+  utmMedium?: string | null
+  utmCampaign?: string | null
+  utmTerm?: string | null
+  utmContent?: string | null
+  referrer?: string | null
 }): Record<string, unknown> {
   const { values } = input
   const phone = values.phone.trim()
@@ -164,6 +171,13 @@ export function buildLetsConnectSubmitBody(input: {
     cardPublicKey: input.cardPublicKey,
     campaignCode: input.campaignCode ?? null,
     eventCode: input.eventCode ?? null,
+    sourceChannel: input.sourceChannel ?? null,
+    utmSource: input.utmSource ?? null,
+    utmMedium: input.utmMedium ?? null,
+    utmCampaign: input.utmCampaign ?? null,
+    utmTerm: input.utmTerm ?? null,
+    utmContent: input.utmContent ?? null,
+    referrer: input.referrer ?? null,
     firstName: values.firstName.trim(),
     lastName: values.lastName.trim(),
     email: values.email.trim(),
