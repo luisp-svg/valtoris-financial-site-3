@@ -22,8 +22,11 @@ export type PublicCardPageStatus =
 export type PublicCardHeroAction = {
   key: 'lets_connect' | 'save_contact' | 'book_appointment'
   label: string
-  /** Phase 4: primary capture/download actions are disabled placeholders. */
-  mode: 'disabled_placeholder' | 'external_link'
+  /**
+   * Let's Connect remains a disabled placeholder.
+   * Save Contact triggers Smart vCard download via the public API.
+   */
+  mode: 'disabled_placeholder' | 'external_link' | 'vcard_download'
   href: string | null
   comingSoonBadge: boolean
 }
@@ -98,8 +101,9 @@ export function resolveContactVisibility(
 }
 
 /**
- * Hero actions for Phase 4:
- * - Let's Connect / Save Contact → disabled placeholders
+ * Hero actions:
+ * - Let's Connect → disabled placeholder (no form yet)
+ * - Save Contact → Smart vCard download (server-generated)
  * - Book Appointment → only when Calendly URL exists
  */
 export function buildHeroActions(card: IdentitySurfacePublicDto): PublicCardHeroAction[] {
@@ -114,7 +118,7 @@ export function buildHeroActions(card: IdentitySurfacePublicDto): PublicCardHero
     {
       key: 'save_contact',
       label: 'Save Contact',
-      mode: 'disabled_placeholder',
+      mode: 'vcard_download',
       href: null,
       comingSoonBadge: false,
     },
@@ -321,7 +325,8 @@ export function publicCardPageSideEffects(): {
   writesAnalytics: false
   createsLead: false
   createsHousehold: false
-  downloadsVCard: false
+  /** Smart vCard download via public API — never a CRM write. */
+  downloadsVCard: true
   opensConnectForm: false
   importsAdminClient: false
 } {
@@ -329,9 +334,25 @@ export function publicCardPageSideEffects(): {
     writesAnalytics: false,
     createsLead: false,
     createsHousehold: false,
-    downloadsVCard: false,
+    downloadsVCard: true,
     opensConnectForm: false,
     importsAdminClient: false,
+  }
+}
+
+export function vCardDownloadErrorCopy(
+  code: 'unavailable' | 'network' | 'timeout' | 'server' | 'generation_failure' | 'malformed_response' | 'invalid_request',
+): string {
+  switch (code) {
+    case 'unavailable':
+      return 'This advisor card is not available for download.'
+    case 'network':
+    case 'timeout':
+      return 'We couldn’t download the contact file. Please check your connection and try again.'
+    case 'invalid_request':
+      return 'This card link is not valid.'
+    default:
+      return 'We couldn’t generate the contact file right now. Please try again in a moment.'
   }
 }
 

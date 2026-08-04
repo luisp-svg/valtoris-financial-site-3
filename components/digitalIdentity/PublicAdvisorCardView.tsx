@@ -1,7 +1,12 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import BrandWordmark from '../BrandWordmark'
 import { ROUTES } from '../../constants/routes'
 import type { IdentitySurfacePublicDto } from '../../modules/digital-identity'
+import {
+  downloadPublicCardVCard,
+  triggerVCardBrowserDownload,
+} from './downloadPublicCardVCard'
 import {
   buildDiagnosticActions,
   buildHeroActions,
@@ -10,6 +15,7 @@ import {
   getInitials,
   publicCardLayoutClasses,
   resolveContactVisibility,
+  vCardDownloadErrorCopy,
   type PublicCardPageStatus,
 } from './publicCardViewModel'
 
@@ -90,6 +96,31 @@ function ReadyCard({ card }: { card: IdentitySurfacePublicDto }) {
   const diagnostics = buildDiagnosticActions(card)
   const outcomes = buildOutcomeSections(card)
   const metaLine = [card.approvedTitle, card.approvedCompany].filter(Boolean).join(' · ')
+  const [vcardStatus, setVcardStatus] = useState<'idle' | 'loading' | 'error'>('idle')
+  const [vcardMessage, setVcardMessage] = useState<string | null>(null)
+
+  async function handleSaveContact() {
+    if (vcardStatus === 'loading') return
+    setVcardStatus('loading')
+    setVcardMessage(null)
+
+    const result = await downloadPublicCardVCard({ key: card.publicKey })
+    if (!result.ok) {
+      setVcardStatus('error')
+      setVcardMessage(vCardDownloadErrorCopy(result.code))
+      return
+    }
+
+    const saved = triggerVCardBrowserDownload(result.body, result.filename)
+    if (!saved) {
+      setVcardStatus('error')
+      setVcardMessage(vCardDownloadErrorCopy('generation_failure'))
+      return
+    }
+
+    setVcardStatus('idle')
+    setVcardMessage(null)
+  }
 
   return (
     <>
@@ -140,6 +171,23 @@ function ReadyCard({ card }: { card: IdentitySurfacePublicDto }) {
                 )
               }
 
+              if (action.mode === 'vcard_download') {
+                return (
+                  <button
+                    key={action.key}
+                    type="button"
+                    className="platform-btn platform-btn-primary public-card-btn"
+                    onClick={() => {
+                      void handleSaveContact()
+                    }}
+                    disabled={vcardStatus === 'loading'}
+                    aria-busy={vcardStatus === 'loading'}
+                  >
+                    {vcardStatus === 'loading' ? 'Preparing…' : action.label}
+                  </button>
+                )
+              }
+
               return (
                 <button
                   key={action.key}
@@ -154,6 +202,11 @@ function ReadyCard({ card }: { card: IdentitySurfacePublicDto }) {
               )
             })}
           </div>
+          {vcardMessage ? (
+            <p className="public-card-download-error" role="alert">
+              {vcardMessage}
+            </p>
+          ) : null}
         </div>
       </section>
 

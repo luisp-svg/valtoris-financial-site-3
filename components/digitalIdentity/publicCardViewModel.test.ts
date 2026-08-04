@@ -88,13 +88,14 @@ describe('publicCardViewModel', () => {
     expect(contact.showWebsite).toBe(true)
   })
 
-  it('keeps Let’s Connect and Save Contact as disabled placeholders', () => {
+  it('keeps Let’s Connect disabled and enables Save Contact vCard download', () => {
     const actions = buildHeroActions(sampleCard())
     const connect = actions.find((a) => a.key === 'lets_connect')
     const save = actions.find((a) => a.key === 'save_contact')
     expect(connect?.label).toBe("Let's Connect")
     expect(connect?.mode).toBe('disabled_placeholder')
-    expect(save?.mode).toBe('disabled_placeholder')
+    expect(save?.mode).toBe('vcard_download')
+    expect(save?.label).toBe('Save Contact')
   })
 
   it('shows appointment only when Calendly exists', () => {
@@ -170,12 +171,12 @@ describe('publicCardViewModel', () => {
     expect(documentTitleForCard(sampleCard())).toBe('Jane Advisor · Valtoris Financial')
   })
 
-  it('declares no analytics, CRM, vCard, or admin imports', () => {
+  it('allows vCard download without CRM, analytics, or admin imports', () => {
     expect(publicCardPageSideEffects()).toEqual({
       writesAnalytics: false,
       createsLead: false,
       createsHousehold: false,
-      downloadsVCard: false,
+      downloadsVCard: true,
       opensConnectForm: false,
       importsAdminClient: false,
     })

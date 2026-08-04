@@ -73,7 +73,15 @@ export {
 } from './submission'
 export type { SubmissionValidationResult } from './submission'
 
-export { buildVCard, escapeVCardText, sanitizeVCardFilename } from './vcard'
+export {
+  buildAbsolutePublicCardUrl,
+  buildVCard,
+  buildVCardFromPublicDto,
+  buildVCardNote,
+  escapeVCardText,
+  sanitizeVCardFilename,
+  vCardGenerationSideEffects,
+} from './vcard'
 
 export type {
   DigitalIdentityConsentSnapshot,

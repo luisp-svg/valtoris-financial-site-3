@@ -8879,6 +8879,14 @@ p { color: var(--muted); line-height: 1.7; }
   width: 100%;
 }
 
+.public-card-download-error {
+  margin: 4px 0 0;
+  max-width: 28rem;
+  color: #9a3412;
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
 .public-card-btn {
   min-width: min(100%, 220px);
 }

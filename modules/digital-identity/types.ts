@@ -236,7 +236,10 @@ export type VCardBuildInput = {
   title?: string | null
   phone?: string | null
   email?: string | null
+  /** Primary URL (typically the public card URL). */
   url?: string | null
+  /** Extra https URLs (website, Calendly, social) — never hidden private fields. */
+  additionalUrls?: readonly string[] | null
   note?: string | null
   photoUrl?: string | null
 }
