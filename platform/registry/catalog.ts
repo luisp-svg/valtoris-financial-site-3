@@ -401,6 +401,18 @@ export const MODULE_CATALOG: readonly ModuleManifest[] = [
         eventKey: 'digital_identity.duplicate_resolved',
         description: 'Digital identity duplicate review resolved',
       },
+      {
+        eventKey: 'digital_identity.relationship_photo_added',
+        description: 'Optional Relationship Photo added after Let’s Connect',
+      },
+      {
+        eventKey: 'digital_identity.relationship_photo_removed',
+        description: 'Relationship Photo removed from CRM',
+      },
+      {
+        eventKey: 'digital_identity.relationship_photo_replaced',
+        description: 'Relationship Photo replaced in CRM',
+      },
     ],
     taskWorkflows: [
       {
@@ -427,7 +439,7 @@ export const MODULE_CATALOG: readonly ModuleManifest[] = [
       ],
       anonymousAnalytics: 'separate_from_household_activities',
       caseCreation: 'never_automatic_on_contact_exchange',
-      selfieCapture: 'planned_later_no_biometrics',
+      selfieCapture: 'relationship_photo_optional_no_biometrics',
       persistence: 'typescript_contracts_only_migration_025_pending_approval',
     },
   }),
