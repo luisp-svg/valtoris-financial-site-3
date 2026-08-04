@@ -71,12 +71,19 @@ describe('ingestDigitalIdentityConnect', () => {
       needsManualReview: false,
     })
 
+    const issuePhotoGrant = vi.fn(async () => ({
+      available: true as const,
+      uploadToken: 'a'.repeat(64),
+      expiresAt: '2026-08-03T18:20:05.000Z',
+    }))
+
     const result = await ingestDigitalIdentityConnect(validConnectRequestBodyFixture(), {
       admin,
       findCandidates,
       resolveCard,
       persist,
       orchestrateFollowUpTask,
+      issuePhotoGrant,
       now: () => new Date('2026-08-03T18:00:05.000Z'),
     })
 
@@ -85,11 +92,17 @@ describe('ingestDigitalIdentityConnect', () => {
       expect(result.created).toBe(true)
       expect(result.matchStatus).toBe('new_prospect')
       expect(result.submissionId).toBe(VALID_SUBMISSION_ID)
+      expect(result.relationshipPhoto).toEqual({
+        available: true,
+        uploadToken: 'a'.repeat(64),
+        expiresAt: '2026-08-03T18:20:05.000Z',
+      })
       expect(result).not.toHaveProperty('householdId')
       expect(result).not.toHaveProperty('leadId')
       expect(result).not.toHaveProperty('taskId')
       expect(result).not.toHaveProperty('advisorProfileId')
     }
+    expect(issuePhotoGrant).toHaveBeenCalled()
 
     expect(orchestrateFollowUpTask).toHaveBeenCalledWith(
       admin,

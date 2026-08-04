@@ -12,6 +12,11 @@ describe('submitLetsConnect', () => {
           created: true,
           submissionId: SUBMISSION_ID,
           matchStatus: 'new_prospect',
+          relationshipPhoto: {
+            available: true,
+            uploadToken: 'c'.repeat(64),
+            expiresAt: '2026-08-03T18:20:00.000Z',
+          },
         }),
         { status: 201 },
       ),
@@ -27,6 +32,11 @@ describe('submitLetsConnect', () => {
       expect(result.created).toBe(true)
       expect(result.matchStatus).toBe('new_prospect')
       expect(result.httpStatus).toBe(201)
+      expect(result.relationshipPhoto).toEqual({
+        available: true,
+        uploadToken: 'c'.repeat(64),
+        expiresAt: '2026-08-03T18:20:00.000Z',
+      })
     }
     expect(fetchImpl).toHaveBeenCalledWith(
       '/api/digital-identity/connect',

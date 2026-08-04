@@ -16,6 +16,12 @@ import {
   validateLetsConnectFormClient,
   type LetsConnectFormValues,
 } from './letsConnectForm'
+import {
+  prepareRelationshipPhotoFile,
+  relationshipPhotoCopy,
+  submitRelationshipPhoto,
+  type RelationshipPhotoClientAvailability,
+} from './relationshipPhotoClient'
 import { submitLetsConnect } from './submitLetsConnect'
 import { vCardDownloadErrorCopy } from './publicCardViewModel'
 
@@ -29,7 +35,7 @@ export type LetsConnectModalProps = {
   eventCode?: string | null
 }
 
-type Phase = 'form' | 'submitting' | 'success'
+type Phase = 'form' | 'submitting' | 'success' | 'photo' | 'photo_saving' | 'photo_saved'
 
 export default function LetsConnectModal({
   open,
@@ -45,6 +51,8 @@ export default function LetsConnectModal({
   const panelRef = useRef<HTMLDivElement>(null)
   const firstFieldRef = useRef<HTMLInputElement>(null)
   const previouslyFocused = useRef<HTMLElement | null>(null)
+  const selfieInputRef = useRef<HTMLInputElement>(null)
+  const uploadInputRef = useRef<HTMLInputElement>(null)
 
   const [phase, setPhase] = useState<Phase>('form')
   const [values, setValues] = useState<LetsConnectFormValues>(createEmptyLetsConnectFormValues)
@@ -55,8 +63,16 @@ export default function LetsConnectModal({
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [vcardStatus, setVcardStatus] = useState<'idle' | 'loading' | 'error'>('idle')
   const [vcardMessage, setVcardMessage] = useState<string | null>(null)
+  const [photoGrant, setPhotoGrant] = useState<RelationshipPhotoClientAvailability>({
+    available: false,
+  })
+  const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null)
+  const [photoBase64, setPhotoBase64] = useState<string | null>(null)
+  const [photoAcknowledged, setPhotoAcknowledged] = useState(false)
+  const [photoError, setPhotoError] = useState<string | null>(null)
 
   const copy = letsConnectModalCopy()
+  const photoCopy = relationshipPhotoCopy()
   const smsDisabled = !values.phone.trim()
 
   const phaseRef = useRef<Phase>(phase)
@@ -74,6 +90,11 @@ export default function LetsConnectModal({
     setSubmitError(null)
     setVcardStatus('idle')
     setVcardMessage(null)
+    setPhotoGrant({ available: false })
+    setPhotoPreviewUrl(null)
+    setPhotoBase64(null)
+    setPhotoAcknowledged(false)
+    setPhotoError(null)
 
     const previousOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
@@ -83,7 +104,11 @@ export default function LetsConnectModal({
     }, 0)
 
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape' && phaseRef.current !== 'submitting') {
+      if (
+        event.key === 'Escape' &&
+        phaseRef.current !== 'submitting' &&
+        phaseRef.current !== 'photo_saving'
+      ) {
         event.preventDefault()
         onClose()
         return
@@ -162,7 +187,43 @@ export default function LetsConnectModal({
       return
     }
 
+    setPhotoGrant(result.relationshipPhoto)
     setPhase('success')
+  }
+
+  async function handlePhotoFile(file: File | null) {
+    if (!file) return
+    setPhotoError(null)
+    try {
+      const prepared = await prepareRelationshipPhotoFile(file)
+      setPhotoPreviewUrl(prepared.dataUrl)
+      setPhotoBase64(prepared.dataUrl)
+    } catch {
+      setPhotoError(photoCopy.failure)
+      setPhotoPreviewUrl(null)
+      setPhotoBase64(null)
+    }
+  }
+
+  async function handleSavePhoto() {
+    if (!photoGrant.available || !photoBase64 || phase === 'photo_saving') return
+    if (!photoAcknowledged) {
+      setPhotoError('Please acknowledge photo storage before saving a photo.')
+      return
+    }
+    setPhase('photo_saving')
+    setPhotoError(null)
+    const result = await submitRelationshipPhoto({
+      uploadToken: photoGrant.uploadToken,
+      photoAcknowledgment: true,
+      imageBase64: photoBase64,
+    })
+    if (!result.ok) {
+      setPhase('photo')
+      setPhotoError(result.error || photoCopy.failure)
+      return
+    }
+    setPhase('photo_saved')
   }
 
   async function handleSaveContact() {
@@ -208,40 +269,177 @@ export default function LetsConnectModal({
         aria-describedby={phase === 'form' ? subtitleId : undefined}
         data-card-owner={cardDisplayName || undefined}
       >
-        {phase === 'success' ? (
+        {phase === 'success' ||
+        phase === 'photo' ||
+        phase === 'photo_saving' ||
+        phase === 'photo_saved' ? (
           <div className="public-card-connect-success">
             <h2 id={titleId} className="public-card-connect-title">
-              {copy.successTitle}
+              {phase === 'photo_saved' ? photoCopy.success : copy.successTitle}
             </h2>
-            <div className="public-card-connect-success-actions">
-              <button
-                type="button"
-                className="platform-btn platform-btn-primary public-card-btn"
-                onClick={() => {
-                  void handleSaveContact()
-                }}
-                disabled={vcardStatus === 'loading'}
-                aria-busy={vcardStatus === 'loading'}
-              >
-                {vcardStatus === 'loading' ? 'Preparing…' : copy.successSaveContact}
-              </button>
-              <Link
-                className="platform-btn platform-btn-secondary public-card-btn"
-                to={ROUTES.familyAssessment}
-              >
-                {copy.successFamilyAssessment}
-              </Link>
-              <button
-                type="button"
-                className="platform-btn platform-btn-outline public-card-btn"
-                onClick={onClose}
-              >
-                {copy.successDone}
-              </button>
-            </div>
+
+            {phase === 'success' || phase === 'photo_saved' ? (
+              <div className="public-card-connect-success-actions">
+                <button
+                  type="button"
+                  className="platform-btn platform-btn-primary public-card-btn"
+                  onClick={() => {
+                    void handleSaveContact()
+                  }}
+                  disabled={vcardStatus === 'loading'}
+                  aria-busy={vcardStatus === 'loading'}
+                >
+                  {vcardStatus === 'loading' ? 'Preparing…' : copy.successSaveContact}
+                </button>
+                <Link
+                  className="platform-btn platform-btn-secondary public-card-btn"
+                  to={ROUTES.familyAssessment}
+                >
+                  {copy.successFamilyAssessment}
+                </Link>
+                {phase === 'success' && photoGrant.available ? (
+                  <button
+                    type="button"
+                    className="platform-btn platform-btn-outline public-card-btn"
+                    onClick={() => {
+                      setPhotoError(null)
+                      setPhase('photo')
+                    }}
+                  >
+                    {copy.successAddPhoto}
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  className="platform-btn platform-btn-outline public-card-btn"
+                  onClick={onClose}
+                >
+                  {copy.successDone}
+                </button>
+              </div>
+            ) : null}
+
+            {phase === 'photo' || phase === 'photo_saving' ? (
+              <div className="public-card-connect-photo-panel">
+                <h3 className="public-card-connect-photo-title">{photoCopy.title}</h3>
+                <p className="public-card-connect-photo-body">{photoCopy.body}</p>
+                <p className="public-card-connect-photo-soft">{photoCopy.softBody}</p>
+                <p className="public-card-connect-photo-disclosure">{photoCopy.disclosure}</p>
+
+                <label className="public-card-connect-check">
+                  <input
+                    type="checkbox"
+                    checked={photoAcknowledged}
+                    onChange={(event) => setPhotoAcknowledged(event.target.checked)}
+                    disabled={phase === 'photo_saving'}
+                  />
+                  <span>{photoCopy.acknowledgment}</span>
+                </label>
+
+                {photoPreviewUrl ? (
+                  <div className="public-card-connect-photo-preview-wrap">
+                    <img
+                      src={photoPreviewUrl}
+                      alt="Relationship photo preview"
+                      className="public-card-connect-photo-preview"
+                    />
+                  </div>
+                ) : null}
+
+                <div className="public-card-connect-success-actions">
+                  <button
+                    type="button"
+                    className="platform-btn platform-btn-primary public-card-btn"
+                    onClick={() => selfieInputRef.current?.click()}
+                    disabled={phase === 'photo_saving'}
+                  >
+                    {photoPreviewUrl ? photoCopy.retake : photoCopy.takeSelfie}
+                  </button>
+                  <button
+                    type="button"
+                    className="platform-btn platform-btn-secondary public-card-btn"
+                    onClick={() => uploadInputRef.current?.click()}
+                    disabled={phase === 'photo_saving'}
+                  >
+                    {photoCopy.uploadPhoto}
+                  </button>
+                  {photoPreviewUrl ? (
+                    <>
+                      <button
+                        type="button"
+                        className="platform-btn platform-btn-primary public-card-btn"
+                        onClick={() => {
+                          void handleSavePhoto()
+                        }}
+                        disabled={phase === 'photo_saving' || !photoAcknowledged}
+                      >
+                        {phase === 'photo_saving' ? photoCopy.saving : photoCopy.savePhoto}
+                      </button>
+                      <button
+                        type="button"
+                        className="platform-btn platform-btn-outline public-card-btn"
+                        onClick={() => {
+                          setPhotoPreviewUrl(null)
+                          setPhotoBase64(null)
+                        }}
+                        disabled={phase === 'photo_saving'}
+                      >
+                        {photoCopy.remove}
+                      </button>
+                    </>
+                  ) : null}
+                  <button
+                    type="button"
+                    className="platform-btn platform-btn-outline public-card-btn"
+                    onClick={() => {
+                      setPhotoPreviewUrl(null)
+                      setPhotoBase64(null)
+                      setPhotoAcknowledged(false)
+                      setPhotoError(null)
+                      setPhase('success')
+                    }}
+                    disabled={phase === 'photo_saving'}
+                  >
+                    {photoCopy.skip}
+                  </button>
+                </div>
+
+                <input
+                  ref={selfieInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  capture="user"
+                  className="public-card-connect-honeypot-input"
+                  tabIndex={-1}
+                  onChange={(event) => {
+                    const file = event.target.files?.[0] ?? null
+                    void handlePhotoFile(file)
+                    event.currentTarget.value = ''
+                  }}
+                />
+                <input
+                  ref={uploadInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="public-card-connect-honeypot-input"
+                  tabIndex={-1}
+                  onChange={(event) => {
+                    const file = event.target.files?.[0] ?? null
+                    void handlePhotoFile(file)
+                    event.currentTarget.value = ''
+                  }}
+                />
+              </div>
+            ) : null}
+
             {vcardMessage ? (
               <p className="public-card-download-error" role="alert">
                 {vcardMessage}
+              </p>
+            ) : null}
+            {photoError ? (
+              <p className="public-card-download-error" role="alert">
+                {photoError}
               </p>
             ) : null}
           </div>

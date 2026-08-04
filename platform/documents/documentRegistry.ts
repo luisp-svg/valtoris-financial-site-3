@@ -637,6 +637,29 @@ export const DOCUMENT_TYPE_DEFINITIONS: readonly DocumentTypeDefinition[] = [
     allowMultiple: true,
     retentionPolicy: 'module_default',
   }),
+  defineDocument({
+    key: 'relationship_photo',
+    title: 'Relationship Photo',
+    description:
+      'Optional private photo from when an advisor and contact connected. It is a memory aid only and must not be used for facial recognition, biometric identification, identity verification, embeddings, or matching.',
+    category: 'client_generated',
+    moduleKey: 'digital_identity',
+    caseType: null,
+    visibility: 'internal',
+    required: false,
+    allowMultiple: false,
+    reviewRequired: false,
+    supportedMimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
+    maxSizeMB: 5,
+    retentionPolicy: 'engagement',
+    aiExtractionHints: [],
+    activityEvents: [
+      'digital_identity.relationship_photo_added',
+      'digital_identity.relationship_photo_removed',
+      'digital_identity.relationship_photo_replaced',
+    ],
+    workflowDependencies: [],
+  }),
 ] as const
 
 const BY_KEY = new Map(

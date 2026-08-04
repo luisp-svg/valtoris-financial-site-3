@@ -8,11 +8,13 @@ import { findMatchCandidates } from '../familyReportCard/findCandidates'
 import { classifyMatch } from '../familyReportCard/match'
 import type { MatchCandidate } from '../familyReportCard/types'
 import { persistDigitalIdentityConnect } from './persist'
+import { issueRelationshipPhotoUploadGrant } from './photoGrant'
 import { resolveCardForIngest } from './resolveCardForIngest'
 import { orchestrateDigitalIdentityFollowUpTask } from './taskAutomation'
 import type {
   DigitalIdentityConnectResult,
   MatchStatus,
+  RelationshipPhotoAvailability,
 } from './types'
 import { validateDigitalIdentityConnectRequest } from './validation'
 
@@ -24,6 +26,7 @@ export type IngestDigitalIdentityConnectDeps = {
   persist?: typeof persistDigitalIdentityConnect
   /** Injectable for tests; defaults to orchestrateDigitalIdentityFollowUpTask. */
   orchestrateFollowUpTask?: typeof orchestrateDigitalIdentityFollowUpTask
+  issuePhotoGrant?: typeof issueRelationshipPhotoUploadGrant
 }
 
 function buildDisplayName(firstName: string, lastName: string): string {
@@ -177,31 +180,37 @@ export async function ingestDigitalIdentityConnect(
     (persistResult.matchStatus as MatchStatus) || classification.status
 
   // Idempotent replay: skip task automation.
-  if (!persistResult.created) {
-    return {
-      ok: true,
-      created: false,
-      submissionId: request.submissionId,
-      matchStatus,
+  if (persistResult.created) {
+    const orchestrateTask =
+      deps.orchestrateFollowUpTask ?? orchestrateDigitalIdentityFollowUpTask
+    try {
+      await orchestrateTask(admin, {
+        leadId: persistResult.leadId,
+        matchStatus: classification.status,
+        created: true,
+      })
+    } catch {
+      // Intentionally swallowed — CRM persist already succeeded.
     }
   }
 
-  const orchestrateTask =
-    deps.orchestrateFollowUpTask ?? orchestrateDigitalIdentityFollowUpTask
+  const issueGrant = deps.issuePhotoGrant ?? issueRelationshipPhotoUploadGrant
+  let relationshipPhoto: RelationshipPhotoAvailability = { available: false }
   try {
-    await orchestrateTask(admin, {
+    relationshipPhoto = await issueGrant(admin, {
       leadId: persistResult.leadId,
-      matchStatus: classification.status,
-      created: true,
+      householdId: persistResult.householdId,
+      submissionId: request.submissionId,
     })
   } catch {
-    // Intentionally swallowed — CRM persist already succeeded.
+    relationshipPhoto = { available: false }
   }
 
   return {
     ok: true,
-    created: true,
+    created: persistResult.created,
     submissionId: request.submissionId,
-    matchStatus: classification.status,
+    matchStatus: persistResult.created ? classification.status : matchStatus,
+    relationshipPhoto,
   }
 }

@@ -340,6 +340,31 @@ export async function fetchIntakeQueue(
 
   void householdIds
 
+  const diLeadIds = leads
+    .filter((row) => row.lead_type === DIGITAL_IDENTITY_LEAD_TYPE)
+    .map((row) => String(row.id))
+  const photoByLead = new Map<string, { documentId: string; createdAt: string | null }>()
+  if (diLeadIds.length > 0) {
+    const { data: photoRows, error: photoError } = await supabase
+      .from('documents')
+      .select('id, lead_id, created_at')
+      .in('lead_id', diLeadIds)
+      .eq('doc_type', 'relationship_photo')
+      .is('deleted_at', null)
+
+    if (!photoError) {
+      for (const row of (photoRows ?? []) as Record<string, unknown>[]) {
+        const leadId = typeof row.lead_id === 'string' ? row.lead_id : null
+        const documentId = typeof row.id === 'string' ? row.id : null
+        if (!leadId || !documentId || photoByLead.has(leadId)) continue
+        photoByLead.set(leadId, {
+          documentId,
+          createdAt: typeof row.created_at === 'string' ? row.created_at : null,
+        })
+      }
+    }
+  }
+
   const items: IntakeQueueItem[] = leads.map((row) => {
     const leadId = String(row.id)
     const leadType =
@@ -432,6 +457,7 @@ export async function fetchIntakeQueue(
         sourceMetadata,
         originalCampaign,
         originalAdvisorSlug,
+        relationshipPhoto: photoByLead.get(leadId) ?? null,
       }),
       duplicateReview,
       originalCampaign,

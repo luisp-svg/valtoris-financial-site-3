@@ -332,6 +332,7 @@ export function extractDigitalIdentitySnapshot(input: {
   sourceMetadata: Record<string, unknown>
   originalCampaign: string | null
   originalAdvisorSlug: string | null
+  relationshipPhoto?: IntakeDigitalIdentitySummary['relationshipPhoto']
 }): IntakeDigitalIdentitySummary | null {
   if (input.leadType !== DIGITAL_IDENTITY_LEAD_TYPE) return null
 
@@ -368,6 +369,7 @@ export function extractDigitalIdentitySnapshot(input: {
     eventCode:
       readMetaString(raw, 'eventCode', 'event_code') ??
       readMetaString(meta, 'eventCode', 'event_code'),
+    relationshipPhoto: input.relationshipPhoto ?? null,
     productLabel: 'Digital Identity',
   }
 }

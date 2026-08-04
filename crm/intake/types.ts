@@ -81,6 +81,10 @@ export type IntakeDigitalIdentitySummary = {
   advisorSlug: string | null
   campaignCode: string | null
   eventCode: string | null
+  relationshipPhoto: {
+    documentId: string
+    createdAt: string | null
+  } | null
   /** UI label — distinct from Initial Financial Diagnostic. */
   productLabel: 'Digital Identity'
 }

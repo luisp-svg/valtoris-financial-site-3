@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { crmHouseholdAssessmentDetailPath, crmHouseholdPath } from '../../constants/routes'
+import RelationshipPhotoViewer from '../components/RelationshipPhotoViewer'
 import type {
   DuplicateResolutionWriteAction,
   IntakeHouseholdSummary,
@@ -264,6 +265,20 @@ export default function IntakeDetailPanel({
                 <dd>{digitalIdentity?.eventCode || '—'}</dd>
               </div>
             </dl>
+            {digitalIdentity?.relationshipPhoto ? (
+              <div className="crm-relationship-photo" style={{ marginTop: 12 }}>
+                <p className="crm-task-title">Relationship Photo</p>
+                <p className="crm-muted">Photo from when you connected</p>
+                <RelationshipPhotoViewer
+                  documentId={digitalIdentity.relationshipPhoto.documentId}
+                  canRemove
+                />
+              </div>
+            ) : (
+              <p className="crm-muted" style={{ marginTop: 12 }}>
+                No Relationship Photo on this lead.
+              </p>
+            )}
           </section>
         ) : null}
 

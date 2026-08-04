@@ -43,7 +43,13 @@ export const DIGITAL_IDENTITY_CRM_ACTIVITY_EVENTS = [
   'digital_identity.lead_possible_match',
   'digital_identity.contact_shared',
   'digital_identity.duplicate_resolved',
+  'digital_identity.relationship_photo_added',
+  'digital_identity.relationship_photo_removed',
+  'digital_identity.relationship_photo_replaced',
 ] as const
+
+/** Document Engine type key for optional Let's Connect relationship photos. */
+export const RELATIONSHIP_PHOTO_DOCUMENT_TYPE = 'relationship_photo' as const
 
 /** Anonymous analytics event keys (never household Activities). */
 export const DIGITAL_IDENTITY_ANONYMOUS_EVENT_KEYS = [

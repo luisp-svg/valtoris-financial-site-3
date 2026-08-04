@@ -197,6 +197,7 @@ export function letsConnectModalCopy() {
     successTitle: "We're connected.",
     successSaveContact: 'Save Contact',
     successFamilyAssessment: 'Start Family Financial Report Card',
+    successAddPhoto: 'Add a photo from where we met',
     successDone: 'Done',
   } as const
 }

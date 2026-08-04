@@ -3,12 +3,23 @@
  * Never imports server/admin modules.
  */
 
+export type LetsConnectRelationshipPhotoAvailability =
+  | {
+      available: true
+      uploadToken: string
+      expiresAt: string
+    }
+  | {
+      available: false
+    }
+
 export type LetsConnectSubmitSuccess = {
   ok: true
   created: boolean
   submissionId: string
   matchStatus: string | null
   httpStatus: number
+  relationshipPhoto: LetsConnectRelationshipPhotoAvailability
 }
 
 export type LetsConnectSubmitFailure = {
@@ -127,6 +138,25 @@ export async function submitLetsConnect(
     const bodySubmissionId =
       typeof body.submissionId === 'string' ? body.submissionId : ''
 
+    let relationshipPhoto: LetsConnectRelationshipPhotoAvailability = { available: false }
+    const photo = record.relationshipPhoto
+    if (photo && typeof photo === 'object' && !Array.isArray(photo)) {
+      const photoRecord = photo as Record<string, unknown>
+      if (
+        photoRecord.available === true &&
+        typeof photoRecord.uploadToken === 'string' &&
+        photoRecord.uploadToken &&
+        typeof photoRecord.expiresAt === 'string' &&
+        photoRecord.expiresAt
+      ) {
+        relationshipPhoto = {
+          available: true,
+          uploadToken: photoRecord.uploadToken,
+          expiresAt: photoRecord.expiresAt,
+        }
+      }
+    }
+
     return {
       ok: true,
       created: record.created === true,
@@ -134,6 +164,7 @@ export async function submitLetsConnect(
         typeof record.submissionId === 'string' ? record.submissionId : bodySubmissionId,
       matchStatus: typeof record.matchStatus === 'string' ? record.matchStatus : null,
       httpStatus: response.status,
+      relationshipPhoto,
     }
   } catch (error) {
     const isAbort =

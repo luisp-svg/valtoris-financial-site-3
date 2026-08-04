@@ -10,7 +10,29 @@ export type {
   DigitalIdentityConnectSuccess,
   MatchConfidence,
   MatchStatus,
+  RelationshipPhotoAvailability,
 } from './types'
+
+export {
+  issueRelationshipPhotoUploadGrant,
+  hashPhotoUploadToken,
+  buildRelationshipPhotoStoragePath,
+} from './photoGrant'
+export type {
+  RelationshipPhotoGrantResult,
+} from './photoGrant'
+
+export {
+  normalizeRelationshipPhoto,
+  RELATIONSHIP_PHOTO_MAX_BYTES,
+} from './normalizeRelationshipPhoto'
+
+export {
+  uploadRelationshipPhoto,
+} from './uploadRelationshipPhoto'
+export type {
+  UploadRelationshipPhotoResult,
+} from './uploadRelationshipPhoto'
 
 export {
   validateDigitalIdentityConnectRequest,

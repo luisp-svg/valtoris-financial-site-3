@@ -44,12 +44,24 @@ export type DigitalIdentityConnectRequest = {
   referrer: string | null
 }
 
+/** Safe public Relationship Photo grant — never includes lead/household/document ids. */
+export type RelationshipPhotoAvailability =
+  | {
+      available: true
+      uploadToken: string
+      expiresAt: string
+    }
+  | {
+      available: false
+    }
+
 /** Safe public success — http-facing only. */
 export type DigitalIdentityConnectSuccess = {
   ok: true
   created: boolean
   submissionId: string
   matchStatus: MatchStatus
+  relationshipPhoto?: RelationshipPhotoAvailability
 }
 
 export type DigitalIdentityConnectError = {

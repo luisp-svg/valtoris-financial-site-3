@@ -84,6 +84,26 @@ export default function PrivacyPolicyPage() {
         </p>
       </section>
 
+      <section aria-labelledby="privacy-relationship-photo">
+        <h2 id="privacy-relationship-photo">Optional Relationship Photo (Let’s Connect)</h2>
+        <p>
+          After a successful Let’s Connect submission on a published advisor card, you may
+          optionally add a Relationship Photo (for example a selfie taken together or an uploaded
+          photo). The photo is entirely optional. Skipping it does not affect the saved connection.
+        </p>
+        <p>
+          If you choose to add a photo and acknowledge storage, the image is stored in our private
+          CRM so your advisor can remember where you met. It is a memory aid only. It is not used
+          for facial recognition, biometric identification, identity verification, embeddings, or
+          face matching. It is not shown on the public advisor card or client portal by default.
+        </p>
+        <p>
+          Authorized advisors and owners may view, replace, or remove the photo inside the CRM.
+          You may request removal subject to the firm’s retention practices. This description
+          remains pending legal review and is not a formal compliance claim.
+        </p>
+      </section>
+
       <section aria-labelledby="privacy-crm-storage">
         <h2 id="privacy-crm-storage">CRM storage and internal review</h2>
         <p>

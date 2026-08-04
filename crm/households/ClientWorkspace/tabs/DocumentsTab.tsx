@@ -27,16 +27,23 @@ export default function DocumentsTab({ workspace }: ClientWorkspaceTabProps) {
           />
         ) : (
           <ul className="crm-household-overview-list">
-            {documents.map((doc) => (
-              <li key={doc.id}>
-                <p className="crm-task-title">{doc.file_name}</p>
-                <p className="crm-task-meta">
-                  {doc.doc_type.replace(/_/g, ' ')}
-                  {' · '}
-                  {formatWorkspaceDate(doc.created_at)}
-                </p>
-              </li>
-            ))}
+            {documents.map((doc) => {
+              const isRelationshipPhoto = doc.doc_type === 'relationship_photo'
+              return (
+                <li key={doc.id}>
+                  <p className="crm-task-title">
+                    {isRelationshipPhoto ? 'Relationship Photo' : doc.file_name}
+                  </p>
+                  <p className="crm-task-meta">
+                    {isRelationshipPhoto
+                      ? 'Photo from when you connected'
+                      : doc.doc_type.replace(/_/g, ' ')}
+                    {' · '}
+                    {formatWorkspaceDate(doc.created_at)}
+                  </p>
+                </li>
+              )
+            })}
           </ul>
         )}
       </Panel>

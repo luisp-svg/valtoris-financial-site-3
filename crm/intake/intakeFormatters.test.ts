@@ -242,6 +242,7 @@ describe('intake formatters', () => {
         advisorSlug: 'jane-advisor',
         campaignCode: 'summit',
         eventCode: 'booth-a',
+        relationshipPhoto: null,
         productLabel: 'Digital Identity',
       },
       originalAdvisorSlug: 'jane-advisor',
