@@ -3,12 +3,12 @@
  * Browser must not supply trusted advisor UUIDs.
  */
 
-import { isValidIdentityPublicKey, normalizeIdentitySlug } from './slug'
+import { isValidIdentityPublicKey, normalizeIdentitySlug } from './slug.js'
 import type {
   DigitalIdentityConsentState,
   DigitalIdentitySubmissionInput,
   PreferredFollowUpMethod,
-} from './types'
+} from './types.js'
 
 const FORBIDDEN_TRUSTED_KEYS = [
   'advisorId',

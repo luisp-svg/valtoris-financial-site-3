@@ -4,7 +4,7 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { createPublicFamilyFollowUpTask } from './followUpTaskRpc'
+import { createPublicFamilyFollowUpTask } from './followUpTaskRpc.js'
 
 export type PostDuplicateTaskOutcome = {
   status: 'task_created' | 'task_failed'

@@ -1,4 +1,4 @@
-import { GOOGLE_SHEETS_CALCULATOR_WEBHOOK_URL } from '../constants/urls'
+import { GOOGLE_SHEETS_CALCULATOR_WEBHOOK_URL } from '../constants/urls.js'
 
 export type LeadType =
   | 'Protection Gap'

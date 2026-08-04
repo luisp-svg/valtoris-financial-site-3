@@ -2,14 +2,14 @@
  * Public DTO builders — allowlisted fields only; no internal IDs.
  */
 
-import { LETS_CONNECT_CTA_LABEL, V1_IDENTITY_SURFACE_KIND } from './constants'
-import { getEnabledPublicCtas } from './cta'
+import { LETS_CONNECT_CTA_LABEL, V1_IDENTITY_SURFACE_KIND } from './constants.js'
+import { getEnabledPublicCtas } from './cta.js'
 import type {
   IdentitySurface,
   IdentitySurfacePublicDto,
   IdentitySurfaceStatus,
   PublishedAdvisorCard,
-} from './types'
+} from './types.js'
 
 const INTERNAL_ID_KEYS = [
   'id',

@@ -3,15 +3,15 @@
  * Pure functions — no I/O, no admin client, no CRM side effects.
  */
 
-import { LETS_CONNECT_CTA_LABEL, V1_IDENTITY_SURFACE_KIND } from './constants'
-import { createDefaultAdvisorCardCtas } from './cta'
+import { LETS_CONNECT_CTA_LABEL, V1_IDENTITY_SURFACE_KIND } from './constants.js'
+import { createDefaultAdvisorCardCtas } from './cta.js'
 import type {
   IdentityCtaConfigItem,
   IdentityCtaKey,
   IdentitySocialLink,
   IdentitySurfacePublicDto,
-} from './types'
-import { buildPublicCardPath, normalizePublicHref } from './urls'
+} from './types.js'
+import { buildPublicCardPath, normalizePublicHref } from './urls.js'
 
 const MAX_SAFE_TEXT = 500
 

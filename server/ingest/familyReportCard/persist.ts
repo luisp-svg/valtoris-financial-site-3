@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { SheetsSyncStatus } from './types'
+import type { SheetsSyncStatus } from './types.js'
 
 /**
  * Shape expected by `public.ingest_public_family_report_card(p_payload jsonb)`

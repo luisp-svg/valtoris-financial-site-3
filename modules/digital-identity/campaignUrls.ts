@@ -3,9 +3,9 @@
  * Public destinations always use /c/k/{publicKey} — never slug, never campaign UUID.
  */
 
-import { buildAbsolutePublicCardUrl } from './vcard'
-import { buildPublicCardPath } from './urls'
-import type { IdentitySourceChannel } from './types'
+import { buildAbsolutePublicCardUrl } from './vcard.js'
+import { buildPublicCardPath } from './urls.js'
+import type { IdentitySourceChannel } from './types.js'
 
 const CODE_RE = /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$/
 const MAX_UTM = 200

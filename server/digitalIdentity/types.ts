@@ -2,7 +2,7 @@
  * Server-only Digital Identity public-read result types.
  */
 
-import type { IdentitySurfacePublicDto } from '../../modules/digital-identity'
+import type { IdentitySurfacePublicDto } from '../../modules/digital-identity/index.js'
 
 export type PublicCardLookupStatus =
   | 'found'

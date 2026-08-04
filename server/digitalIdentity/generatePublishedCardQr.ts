@@ -14,13 +14,13 @@ import {
   parsePublicCardQrFormat,
   sanitizeQrFilename,
   type PublicCardQrFormat,
-} from '../../modules/digital-identity'
-import { isValidIdentityPublicKey } from '../../modules/digital-identity'
+} from '../../modules/digital-identity/index.js'
+import { isValidIdentityPublicKey } from '../../modules/digital-identity/index.js'
 import {
   lookupPublishedCardByPublicKey,
   type LookupPublishedCardDeps,
-} from './lookupPublishedCard'
-import type { PublicCardLookupResult } from './types'
+} from './lookupPublishedCard.js'
+import type { PublicCardLookupResult } from './types.js'
 
 export type GeneratePublishedCardQrQuery = {
   key: string
@@ -113,7 +113,7 @@ export async function generatePublishedCardQr(
   if (campaignCode) {
     try {
       const admin =
-        deps.admin ?? (await import('../../lib/supabase/admin')).createSupabaseAdminClient()
+        deps.admin ?? (await import('../../lib/supabase/admin.js')).createSupabaseAdminClient()
       const { data: cardRow, error: cardErr } = await admin
         .from('digital_cards')
         .select('id')

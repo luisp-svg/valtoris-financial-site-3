@@ -7,11 +7,11 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import {
   createPublicFamilyFollowUpTask,
   markFollowUpTaskAutomationStatus,
-} from '../../../crm/tasks/followUp/followUpTaskRpc'
+} from '../../../crm/tasks/followUp/followUpTaskRpc.js'
 import {
   workflowForMatchStatus,
   type PublicFamilyMatchStatus,
-} from '../../../crm/tasks/followUp/workflowTypes'
+} from '../../../crm/tasks/followUp/workflowTypes.js'
 
 export type TaskAutomationOutcome = {
   status: 'task_created' | 'task_not_required' | 'task_failed' | 'task_pending' | 'skipped'
@@ -23,7 +23,7 @@ export type TaskAutomationOutcome = {
 export {
   categorizeTaskAutomationError,
   sanitizeTaskErrorCategory,
-} from '../../../crm/tasks/followUp/followUpTaskRpc'
+} from '../../../crm/tasks/followUp/followUpTaskRpc.js'
 
 export function workflowForIngestMatchStatus(
   matchStatus: string,
@@ -141,4 +141,4 @@ export async function orchestrateIngestFollowUpTask(
  * Resolution remains authoritative even if this fails.
  * Prefer `crm/tasks/followUp/postDuplicateTaskTransition` for browser CRM paths.
  */
-export { orchestratePostDuplicateResolutionTask } from '../../../crm/tasks/followUp/postDuplicateTaskTransition'
+export { orchestratePostDuplicateResolutionTask } from '../../../crm/tasks/followUp/postDuplicateTaskTransition.js'

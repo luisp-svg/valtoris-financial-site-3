@@ -1,8 +1,8 @@
-import { parseAmount, formatCurrency } from '../../calculator/calculations'
-import { PriorityRecommendation } from '../../results/PriorityRecommendationCard'
-import { CategoryScore } from '../../reportCard/types'
-import { ReportActionPlan } from '../../reportDashboard/types'
-import { DemoAssessmentAnswers } from '../types'
+import { parseAmount, formatCurrency } from '../../calculator/calculations.js'
+import { PriorityRecommendation } from '../../results/PriorityRecommendationCard.js'
+import { CategoryScore } from '../../reportCard/types.js'
+import { ReportActionPlan } from '../../reportDashboard/types.js'
+import { DemoAssessmentAnswers } from '../types.js'
 
 export type FamilyAssessmentScoreResult = {
   overallScore: number

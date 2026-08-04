@@ -3,14 +3,14 @@
  * Never household Activities. Never contact PII.
  */
 
-import { DIGITAL_IDENTITY_ANONYMOUS_EVENT_KEYS } from './constants'
-import { isValidIdentityPublicKey } from './slug'
+import { DIGITAL_IDENTITY_ANONYMOUS_EVENT_KEYS } from './constants.js'
+import { isValidIdentityPublicKey } from './slug.js'
 import type {
   IdentityAnonymousEvent,
   IdentityAnonymousEventKey,
   IdentitySourceChannel,
   IdentityUtmAttribution,
-} from './types'
+} from './types.js'
 
 const SOURCE_CHANNELS: readonly IdentitySourceChannel[] = [
   'link',

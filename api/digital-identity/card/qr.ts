@@ -2,7 +2,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node'
 import {
   generatePublishedCardQr,
   type GeneratePublishedCardQrResult,
-} from '../../../server/digitalIdentity/generatePublishedCardQr'
+} from '../../../server/digitalIdentity/generatePublishedCardQr.js'
 
 /**
  * GET /api/digital-identity/card/qr?key=...&format=svg|png|png-hires

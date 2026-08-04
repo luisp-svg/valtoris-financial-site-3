@@ -8,7 +8,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import {
   isValidIdentityPublicKey,
   normalizeIdentitySlug,
-} from '../../../modules/digital-identity'
+} from '../../../modules/digital-identity/index.js'
 
 export type ResolveCardForIngestInput = {
   publicKey?: string | null

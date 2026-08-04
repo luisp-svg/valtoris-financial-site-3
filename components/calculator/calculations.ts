@@ -1,4 +1,4 @@
-import { CalculatorAnswers } from './types'
+import { CalculatorAnswers } from './types.js'
 
 export type ProtectionBreakdown = {
   income: number

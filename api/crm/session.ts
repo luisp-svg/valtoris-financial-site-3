@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { createSupabaseServerClient } from '../../lib/supabase/server'
+import { createSupabaseServerClient } from '../../lib/supabase/server.js'
 
 /**
  * GET /api/crm/session

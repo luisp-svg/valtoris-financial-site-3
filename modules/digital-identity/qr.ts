@@ -11,9 +11,9 @@ import {
   buildCampaignQrDestinationPath,
   buildCampaignQrDestinationUrl,
   type CampaignAttributionQuery,
-} from './campaignUrls'
-import { buildAbsolutePublicCardUrl } from './vcard'
-import { buildPublicCardPath } from './urls'
+} from './campaignUrls.js'
+import { buildAbsolutePublicCardUrl } from './vcard.js'
+import { buildPublicCardPath } from './urls.js'
 
 export const PUBLIC_CARD_QR_FORMATS = ['svg', 'png', 'png-hires'] as const
 

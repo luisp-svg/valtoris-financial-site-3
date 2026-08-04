@@ -6,13 +6,13 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { createSupabaseAdminClient } from '../../lib/supabase/admin'
+import { createSupabaseAdminClient } from '../../lib/supabase/admin.js'
 import {
   assemblePublishedCardDto,
   isValidIdentityPublicKey,
   normalizeIdentitySlug,
-} from '../../modules/digital-identity'
-import type { PublicCardLookupQuery, PublicCardLookupResult } from './types'
+} from '../../modules/digital-identity/index.js'
+import type { PublicCardLookupQuery, PublicCardLookupResult } from './types.js'
 
 type AdvisorJoinRow = {
   display_name: string | null

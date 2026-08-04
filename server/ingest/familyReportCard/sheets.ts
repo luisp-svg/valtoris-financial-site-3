@@ -1,10 +1,10 @@
-import { parseAmount } from '../../../components/calculator/calculations'
-import type { DemoAssessmentAnswers } from '../../../components/assessment/types'
-import { GOOGLE_SHEETS_CALCULATOR_WEBHOOK_URL } from '../../../constants/urls'
-import { buildMasterLeadPayload } from '../../../utils/masterLeadPayload'
-import type { LeadSubmissionPayload } from '../../../utils/submitLeadToGoogleSheets'
-import type { FamilyReportCardServerScore } from './score'
-import type { SheetsErrorCategory, SheetsSyncStatus } from './types'
+import { parseAmount } from '../../../components/calculator/calculations.js'
+import type { DemoAssessmentAnswers } from '../../../components/assessment/types.js'
+import { GOOGLE_SHEETS_CALCULATOR_WEBHOOK_URL } from '../../../constants/urls.js'
+import { buildMasterLeadPayload } from '../../../utils/masterLeadPayload.js'
+import type { LeadSubmissionPayload } from '../../../utils/submitLeadToGoogleSheets.js'
+import type { FamilyReportCardServerScore } from './score.js'
+import type { SheetsErrorCategory, SheetsSyncStatus } from './types.js'
 
 export type SheetsWriteResult = {
   status: Extract<SheetsSyncStatus, 'succeeded' | 'failed' | 'skipped'>

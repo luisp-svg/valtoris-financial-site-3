@@ -11,64 +11,64 @@ export type {
   MatchConfidence,
   MatchStatus,
   RelationshipPhotoAvailability,
-} from './types'
+} from './types.js'
 
 export {
   issueRelationshipPhotoUploadGrant,
   hashPhotoUploadToken,
   buildRelationshipPhotoStoragePath,
-} from './photoGrant'
+} from './photoGrant.js'
 export type {
   RelationshipPhotoGrantResult,
-} from './photoGrant'
+} from './photoGrant.js'
 
 export {
   normalizeRelationshipPhoto,
   RELATIONSHIP_PHOTO_MAX_BYTES,
-} from './normalizeRelationshipPhoto'
+} from './normalizeRelationshipPhoto.js'
 
 export {
   uploadRelationshipPhoto,
-} from './uploadRelationshipPhoto'
+} from './uploadRelationshipPhoto.js'
 export type {
   UploadRelationshipPhotoResult,
-} from './uploadRelationshipPhoto'
+} from './uploadRelationshipPhoto.js'
 
 export {
   validateDigitalIdentityConnectRequest,
-} from './validation'
-export type { ValidationErr, ValidationOk, ValidationOptions, ValidationResult } from './validation'
+} from './validation.js'
+export type { ValidationErr, ValidationOk, ValidationOptions, ValidationResult } from './validation.js'
 
 export {
   resolveCardForIngest,
-} from './resolveCardForIngest'
+} from './resolveCardForIngest.js'
 export type {
   ResolveCardForIngestError,
   ResolveCardForIngestInput,
   ResolveCardForIngestResult,
   ResolveCardForIngestSuccess,
-} from './resolveCardForIngest'
+} from './resolveCardForIngest.js'
 
 export {
   persistDigitalIdentityConnect,
-} from './persist'
+} from './persist.js'
 export type {
   DigitalIdentityConnectRpcPayload,
   PersistDigitalIdentityConnectError,
   PersistDigitalIdentityConnectResult,
   PersistDigitalIdentityConnectSuccess,
-} from './persist'
+} from './persist.js'
 
 export {
   orchestrateDigitalIdentityFollowUpTask,
   workflowForDigitalIdentityMatchStatus,
-} from './taskAutomation'
+} from './taskAutomation.js'
 export type {
   DigitalIdentityTaskWorkflow,
   TaskAutomationOutcome,
-} from './taskAutomation'
+} from './taskAutomation.js'
 
 export {
   ingestDigitalIdentityConnect,
-} from './ingestDigitalIdentityConnect'
-export type { IngestDigitalIdentityConnectDeps } from './ingestDigitalIdentityConnect'
+} from './ingestDigitalIdentityConnect.js'
+export type { IngestDigitalIdentityConnectDeps } from './ingestDigitalIdentityConnect.js'

@@ -1,23 +1,23 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { createSupabaseAdminClient } from '../../../lib/supabase/admin'
+import { createSupabaseAdminClient } from '../../../lib/supabase/admin.js'
 import {
   normalizeEmail,
   normalizePhone,
-} from '../../../crm/households/normalizeContact'
-import { findMatchCandidates } from '../familyReportCard/findCandidates'
-import { classifyMatch } from '../familyReportCard/match'
-import type { MatchCandidate } from '../familyReportCard/types'
-import { persistDigitalIdentityConnect } from './persist'
-import { issueRelationshipPhotoUploadGrant } from './photoGrant'
-import { resolveCardForIngest } from './resolveCardForIngest'
-import { resolveTrustedCampaignAttribution } from './resolveTrustedCampaign'
-import { orchestrateDigitalIdentityFollowUpTask } from './taskAutomation'
+} from '../../../crm/households/normalizeContact.js'
+import { findMatchCandidates } from '../familyReportCard/findCandidates.js'
+import { classifyMatch } from '../familyReportCard/match.js'
+import type { MatchCandidate } from '../familyReportCard/types.js'
+import { persistDigitalIdentityConnect } from './persist.js'
+import { issueRelationshipPhotoUploadGrant } from './photoGrant.js'
+import { resolveCardForIngest } from './resolveCardForIngest.js'
+import { resolveTrustedCampaignAttribution } from './resolveTrustedCampaign.js'
+import { orchestrateDigitalIdentityFollowUpTask } from './taskAutomation.js'
 import type {
   DigitalIdentityConnectResult,
   MatchStatus,
   RelationshipPhotoAvailability,
-} from './types'
-import { validateDigitalIdentityConnectRequest } from './validation'
+} from './types.js'
+import { validateDigitalIdentityConnectRequest } from './validation.js'
 
 export type IngestDigitalIdentityConnectDeps = {
   admin?: SupabaseClient

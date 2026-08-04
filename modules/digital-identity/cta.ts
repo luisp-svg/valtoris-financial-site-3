@@ -2,8 +2,8 @@
  * CTA configuration builders for Digital Identity advisor cards.
  */
 
-import { LETS_CONNECT_CTA_LABEL } from './constants'
-import type { IdentityCtaConfigItem, IdentityCtaConfiguration } from './types'
+import { LETS_CONNECT_CTA_LABEL } from './constants.js'
+import type { IdentityCtaConfigItem, IdentityCtaConfiguration } from './types.js'
 
 /** Default CTA set for v1 advisor cards. */
 export function createDefaultAdvisorCardCtas(input?: {

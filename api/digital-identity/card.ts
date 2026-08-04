@@ -2,7 +2,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node'
 import {
   lookupPublishedCard,
   type PublicCardLookupResult,
-} from '../../server/digitalIdentity'
+} from '../../server/digitalIdentity/index.js'
 
 /**
  * GET /api/digital-identity/card?key=...

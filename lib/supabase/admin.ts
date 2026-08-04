@@ -7,7 +7,7 @@
  */
 import { createClient } from '@supabase/supabase-js'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { getServerSupabaseServiceRoleKey, getServerSupabaseUrl } from './env'
+import { getServerSupabaseServiceRoleKey, getServerSupabaseUrl } from './env.js'
 
 export type AdminSupabaseClient = SupabaseClient
 

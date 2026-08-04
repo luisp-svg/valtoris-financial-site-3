@@ -1,9 +1,9 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { checkRateLimit } from '../../server/ingest/familyReportCard/abuse'
+import { checkRateLimit } from '../../server/ingest/familyReportCard/abuse.js'
 import {
   uploadRelationshipPhoto,
   type UploadRelationshipPhotoResult,
-} from '../../server/ingest/digitalIdentity'
+} from '../../server/ingest/digitalIdentity/index.js'
 
 /**
  * POST /api/digital-identity/relationship-photo

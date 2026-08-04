@@ -1,7 +1,7 @@
 import { createServerClient, parseCookieHeader, serializeCookieHeader } from '@supabase/ssr'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { getServerSupabaseAnonKey, getServerSupabaseUrl } from './env'
+import { getServerSupabaseAnonKey, getServerSupabaseUrl } from './env.js'
 
 /**
  * Per-request server client for Vercel API routes.

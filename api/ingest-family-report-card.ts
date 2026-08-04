@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { checkRateLimit } from '../server/ingest/familyReportCard/abuse'
-import { ingestFamilyReportCard } from '../server/ingest/familyReportCard/ingestFamilyReportCard'
+import { checkRateLimit } from '../server/ingest/familyReportCard/abuse.js'
+import { ingestFamilyReportCard } from '../server/ingest/familyReportCard/ingestFamilyReportCard.js'
 
 /**
  * POST /api/ingest-family-report-card

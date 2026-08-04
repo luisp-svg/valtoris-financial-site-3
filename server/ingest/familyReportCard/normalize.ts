@@ -1,5 +1,5 @@
-import { normalizeEmail, normalizePhone } from '../../../crm/households/normalizeContact'
-import type { DemoAssessmentAnswers } from '../../../components/assessment/types'
+import { normalizeEmail, normalizePhone } from '../../../crm/households/normalizeContact.js'
+import type { DemoAssessmentAnswers } from '../../../components/assessment/types.js'
 
 /** Original submitted strings, preserved verbatim (trimmed) for audit/history. */
 export type SubmittedContactSnapshot = {

@@ -1,4 +1,4 @@
-import type { ConsentSnapshot } from './types'
+import type { ConsentSnapshot } from './types.js'
 
 /**
  * Every consent flag defaults to `false` and every timestamp/version defaults

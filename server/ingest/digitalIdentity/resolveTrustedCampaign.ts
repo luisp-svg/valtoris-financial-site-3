@@ -8,8 +8,8 @@ import {
   extractReferrerHost,
   normalizeCampaignAttributionQuery,
   type NormalizedCampaignAttribution,
-} from '../../../modules/digital-identity/campaignUrls'
-import type { IdentitySourceChannel } from '../../../modules/digital-identity'
+} from '../../../modules/digital-identity/campaignUrls.js'
+import type { IdentitySourceChannel } from '../../../modules/digital-identity/index.js'
 
 export type TrustedCampaignRow = {
   id: string

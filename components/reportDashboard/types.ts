@@ -1,5 +1,5 @@
-import { PriorityRecommendation } from '../results/PriorityRecommendationCard'
-import { CategoryScore } from '../reportCard/types'
+import { PriorityRecommendation } from '../results/PriorityRecommendationCard.js'
+import { CategoryScore } from '../reportCard/types.js'
 
 export type ReportHeroMetaCard =
   | {

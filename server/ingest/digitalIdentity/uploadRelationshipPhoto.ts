@@ -3,15 +3,15 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { createSupabaseAdminClient } from '../../../lib/supabase/admin'
+import { createSupabaseAdminClient } from '../../../lib/supabase/admin.js'
 import {
   buildRelationshipPhotoStoragePath,
   hashPhotoUploadToken,
-} from './photoGrant'
+} from './photoGrant.js'
 import {
   normalizeRelationshipPhoto,
   RELATIONSHIP_PHOTO_MAX_BYTES,
-} from './normalizeRelationshipPhoto'
+} from './normalizeRelationshipPhoto.js'
 
 export type UploadRelationshipPhotoInput = {
   uploadToken: string

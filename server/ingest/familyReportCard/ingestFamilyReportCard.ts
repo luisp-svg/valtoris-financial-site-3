@@ -1,21 +1,21 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { createSupabaseAdminClient } from '../../../lib/supabase/admin'
-import { normalizeConsentSnapshot } from './consent'
-import { findMatchCandidates } from './findCandidates'
-import { classifyMatch } from './match'
-import { normalizeSubmittedContact } from './normalize'
-import { persistFamilyReportCardIngest, updateLeadSheetsSync } from './persist'
-import { compareClientScore, recalculateFamilyReportCardScore } from './score'
-import { buildFamilyReportCardSheetsPayload, writeFamilyReportCardToSheets } from './sheets'
-import { orchestrateIngestFollowUpTask } from './taskAutomation'
+import { createSupabaseAdminClient } from '../../../lib/supabase/admin.js'
+import { normalizeConsentSnapshot } from './consent.js'
+import { findMatchCandidates } from './findCandidates.js'
+import { classifyMatch } from './match.js'
+import { normalizeSubmittedContact } from './normalize.js'
+import { persistFamilyReportCardIngest, updateLeadSheetsSync } from './persist.js'
+import { compareClientScore, recalculateFamilyReportCardScore } from './score.js'
+import { buildFamilyReportCardSheetsPayload, writeFamilyReportCardToSheets } from './sheets.js'
+import { orchestrateIngestFollowUpTask } from './taskAutomation.js'
 import type {
   FamilyReportCardIngestResult,
   MatchCandidate,
   MatchStatus,
   SheetsErrorCategory,
   SheetsSyncStatus,
-} from './types'
-import { validateFamilyReportCardIngestRequest } from './validation'
+} from './types.js'
+import { validateFamilyReportCardIngestRequest } from './validation.js'
 
 export type IngestFamilyReportCardDeps = {
   admin?: SupabaseClient

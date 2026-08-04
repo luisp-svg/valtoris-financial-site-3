@@ -1,4 +1,4 @@
-import { isValidEmailFormat, normalizePhone } from '../../../crm/households/normalizeContact'
+import { isValidEmailFormat, normalizePhone } from '../../../crm/households/normalizeContact.js'
 import {
   isFamilyComplete,
   isFinancialComplete,
@@ -9,9 +9,9 @@ import {
   type FinancialAnswers,
   type GoalsAnswers,
   type ProtectionAnswers,
-} from '../../../components/assessment/types'
-import { normalizeConsentSnapshot } from './consent'
-import type { ConsentSnapshot, FamilyReportCardIngestRequest } from './types'
+} from '../../../components/assessment/types.js'
+import { normalizeConsentSnapshot } from './consent.js'
+import type { ConsentSnapshot, FamilyReportCardIngestRequest } from './types.js'
 
 export type ValidationOk<T> = { ok: true; value: T }
 export type ValidationErr = { ok: false; error: string; code: string }

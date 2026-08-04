@@ -1,4 +1,4 @@
-import type { DemoAssessmentAnswers } from '../../../components/assessment/types'
+import type { DemoAssessmentAnswers } from '../../../components/assessment/types.js'
 
 /**
  * Public Family Report Card → CRM ingest — shared types.

@@ -1,7 +1,7 @@
 import {
   isValidEmailFormat,
   normalizePhone,
-} from '../../../crm/households/normalizeContact'
+} from '../../../crm/households/normalizeContact.js'
 import {
   buildDigitalIdentityConsentSnapshot,
   rejectsTrustedAdvisorIds,
@@ -9,8 +9,8 @@ import {
   validateRequiredDigitalIdentityConsent,
   type DigitalIdentitySubmissionInput,
   type IdentitySourceChannel,
-} from '../../../modules/digital-identity'
-import type { DigitalIdentityConnectRequest } from './types'
+} from '../../../modules/digital-identity/index.js'
+import type { DigitalIdentityConnectRequest } from './types.js'
 
 export type ValidationOk<T> = { ok: true; value: T }
 export type ValidationErr = { ok: false; error: string; code: string }

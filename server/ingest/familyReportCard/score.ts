@@ -1,6 +1,6 @@
-import { scoreFamilyAssessment } from '../../../components/assessment/scoring/scoreFamilyAssessment'
-import type { DemoAssessmentAnswers } from '../../../components/assessment/types'
-import { FAMILY_REPORT_CARD_SCORING_VERSION } from './types'
+import { scoreFamilyAssessment } from '../../../components/assessment/scoring/scoreFamilyAssessment.js'
+import type { DemoAssessmentAnswers } from '../../../components/assessment/types.js'
+import { FAMILY_REPORT_CARD_SCORING_VERSION } from './types.js'
 
 export type FamilyReportCardCategorySummary = {
   id: string

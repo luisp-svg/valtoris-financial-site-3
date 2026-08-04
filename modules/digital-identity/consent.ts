@@ -3,11 +3,11 @@
  * Pure normalization/validation only. No persistence or network I/O.
  */
 
-import { DIGITAL_IDENTITY_CONSENT_VERSION } from './constants'
+import { DIGITAL_IDENTITY_CONSENT_VERSION } from './constants.js'
 import type {
   DigitalIdentityConsentSnapshot,
   DigitalIdentityConsentState,
-} from './types'
+} from './types.js'
 
 export const INITIAL_DIGITAL_IDENTITY_CONSENT_STATE: DigitalIdentityConsentState = {
   privacyAcknowledged: false,

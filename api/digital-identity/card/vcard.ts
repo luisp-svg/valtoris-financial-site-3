@@ -2,11 +2,11 @@ import type { VercelRequest, VercelResponse } from '@vercel/node'
 import {
   buildAbsolutePublicCardUrl,
   buildVCardFromPublicDto,
-} from '../../../modules/digital-identity'
+} from '../../../modules/digital-identity/index.js'
 import {
   lookupPublishedCard,
   type PublicCardLookupResult,
-} from '../../../server/digitalIdentity'
+} from '../../../server/digitalIdentity/index.js'
 
 /**
  * GET /api/digital-identity/card/vcard?key=...

@@ -21,7 +21,7 @@ export {
   RELATIONSHIP_PHOTO_DOCUMENT_TYPE,
   RESERVED_IDENTITY_SURFACE_KINDS,
   V1_IDENTITY_SURFACE_KIND,
-} from './constants'
+} from './constants.js'
 
 export {
   INITIAL_DIGITAL_IDENTITY_CONSENT_STATE,
@@ -31,10 +31,10 @@ export {
   hasRequiredDigitalIdentityConsent,
   normalizeDigitalIdentityConsentSnapshot,
   validateRequiredDigitalIdentityConsent,
-} from './consent'
-export type { DigitalIdentityConsentValidation } from './consent'
+} from './consent.js'
+export type { DigitalIdentityConsentValidation } from './consent.js'
 
-export { createDefaultAdvisorCardCtas, getEnabledPublicCtas } from './cta'
+export { createDefaultAdvisorCardCtas, getEnabledPublicCtas } from './cta.js'
 
 export {
   anonymousEventCreatesCrmRecord,
@@ -43,36 +43,36 @@ export {
   normalizeUtmAttribution,
   sanitizeAnonymousSafeMetadata,
   validateAnonymousEventDraft,
-} from './analytics'
-export type { AnonymousEventValidation } from './analytics'
+} from './analytics.js'
+export type { AnonymousEventValidation } from './analytics.js'
 
 export {
   isPubliclyResolvableSurfaceStatus,
   pickPublishedAdvisorCardFields,
   toIdentitySurfacePublicDto,
-} from './publicDto'
+} from './publicDto.js'
 
 export {
   assemblePublishedCardDto,
   normalizePublicCtaItems,
   responseContainsInternalIds,
-} from './assemblePublishedCard'
+} from './assemblePublishedCard.js'
 export type {
   AdvisorProfilePublicSource,
   DigitalCardPublicSource,
-} from './assemblePublishedCard'
+} from './assemblePublishedCard.js'
 
-export { isValidIdentityPublicKey, isValidIdentitySlug, normalizeIdentitySlug } from './slug'
+export { isValidIdentityPublicKey, isValidIdentitySlug, normalizeIdentitySlug } from './slug.js'
 
-export { buildPublicCardPath, buildPublicCardSlugPath, normalizePublicHref } from './urls'
+export { buildPublicCardPath, buildPublicCardSlugPath, normalizePublicHref } from './urls.js'
 
 export {
   contactExchangeCreatesCase,
   rejectsTrustedAdvisorIds,
   validateDigitalIdentitySubmissionInput,
   viewOrDownloadCreatesHousehold,
-} from './submission'
-export type { SubmissionValidationResult } from './submission'
+} from './submission.js'
+export type { SubmissionValidationResult } from './submission.js'
 
 export {
   buildAbsolutePublicCardUrl,
@@ -82,7 +82,7 @@ export {
   escapeVCardText,
   sanitizeVCardFilename,
   vCardGenerationSideEffects,
-} from './vcard'
+} from './vcard.js'
 
 export {
   buildCampaignAttributionSearchParams,
@@ -96,11 +96,11 @@ export {
   extractReferrerHost,
   normalizeCampaignAttributionQuery,
   parseCampaignAttributionFromSearch,
-} from './campaignUrls'
+} from './campaignUrls.js'
 export type {
   CampaignAttributionQuery,
   NormalizedCampaignAttribution,
-} from './campaignUrls'
+} from './campaignUrls.js'
 
 export {
   PUBLIC_CARD_QR_FORMATS,
@@ -112,12 +112,12 @@ export {
   parsePublicCardQrFormat,
   qrGenerationSideEffects,
   sanitizeQrFilename,
-} from './qr'
+} from './qr.js'
 export type {
   PublicCardQrFormat,
   PublicCardQrFormatFuture,
   PublicCardQrRenderSpec,
-} from './qr'
+} from './qr.js'
 
 export type {
   DigitalIdentityConsentSnapshot,
@@ -144,4 +144,4 @@ export type {
   PublishedAdvisorCard,
   VCardBuildInput,
   VCardBuildResult,
-} from './types'
+} from './types.js'

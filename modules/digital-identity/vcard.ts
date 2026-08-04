@@ -7,8 +7,8 @@ import type {
   IdentitySurfacePublicDto,
   VCardBuildInput,
   VCardBuildResult,
-} from './types'
-import { normalizePublicHref } from './urls'
+} from './types.js'
+import { normalizePublicHref } from './urls.js'
 
 const CRLF = '\r\n'
 const MAX_ADDITIONAL_URLS = 12

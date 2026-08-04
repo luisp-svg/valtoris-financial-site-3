@@ -7,8 +7,8 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import {
   categorizeTaskAutomationError,
   sanitizeTaskErrorCategory,
-} from '../../../crm/tasks/followUp/followUpTaskRpc'
-import { DIGITAL_IDENTITY_TASK_WORKFLOWS } from '../../../modules/digital-identity'
+} from '../../../crm/tasks/followUp/followUpTaskRpc.js'
+import { DIGITAL_IDENTITY_TASK_WORKFLOWS } from '../../../modules/digital-identity/index.js'
 
 export type DigitalIdentityTaskWorkflow =
   (typeof DIGITAL_IDENTITY_TASK_WORKFLOWS)[number]

@@ -1,4 +1,4 @@
-import type { MatchCandidate, MatchClassificationResult } from './types'
+import type { MatchCandidate, MatchClassificationResult } from './types.js'
 
 export type ClassifyMatchInput = {
   normalizedEmail: string | null

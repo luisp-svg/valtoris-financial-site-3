@@ -1,4 +1,4 @@
-import { SCHEDULE_CTA } from './homepage'
+import { SCHEDULE_CTA } from './homepage.js'
 
 export const CALENDLY_REPORT_CARD_URL = 'https://calendly.com/valtoris/reportcard'
 

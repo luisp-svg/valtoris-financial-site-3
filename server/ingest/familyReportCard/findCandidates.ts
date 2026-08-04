@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { MatchCandidate } from './types'
+import type { MatchCandidate } from './types.js'
 
 export type FindMatchCandidatesInput = {
   normalizedEmail: string | null

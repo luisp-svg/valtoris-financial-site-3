@@ -1,4 +1,4 @@
-import { LeadSubmissionPayload } from './submitLeadToGoogleSheets'
+import { LeadSubmissionPayload } from './submitLeadToGoogleSheets.js'
 
 /**
  * Canonical master Leads sheet payload shape.

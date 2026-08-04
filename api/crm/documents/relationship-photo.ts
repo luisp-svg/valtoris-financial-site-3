@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
-import { createSupabaseServerClient } from '../../../lib/supabase/server'
-import { createSupabaseAdminClient } from '../../../lib/supabase/admin'
+import { createSupabaseServerClient } from '../../../lib/supabase/server.js'
+import { createSupabaseAdminClient } from '../../../lib/supabase/admin.js'
 
 /**
  * DELETE /api/crm/documents/relationship-photo
