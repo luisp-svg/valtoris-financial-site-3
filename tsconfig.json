@@ -16,6 +16,16 @@
     "noEmit": true,
     "jsx": "react-jsx"
   },
-  "include": ["src", "components", "pages", "api", "lib", "crm", "server", "middleware.ts"],
+  "include": [
+    "src",
+    "components",
+    "pages",
+    "api",
+    "lib",
+    "crm",
+    "server",
+    "modules",
+    "middleware.ts"
+  ],
   "exclude": ["dist", "node_modules", "server/leadServerExample.ts"]
 }

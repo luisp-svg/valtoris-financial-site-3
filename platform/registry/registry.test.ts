@@ -83,6 +83,8 @@ describe('Module Registry', () => {
     expect(paths.has('/crm/credit')).toBe(false)
     expect(getModule('credit_repair')?.navigation.visible).toBe(false)
     expect(getModule('business_funding')?.featureFlag.enabled).toBe(false)
+    expect(getModule('digital_identity')?.navigation.visible).toBe(false)
+    expect(getModule('digital_identity')?.featureFlag.enabled).toBe(false)
   })
 
   it('registers Family diagnostic task workflows for intake/tasks', () => {
@@ -164,6 +166,7 @@ describe('Module Registry semantics: registered vs enabled vs visible vs declare
     for (const key of [
       'credit_repair',
       'business_funding',
+      'digital_identity',
       'ai',
       'workflows',
       'cases',
@@ -187,6 +190,7 @@ describe('Module Registry semantics: registered vs enabled vs visible vs declare
     // Registry metadata may list capabilities for the future Permission Engine.
     expect(moduleDeclaresPermission('intake', 'intake.view')).toBe(true)
     expect(moduleDeclaresPermission('credit_repair', 'credit.case.write')).toBe(true)
+    expect(moduleDeclaresPermission('digital_identity', 'digital_identity.admin')).toBe(true)
 
     // Declaring a capability does not mean the current user is authorized.
     // Runtime auth remains owner/advisor role checks (unchanged).

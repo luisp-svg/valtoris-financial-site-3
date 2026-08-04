@@ -10,6 +10,7 @@ export default defineConfig({
       'lib/**/*.test.ts',
       'api/**/*.test.ts',
       'platform/**/*.test.ts',
+      'modules/**/*.test.ts',
     ],
   },
 })

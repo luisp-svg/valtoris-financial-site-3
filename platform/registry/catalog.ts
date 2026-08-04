@@ -367,6 +367,70 @@ export const MODULE_CATALOG: readonly ModuleManifest[] = [
     permissions: ['portal.access'],
     dependencies: ['documents', 'notifications'],
   }),
+  registeredModule({
+    key: 'digital_identity',
+    displayName: 'Digital Identity',
+    description:
+      "Public relationship entry into the Advisor Operating System (advisor cards, campaigns, Let's Connect capture).",
+    kind: 'experience',
+    category: 'advisor_os',
+    icon: 'digital-identity',
+    permissions: [
+      'digital_identity.read_own',
+      'digital_identity.write_own',
+      'digital_identity.publish_own',
+      'digital_identity.admin',
+      'digital_identity.campaigns.manage_own',
+      'digital_identity.campaigns.admin',
+      'digital_identity.analytics.read_own',
+      'digital_identity.analytics.read_all',
+      'digital_identity.lead.read',
+    ],
+    activityTypes: [
+      { eventKey: 'digital_identity.lead_created', description: 'Digital identity lead created' },
+      { eventKey: 'digital_identity.lead_matched', description: 'Digital identity lead matched existing household' },
+      {
+        eventKey: 'digital_identity.lead_possible_match',
+        description: 'Digital identity lead flagged as possible duplicate',
+      },
+      {
+        eventKey: 'digital_identity.contact_shared',
+        description: "Visitor completed Let's Connect relationship capture",
+      },
+      {
+        eventKey: 'digital_identity.duplicate_resolved',
+        description: 'Digital identity duplicate review resolved',
+      },
+    ],
+    taskWorkflows: [
+      {
+        workflowType: 'review_digital_identity_lead',
+        description: "Review digital identity / Let's Connect lead",
+      },
+      {
+        workflowType: 'resolve_digital_identity_duplicate',
+        description: 'Resolve possible duplicate digital identity submission',
+      },
+    ],
+    dependencies: ['households', 'intake', 'tasks', 'activities', 'documents'],
+    futureExtensions: {
+      module: 'digital_identity',
+      sprint: '5.2',
+      v1Experience: 'advisor_card',
+      primaryCtaLabel: "Let's Connect",
+      reservedSurfaceKinds: [
+        'team_card',
+        'company_card',
+        'public_profile',
+        'referral_portal',
+        'partner_portal',
+      ],
+      anonymousAnalytics: 'separate_from_household_activities',
+      caseCreation: 'never_automatic_on_contact_exchange',
+      selfieCapture: 'planned_later_no_biometrics',
+      persistence: 'typescript_contracts_only_migration_025_pending_approval',
+    },
+  }),
 
   // ----- Platform engines -----
   {
