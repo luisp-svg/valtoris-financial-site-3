@@ -1,0 +1,555 @@
+import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
+import { Link } from 'react-router-dom'
+import { ROUTES } from '../../constants/routes'
+import {
+  downloadPublicCardVCard,
+  triggerVCardBrowserDownload,
+} from './downloadPublicCardVCard'
+import {
+  applyPhoneToLetsConnectConsent,
+  buildLetsConnectSubmitBody,
+  createEmptyLetsConnectFormValues,
+  createLetsConnectSubmissionId,
+  LETS_CONNECT_FOLLOW_UP_OPTIONS,
+  LETS_CONNECT_REASON_OPTIONS,
+  letsConnectModalCopy,
+  validateLetsConnectFormClient,
+  type LetsConnectFormValues,
+} from './letsConnectForm'
+import { submitLetsConnect } from './submitLetsConnect'
+import { vCardDownloadErrorCopy } from './publicCardViewModel'
+
+export type LetsConnectModalProps = {
+  open: boolean
+  cardPublicKey: string
+  cardDisplayName: string
+  onClose: () => void
+  sourcePage?: string | null
+  campaignCode?: string | null
+  eventCode?: string | null
+}
+
+type Phase = 'form' | 'submitting' | 'success'
+
+export default function LetsConnectModal({
+  open,
+  cardPublicKey,
+  cardDisplayName,
+  onClose,
+  sourcePage = null,
+  campaignCode = null,
+  eventCode = null,
+}: LetsConnectModalProps) {
+  const titleId = useId()
+  const subtitleId = useId()
+  const panelRef = useRef<HTMLDivElement>(null)
+  const firstFieldRef = useRef<HTMLInputElement>(null)
+  const previouslyFocused = useRef<HTMLElement | null>(null)
+
+  const [phase, setPhase] = useState<Phase>('form')
+  const [values, setValues] = useState<LetsConnectFormValues>(createEmptyLetsConnectFormValues)
+  const [formStartedAt, setFormStartedAt] = useState<string | null>(null)
+  const [clientErrors, setClientErrors] = useState<
+    ReturnType<typeof validateLetsConnectFormClient>['errors']
+  >({})
+  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [vcardStatus, setVcardStatus] = useState<'idle' | 'loading' | 'error'>('idle')
+  const [vcardMessage, setVcardMessage] = useState<string | null>(null)
+
+  const copy = letsConnectModalCopy()
+  const smsDisabled = !values.phone.trim()
+
+  const phaseRef = useRef<Phase>(phase)
+  phaseRef.current = phase
+
+  useEffect(() => {
+    if (!open) return undefined
+
+    previouslyFocused.current =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null
+    setPhase('form')
+    setValues(createEmptyLetsConnectFormValues())
+    setFormStartedAt(new Date().toISOString())
+    setClientErrors({})
+    setSubmitError(null)
+    setVcardStatus('idle')
+    setVcardMessage(null)
+
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    const focusTimer = window.setTimeout(() => {
+      firstFieldRef.current?.focus()
+    }, 0)
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape' && phaseRef.current !== 'submitting') {
+        event.preventDefault()
+        onClose()
+        return
+      }
+
+      if (event.key !== 'Tab' || !panelRef.current) return
+      const focusable = panelRef.current.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      )
+      if (focusable.length === 0) return
+      const first = focusable[0]!
+      const last = focusable[focusable.length - 1]!
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
+      }
+    }
+
+    window.addEventListener('keydown', onKeyDown)
+    return () => {
+      window.clearTimeout(focusTimer)
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener('keydown', onKeyDown)
+      previouslyFocused.current?.focus()
+    }
+  }, [open, onClose])
+
+  if (!open) return null
+
+  function updateField<K extends keyof LetsConnectFormValues>(
+    key: K,
+    value: LetsConnectFormValues[K],
+  ) {
+    setValues((prev) => {
+      const next = { ...prev, [key]: value }
+      if (key === 'phone' && typeof value === 'string') {
+        next.consent = applyPhoneToLetsConnectConsent(prev.consent, value)
+      }
+      return next
+    })
+  }
+
+  async function handleSubmit(event: FormEvent) {
+    event.preventDefault()
+    if (phase === 'submitting') return
+
+    const validation = validateLetsConnectFormClient(values)
+    setClientErrors(validation.errors)
+    if (!validation.ok) return
+
+    const startedAt = formStartedAt ?? new Date().toISOString()
+    const submittedAt = new Date().toISOString()
+    const submissionId = createLetsConnectSubmissionId()
+
+    setPhase('submitting')
+    setSubmitError(null)
+
+    const body = buildLetsConnectSubmitBody({
+      values,
+      cardPublicKey,
+      submissionId,
+      formStartedAt: startedAt,
+      formSubmittedAt: submittedAt,
+      sourcePage,
+      campaignCode,
+      eventCode,
+    })
+
+    const result = await submitLetsConnect(body)
+    if (!result.ok) {
+      setPhase('form')
+      setSubmitError(result.error)
+      return
+    }
+
+    setPhase('success')
+  }
+
+  async function handleSaveContact() {
+    if (vcardStatus === 'loading') return
+    setVcardStatus('loading')
+    setVcardMessage(null)
+
+    const result = await downloadPublicCardVCard({ key: cardPublicKey })
+    if (!result.ok) {
+      setVcardStatus('error')
+      setVcardMessage(vCardDownloadErrorCopy(result.code))
+      return
+    }
+
+    const saved = triggerVCardBrowserDownload(result.body, result.filename)
+    if (!saved) {
+      setVcardStatus('error')
+      setVcardMessage(vCardDownloadErrorCopy('generation_failure'))
+      return
+    }
+
+    setVcardStatus('idle')
+    setVcardMessage(null)
+  }
+
+  return (
+    <div className="public-card-connect-backdrop" role="presentation">
+      <button
+        type="button"
+        className="public-card-connect-scrim"
+        aria-label="Close Let's Connect"
+        disabled={phase === 'submitting'}
+        onClick={() => {
+          if (phase !== 'submitting') onClose()
+        }}
+      />
+      <div
+        ref={panelRef}
+        className="public-card-connect-sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        aria-describedby={phase === 'form' ? subtitleId : undefined}
+        data-card-owner={cardDisplayName || undefined}
+      >
+        {phase === 'success' ? (
+          <div className="public-card-connect-success">
+            <h2 id={titleId} className="public-card-connect-title">
+              {copy.successTitle}
+            </h2>
+            <div className="public-card-connect-success-actions">
+              <button
+                type="button"
+                className="platform-btn platform-btn-primary public-card-btn"
+                onClick={() => {
+                  void handleSaveContact()
+                }}
+                disabled={vcardStatus === 'loading'}
+                aria-busy={vcardStatus === 'loading'}
+              >
+                {vcardStatus === 'loading' ? 'Preparing…' : copy.successSaveContact}
+              </button>
+              <Link
+                className="platform-btn platform-btn-secondary public-card-btn"
+                to={ROUTES.familyAssessment}
+              >
+                {copy.successFamilyAssessment}
+              </Link>
+              <button
+                type="button"
+                className="platform-btn platform-btn-outline public-card-btn"
+                onClick={onClose}
+              >
+                {copy.successDone}
+              </button>
+            </div>
+            {vcardMessage ? (
+              <p className="public-card-download-error" role="alert">
+                {vcardMessage}
+              </p>
+            ) : null}
+          </div>
+        ) : (
+          <>
+            <header className="public-card-connect-header">
+              <div>
+                <h2 id={titleId} className="public-card-connect-title">
+                  {copy.title}
+                </h2>
+                <p id={subtitleId} className="public-card-connect-subtitle">
+                  {copy.subtitle}
+                </p>
+                <p className="public-card-connect-supporting">{copy.supporting}</p>
+              </div>
+              <button
+                type="button"
+                className="public-card-connect-close"
+                onClick={onClose}
+                disabled={phase === 'submitting'}
+              >
+                Close
+              </button>
+            </header>
+
+            <form className="public-card-connect-form" onSubmit={(event) => void handleSubmit(event)} noValidate>
+              <div className="public-card-connect-field-row">
+                <label className="public-card-connect-field">
+                  <span>First name</span>
+                  <input
+                    ref={firstFieldRef}
+                    type="text"
+                    name="firstName"
+                    autoComplete="given-name"
+                    value={values.firstName}
+                    onChange={(event) => updateField('firstName', event.target.value)}
+                    required
+                    disabled={phase === 'submitting'}
+                    aria-invalid={Boolean(clientErrors.firstName)}
+                  />
+                  {clientErrors.firstName ? (
+                    <span className="public-card-connect-field-error">{clientErrors.firstName}</span>
+                  ) : null}
+                </label>
+                <label className="public-card-connect-field">
+                  <span>Last name</span>
+                  <input
+                    type="text"
+                    name="lastName"
+                    autoComplete="family-name"
+                    value={values.lastName}
+                    onChange={(event) => updateField('lastName', event.target.value)}
+                    required
+                    disabled={phase === 'submitting'}
+                    aria-invalid={Boolean(clientErrors.lastName)}
+                  />
+                  {clientErrors.lastName ? (
+                    <span className="public-card-connect-field-error">{clientErrors.lastName}</span>
+                  ) : null}
+                </label>
+              </div>
+
+              <div className="public-card-connect-field-row">
+                <label className="public-card-connect-field">
+                  <span>Email</span>
+                  <input
+                    type="email"
+                    name="email"
+                    autoComplete="email"
+                    value={values.email}
+                    onChange={(event) => updateField('email', event.target.value)}
+                    disabled={phase === 'submitting'}
+                    aria-invalid={Boolean(clientErrors.contact)}
+                  />
+                </label>
+                <label className="public-card-connect-field">
+                  <span>Phone</span>
+                  <input
+                    type="tel"
+                    name="phone"
+                    autoComplete="tel"
+                    value={values.phone}
+                    onChange={(event) => updateField('phone', event.target.value)}
+                    disabled={phase === 'submitting'}
+                    aria-invalid={Boolean(clientErrors.contact)}
+                  />
+                </label>
+              </div>
+              {clientErrors.contact ? (
+                <p className="public-card-connect-field-error" role="alert">
+                  {clientErrors.contact}
+                </p>
+              ) : (
+                <p className="public-card-connect-hint">Email or phone — at least one is required.</p>
+              )}
+
+              <div className="public-card-connect-field-row">
+                <label className="public-card-connect-field">
+                  <span>Company (optional)</span>
+                  <input
+                    type="text"
+                    name="company"
+                    autoComplete="organization"
+                    value={values.company}
+                    onChange={(event) => updateField('company', event.target.value)}
+                    disabled={phase === 'submitting'}
+                  />
+                </label>
+                <label className="public-card-connect-field">
+                  <span>Job title (optional)</span>
+                  <input
+                    type="text"
+                    name="title"
+                    autoComplete="organization-title"
+                    value={values.title}
+                    onChange={(event) => updateField('title', event.target.value)}
+                    disabled={phase === 'submitting'}
+                  />
+                </label>
+              </div>
+
+              <fieldset className="public-card-connect-fieldset">
+                <legend>{copy.reasonLabel}</legend>
+                <div className="public-card-connect-reasons" role="radiogroup" aria-label={copy.reasonLabel}>
+                  {LETS_CONNECT_REASON_OPTIONS.map((reason) => (
+                    <label key={reason} className="public-card-connect-reason">
+                      <input
+                        type="radio"
+                        name="reasonForConnecting"
+                        value={reason}
+                        checked={values.reasonForConnecting === reason}
+                        onChange={() => updateField('reasonForConnecting', reason)}
+                        disabled={phase === 'submitting'}
+                      />
+                      <span>{reason}</span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+
+              <label className="public-card-connect-field">
+                <span>Note (optional)</span>
+                <textarea
+                  name="note"
+                  rows={3}
+                  value={values.note}
+                  onChange={(event) => updateField('note', event.target.value)}
+                  disabled={phase === 'submitting'}
+                />
+              </label>
+
+              <label className="public-card-connect-field">
+                <span>Preferred follow-up method (optional)</span>
+                <select
+                  name="preferredFollowUpMethod"
+                  value={values.preferredFollowUpMethod}
+                  onChange={(event) =>
+                    updateField(
+                      'preferredFollowUpMethod',
+                      event.target.value as LetsConnectFormValues['preferredFollowUpMethod'],
+                    )
+                  }
+                  disabled={phase === 'submitting'}
+                >
+                  <option value="">No selection</option>
+                  {LETS_CONNECT_FOLLOW_UP_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+                <span className="public-card-connect-hint">
+                  This is a preference only — it is not consent to be contacted.
+                </span>
+              </label>
+
+              <fieldset className="public-card-connect-fieldset public-card-connect-consent">
+                <legend>Consent</legend>
+                <label className="public-card-connect-check">
+                  <input
+                    type="checkbox"
+                    checked={values.consent.privacyAcknowledged}
+                    onChange={(event) =>
+                      updateField('consent', {
+                        ...values.consent,
+                        privacyAcknowledged: event.target.checked,
+                      })
+                    }
+                    required
+                    disabled={phase === 'submitting'}
+                    aria-invalid={Boolean(clientErrors.privacy)}
+                  />
+                  <span>
+                    I acknowledge the{' '}
+                    <Link to={ROUTES.privacy} target="_blank" rel="noopener noreferrer">
+                      Privacy Policy
+                    </Link>
+                    . <span className="public-card-connect-required">Required</span>
+                  </span>
+                </label>
+                {clientErrors.privacy ? (
+                  <p className="public-card-connect-field-error" role="alert">
+                    {clientErrors.privacy}
+                  </p>
+                ) : null}
+                <label className="public-card-connect-check">
+                  <input
+                    type="checkbox"
+                    checked={values.consent.contactPermission}
+                    onChange={(event) =>
+                      updateField('consent', {
+                        ...values.consent,
+                        contactPermission: event.target.checked,
+                      })
+                    }
+                    disabled={phase === 'submitting'}
+                  />
+                  <span>You may contact me about this conversation (optional)</span>
+                </label>
+                <label className="public-card-connect-check">
+                  <input
+                    type="checkbox"
+                    checked={values.consent.emailMarketingConsent}
+                    onChange={(event) =>
+                      updateField('consent', {
+                        ...values.consent,
+                        emailMarketingConsent: event.target.checked,
+                      })
+                    }
+                    disabled={phase === 'submitting'}
+                  />
+                  <span>Email me occasional updates (optional)</span>
+                </label>
+                <label
+                  className={`public-card-connect-check${smsDisabled ? ' is-disabled' : ''}`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={values.consent.smsMarketingConsent}
+                    onChange={(event) =>
+                      updateField('consent', {
+                        ...values.consent,
+                        smsMarketingConsent: event.target.checked,
+                      })
+                    }
+                    disabled={phase === 'submitting' || smsDisabled}
+                  />
+                  <span>
+                    Text me occasional updates (optional)
+                    {smsDisabled ? ' — add a phone number to enable' : ''}
+                  </span>
+                </label>
+              </fieldset>
+
+              {/* Honeypots — visually hidden, must stay empty */}
+              <div className="public-card-connect-honeypot" aria-hidden="true">
+                <label>
+                  Website
+                  <input
+                    type="text"
+                    name="website"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    value={values.website}
+                    onChange={(event) => updateField('website', event.target.value)}
+                  />
+                </label>
+                <label>
+                  Company URL
+                  <input
+                    type="text"
+                    name="companyUrl"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    value={values.companyUrl}
+                    onChange={(event) => updateField('companyUrl', event.target.value)}
+                  />
+                </label>
+              </div>
+
+              {submitError ? (
+                <p className="public-card-connect-submit-error" role="alert">
+                  {submitError}
+                </p>
+              ) : null}
+
+              <div className="public-card-connect-actions">
+                <button
+                  type="button"
+                  className="platform-btn platform-btn-outline public-card-btn"
+                  onClick={onClose}
+                  disabled={phase === 'submitting'}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="platform-btn platform-btn-primary public-card-btn"
+                  disabled={phase === 'submitting'}
+                  aria-busy={phase === 'submitting'}
+                >
+                  {phase === 'submitting' ? 'Saving…' : copy.title}
+                </button>
+              </div>
+            </form>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}

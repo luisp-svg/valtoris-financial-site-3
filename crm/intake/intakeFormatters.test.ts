@@ -2,15 +2,20 @@ import { describe, expect, it } from 'vitest'
 import {
   buildDiagnosticFromAssessmentRow,
   buildIntakeCounts,
+  extractDigitalIdentitySnapshot,
   extractSubmittedIdentity,
+  intakeProductLabel,
+  isDigitalIdentityLead,
   isNeedsReview,
   mapMatchReasonLabel,
   mapMatchStatusLabel,
   mapSheetsSyncLabel,
   matchesIntakeFilter,
   parseConsentSnapshot,
+  resolveIntakeSubmittedContact,
   sortIntakeNewestFirst,
 } from './intakeFormatters'
+import { DIGITAL_IDENTITY_LEAD_TYPE } from '../../modules/digital-identity'
 import type { IntakeQueueItem } from './types'
 import { getDuplicateResolutionAvailability } from './intakeApi'
 import { emptyStateCopy, getIntakeListViewState } from './listLoadState'
@@ -68,8 +73,10 @@ function makeItem(overrides: Partial<IntakeQueueItem> = {}): IntakeQueueItem {
       completedAt: '2026-07-28T18:00:00.000Z',
       productLabel: 'Initial Financial Diagnostic',
     },
+    digitalIdentity: null,
     duplicateReview: null,
     originalCampaign: null,
+    originalAdvisorSlug: null,
     sourceMetadata: {},
     followUpTaskAutomationStatus: null,
     followUpTask: null,
@@ -218,6 +225,77 @@ describe('intake formatters', () => {
     expect(item.diagnostic?.productLabel).toBe('Initial Financial Diagnostic')
     expect(item.diagnostic?.productLabel).not.toMatch(/Financial Progress/i)
     expect(mapSheetsSyncLabel('failed')).not.toMatch(/Apps Script|Error:/i)
+  })
+
+  it('labels Digital Identity leads separately from Initial Financial Diagnostic', () => {
+    const di = makeItem({
+      leadType: DIGITAL_IDENTITY_LEAD_TYPE,
+      diagnostic: null,
+      digitalIdentity: {
+        company: 'Acme',
+        title: 'Owner',
+        reason: 'Networking',
+        note: null,
+        preferredFollowUp: 'email',
+        cardPublicKey: 'pk_live_abcdefghijklmnop',
+        cardSlug: 'jane-advisor',
+        advisorSlug: 'jane-advisor',
+        campaignCode: 'summit',
+        eventCode: 'booth-a',
+        productLabel: 'Digital Identity',
+      },
+      originalAdvisorSlug: 'jane-advisor',
+      originalCampaign: 'summit',
+    })
+    expect(isDigitalIdentityLead(di)).toBe(true)
+    expect(intakeProductLabel(di)).toBe('Digital Identity')
+    expect(intakeProductLabel(makeItem())).toBe('Initial Financial Diagnostic')
+  })
+
+  it('extracts Digital Identity snapshot from metadata without inventing assessment data', () => {
+    const snapshot = extractDigitalIdentitySnapshot({
+      leadType: DIGITAL_IDENTITY_LEAD_TYPE,
+      rawPayload: {
+        company: 'Acme',
+        reason: 'Networking',
+        preferredFollowUp: 'email',
+        cardPublicKey: 'pk_live_abcdefghijklmnop',
+      },
+      sourceMetadata: { eventCode: 'booth-a' },
+      originalCampaign: 'summit',
+      originalAdvisorSlug: 'jane-advisor',
+    })
+    expect(snapshot).toMatchObject({
+      productLabel: 'Digital Identity',
+      company: 'Acme',
+      reason: 'Networking',
+      campaignCode: 'summit',
+      advisorSlug: 'jane-advisor',
+      cardPublicKey: 'pk_live_abcdefghijklmnop',
+      eventCode: 'booth-a',
+    })
+    expect(extractDigitalIdentitySnapshot({
+      leadType: 'Family Report Card',
+      rawPayload: {},
+      sourceMetadata: {},
+      originalCampaign: null,
+      originalAdvisorSlug: null,
+    })).toBeNull()
+  })
+
+  it('resolves Digital Identity contact from household and normalized fields', () => {
+    const contact = resolveIntakeSubmittedContact({
+      rawPayload: { company: 'Acme', reason: 'Networking' },
+      leadType: DIGITAL_IDENTITY_LEAD_TYPE,
+      householdDisplayName: 'Jamie Rivera',
+      householdEmail: 'jamie@example.com',
+      householdPhone: '555-111-2222',
+      normalizedEmail: 'jamie@example.com',
+      normalizedPhone: '+15551112222',
+    })
+    expect(contact.fullName).toBe('Jamie Rivera')
+    expect(contact.email).toBe('jamie@example.com')
+    expect(contact.phone).toBe('+15551112222')
   })
 })
 

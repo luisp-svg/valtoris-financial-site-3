@@ -133,6 +133,51 @@ export const ACTIVITY_EVENT_DEFINITIONS: readonly ActivityEventDefinition[] = [
     description: 'Note added (optional activity mirror; notes table remains source of truth)',
     timeline: { timelineActivityType: 'note', displayVariant: 'note' },
   },
+  {
+    eventKey: 'digital_identity.lead_created',
+    activityType: 'lead_created',
+    moduleKey: 'digital_identity',
+    defaultEntityType: 'lead',
+    defaultActorKind: 'system',
+    description: "Digital Identity / Let's Connect lead created",
+    timeline: { timelineActivityType: 'other', displayVariant: 'diagnostic' },
+  },
+  {
+    eventKey: 'digital_identity.lead_matched',
+    activityType: 'lead_created',
+    moduleKey: 'digital_identity',
+    defaultEntityType: 'lead',
+    defaultActorKind: 'system',
+    description: 'Digital Identity lead matched existing household',
+    timeline: { timelineActivityType: 'other', displayVariant: 'diagnostic' },
+  },
+  {
+    eventKey: 'digital_identity.lead_possible_match',
+    activityType: 'lead_created',
+    moduleKey: 'digital_identity',
+    defaultEntityType: 'lead',
+    defaultActorKind: 'system',
+    description: 'Digital Identity lead flagged as possible duplicate',
+    timeline: { timelineActivityType: 'other', displayVariant: 'diagnostic' },
+  },
+  {
+    eventKey: 'digital_identity.contact_shared',
+    activityType: 'system',
+    moduleKey: 'digital_identity',
+    defaultEntityType: 'lead',
+    defaultActorKind: 'system',
+    description: "Visitor completed Let's Connect relationship capture",
+    timeline: { timelineActivityType: 'other', displayVariant: 'system' },
+  },
+  {
+    eventKey: 'digital_identity.duplicate_resolved',
+    activityType: 'system',
+    moduleKey: 'digital_identity',
+    defaultEntityType: 'lead',
+    defaultActorKind: 'user',
+    description: 'Digital Identity duplicate review resolved',
+    timeline: { timelineActivityType: 'other', displayVariant: 'system' },
+  },
 ] as const
 
 const BY_EVENT_KEY = new Map(
@@ -171,6 +216,15 @@ export function inferEventKeyFromLegacyRow(input: {
   }
   if (legacyEvent === 'public_family_follow_up_task_created') {
     return 'tasks.automated.created'
+  }
+  if (
+    legacyEvent === 'digital_identity.lead_created' ||
+    legacyEvent === 'digital_identity.lead_matched' ||
+    legacyEvent === 'digital_identity.lead_possible_match' ||
+    legacyEvent === 'digital_identity.contact_shared' ||
+    legacyEvent === 'digital_identity.duplicate_resolved'
+  ) {
+    return legacyEvent
   }
 
   switch (input.activityType) {

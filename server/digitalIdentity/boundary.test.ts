@@ -6,14 +6,16 @@ describe('Digital Identity browser/server boundary', () => {
   it('keeps admin/service-role lookup off the modules package', () => {
     expect(digitalIdentityModule).not.toHaveProperty('lookupPublishedCard')
     expect(digitalIdentityModule).not.toHaveProperty('lookupPublishedCardByPublicKey')
+    expect(digitalIdentityModule).not.toHaveProperty('resolveCardForIngest')
     expect(digitalIdentityModule).not.toHaveProperty('createSupabaseAdminClient')
   })
 
-  it('exposes lookup and QR generation only from the server package', () => {
+  it('exposes lookup, QR generation, and ingest card resolution only from the server package', () => {
     expect(typeof serverDigitalIdentity.lookupPublishedCard).toBe('function')
     expect(typeof serverDigitalIdentity.lookupPublishedCardByPublicKey).toBe('function')
     expect(typeof serverDigitalIdentity.lookupPublishedCardBySlug).toBe('function')
     expect(typeof serverDigitalIdentity.generatePublishedCardQr).toBe('function')
+    expect(typeof serverDigitalIdentity.resolveCardForIngest).toBe('function')
     expect(serverDigitalIdentity.publicCardLookupSideEffects().writesAnalytics).toBe(false)
     expect(serverDigitalIdentity.publishedCardQrSideEffects().writesAnalytics).toBe(false)
     expect(serverDigitalIdentity.publishedCardQrSideEffects().tracksCampaign).toBe(false)

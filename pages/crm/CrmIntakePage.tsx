@@ -8,11 +8,15 @@ import {
   fetchCurrentAdvisorProfileId,
   fetchIntakeQueueSafe,
   formatIntakeError,
+  resolveDigitalIdentityDuplicateReview,
   resolveDuplicateReview,
+  retryDigitalIdentityFollowUpTask,
   retryPublicFamilyFollowUpTask,
 } from '../../crm/intake/intakeApi'
 import {
   buildIntakeCounts,
+  intakeProductLabel,
+  isDigitalIdentityLead,
   mapMatchStatusLabel,
   mapSheetsSyncLabel,
   matchesIntakeFilter,
@@ -184,19 +188,30 @@ export default function CrmIntakePage() {
   }
 
   async function handleRetryFollowUpTask() {
-    if (!selectedItem?.diagnostic?.assessmentId || retryingTask || role !== 'owner') return
+    if (!selectedItem || retryingTask || role !== 'owner') return
+    const isDi = isDigitalIdentityLead(selectedItem)
+    if (!isDi && !selectedItem.diagnostic?.assessmentId) return
+
     setRetryingTask(true)
     setRetryTaskMessage(null)
     try {
       const supabase = createSupabaseBrowserClient()
-      const result = await retryPublicFamilyFollowUpTask(supabase, {
-        assessmentId: selectedItem.diagnostic.assessmentId,
-        matchStatus: selectedItem.ingestMatchStatus,
-        duplicateReviewPending: selectedItem.duplicateReview?.status === 'pending',
-        leadId: selectedItem.leadId,
-        existingTaskId: selectedItem.followUpTask?.taskId ?? null,
-        existingTaskSourceType: selectedItem.followUpTask?.sourceType ?? null,
-      })
+      const result = isDi
+        ? await retryDigitalIdentityFollowUpTask(supabase, {
+            leadId: selectedItem.leadId,
+            matchStatus: selectedItem.ingestMatchStatus,
+            duplicateReviewPending: selectedItem.duplicateReview?.status === 'pending',
+            existingTaskId: selectedItem.followUpTask?.taskId ?? null,
+            existingTaskSourceType: selectedItem.followUpTask?.sourceType ?? null,
+          })
+        : await retryPublicFamilyFollowUpTask(supabase, {
+            assessmentId: selectedItem.diagnostic!.assessmentId,
+            matchStatus: selectedItem.ingestMatchStatus,
+            duplicateReviewPending: selectedItem.duplicateReview?.status === 'pending',
+            leadId: selectedItem.leadId,
+            existingTaskId: selectedItem.followUpTask?.taskId ?? null,
+            existingTaskSourceType: selectedItem.followUpTask?.sourceType ?? null,
+          })
       if (!result.ok) {
         setRetryTaskMessage(result.message)
         return
@@ -221,11 +236,17 @@ export default function CrmIntakePage() {
 
     try {
       const supabase = createSupabaseBrowserClient()
-      const result = await resolveDuplicateReview(supabase, {
-        duplicateReviewId: selectedItem.duplicateReview.id,
-        action: pendingAction,
-        notes,
-      })
+      const result = isDigitalIdentityLead(selectedItem)
+        ? await resolveDigitalIdentityDuplicateReview(supabase, {
+            duplicateReviewId: selectedItem.duplicateReview.id,
+            action: pendingAction,
+            notes,
+          })
+        : await resolveDuplicateReview(supabase, {
+            duplicateReviewId: selectedItem.duplicateReview.id,
+            action: pendingAction,
+            notes,
+          })
 
       if (!result.ok) {
         setDialogError(result.message)
@@ -260,7 +281,7 @@ export default function CrmIntakePage() {
           <p className="crm-muted">CRM intake</p>
           <h1>Incoming Leads</h1>
           <p className="crm-page-subtitle">
-            Public Family Report Card submissions captured as Initial Financial Diagnostics. These
+            Public Family Report Card diagnostics and Digital Identity / Let’s Connect leads. These
             are not Household Financial Progress scores.
           </p>
         </div>
@@ -325,7 +346,7 @@ export default function CrmIntakePage() {
                 <tr>
                   <th scope="col">Prospect</th>
                   <th scope="col">Submitted</th>
-                  <th scope="col">Diagnostic</th>
+                  <th scope="col">Product</th>
                   <th scope="col">Match</th>
                   <th scope="col">Task</th>
                   <th scope="col">Assignment</th>
@@ -356,11 +377,20 @@ export default function CrmIntakePage() {
                     </td>
                     <td>{formatSubmittedAt(item.submittedAt)}</td>
                     <td>
-                      <div>
-                        {item.overallScore ?? '—'}
-                        {item.overallGrade ? ` · ${item.overallGrade}` : ''}
-                      </div>
-                      <div className="crm-muted">Initial Financial Diagnostic</div>
+                      {isDigitalIdentityLead(item) ? (
+                        <>
+                          <div>Let’s Connect</div>
+                          <div className="crm-muted">{intakeProductLabel(item)}</div>
+                        </>
+                      ) : (
+                        <>
+                          <div>
+                            {item.overallScore ?? '—'}
+                            {item.overallGrade ? ` · ${item.overallGrade}` : ''}
+                          </div>
+                          <div className="crm-muted">{intakeProductLabel(item)}</div>
+                        </>
+                      )}
                     </td>
                     <td>
                       <span className="crm-intake-chip">{mapMatchStatusLabel(item.ingestMatchStatus)}</span>
@@ -420,11 +450,19 @@ export default function CrmIntakePage() {
                   <h2>{item.submittedFullName}</h2>
                   <p className="crm-muted">{formatSubmittedAt(item.submittedAt)}</p>
                   <p>
-                    Initial Financial Diagnostic:{' '}
-                    <strong>
-                      {item.overallScore ?? '—'}
-                      {item.overallGrade ? ` · ${item.overallGrade}` : ''}
-                    </strong>
+                    {isDigitalIdentityLead(item) ? (
+                      <>
+                        {intakeProductLabel(item)}: <strong>Let’s Connect</strong>
+                      </>
+                    ) : (
+                      <>
+                        {intakeProductLabel(item)}:{' '}
+                        <strong>
+                          {item.overallScore ?? '—'}
+                          {item.overallGrade ? ` · ${item.overallGrade}` : ''}
+                        </strong>
+                      </>
+                    )}
                   </p>
                   <p>{mapMatchStatusLabel(item.ingestMatchStatus)}</p>
                   <p>{item.assignedAdvisor?.displayName ?? 'Unassigned'}</p>
@@ -489,6 +527,7 @@ export default function CrmIntakePage() {
           candidateName={candidateHousehold?.displayName ?? null}
           submitting={resolving}
           error={dialogError}
+          isDigitalIdentity={isDigitalIdentityLead(selectedItem)}
           onCancel={() => {
             if (resolving) return
             setPendingAction(null)

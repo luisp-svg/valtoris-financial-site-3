@@ -5,6 +5,7 @@ import {
   formatIntakeError,
   getDuplicateResolutionAvailability,
 } from './intakeApi'
+import { DIGITAL_IDENTITY_LEAD_TYPE } from '../../modules/digital-identity'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 function createQuery(result: { data: unknown; error: null | object }) {
@@ -56,6 +57,7 @@ describe('fetchIntakeQueue', () => {
         consentedAt: '2026-07-28T20:00:00.000Z',
       },
       original_campaign: null,
+      original_advisor_slug: null,
       original_source_metadata: { utmSource: 'newsletter' },
       assigned_advisor_id: null,
       follow_up_task_automation_status: null,
@@ -103,11 +105,108 @@ describe('fetchIntakeQueue', () => {
     expect(items).toHaveLength(1)
     expect(items[0].diagnostic?.productLabel).toBe('Initial Financial Diagnostic')
     expect(items[0].diagnostic?.captureChannel).toBe('public_self_report')
+    expect(items[0].digitalIdentity).toBeNull()
     expect(items[0].consent.contactPermission).toBe(false)
     expect(items[0].sheetsSyncStatus).toBe('succeeded')
     expect(items[0].ingestMatchStatus).toBe('new_prospect')
     expect(from).toHaveBeenCalledWith('leads')
     expect(from).toHaveBeenCalledWith('assessments')
+  })
+
+  it('maps Digital Identity Let’s Connect leads without inventing a diagnostic', async () => {
+    const leadRow = {
+      id: 'lead-di',
+      household_id: 'hh-di',
+      lead_type: DIGITAL_IDENTITY_LEAD_TYPE,
+      status: 'unassigned',
+      source_page: '/c/k/pk_live_abcdefghijklmnop',
+      submitted_at: '2026-08-03T20:00:00.000Z',
+      overall_score: null,
+      overall_grade: null,
+      top_priorities: null,
+      raw_payload: {
+        company: 'Acme',
+        reason: 'Networking',
+        preferredFollowUp: 'email',
+        cardPublicKey: 'pk_live_abcdefghijklmnop',
+      },
+      normalized_email: 'alex@example.com',
+      normalized_phone: '+15550001111',
+      duplicate_review_status: 'none',
+      ingest_match_status: 'new_prospect',
+      sheets_sync_status: 'skipped',
+      consent_snapshot: {
+        privacyAcknowledged: true,
+        contactPermission: true,
+        emailMarketingConsent: false,
+        smsMarketingConsent: false,
+        consentVersion: 'digital-identity-consent-v1',
+        consentedAt: '2026-08-03T20:00:00.000Z',
+      },
+      original_campaign: 'summit',
+      original_advisor_slug: 'jane-advisor',
+      original_source_metadata: {
+        company: 'Acme',
+        reason: 'Networking',
+        eventCode: 'booth-a',
+      },
+      assigned_advisor_id: 'adv-1',
+      follow_up_task_automation_status: 'task_created',
+      follow_up_task_id: 'task-di',
+      deleted_at: null,
+      household: {
+        id: 'hh-di',
+        display_name: 'Alex Lee',
+        status: 'lead',
+        primary_email: 'alex@example.com',
+        primary_phone: '555-000-1111',
+        assigned_advisor_id: 'adv-1',
+        duplicate_review_status: 'none',
+        merged_into_household_id: null,
+        deleted_at: null,
+        assigned_advisor: { id: 'adv-1', display_name: 'Jane Advisor' },
+      },
+      assigned_advisor: { id: 'adv-1', display_name: 'Jane Advisor' },
+    }
+
+    const from = vi.fn((table: string) => {
+      if (table === 'leads') return createQuery({ data: [leadRow], error: null })
+      if (table === 'assessments') return createQuery({ data: [], error: null })
+      if (table === 'duplicate_reviews') return createQuery({ data: [], error: null })
+      if (table === 'tasks') {
+        return createQuery({
+          data: [
+            {
+              id: 'task-di',
+              title: 'Review Digital Identity lead',
+              status: 'open',
+              priority: 'medium',
+              due_date: '2026-08-04',
+              assigned_user_id: null,
+              workflow_type: 'review_digital_identity_lead',
+              source_type: 'digital_identity_ingest',
+              lead_id: 'lead-di',
+              assessment_id: null,
+              assignee: null,
+            },
+          ],
+          error: null,
+        })
+      }
+      return createQuery({ data: [], error: null })
+    })
+
+    const items = await fetchIntakeQueue({ from } as unknown as SupabaseClient)
+    expect(items).toHaveLength(1)
+    expect(items[0].leadType).toBe(DIGITAL_IDENTITY_LEAD_TYPE)
+    expect(items[0].diagnostic).toBeNull()
+    expect(items[0].digitalIdentity?.productLabel).toBe('Digital Identity')
+    expect(items[0].digitalIdentity?.reason).toBe('Networking')
+    expect(items[0].digitalIdentity?.advisorSlug).toBe('jane-advisor')
+    expect(items[0].digitalIdentity?.campaignCode).toBe('summit')
+    expect(items[0].submittedFullName).toBe('Alex Lee')
+    expect(items[0].submittedEmail).toBe('alex@example.com')
+    expect(items[0].followUpTask?.workflowType).toBe('review_digital_identity_lead')
   })
 
   it('treats advisor duplicate_reviews permission failures as empty, not fatal', async () => {
@@ -129,6 +228,7 @@ describe('fetchIntakeQueue', () => {
       sheets_sync_status: 'pending',
       consent_snapshot: {},
       original_campaign: null,
+      original_advisor_slug: null,
       original_source_metadata: {},
       assigned_advisor_id: null,
       follow_up_task_automation_status: null,
@@ -186,6 +286,7 @@ describe('fetchIntakeQueue', () => {
       sheets_sync_status: 'skipped',
       consent_snapshot: { contactPermission: true },
       original_campaign: null,
+      original_advisor_slug: null,
       original_source_metadata: {},
       assigned_advisor_id: 'adv-1',
       follow_up_task_automation_status: 'task_created',
@@ -224,6 +325,7 @@ describe('fetchIntakeQueue', () => {
       sheets_sync_status: 'failed',
       consent_snapshot: { contactPermission: false },
       original_campaign: null,
+      original_advisor_slug: null,
       original_source_metadata: {},
       assigned_advisor_id: null,
       follow_up_task_automation_status: null,

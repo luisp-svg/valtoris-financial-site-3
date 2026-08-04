@@ -1,14 +1,27 @@
+import { DIGITAL_IDENTITY_LEAD_TYPE } from '../../modules/digital-identity'
 import type {
   DuplicateReviewStatus,
   IngestMatchStatus,
   IntakeConsentSummary,
   IntakeDiagnosticSummary,
+  IntakeDigitalIdentitySummary,
   IntakeFilterId,
   IntakeQueueCounts,
   IntakeQueueItem,
   LeadStatus,
   SheetsSyncStatus,
 } from './types'
+
+export function isDigitalIdentityLead(item: Pick<IntakeQueueItem, 'leadType'>): boolean {
+  return item.leadType === DIGITAL_IDENTITY_LEAD_TYPE
+}
+
+export function intakeProductLabel(item: Pick<IntakeQueueItem, 'leadType' | 'digitalIdentity' | 'diagnostic'>): string {
+  if (isDigitalIdentityLead(item)) {
+    return item.digitalIdentity?.productLabel ?? 'Digital Identity'
+  }
+  return item.diagnostic?.productLabel ?? 'Initial Financial Diagnostic'
+}
 
 export function parseConsentSnapshot(value: unknown): IntakeConsentSummary {
   const record =
@@ -299,4 +312,113 @@ export function extractSubmittedIdentity(rawPayload: unknown): {
     typeof record.phone === 'string' && record.phone.trim() ? record.phone.trim() : null
 
   return { firstName, lastName, fullName, email, phone }
+}
+
+function readMetaString(record: Record<string, unknown>, ...keys: string[]): string | null {
+  for (const key of keys) {
+    const value = record[key]
+    if (typeof value === 'string' && value.trim()) return value.trim()
+  }
+  return null
+}
+
+/**
+ * Digital Identity ingest stores allowlisted extras in raw_payload /
+ * original_source_metadata (company, reason, note, etc.) — not contact fields.
+ */
+export function extractDigitalIdentitySnapshot(input: {
+  leadType: string
+  rawPayload: unknown
+  sourceMetadata: Record<string, unknown>
+  originalCampaign: string | null
+  originalAdvisorSlug: string | null
+}): IntakeDigitalIdentitySummary | null {
+  if (input.leadType !== DIGITAL_IDENTITY_LEAD_TYPE) return null
+
+  const raw =
+    input.rawPayload && typeof input.rawPayload === 'object' && !Array.isArray(input.rawPayload)
+      ? (input.rawPayload as Record<string, unknown>)
+      : {}
+  const meta = input.sourceMetadata
+
+  return {
+    company: readMetaString(raw, 'company') ?? readMetaString(meta, 'company'),
+    title: readMetaString(raw, 'title') ?? readMetaString(meta, 'title'),
+    reason:
+      readMetaString(raw, 'reason', 'reasonForConnecting') ??
+      readMetaString(meta, 'reason', 'reasonForConnecting'),
+    note: readMetaString(raw, 'note') ?? readMetaString(meta, 'note'),
+    preferredFollowUp:
+      readMetaString(raw, 'preferredFollowUp', 'preferredFollowUpMethod') ??
+      readMetaString(meta, 'preferredFollowUp', 'preferredFollowUpMethod'),
+    cardPublicKey:
+      readMetaString(raw, 'cardPublicKey', 'card_public_key') ??
+      readMetaString(meta, 'cardPublicKey', 'card_public_key'),
+    cardSlug:
+      readMetaString(raw, 'cardSlug', 'card_slug') ??
+      readMetaString(meta, 'cardSlug', 'card_slug'),
+    advisorSlug:
+      input.originalAdvisorSlug ??
+      readMetaString(raw, 'advisorSlug', 'advisor_slug') ??
+      readMetaString(meta, 'advisorSlug', 'advisor_slug'),
+    campaignCode:
+      input.originalCampaign ??
+      readMetaString(raw, 'campaignCode', 'campaign_code') ??
+      readMetaString(meta, 'campaignCode', 'campaign_code'),
+    eventCode:
+      readMetaString(raw, 'eventCode', 'event_code') ??
+      readMetaString(meta, 'eventCode', 'event_code'),
+    productLabel: 'Digital Identity',
+  }
+}
+
+/**
+ * Resolve submitted contact for queue display.
+ * Family leads keep identity in raw_payload; Digital Identity falls back to
+ * household + normalized lead contact fields.
+ */
+export function resolveIntakeSubmittedContact(input: {
+  rawPayload: unknown
+  leadType: string
+  householdDisplayName: string | null
+  householdEmail: string | null
+  householdPhone: string | null
+  normalizedEmail: string | null
+  normalizedPhone: string | null
+}): {
+  firstName: string
+  lastName: string
+  fullName: string
+  email: string | null
+  phone: string | null
+} {
+  const submitted = extractSubmittedIdentity(input.rawPayload)
+  const fullName =
+    submitted.fullName ||
+    input.householdDisplayName?.trim() ||
+    'Prospect'
+  const nameParts = fullName.split(/\s+/).filter(Boolean)
+  const firstName = submitted.firstName || nameParts[0] || ''
+  const lastName =
+    submitted.lastName ||
+    (nameParts.length > 1 ? nameParts.slice(1).join(' ') : '')
+
+  const preferHouseholdContact =
+    input.leadType === DIGITAL_IDENTITY_LEAD_TYPE &&
+    !submitted.email &&
+    !submitted.phone
+
+  return {
+    firstName,
+    lastName,
+    fullName,
+    email:
+      submitted.email ??
+      input.normalizedEmail ??
+      (preferHouseholdContact ? input.householdEmail : null),
+    phone:
+      submitted.phone ??
+      input.normalizedPhone ??
+      (preferHouseholdContact ? input.householdPhone : null),
+  }
 }

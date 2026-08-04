@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import {
   getDuplicateResolutionAvailability,
   mapDuplicateResolutionRpcError,
+  resolveDigitalIdentityDuplicateReview,
   resolveDuplicateReview,
   sanitizeDuplicateResolutionNotes,
 } from './intakeApi'
@@ -159,6 +160,98 @@ describe('resolveDuplicateReview client', () => {
       expect(result.code).toBe('not_authorized')
       expect(result.message).not.toMatch(/42501/)
     }
+  })
+})
+
+describe('resolveDigitalIdentityDuplicateReview client', () => {
+  it('calls DI resolve RPC and best-effort review task with duplicate_resolution source', async () => {
+    const rpc = vi.fn().mockImplementation(async (fn: string) => {
+      if (fn === 'resolve_digital_identity_duplicate_review') {
+        return {
+          data: {
+            ok: true,
+            action: 'confirm_same_household',
+            duplicate_review_id: 'dup-di',
+            lead_id: 'lead-di',
+            assessment_id: null,
+            resulting_household_id: 'hh-canonical',
+            provisional_household_id: 'hh-prov',
+            resolved_at: '2026-08-03T22:00:00.000Z',
+            already_resolved: false,
+          },
+          error: null,
+        }
+      }
+      if (fn === 'create_digital_identity_follow_up_task') {
+        return {
+          data: {
+            ok: true,
+            already_exists: false,
+            needs_manual_review: false,
+            task_id: 'task-di-review',
+            workflow_type: 'review_digital_identity_lead',
+          },
+          error: null,
+        }
+      }
+      throw new Error(`Unexpected RPC ${fn}`)
+    })
+
+    const result = await resolveDigitalIdentityDuplicateReview(
+      { rpc } as unknown as SupabaseClient,
+      {
+        duplicateReviewId: 'dup-di',
+        action: 'confirm_same_household',
+        notes: 'same person',
+      },
+    )
+
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.assessmentId).toBeNull()
+      expect(result.resultingHouseholdId).toBe('hh-canonical')
+    }
+    expect(rpc).toHaveBeenCalledWith('resolve_digital_identity_duplicate_review', {
+      p_duplicate_review_id: 'dup-di',
+      p_action: 'confirm_same_household',
+      p_resolution_notes: 'same person',
+    })
+    expect(rpc).toHaveBeenCalledWith('create_digital_identity_follow_up_task', {
+      p_lead_id: 'lead-di',
+      p_workflow_type: 'review_digital_identity_lead',
+      p_creation_source: 'duplicate_resolution',
+    })
+  })
+
+  it('keeps DI resolution success when follow-up task creation fails', async () => {
+    const rpc = vi.fn().mockImplementation(async (fn: string) => {
+      if (fn === 'resolve_digital_identity_duplicate_review') {
+        return {
+          data: {
+            ok: true,
+            action: 'keep_separate',
+            duplicate_review_id: 'dup-di-2',
+            lead_id: 'lead-di-2',
+            assessment_id: null,
+            resulting_household_id: 'hh-prov',
+            provisional_household_id: 'hh-prov',
+            resolved_at: '2026-08-03T22:00:00.000Z',
+            already_resolved: false,
+          },
+          error: null,
+        }
+      }
+      return Promise.reject(new Error('RPC unavailable'))
+    })
+
+    const result = await resolveDigitalIdentityDuplicateReview(
+      { rpc } as unknown as SupabaseClient,
+      {
+        duplicateReviewId: 'dup-di-2',
+        action: 'keep_separate',
+      },
+    )
+    expect(result.ok).toBe(true)
   })
 })
 

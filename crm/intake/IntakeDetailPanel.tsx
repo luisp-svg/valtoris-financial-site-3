@@ -7,6 +7,8 @@ import type {
 } from './types'
 import { DUPLICATE_RESOLUTION_OWNER_ONLY_MESSAGE } from './types'
 import {
+  intakeProductLabel,
+  isDigitalIdentityLead,
   mapMatchReasonLabel,
   mapMatchStatusLabel,
   mapSheetsSyncLabel,
@@ -61,7 +63,10 @@ export default function IntakeDetailPanel({
   onRequestResolve,
   onRetryFollowUpTask,
 }: IntakeDetailPanelProps) {
+  const isDi = isDigitalIdentityLead(item)
   const diagnostic = item.diagnostic
+  const digitalIdentity = item.digitalIdentity
+  const productLabel = intakeProductLabel(item)
   const showDuplicate =
     item.ingestMatchStatus === 'possible_match' || item.duplicateReview?.status === 'pending'
   const canResolve =
@@ -86,7 +91,7 @@ export default function IntakeDetailPanel({
     >
       <div className="crm-panel-head">
         <div>
-          <p className="crm-muted">Incoming lead review</p>
+          <p className="crm-muted">Incoming lead review · {productLabel}</p>
           <h2 id="crm-intake-detail-title">{item.submittedFullName || 'Prospect'}</h2>
         </div>
         <button type="button" className="platform-btn platform-btn-outline" onClick={onClose}>
@@ -99,7 +104,9 @@ export default function IntakeDetailPanel({
           {resolveSuccess.alreadyResolved
             ? 'This duplicate review was already resolved the same way.'
             : resolveSuccess.action === 'confirm_same_household'
-              ? 'Confirmed same household. Lead and Initial Financial Diagnostic are linked to the candidate household.'
+              ? isDi
+                ? 'Confirmed same household. The Digital Identity lead is linked to the candidate household.'
+                : 'Confirmed same household. Lead and Initial Financial Diagnostic are linked to the candidate household.'
               : 'Kept as a separate household. The provisional prospect remains active.'}{' '}
           <Link to={crmHouseholdPath(resolveSuccess.resultingHouseholdId)}>
             Open resulting household
@@ -115,10 +122,11 @@ export default function IntakeDetailPanel({
 
       <div className="crm-intake-detail-grid">
         <section className="crm-intake-detail-section" aria-labelledby="crm-intake-submitted-heading">
-          <h3 id="crm-intake-submitted-heading">Submitted identity snapshot</h3>
+          <h3 id="crm-intake-submitted-heading">Submitted contact snapshot</h3>
           <p className="crm-muted">
-            Information provided on the public Family Report Card. This is not automatically applied
-            to the canonical household record.
+            {isDi
+              ? 'Information provided on Let’s Connect. This is not automatically applied to the canonical household record.'
+              : 'Information provided on the public Family Report Card. This is not automatically applied to the canonical household record.'}
           </p>
           <dl className="crm-intake-dl">
             <div>
@@ -133,6 +141,36 @@ export default function IntakeDetailPanel({
               <dt>Phone</dt>
               <dd>{item.submittedPhone || '—'}</dd>
             </div>
+            {isDi && digitalIdentity?.company ? (
+              <div>
+                <dt>Company</dt>
+                <dd>{digitalIdentity.company}</dd>
+              </div>
+            ) : null}
+            {isDi && digitalIdentity?.title ? (
+              <div>
+                <dt>Job title</dt>
+                <dd>{digitalIdentity.title}</dd>
+              </div>
+            ) : null}
+            {isDi && digitalIdentity?.reason ? (
+              <div>
+                <dt>Reason for connecting</dt>
+                <dd>{digitalIdentity.reason}</dd>
+              </div>
+            ) : null}
+            {isDi && digitalIdentity?.preferredFollowUp ? (
+              <div>
+                <dt>Preferred follow-up</dt>
+                <dd>{digitalIdentity.preferredFollowUp}</dd>
+              </div>
+            ) : null}
+            {isDi && digitalIdentity?.note ? (
+              <div>
+                <dt>Note</dt>
+                <dd>{digitalIdentity.note}</dd>
+              </div>
+            ) : null}
             <div>
               <dt>Submitted</dt>
               <dd>{new Date(item.submittedAt).toLocaleString()}</dd>
@@ -143,7 +181,11 @@ export default function IntakeDetailPanel({
             </div>
             <div>
               <dt>Campaign</dt>
-              <dd>{item.originalCampaign || String(item.sourceMetadata.utmCampaign ?? '—')}</dd>
+              <dd>
+                {item.originalCampaign ||
+                  digitalIdentity?.campaignCode ||
+                  String(item.sourceMetadata.utmCampaign ?? '—')}
+              </dd>
             </div>
           </dl>
         </section>
@@ -151,6 +193,10 @@ export default function IntakeDetailPanel({
         <section className="crm-intake-detail-section" aria-labelledby="crm-intake-crm-heading">
           <h3 id="crm-intake-crm-heading">CRM linkage</h3>
           <dl className="crm-intake-dl">
+            <div>
+              <dt>Lead type</dt>
+              <dd>{productLabel}</dd>
+            </div>
             <div>
               <dt>Match status</dt>
               <dd>{mapMatchStatusLabel(item.ingestMatchStatus)}</dd>
@@ -177,8 +223,49 @@ export default function IntakeDetailPanel({
               <dt>Sheets sync</dt>
               <dd>{mapSheetsSyncLabel(item.sheetsSyncStatus)}</dd>
             </div>
+            <div>
+              <dt>Task automation</dt>
+              <dd>{item.followUpTaskAutomationStatus?.replace(/_/g, ' ') || '—'}</dd>
+            </div>
           </dl>
         </section>
+
+        {isDi ? (
+          <section className="crm-intake-detail-section" aria-labelledby="crm-intake-di-heading">
+            <h3 id="crm-intake-di-heading">Digital Identity card</h3>
+            <p className="crm-muted">
+              Card and campaign context from Let’s Connect. This is not an Initial Financial
+              Diagnostic.
+            </p>
+            <dl className="crm-intake-dl">
+              <div>
+                <dt>Card owner / advisor slug</dt>
+                <dd>
+                  {digitalIdentity?.advisorSlug ||
+                    item.originalAdvisorSlug ||
+                    item.assignedAdvisor?.displayName ||
+                    '—'}
+                </dd>
+              </div>
+              <div>
+                <dt>Public key</dt>
+                <dd>{digitalIdentity?.cardPublicKey || '—'}</dd>
+              </div>
+              <div>
+                <dt>Card slug</dt>
+                <dd>{digitalIdentity?.cardSlug || '—'}</dd>
+              </div>
+              <div>
+                <dt>Campaign</dt>
+                <dd>{digitalIdentity?.campaignCode || item.originalCampaign || '—'}</dd>
+              </div>
+              <div>
+                <dt>Event</dt>
+                <dd>{digitalIdentity?.eventCode || '—'}</dd>
+              </div>
+            </dl>
+          </section>
+        ) : null}
 
         <section className="crm-intake-detail-section" aria-labelledby="crm-intake-task-heading">
           <h3 id="crm-intake-task-heading">Follow-up review task</h3>
@@ -252,48 +339,50 @@ export default function IntakeDetailPanel({
           </div>
         </section>
 
-        <section className="crm-intake-detail-section" aria-labelledby="crm-intake-diagnostic-heading">
-          <h3 id="crm-intake-diagnostic-heading">Initial Financial Diagnostic</h3>
-          <p className="crm-muted">
-            Public self-reported diagnostic. This is not the household Financial Progress Score and
-            does not feed Financial Progress evidence.
-          </p>
-          {diagnostic ? (
-            <>
-              <p className="crm-intake-score-line">
-                <strong>
-                  {diagnostic.overallScore ?? '—'}
-                  {diagnostic.overallGrade ? ` · ${diagnostic.overallGrade}` : ''}
-                </strong>
-                <span className="crm-intake-chip">{diagnostic.productLabel}</span>
-              </p>
-              {diagnostic.topPriorities.length > 0 ? (
-                <ul className="crm-intake-priority-list">
-                  {diagnostic.topPriorities.map((priority) => (
-                    <li key={priority}>{priority}</li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="crm-muted">No priority list stored on this submission.</p>
-              )}
-              {diagnostic.categories.length > 0 ? (
-                <ul className="crm-intake-category-list">
-                  {diagnostic.categories.map((category) => (
-                    <li key={category.id}>
-                      <span>{category.title}</span>
-                      <span>
-                        {category.score ?? '—'}
-                        {category.grade ? ` (${category.grade})` : ''}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
-            </>
-          ) : (
-            <p className="crm-muted">Diagnostic assessment details are not available for this lead.</p>
-          )}
-        </section>
+        {!isDi ? (
+          <section className="crm-intake-detail-section" aria-labelledby="crm-intake-diagnostic-heading">
+            <h3 id="crm-intake-diagnostic-heading">Initial Financial Diagnostic</h3>
+            <p className="crm-muted">
+              Public self-reported diagnostic. This is not the household Financial Progress Score and
+              does not feed Financial Progress evidence.
+            </p>
+            {diagnostic ? (
+              <>
+                <p className="crm-intake-score-line">
+                  <strong>
+                    {diagnostic.overallScore ?? '—'}
+                    {diagnostic.overallGrade ? ` · ${diagnostic.overallGrade}` : ''}
+                  </strong>
+                  <span className="crm-intake-chip">{diagnostic.productLabel}</span>
+                </p>
+                {diagnostic.topPriorities.length > 0 ? (
+                  <ul className="crm-intake-priority-list">
+                    {diagnostic.topPriorities.map((priority) => (
+                      <li key={priority}>{priority}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="crm-muted">No priority list stored on this submission.</p>
+                )}
+                {diagnostic.categories.length > 0 ? (
+                  <ul className="crm-intake-category-list">
+                    {diagnostic.categories.map((category) => (
+                      <li key={category.id}>
+                        <span>{category.title}</span>
+                        <span>
+                          {category.score ?? '—'}
+                          {category.grade ? ` (${category.grade})` : ''}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </>
+            ) : (
+              <p className="crm-muted">Diagnostic assessment details are not available for this lead.</p>
+            )}
+          </section>
+        ) : null}
 
         <section className="crm-intake-detail-section" aria-labelledby="crm-intake-consent-heading">
           <h3 id="crm-intake-consent-heading">Consent summary</h3>
@@ -303,14 +392,16 @@ export default function IntakeDetailPanel({
             </p>
           ) : null}
           <ul className="crm-intake-consent-list">
-            <ConsentRow
-              label="Assessment storage acknowledgment"
-              allowed={item.consent.assessmentStorageAcknowledged}
-            />
+            {!isDi ? (
+              <ConsentRow
+                label="Assessment storage acknowledgment"
+                allowed={item.consent.assessmentStorageAcknowledged}
+              />
+            ) : null}
+            <ConsentRow label="Privacy acknowledgment" allowed={item.consent.privacyAcknowledged} />
             <ConsentRow label="Contact permission" allowed={item.consent.contactPermission} />
             <ConsentRow label="Email marketing" allowed={item.consent.emailMarketingConsent} />
             <ConsentRow label="SMS marketing" allowed={item.consent.smsMarketingConsent} />
-            <ConsentRow label="Privacy acknowledgment" allowed={item.consent.privacyAcknowledged} />
           </ul>
           <p className="crm-muted">
             Version: {item.consent.consentVersion || '—'} · Consented at:{' '}
@@ -438,7 +529,7 @@ export default function IntakeDetailPanel({
           This submission was matched to an existing household. Canonical contact details were not
           overwritten.{' '}
           <Link to={crmHouseholdPath(item.household.id)}>Open linked household</Link>
-          {item.diagnostic?.assessmentId ? (
+          {!isDi && item.diagnostic?.assessmentId ? (
             <>
               {' · '}
               <Link
@@ -458,7 +549,7 @@ export default function IntakeDetailPanel({
         <p className="crm-intake-exact-note">
           New provisional prospect household.{' '}
           <Link to={crmHouseholdPath(item.household.id)}>Open household workspace</Link>
-          {item.diagnostic?.assessmentId ? (
+          {!isDi && item.diagnostic?.assessmentId ? (
             <>
               {' · '}
               <Link

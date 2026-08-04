@@ -9272,3 +9272,243 @@ button.public-card-diagnostic:disabled {
     transition: none;
   }
 }
+
+/* —— Let's Connect modal / sheet (public advisor card) —— */
+.public-card-connect-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  align-items: end;
+  justify-items: stretch;
+}
+
+.public-card-connect-scrim {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  background: rgba(7, 20, 77, 0.45);
+  cursor: pointer;
+}
+
+.public-card-connect-sheet {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-height: min(94vh, 900px);
+  overflow: auto;
+  background: linear-gradient(180deg, #f7f9fc 0%, #ffffff 28%);
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -18px 50px rgba(7, 20, 77, 0.18);
+  padding: 20px 20px 28px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.public-card-connect-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.public-card-connect-title {
+  margin: 0 0 6px;
+  font-size: clamp(1.35rem, 4vw, 1.75rem);
+  color: var(--brand);
+  letter-spacing: -0.02em;
+}
+
+.public-card-connect-subtitle {
+  margin: 0 0 8px;
+  color: var(--brand);
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.public-card-connect-supporting {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+  max-width: 36rem;
+}
+
+.public-card-connect-close {
+  flex-shrink: 0;
+  border: 1px solid var(--platform-border);
+  background: var(--surface);
+  color: var(--brand);
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.public-card-connect-close:focus-visible,
+.public-card-connect-field input:focus-visible,
+.public-card-connect-field textarea:focus-visible,
+.public-card-connect-field select:focus-visible,
+.public-card-connect-check input:focus-visible,
+.public-card-connect-reason input:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.public-card-connect-form {
+  display: grid;
+  gap: 14px;
+}
+
+.public-card-connect-field-row {
+  display: grid;
+  gap: 12px;
+}
+
+.public-card-connect-field {
+  display: grid;
+  gap: 6px;
+  font-size: 0.875rem;
+  color: var(--brand);
+  font-weight: 600;
+}
+
+.public-card-connect-field input,
+.public-card-connect-field textarea,
+.public-card-connect-field select {
+  width: 100%;
+  border: 1px solid rgba(7, 20, 77, 0.14);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font: inherit;
+  font-weight: 500;
+  color: var(--brand);
+  background: #fff;
+}
+
+.public-card-connect-field textarea {
+  resize: vertical;
+  min-height: 84px;
+}
+
+.public-card-connect-hint {
+  margin: -4px 0 0;
+  color: var(--muted);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.public-card-connect-field-error,
+.public-card-connect-submit-error {
+  margin: 0;
+  color: #9b1c1c;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.public-card-connect-fieldset {
+  margin: 0;
+  padding: 14px;
+  border: 1px solid rgba(7, 20, 77, 0.1);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.public-card-connect-fieldset legend {
+  padding: 0 6px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--brand);
+}
+
+.public-card-connect-reasons {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.public-card-connect-reason,
+.public-card-connect-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--brand);
+  cursor: pointer;
+}
+
+.public-card-connect-reason input,
+.public-card-connect-check input {
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+
+.public-card-connect-check.is-disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.public-card-connect-required {
+  color: #9b1c1c;
+  font-weight: 700;
+}
+
+.public-card-connect-consent {
+  display: grid;
+  gap: 10px;
+}
+
+.public-card-connect-honeypot {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.public-card-connect-actions,
+.public-card-connect-success-actions {
+  display: grid;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.public-card-connect-success {
+  display: grid;
+  gap: 16px;
+  padding: 12px 0 8px;
+  text-align: left;
+}
+
+@media (min-width: 640px) {
+  .public-card-connect-backdrop {
+    align-items: center;
+    justify-items: center;
+    padding: 24px;
+  }
+
+  .public-card-connect-sheet {
+    width: min(560px, 100%);
+    max-height: min(90vh, 860px);
+    border-radius: 24px;
+    padding: 28px 28px 32px;
+    box-shadow: 0 24px 60px rgba(7, 20, 77, 0.22);
+  }
+
+  .public-card-connect-field-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .public-card-connect-actions {
+    grid-template-columns: 1fr 1.4fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .public-card-connect-sheet {
+    scroll-behavior: auto;
+  }
+}

@@ -14,6 +14,7 @@ import {
   downloadPublicCardVCard,
   triggerVCardBrowserDownload,
 } from './downloadPublicCardVCard'
+import LetsConnectModal from './LetsConnectModal'
 import {
   buildDiagnosticActions,
   buildHeroActions,
@@ -108,6 +109,7 @@ function ReadyCard({ card }: { card: IdentitySurfacePublicDto }) {
   const [qrStatus, setQrStatus] = useState<'idle' | 'loading' | 'error'>('idle')
   const [qrMessage, setQrMessage] = useState<string | null>(null)
   const [qrLoadingFormat, setQrLoadingFormat] = useState<PublicCardQrFormat | null>(null)
+  const [connectOpen, setConnectOpen] = useState(false)
 
   async function handleSaveContact() {
     if (vcardStatus === 'loading') return
@@ -213,7 +215,7 @@ function ReadyCard({ card }: { card: IdentitySurfacePublicDto }) {
                   <button
                     key={action.key}
                     type="button"
-                    className="platform-btn platform-btn-primary public-card-btn"
+                    className="platform-btn platform-btn-secondary public-card-btn"
                     onClick={() => {
                       void handleSaveContact()
                     }}
@@ -225,18 +227,20 @@ function ReadyCard({ card }: { card: IdentitySurfacePublicDto }) {
                 )
               }
 
-              return (
-                <button
-                  key={action.key}
-                  type="button"
-                  className="platform-btn platform-btn-primary public-card-btn"
-                  disabled
-                  aria-disabled="true"
-                  title="Coming soon"
-                >
-                  {action.label}
-                </button>
-              )
+              if (action.mode === 'opens_connect_form') {
+                return (
+                  <button
+                    key={action.key}
+                    type="button"
+                    className="platform-btn platform-btn-primary public-card-btn"
+                    onClick={() => setConnectOpen(true)}
+                  >
+                    {action.label}
+                  </button>
+                )
+              }
+
+              return null
             })}
           </div>
           {vcardMessage ? (
@@ -419,6 +423,16 @@ function ReadyCard({ card }: { card: IdentitySurfacePublicDto }) {
           </ul>
         </section>
       ) : null}
+
+      <LetsConnectModal
+        open={connectOpen}
+        cardPublicKey={card.publicKey}
+        cardDisplayName={card.displayName}
+        sourcePage={
+          typeof window !== 'undefined' ? window.location.pathname : card.cardUrl
+        }
+        onClose={() => setConnectOpen(false)}
+      />
     </>
   )
 }

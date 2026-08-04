@@ -88,12 +88,12 @@ describe('publicCardViewModel', () => {
     expect(contact.showWebsite).toBe(true)
   })
 
-  it('keeps Let’s Connect disabled and enables Save Contact vCard download', () => {
+  it('opens Let’s Connect form and enables Save Contact vCard download', () => {
     const actions = buildHeroActions(sampleCard())
     const connect = actions.find((a) => a.key === 'lets_connect')
     const save = actions.find((a) => a.key === 'save_contact')
     expect(connect?.label).toBe("Let's Connect")
-    expect(connect?.mode).toBe('disabled_placeholder')
+    expect(connect?.mode).toBe('opens_connect_form')
     expect(save?.mode).toBe('vcard_download')
     expect(save?.label).toBe('Save Contact')
   })
@@ -171,14 +171,14 @@ describe('publicCardViewModel', () => {
     expect(documentTitleForCard(sampleCard())).toBe('Jane Advisor · Valtoris Financial')
   })
 
-  it('allows vCard/QR download without CRM, analytics, or admin imports', () => {
+  it('opens Let’s Connect form without browser CRM writes, analytics, or admin imports', () => {
     expect(publicCardPageSideEffects()).toEqual({
       writesAnalytics: false,
       createsLead: false,
       createsHousehold: false,
       downloadsVCard: true,
       downloadsQr: true,
-      opensConnectForm: false,
+      opensConnectForm: true,
       importsAdminClient: false,
     })
   })

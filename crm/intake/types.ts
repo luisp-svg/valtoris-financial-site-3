@@ -1,7 +1,8 @@
 /**
- * CRM Intake — typed domain models for public Family Report Card prospects.
- * Match/sheets/consent fields live on `leads` (migration 020).
- * Follow-up task automation fields live on leads/tasks (migration 022).
+ * CRM Intake — typed domain models for public intake prospects.
+ * Covers Family Report Card (Initial Financial Diagnostic) and Digital Identity
+ * (Let's Connect) leads. Match/sheets/consent fields live on `leads` (migration 020+).
+ * Follow-up task automation fields live on leads/tasks (migration 022 / 026).
  */
 
 import type {
@@ -68,6 +69,22 @@ export type IntakeDiagnosticSummary = {
   productLabel: 'Initial Financial Diagnostic'
 }
 
+/** Digital Identity / Let's Connect snapshot (no assessment). */
+export type IntakeDigitalIdentitySummary = {
+  company: string | null
+  title: string | null
+  reason: string | null
+  note: string | null
+  preferredFollowUp: string | null
+  cardPublicKey: string | null
+  cardSlug: string | null
+  advisorSlug: string | null
+  campaignCode: string | null
+  eventCode: string | null
+  /** UI label — distinct from Initial Financial Diagnostic. */
+  productLabel: 'Digital Identity'
+}
+
 export type IntakeAdvisorSummary = {
   id: string
   displayName: string
@@ -121,8 +138,12 @@ export type IntakeQueueItem = {
   household: IntakeHouseholdSummary | null
   assignedAdvisor: IntakeAdvisorSummary | null
   diagnostic: IntakeDiagnosticSummary | null
+  /** Present for Digital Identity / Let's Connect leads; null for Family diagnostics. */
+  digitalIdentity: IntakeDigitalIdentitySummary | null
   duplicateReview: IntakeDuplicateReviewSummary | null
   originalCampaign: string | null
+  /** Card owner advisor slug from leads.original_advisor_slug when present. */
+  originalAdvisorSlug: string | null
   sourceMetadata: Record<string, unknown>
   /** Follow-up task automation (migration 022). Null when not loaded. */
   followUpTaskAutomationStatus: FollowUpTaskAutomationStatus | null

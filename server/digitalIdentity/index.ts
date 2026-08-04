@@ -1,5 +1,6 @@
 /**
- * SERVER ONLY — Digital Identity public-read services.
+ * SERVER ONLY — Digital Identity public-read + ingest card resolution.
+ * Never import from browser/Vite client code.
  */
 
 export {
@@ -20,6 +21,17 @@ export type {
   GeneratePublishedCardQrResult,
   GeneratePublishedCardQrSuccess,
 } from './generatePublishedCardQr'
+
+/** Ingest-time card resolution (trusted advisorProfileId). Admin / server-only. */
+export {
+  resolveCardForIngest,
+} from '../ingest/digitalIdentity/resolveCardForIngest'
+export type {
+  ResolveCardForIngestError,
+  ResolveCardForIngestInput,
+  ResolveCardForIngestResult,
+  ResolveCardForIngestSuccess,
+} from '../ingest/digitalIdentity/resolveCardForIngest'
 
 export type {
   PublicCardLookupQuery,

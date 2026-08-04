@@ -1,12 +1,14 @@
 import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js'
+import { DIGITAL_IDENTITY_LEAD_TYPE } from '../../modules/digital-identity'
 import {
   buildDiagnosticFromAssessmentRow,
-  extractSubmittedIdentity,
+  extractDigitalIdentitySnapshot,
   normalizeDuplicateReviewStatus,
   normalizeLeadStatus,
   normalizeMatchStatus,
   normalizeSheetsSyncStatus,
   parseConsentSnapshot,
+  resolveIntakeSubmittedContact,
   sortIntakeNewestFirst,
 } from './intakeFormatters'
 import { buildIntakeTaskAutomationSummary, mapFollowUpTaskRow } from './intakeTaskAutomation'
@@ -48,6 +50,7 @@ const LEAD_SELECT = `
   sheets_sync_status,
   consent_snapshot,
   original_campaign,
+  original_advisor_slug,
   original_source_metadata,
   assigned_advisor_id,
   follow_up_task_automation_status,
@@ -166,7 +169,8 @@ function mapHousehold(value: unknown): IntakeHouseholdSummary | null {
 }
 
 /**
- * Loads public Family Report Card intake leads visible under RLS.
+ * Loads public intake leads visible under RLS:
+ * Family Report Card (Initial Financial Diagnostic) and Digital Identity (Let's Connect).
  * Soft-deleted leads are excluded. Onboarding assessments are never selected.
  */
 export async function fetchIntakeQueue(
@@ -179,7 +183,9 @@ export async function fetchIntakeQueue(
     .from('leads')
     .select(LEAD_SELECT)
     .is('deleted_at', null)
-    .or('ingest_match_status.not.is.null,lead_type.eq.Family Report Card')
+    .or(
+      `ingest_match_status.not.is.null,lead_type.eq.Family Report Card,lead_type.eq.${DIGITAL_IDENTITY_LEAD_TYPE}`,
+    )
     .order('submitted_at', { ascending: false })
     .limit(limit)
 
@@ -305,11 +311,39 @@ export async function fetchIntakeQueue(
     }
   }
 
+  // Digital Identity tasks are lead-keyed (no assessment).
+  const diLeadIdsMissingTask = leads
+    .filter(
+      (row) =>
+        row.lead_type === DIGITAL_IDENTITY_LEAD_TYPE &&
+        typeof row.follow_up_task_id !== 'string',
+    )
+    .map((row) => String(row.id))
+  const taskByLead = new Map<string, Record<string, unknown>>()
+  if (diLeadIdsMissingTask.length > 0) {
+    const { data: diTasks, error: diTaskError } = await supabase
+      .from('tasks')
+      .select(FOLLOW_UP_TASK_SELECT)
+      .in('lead_id', diLeadIdsMissingTask)
+      .is('deleted_at', null)
+      .not('workflow_type', 'is', null)
+      .order('created_at', { ascending: false })
+
+    if (!diTaskError) {
+      for (const row of (diTasks ?? []) as Record<string, unknown>[]) {
+        const leadId = typeof row.lead_id === 'string' ? row.lead_id : null
+        if (!leadId || taskByLead.has(leadId)) continue
+        taskByLead.set(leadId, row)
+      }
+    }
+  }
+
   void householdIds
 
   const items: IntakeQueueItem[] = leads.map((row) => {
     const leadId = String(row.id)
-    const submitted = extractSubmittedIdentity(row.raw_payload)
+    const leadType =
+      typeof row.lead_type === 'string' ? row.lead_type : 'Family Report Card'
     const leadScore =
       typeof row.overall_score === 'number'
         ? row.overall_score
@@ -319,7 +353,9 @@ export async function fetchIntakeQueue(
     const leadGrade = typeof row.overall_grade === 'string' ? row.overall_grade : null
     const household = mapHousehold(row.household)
     const assignedAdvisor = mapAdvisor(row.assigned_advisor) ?? household?.assignedAdvisor ?? null
-    const assessment = assessmentByLead.get(leadId) ?? null
+    const assessment = leadType === DIGITAL_IDENTITY_LEAD_TYPE
+      ? null
+      : assessmentByLead.get(leadId) ?? null
     const consent = parseConsentSnapshot(row.consent_snapshot)
     const duplicateReview = duplicateByLead.get(leadId) ?? null
     const followUpTaskId =
@@ -328,6 +364,7 @@ export async function fetchIntakeQueue(
     const taskRow =
       (followUpTaskId ? taskById.get(followUpTaskId) : null) ??
       (assessmentId ? taskByAssessment.get(assessmentId) : null) ??
+      taskByLead.get(leadId) ??
       null
     const taskSummary = buildIntakeTaskAutomationSummary({
       automationStatus: row.follow_up_task_automation_status,
@@ -336,11 +373,34 @@ export async function fetchIntakeQueue(
       duplicateReviewPending: duplicateReview?.status === 'pending',
       isOwner: false,
     })
+    const originalCampaign =
+      typeof row.original_campaign === 'string' ? row.original_campaign : null
+    const originalAdvisorSlug =
+      typeof row.original_advisor_slug === 'string' ? row.original_advisor_slug : null
+    const sourceMetadata =
+      row.original_source_metadata &&
+      typeof row.original_source_metadata === 'object' &&
+      !Array.isArray(row.original_source_metadata)
+        ? (row.original_source_metadata as Record<string, unknown>)
+        : {}
+    const normalizedEmail =
+      typeof row.normalized_email === 'string' ? row.normalized_email : null
+    const normalizedPhone =
+      typeof row.normalized_phone === 'string' ? row.normalized_phone : null
+    const submitted = resolveIntakeSubmittedContact({
+      rawPayload: row.raw_payload,
+      leadType,
+      householdDisplayName: household?.displayName ?? null,
+      householdEmail: household?.primaryEmail ?? null,
+      householdPhone: household?.primaryPhone ?? null,
+      normalizedEmail,
+      normalizedPhone,
+    })
 
     return {
       leadId,
       householdId: typeof row.household_id === 'string' ? row.household_id : '',
-      leadType: typeof row.lead_type === 'string' ? row.lead_type : 'Family Report Card',
+      leadType,
       leadStatus: normalizeLeadStatus(row.status),
       ingestMatchStatus: normalizeMatchStatus(row.ingest_match_status),
       duplicateReviewStatus: normalizeDuplicateReviewStatus(row.duplicate_review_status),
@@ -354,8 +414,8 @@ export async function fetchIntakeQueue(
       submittedFullName: submitted.fullName || household?.displayName || 'Prospect',
       submittedEmail: submitted.email,
       submittedPhone: submitted.phone,
-      normalizedEmail: typeof row.normalized_email === 'string' ? row.normalized_email : null,
-      normalizedPhone: typeof row.normalized_phone === 'string' ? row.normalized_phone : null,
+      normalizedEmail,
+      normalizedPhone,
       sheetsSyncStatus: normalizeSheetsSyncStatus(row.sheets_sync_status),
       consent,
       household,
@@ -366,14 +426,17 @@ export async function fetchIntakeQueue(
         leadGrade,
         row.top_priorities,
       ),
+      digitalIdentity: extractDigitalIdentitySnapshot({
+        leadType,
+        rawPayload: row.raw_payload,
+        sourceMetadata,
+        originalCampaign,
+        originalAdvisorSlug,
+      }),
       duplicateReview,
-      originalCampaign: typeof row.original_campaign === 'string' ? row.original_campaign : null,
-      sourceMetadata:
-        row.original_source_metadata &&
-        typeof row.original_source_metadata === 'object' &&
-        !Array.isArray(row.original_source_metadata)
-          ? (row.original_source_metadata as Record<string, unknown>)
-          : {},
+      originalCampaign,
+      originalAdvisorSlug,
+      sourceMetadata,
       followUpTaskAutomationStatus: taskSummary.automationStatus,
       followUpTask: taskSummary.task ?? mapFollowUpTaskRow(taskRow),
       taskIndicators: taskSummary.indicators,
@@ -608,6 +671,85 @@ export async function resolveDuplicateReview(
   return mapped
 }
 
+/**
+ * Owner-only Digital Identity duplicate resolution (migration 026).
+ * Uses resolve_digital_identity_duplicate_review — never touches assessments.
+ * After resolve, best-effort create_digital_identity_follow_up_task
+ * (review_digital_identity_lead / duplicate_resolution).
+ */
+export async function resolveDigitalIdentityDuplicateReview(
+  supabase: SupabaseClient,
+  input: {
+    duplicateReviewId: string
+    action: DuplicateResolutionWriteAction
+    notes?: string | null
+  },
+): Promise<DuplicateResolutionResponse> {
+  if (
+    input.action !== 'confirm_same_household' &&
+    input.action !== 'keep_separate'
+  ) {
+    return {
+      ok: false,
+      code: 'invalid_action',
+      message: 'That resolution action is not supported.',
+    }
+  }
+
+  const notes = sanitizeDuplicateResolutionNotes(input.notes)
+  const rawNotesLength = input.notes
+    ? Array.from(input.notes)
+        .filter((ch) => ch.charCodeAt(0) !== 0)
+        .join('')
+        .trim().length
+    : 0
+  if (input.notes && rawNotesLength > DUPLICATE_RESOLUTION_MAX_NOTES_LENGTH) {
+    return {
+      ok: false,
+      code: 'notes_too_long',
+      message: 'Resolution notes are too long. Shorten them and try again.',
+    }
+  }
+
+  const { data, error } = await supabase.rpc('resolve_digital_identity_duplicate_review', {
+    p_duplicate_review_id: input.duplicateReviewId,
+    p_action: input.action,
+    p_resolution_notes: notes,
+  })
+
+  if (error) {
+    if (import.meta.env.DEV) {
+      console.error(
+        '[crm/intake]',
+        formatIntakeError('digital identity duplicate resolution', error),
+      )
+    }
+    return mapDuplicateResolutionRpcError(error)
+  }
+
+  const mapped = mapDuplicateResolutionRpcPayload(data)
+  if (!mapped) {
+    return {
+      ok: false,
+      code: 'unknown',
+      message: 'Unable to resolve this duplicate review. Please try again.',
+    }
+  }
+
+  // Best-effort follow-up task — never undoes resolution.
+  try {
+    await supabase.rpc('create_digital_identity_follow_up_task', {
+      p_lead_id: mapped.leadId,
+      p_workflow_type: 'review_digital_identity_lead',
+      p_creation_source: 'duplicate_resolution',
+    })
+  } catch {
+    // Intentionally ignored — duplicate resolution already succeeded.
+  }
+
+  return mapped
+}
+
 export type RetryFollowUpTaskResult =
   | { ok: true; taskId: string | null; alreadyExists: boolean; needsManualReview: boolean }
   | { ok: false; message: string }
@@ -702,6 +844,109 @@ export async function retryPublicFamilyFollowUpTask(
     ok: true,
     taskId: created.taskId,
     alreadyExists: created.alreadyExists,
+    needsManualReview: false,
+  }
+}
+
+/**
+ * Owner-authorized retry for Digital Identity follow-up task automation.
+ * Lead-keyed (no assessment). Workflow derived from trusted match status.
+ */
+export async function retryDigitalIdentityFollowUpTask(
+  supabase: SupabaseClient,
+  input: {
+    leadId: string
+    matchStatus: IntakeQueueItem['ingestMatchStatus']
+    duplicateReviewPending: boolean
+    existingTaskId?: string | null
+    existingTaskSourceType?: string | null
+  },
+): Promise<RetryFollowUpTaskResult> {
+  if (!input.leadId) {
+    return { ok: false, message: 'Unable to retry follow-up task. Please try again.' }
+  }
+
+  if (input.existingTaskId && input.existingTaskSourceType === 'manual') {
+    const reconciled = await reconcileLeadFollowUpTaskState(supabase, {
+      leadId: input.leadId,
+      taskId: input.existingTaskId,
+      status: 'task_manually_created',
+    })
+    if (reconciled.ok) {
+      return {
+        ok: true,
+        taskId: input.existingTaskId,
+        alreadyExists: true,
+        needsManualReview: false,
+      }
+    }
+  }
+
+  let workflow: string
+  if (input.duplicateReviewPending || input.matchStatus === 'possible_match') {
+    workflow = 'resolve_digital_identity_duplicate'
+  } else if (
+    input.matchStatus === 'new_prospect' ||
+    input.matchStatus === 'exact_trusted_match'
+  ) {
+    workflow = 'review_digital_identity_lead'
+  } else {
+    return { ok: false, message: 'Unable to retry follow-up task. Please try again.' }
+  }
+
+  const { data, error } = await supabase.rpc('create_digital_identity_follow_up_task', {
+    p_lead_id: input.leadId,
+    p_workflow_type: workflow,
+    p_creation_source: 'system',
+  })
+
+  if (error) {
+    if (import.meta.env.DEV) {
+      console.error(
+        '[crm/intake]',
+        formatIntakeError('digital identity follow-up task retry', error),
+      )
+    }
+    return {
+      ok: false,
+      message: 'Unable to retry follow-up task. Please try again.',
+    }
+  }
+
+  if (!data || typeof data !== 'object' || (data as { ok?: unknown }).ok !== true) {
+    return {
+      ok: false,
+      message: 'Unable to retry follow-up task. Please try again.',
+    }
+  }
+
+  const row = data as Record<string, unknown>
+  if (row.needs_manual_review === true) {
+    if (input.existingTaskId) {
+      const reconciled = await reconcileLeadFollowUpTaskState(supabase, {
+        leadId: input.leadId,
+        taskId: input.existingTaskId,
+        status: 'task_manually_created',
+      })
+      if (reconciled.ok) {
+        return {
+          ok: true,
+          taskId: input.existingTaskId,
+          alreadyExists: true,
+          needsManualReview: false,
+        }
+      }
+    }
+    return {
+      ok: false,
+      message: 'Follow-up task needs manual review. A previously deleted automatic task exists.',
+    }
+  }
+
+  return {
+    ok: true,
+    taskId: typeof row.task_id === 'string' ? row.task_id : null,
+    alreadyExists: row.already_exists === true,
     needsManualReview: false,
   }
 }

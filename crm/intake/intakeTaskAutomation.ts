@@ -8,6 +8,12 @@ export type FollowUpTaskAutomationStatus =
   | 'task_failed'
   | 'task_manually_created'
 
+export type IntakeFollowUpWorkflowType =
+  | 'review_initial_diagnostic'
+  | 'resolve_possible_duplicate'
+  | 'review_digital_identity_lead'
+  | 'resolve_digital_identity_duplicate'
+
 export type IntakeFollowUpTaskSummary = {
   taskId: string
   title: string
@@ -16,7 +22,7 @@ export type IntakeFollowUpTaskSummary = {
   dueDate: string | null
   assignedUserId: string | null
   assigneeName: string | null
-  workflowType: 'review_initial_diagnostic' | 'resolve_possible_duplicate' | null
+  workflowType: IntakeFollowUpWorkflowType | null
   sourceType: string | null
 }
 
@@ -87,7 +93,11 @@ export function buildIntakeTaskAutomationSummary(input: {
   const noContactPermission = input.consent.contactPermission !== true
   const indicators: IntakeTaskIndicator[] = []
 
-  if (input.duplicateReviewPending || task?.workflowType === 'resolve_possible_duplicate') {
+  const isDuplicateWorkflow =
+    task?.workflowType === 'resolve_possible_duplicate' ||
+    task?.workflowType === 'resolve_digital_identity_duplicate'
+
+  if (input.duplicateReviewPending || isDuplicateWorkflow) {
     if (task?.status === 'done') {
       /* resolved duplicate task */
     } else {
@@ -97,7 +107,7 @@ export function buildIntakeTaskAutomationSummary(input: {
 
   if (task) {
     if (task.status === 'open' || task.status === 'in_progress') {
-      if (task.workflowType !== 'resolve_possible_duplicate') {
+      if (!isDuplicateWorkflow) {
         indicators.push('review_open')
       }
     } else if (task.status === 'done') {
@@ -155,9 +165,11 @@ export function mapFollowUpTaskRow(
     return null
   }
 
-  const workflow =
+  const workflow: IntakeFollowUpWorkflowType | null =
     row.workflow_type === 'review_initial_diagnostic' ||
-    row.workflow_type === 'resolve_possible_duplicate'
+    row.workflow_type === 'resolve_possible_duplicate' ||
+    row.workflow_type === 'review_digital_identity_lead' ||
+    row.workflow_type === 'resolve_digital_identity_duplicate'
       ? row.workflow_type
       : null
 

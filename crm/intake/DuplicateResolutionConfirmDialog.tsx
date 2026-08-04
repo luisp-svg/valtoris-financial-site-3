@@ -7,20 +7,29 @@ export type DuplicateResolutionConfirmDialogProps = {
   candidateName: string | null
   submitting: boolean
   error: string | null
+  /** When true, copy refers to Digital Identity / Let's Connect (no assessment). */
+  isDigitalIdentity?: boolean
   onCancel: () => void
   onConfirm: (notes: string) => void | Promise<void>
 }
 
-function dialogCopy(action: DuplicateResolutionWriteAction) {
+function dialogCopy(action: DuplicateResolutionWriteAction, isDigitalIdentity: boolean) {
   if (action === 'confirm_same_household') {
     return {
       title: 'Confirm same household',
-      body: [
-        'The lead and Initial Financial Diagnostic will be linked to the candidate household.',
-        'Canonical household contact information will not be changed.',
-        'The provisional household will be marked merged and removed from active household lists.',
-        'Historical assessment and lead records will be preserved as a public self-report.',
-      ],
+      body: isDigitalIdentity
+        ? [
+            'The Digital Identity / Let’s Connect lead will be linked to the candidate household.',
+            'Canonical household contact information will not be changed.',
+            'The provisional household will be marked merged and removed from active household lists.',
+            'Lead history will be preserved. No assessment is created or moved.',
+          ]
+        : [
+            'The lead and Initial Financial Diagnostic will be linked to the candidate household.',
+            'Canonical household contact information will not be changed.',
+            'The provisional household will be marked merged and removed from active household lists.',
+            'Historical assessment and lead records will be preserved as a public self-report.',
+          ],
       confirmLabel: 'Confirm Same Household',
     }
   }
@@ -45,6 +54,7 @@ export default function DuplicateResolutionConfirmDialog({
   candidateName,
   submitting,
   error,
+  isDigitalIdentity = false,
   onCancel,
   onConfirm,
 }: DuplicateResolutionConfirmDialogProps) {
@@ -52,7 +62,7 @@ export default function DuplicateResolutionConfirmDialog({
   const notesId = useId()
   const confirmRef = useRef<HTMLButtonElement>(null)
   const [notes, setNotes] = useState('')
-  const copy = dialogCopy(action)
+  const copy = dialogCopy(action, isDigitalIdentity)
 
   useEffect(() => {
     confirmRef.current?.focus()

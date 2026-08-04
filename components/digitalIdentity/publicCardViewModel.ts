@@ -23,10 +23,10 @@ export type PublicCardHeroAction = {
   key: 'lets_connect' | 'save_contact' | 'book_appointment'
   label: string
   /**
-   * Let's Connect remains a disabled placeholder.
+   * Let's Connect opens the relationship capture modal/sheet.
    * Save Contact triggers Smart vCard download via the public API.
    */
-  mode: 'disabled_placeholder' | 'external_link' | 'vcard_download'
+  mode: 'opens_connect_form' | 'external_link' | 'vcard_download'
   href: string | null
   comingSoonBadge: boolean
 }
@@ -102,7 +102,7 @@ export function resolveContactVisibility(
 
 /**
  * Hero actions:
- * - Let's Connect → disabled placeholder (no form yet)
+ * - Let's Connect → opens the Let's Connect modal/sheet
  * - Save Contact → Smart vCard download (server-generated)
  * - Book Appointment → only when Calendly URL exists
  */
@@ -111,7 +111,7 @@ export function buildHeroActions(card: IdentitySurfacePublicDto): PublicCardHero
     {
       key: 'lets_connect',
       label: card.primaryConnectLabel || LETS_CONNECT_CTA_LABEL,
-      mode: 'disabled_placeholder',
+      mode: 'opens_connect_form',
       href: null,
       comingSoonBadge: false,
     },
@@ -329,7 +329,8 @@ export function publicCardPageSideEffects(): {
   downloadsVCard: true
   /** QR download via public API — key route only; never analytics. */
   downloadsQr: true
-  opensConnectForm: false
+  /** Let's Connect modal submits via public ingest API (server creates CRM records). */
+  opensConnectForm: true
   importsAdminClient: false
 } {
   return {
@@ -338,7 +339,7 @@ export function publicCardPageSideEffects(): {
     createsHousehold: false,
     downloadsVCard: true,
     downloadsQr: true,
-    opensConnectForm: false,
+    opensConnectForm: true,
     importsAdminClient: false,
   }
 }
