@@ -327,6 +327,8 @@ export function publicCardPageSideEffects(): {
   createsHousehold: false
   /** Smart vCard download via public API — never a CRM write. */
   downloadsVCard: true
+  /** QR download via public API — key route only; never analytics. */
+  downloadsQr: true
   opensConnectForm: false
   importsAdminClient: false
 } {
@@ -335,6 +337,7 @@ export function publicCardPageSideEffects(): {
     createsLead: false,
     createsHousehold: false,
     downloadsVCard: true,
+    downloadsQr: true,
     opensConnectForm: false,
     importsAdminClient: false,
   }

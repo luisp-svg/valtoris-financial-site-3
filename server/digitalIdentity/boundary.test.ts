@@ -9,10 +9,13 @@ describe('Digital Identity browser/server boundary', () => {
     expect(digitalIdentityModule).not.toHaveProperty('createSupabaseAdminClient')
   })
 
-  it('exposes lookup only from the server package', () => {
+  it('exposes lookup and QR generation only from the server package', () => {
     expect(typeof serverDigitalIdentity.lookupPublishedCard).toBe('function')
     expect(typeof serverDigitalIdentity.lookupPublishedCardByPublicKey).toBe('function')
     expect(typeof serverDigitalIdentity.lookupPublishedCardBySlug).toBe('function')
+    expect(typeof serverDigitalIdentity.generatePublishedCardQr).toBe('function')
     expect(serverDigitalIdentity.publicCardLookupSideEffects().writesAnalytics).toBe(false)
+    expect(serverDigitalIdentity.publishedCardQrSideEffects().writesAnalytics).toBe(false)
+    expect(serverDigitalIdentity.publishedCardQrSideEffects().tracksCampaign).toBe(false)
   })
 })

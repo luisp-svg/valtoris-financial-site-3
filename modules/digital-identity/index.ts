@@ -83,6 +83,23 @@ export {
   vCardGenerationSideEffects,
 } from './vcard'
 
+export {
+  PUBLIC_CARD_QR_FORMATS,
+  buildQrDestinationPath,
+  buildQrDestinationUrl,
+  buildQrPdfPlaceholder,
+  getQrRenderSpec,
+  isKeyBasedQrDestination,
+  parsePublicCardQrFormat,
+  qrGenerationSideEffects,
+  sanitizeQrFilename,
+} from './qr'
+export type {
+  PublicCardQrFormat,
+  PublicCardQrFormatFuture,
+  PublicCardQrRenderSpec,
+} from './qr'
+
 export type {
   DigitalIdentityConsentSnapshot,
   DigitalIdentityConsentState,

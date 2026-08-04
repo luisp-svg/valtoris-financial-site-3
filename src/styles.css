@@ -8887,6 +8887,61 @@ p { color: var(--muted); line-height: 1.7; }
   line-height: 1.45;
 }
 
+.public-card-qr-menu {
+  margin-top: 4px;
+  width: min(100%, 280px);
+  text-align: left;
+}
+
+.public-card-qr-menu > summary {
+  list-style: none;
+  cursor: pointer;
+  width: 100%;
+}
+
+.public-card-qr-menu > summary::-webkit-details-marker {
+  display: none;
+}
+
+.public-card-qr-options {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 16px;
+  border: 1px solid var(--platform-border);
+  background: #f8fafc;
+}
+
+.public-card-qr-option {
+  appearance: none;
+  border: 1px solid transparent;
+  background: var(--surface);
+  color: var(--brand);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.public-card-qr-option:hover:not(:disabled) {
+  border-color: rgba(7, 20, 77, 0.18);
+  background: #fff;
+}
+
+.public-card-qr-option:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.public-card-qr-option:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .public-card-btn {
   min-width: min(100%, 220px);
 }

@@ -3,6 +3,13 @@ import { Link } from 'react-router-dom'
 import BrandWordmark from '../BrandWordmark'
 import { ROUTES } from '../../constants/routes'
 import type { IdentitySurfacePublicDto } from '../../modules/digital-identity'
+import type { PublicCardQrFormat } from '../../modules/digital-identity'
+import {
+  downloadPublicCardQr,
+  qrDownloadErrorCopy,
+  qrDownloadMenuItems,
+  triggerQrBrowserDownload,
+} from './downloadPublicCardQr'
 import {
   downloadPublicCardVCard,
   triggerVCardBrowserDownload,
@@ -98,6 +105,9 @@ function ReadyCard({ card }: { card: IdentitySurfacePublicDto }) {
   const metaLine = [card.approvedTitle, card.approvedCompany].filter(Boolean).join(' · ')
   const [vcardStatus, setVcardStatus] = useState<'idle' | 'loading' | 'error'>('idle')
   const [vcardMessage, setVcardMessage] = useState<string | null>(null)
+  const [qrStatus, setQrStatus] = useState<'idle' | 'loading' | 'error'>('idle')
+  const [qrMessage, setQrMessage] = useState<string | null>(null)
+  const [qrLoadingFormat, setQrLoadingFormat] = useState<PublicCardQrFormat | null>(null)
 
   async function handleSaveContact() {
     if (vcardStatus === 'loading') return
@@ -120,6 +130,33 @@ function ReadyCard({ card }: { card: IdentitySurfacePublicDto }) {
 
     setVcardStatus('idle')
     setVcardMessage(null)
+  }
+
+  async function handleDownloadQr(format: PublicCardQrFormat) {
+    if (qrStatus === 'loading') return
+    setQrStatus('loading')
+    setQrLoadingFormat(format)
+    setQrMessage(null)
+
+    const result = await downloadPublicCardQr({ key: card.publicKey, format })
+    if (!result.ok) {
+      setQrStatus('error')
+      setQrLoadingFormat(null)
+      setQrMessage(qrDownloadErrorCopy(result.code))
+      return
+    }
+
+    const saved = triggerQrBrowserDownload(result.blob, result.filename)
+    if (!saved) {
+      setQrStatus('error')
+      setQrLoadingFormat(null)
+      setQrMessage(qrDownloadErrorCopy('malformed_response'))
+      return
+    }
+
+    setQrStatus('idle')
+    setQrLoadingFormat(null)
+    setQrMessage(null)
   }
 
   return (
@@ -205,6 +242,34 @@ function ReadyCard({ card }: { card: IdentitySurfacePublicDto }) {
           {vcardMessage ? (
             <p className="public-card-download-error" role="alert">
               {vcardMessage}
+            </p>
+          ) : null}
+
+          <details className="public-card-qr-menu">
+            <summary className="platform-btn platform-btn-outline public-card-btn">
+              {qrStatus === 'loading' ? 'Preparing QR…' : 'Download QR'}
+            </summary>
+            <div className="public-card-qr-options" role="menu" aria-label="QR download formats">
+              {qrDownloadMenuItems().map((item) => (
+                <button
+                  key={item.format}
+                  type="button"
+                  role="menuitem"
+                  className="public-card-qr-option"
+                  disabled={qrStatus === 'loading'}
+                  aria-busy={qrLoadingFormat === item.format}
+                  onClick={() => {
+                    void handleDownloadQr(item.format)
+                  }}
+                >
+                  {qrLoadingFormat === item.format ? 'Preparing…' : item.label}
+                </button>
+              ))}
+            </div>
+          </details>
+          {qrMessage ? (
+            <p className="public-card-download-error" role="alert">
+              {qrMessage}
             </p>
           ) : null}
         </div>

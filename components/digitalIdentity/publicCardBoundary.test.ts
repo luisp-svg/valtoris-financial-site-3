@@ -32,6 +32,7 @@ describe('public card browser/server boundary', () => {
       createsLead: false,
       createsHousehold: false,
       downloadsVCard: true,
+      downloadsQr: true,
       opensConnectForm: false,
     })
   })

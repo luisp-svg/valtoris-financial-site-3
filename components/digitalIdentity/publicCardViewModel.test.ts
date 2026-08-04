@@ -171,12 +171,13 @@ describe('publicCardViewModel', () => {
     expect(documentTitleForCard(sampleCard())).toBe('Jane Advisor · Valtoris Financial')
   })
 
-  it('allows vCard download without CRM, analytics, or admin imports', () => {
+  it('allows vCard/QR download without CRM, analytics, or admin imports', () => {
     expect(publicCardPageSideEffects()).toEqual({
       writesAnalytics: false,
       createsLead: false,
       createsHousehold: false,
       downloadsVCard: true,
+      downloadsQr: true,
       opensConnectForm: false,
       importsAdminClient: false,
     })
