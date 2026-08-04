@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import {
   handleDigitalIdentityVCardRequest,
   resolveRequestOrigin,
-} from './vcard'
+} from '../../../api/digital-identity/card/vcard'
 import type { PublicCardLookupResult } from '../../../server/digitalIdentity'
 import { LETS_CONNECT_CTA_LABEL } from '../../../modules/digital-identity'
 

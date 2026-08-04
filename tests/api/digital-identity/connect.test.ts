@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { handleDigitalIdentityConnectRequest } from './connect'
-import { _resetRateLimitStateForTests } from '../../server/ingest/familyReportCard/abuse'
-import { VALID_SUBMISSION_ID } from '../../server/ingest/digitalIdentity/testFixtures'
+import { handleDigitalIdentityConnectRequest } from '../../../api/digital-identity/connect'
+import { _resetRateLimitStateForTests } from '../../../server/ingest/familyReportCard/abuse'
+import { VALID_SUBMISSION_ID } from '../../../server/ingest/digitalIdentity/testFixtures'
 
 function mockRes() {
   const res = {

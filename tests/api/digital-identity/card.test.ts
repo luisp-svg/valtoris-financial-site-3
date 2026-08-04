@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { describe, expect, it, vi } from 'vitest'
-import { handleDigitalIdentityCardRequest } from './card'
-import type { PublicCardLookupResult } from '../../server/digitalIdentity'
-import { LETS_CONNECT_CTA_LABEL } from '../../modules/digital-identity'
+import { handleDigitalIdentityCardRequest } from '../../../api/digital-identity/card'
+import type { PublicCardLookupResult } from '../../../server/digitalIdentity'
+import { LETS_CONNECT_CTA_LABEL } from '../../../modules/digital-identity'
 
 function mockRes() {
   const res = {

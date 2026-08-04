@@ -4,6 +4,9 @@ node_modules/
 # Production builds
 dist/
 
+# Local Vercel CLI / build output
+.vercel/
+
 # Vite cache
 .vite/
 

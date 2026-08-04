@@ -10,6 +10,7 @@
     "test": "vitest run",
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit",
+    "check:vercel-functions": "node scripts/check-vercel-function-count.mjs",
     "bootstrap:dev-auth": "node --env-file=.env scripts/bootstrap-dev-auth.mjs",
     "bootstrap:dev-auth:diagnose": "node --env-file=.env scripts/bootstrap-dev-auth.mjs --diagnose-placeholders",
     "repair:dev-auth:phase-c": "node --env-file=.env scripts/sql/repair-dev-auth/phase-c-create-users.mjs"

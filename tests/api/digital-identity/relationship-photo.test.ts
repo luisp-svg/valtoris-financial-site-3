@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { handleDigitalIdentityRelationshipPhotoRequest } from './relationship-photo'
+import { handleDigitalIdentityRelationshipPhotoRequest } from '../../../api/digital-identity/relationship-photo'
 
 function mockRes() {
   const res = {

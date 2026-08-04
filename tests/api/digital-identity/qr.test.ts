@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { describe, expect, it, vi } from 'vitest'
-import { handleDigitalIdentityQrRequest } from './qr'
+import { handleDigitalIdentityQrRequest } from '../../../api/digital-identity/card/qr'
 
 function mockRes() {
   const res = {
