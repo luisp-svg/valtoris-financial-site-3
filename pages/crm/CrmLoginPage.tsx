@@ -3,6 +3,8 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import BrandLogo from '../../components/BrandLogo'
 import BrandWordmark from '../../components/BrandWordmark'
 import { useCrmAuth } from '../../crm/auth/CrmAuthContext'
+import { PASSWORD_UPDATED_BANNER } from '../../crm/auth/passwordRecovery'
+import { passwordToggleAriaLabel } from '../../crm/auth/passwordPolicy'
 
 export default function CrmLoginPage() {
   const { signIn, configError } = useCrmAuth()
@@ -14,6 +16,7 @@ export default function CrmLoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [logoFailed, setLogoFailed] = useState(false)
+  const passwordUpdated = searchParams.get('passwordUpdated') === '1'
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
@@ -50,6 +53,12 @@ export default function CrmLoginPage() {
           <p className="crm-login-subtitle">Advisor CRM sign-in</p>
         </div>
 
+        {passwordUpdated ? (
+          <p className="crm-login-success" role="status">
+            {PASSWORD_UPDATED_BANNER}
+          </p>
+        ) : null}
+
         <form className="crm-login-form" onSubmit={(event) => void handleSubmit(event)} noValidate>
           <label className="crm-field">
             <span>Email</span>
@@ -81,6 +90,7 @@ export default function CrmLoginPage() {
                 className="crm-password-toggle"
                 onClick={() => setShowPassword((value) => !value)}
                 aria-pressed={showPassword}
+                aria-label={passwordToggleAriaLabel('password', showPassword)}
               >
                 {showPassword ? 'Hide' : 'Show'}
               </button>

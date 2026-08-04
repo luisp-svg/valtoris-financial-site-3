@@ -26,6 +26,7 @@ import PrivacyPolicyPage from '../pages/PrivacyPolicyPage'
 import NotFoundPage from '../pages/NotFoundPage'
 import PublicAdvisorCardPage from '../pages/PublicAdvisorCardPage'
 import CrmLoginPage from '../pages/crm/CrmLoginPage'
+import CrmPasswordRecoveryPage from '../pages/crm/CrmPasswordRecoveryPage'
 import CrmHomePage from '../pages/crm/CrmHomePage'
 import CrmHouseholdsPage from '../pages/crm/CrmHouseholdsPage'
 import CrmHouseholdWorkspacePage from '../pages/crm/CrmHouseholdWorkspacePage'
@@ -153,6 +154,8 @@ export default function App() {
         <Route element={<CrmLoginGate />}>
           <Route path="login" element={<CrmLoginPage />} />
         </Route>
+        {/* Public invite/recovery — outside login + protected gates so a recovery session is not bounced to /crm. */}
+        <Route path="auth/recovery" element={<CrmPasswordRecoveryPage />} />
         <Route element={<CrmProtectedGate />}>
           <Route index element={<CrmHomePage />} />
           <Route path="intake" element={<CrmIntakePage />} />

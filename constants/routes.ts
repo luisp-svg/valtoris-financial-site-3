@@ -22,6 +22,8 @@ export const ROUTES = {
   publicCardBySlug: '/c/:slug',
   crm: '/crm',
   crmLogin: '/crm/login',
+  /** Invite + password-recovery landing (public CRM auth). */
+  crmAuthRecovery: '/crm/auth/recovery',
   crmLeads: '/crm/leads',
   crmIntake: '/crm/intake',
   crmHouseholds: '/crm/households',

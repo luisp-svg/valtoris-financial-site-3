@@ -1,15 +1,18 @@
 import { createServerClient, parseCookieHeader, serializeCookieHeader } from '@supabase/ssr'
 import { next } from '@vercel/edge'
+import { isPublicCrmAuthPath } from './crmPublicAuthPaths'
 import { getServerSupabaseAnonKey, getServerSupabaseUrl } from './env'
 
 /**
  * Edge middleware helper: refresh/validate CRM session cookies via getUser().
  * Redirects unauthenticated users away from protected /crm routes.
+ * Public auth routes (/crm/login, /crm/auth/recovery) stay reachable so the
+ * browser can consume invite/recovery hash or PKCE query state.
  */
 export async function updateCrmSession(request: Request): Promise<Response> {
   const url = new URL(request.url)
   const pathname = url.pathname
-  const isLogin = pathname === '/crm/login'
+  const isPublicAuth = isPublicCrmAuthPath(pathname)
   const isCrm = pathname === '/crm' || pathname.startsWith('/crm/')
 
   if (!isCrm) {
@@ -56,13 +59,14 @@ export async function updateCrmSession(request: Request): Promise<Response> {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user && !isLogin) {
+  if (!user && !isPublicAuth) {
     const loginUrl = new URL('/crm/login', url.origin)
     loginUrl.searchParams.set('redirect', pathname)
     return Response.redirect(loginUrl.toString(), 302)
   }
 
-  if (user && isLogin) {
+  // Only bounce authenticated users away from the login form — never from recovery.
+  if (user && pathname === '/crm/login') {
     return Response.redirect(new URL('/crm', url.origin).toString(), 302)
   }
 

@@ -5371,6 +5371,47 @@ p { color: var(--muted); line-height: 1.7; }
   font-weight: 600;
 }
 
+.crm-login-success {
+  margin: 0 0 18px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #ecfdf3;
+  border: 1px solid #abefc6;
+  color: #067647;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.crm-auth-status {
+  margin: 0;
+  text-align: center;
+  color: var(--crm-muted);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.crm-recovery-intro {
+  margin: 0;
+  color: var(--crm-muted);
+  font-size: 0.9rem;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+.crm-recovery-invalid {
+  display: grid;
+  gap: 16px;
+}
+
+.crm-recovery-link-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  text-align: center;
+}
+
 .crm-login-submit {
   min-height: 48px;
   border: 0;
