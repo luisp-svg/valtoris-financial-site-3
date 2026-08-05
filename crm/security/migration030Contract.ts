@@ -16,7 +16,6 @@ export const MIGRATION_030_CONTRACT_MARKERS = [
 ] as const
 
 export const MIGRATION_030_FORBIDDEN_MARKERS = [
-  '031_',
   'Task Completion',
   'complete_task',
   'CREATE TABLE public.cases',
@@ -25,6 +24,8 @@ export const MIGRATION_030_FORBIDDEN_MARKERS = [
   'GRANT UPDATE ON TABLE public.activities TO authenticated',
   'GRANT DELETE ON TABLE public.activities TO authenticated',
   'DROP POLICY IF EXISTS activities_select',
+  'quick_add_contact',
+  '032_',
 ] as const
 
 /** Final Activity table privileges after Migration 030. */

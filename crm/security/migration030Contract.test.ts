@@ -25,10 +25,11 @@ describe('migration 030 Activity INSERT revoke contract', () => {
     expect(files.indexOf(MIGRATION_030_FILENAME)).toBeGreaterThan(
       files.indexOf(MIGRATION_029_FILENAME),
     )
-    expect(files.some((f) => f.startsWith('031_'))).toBe(false)
     expect(files.filter((f) => f.startsWith('030_'))).toEqual([
       MIGRATION_030_FILENAME,
     ])
+    // Migration 031 (Quick Add foundation) may exist after Phase Q1A; 032 must not.
+    expect(files.some((f) => f.startsWith('032_'))).toBe(false)
   })
 
   it('includes all required grant/policy markers', () => {
@@ -37,7 +38,7 @@ describe('migration 030 Activity INSERT revoke contract', () => {
     }
   })
 
-  it('forbids Migration 031, Task Completion, and re-granting authenticated writes', () => {
+  it('forbids Task Completion, Quick Add RPCs, Migration 032, and re-granting authenticated writes', () => {
     for (const marker of MIGRATION_030_FORBIDDEN_MARKERS) {
       expect(sql).not.toContain(marker)
     }
