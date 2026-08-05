@@ -255,35 +255,37 @@ describe('Activity Engine labels', () => {
   })
 })
 
-describe('Activity Engine record validation + insert', () => {
-  it('rejects invalid household, empty event key, unknown event key, and mismatched module', () => {
+describe('Activity Engine record validation + RPC-only browser writes', () => {
+  it('rejects invalid household, empty event key, non-RPC events, and mismatched module', () => {
     expect(
       validateRecordActivityInput({
         householdId: 'bad',
         eventKey: 'tasks.manual.created',
-        title: 'X',
+        metadata: { taskId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' },
       }).ok,
     ).toBe(false)
     expect(
       validateRecordActivityInput({
         householdId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
         eventKey: '',
-        title: 'X',
       }).ok,
     ).toBe(false)
     expect(
       validateRecordActivityInput({
         householdId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
-        eventKey: 'not.a.real.event',
-        title: 'X',
+        eventKey: 'notes.added',
+        title: 'Note added',
       }),
-    ).toEqual({ ok: false, error: 'Unknown eventKey' })
+    ).toEqual({
+      ok: false,
+      error: 'eventKey is not an approved browser record_crm_activity event',
+    })
     expect(
       validateRecordActivityInput({
         householdId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
         eventKey: 'tasks.manual.created',
         moduleKey: 'credit_repair',
-        title: 'X',
+        metadata: { taskId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' },
       }),
     ).toEqual({ ok: false, error: 'moduleKey does not match event catalog module' })
   })
@@ -310,73 +312,100 @@ describe('Activity Engine record validation + insert', () => {
     expect(metadata.nested).toBeUndefined()
   })
 
-  it('inserts through supabase client with engine metadata only', async () => {
-    const single = vi.fn().mockResolvedValue({
-      data: { id: 'ffffffff-ffff-4fff-8fff-ffffffffffff' },
+  it('routes onboarding.completed through record_crm_activity RPC (no direct insert)', async () => {
+    const rpc = vi.fn().mockResolvedValue({
+      data: 'ffffffff-ffff-4fff-8fff-ffffffffffff',
       error: null,
     })
-    const select = vi.fn(() => ({ single }))
-    const insert = vi.fn(() => ({ select }))
-    const from = vi.fn(() => ({ insert }))
-    const supabase = { from } as never
+    const from = vi.fn()
+    const supabase = { rpc, from } as never
 
     const result = await recordActivity(supabase, {
       householdId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
       eventKey: 'onboarding.completed',
-      title: 'Household Onboarding completed',
+      title: 'client must not control title',
+      body: 'client must not control body',
+      activityType: 'task_created',
+      visibility: 'client_visible',
+      actorKind: 'ai',
+      occurredAt: '2020-01-01T00:00:00.000Z',
       assessmentId: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
-      entityType: 'assessment',
-      entityId: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+      opportunityId: 'dddddddd-dddd-4ddd-8ddd-dddddddddddd',
+      leadId: 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
       metadata: {
         assessmentType: 'household_onboarding',
         idempotencyKey: 'onboarding.completed:cccccccc-cccc-4ccc-8ccc-cccccccccccc',
         rawAnswers: { should: 'strip' },
+        actorKind: 'ai',
+        visibility: 'client_visible',
+        eventKey: 'spoofed',
       },
     })
 
     expect(result).toEqual({ ok: true, id: 'ffffffff-ffff-4fff-8fff-ffffffffffff' })
-    expect(from).toHaveBeenCalledWith('activities')
-    const payload = insert.mock.calls[0]?.[0] as Record<string, unknown>
-    expect(Object.keys(payload).sort()).toEqual(
-      [
-        'assessment_id',
-        'activity_type',
-        'body',
-        'household_id',
-        'lead_id',
-        'metadata',
-        'opportunity_id',
-        'recommendation_id',
-        'title',
-      ].sort(),
+    expect(from).not.toHaveBeenCalled()
+    expect(rpc).toHaveBeenCalledWith('record_crm_activity', {
+      p_household_id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+      p_event_key: 'onboarding.completed',
+      p_metadata: {
+        assessmentType: 'household_onboarding',
+        idempotencyKey: 'onboarding.completed:cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+      },
+      p_opportunity_id: null,
+      p_lead_id: null,
+      p_assessment_id: 'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+    })
+  })
+
+  it('rejects non-RPC catalog events and never touches activities.insert', async () => {
+    const from = vi.fn()
+    const rpc = vi.fn()
+    const result = await recordActivity(
+      { from, rpc } as never,
+      {
+        householdId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+        eventKey: 'notes.added',
+        title: 'Note added',
+      },
     )
-    expect(payload.activity_type).toBe('assessment_completed')
-    const meta = payload.metadata as Record<string, unknown>
-    expect(meta.eventKey).toBe('onboarding.completed')
-    expect(meta.assessmentType).toBe('household_onboarding')
-    expect(meta.rawAnswers).toBeUndefined()
+    expect(result).toEqual({
+      ok: false,
+      error: 'eventKey is not an approved browser record_crm_activity event',
+      code: 'validation',
+    })
+    expect(from).not.toHaveBeenCalled()
+    expect(rpc).not.toHaveBeenCalled()
+  })
+
+  it('recordActivity source has no activities.insert bypass', async () => {
+    const { readFileSync } = await import('node:fs')
+    const { resolve } = await import('node:path')
+    const src = readFileSync(resolve(process.cwd(), 'platform/activities/recordActivity.ts'), 'utf8')
+    expect(src).not.toMatch(/\.from\(\s*['"]activities['"]\s*\)/)
+    expect(src).not.toMatch(/\.insert\s*\(/)
+    expect(src).toContain('recordCrmActivityRpc')
   })
 
   it('recordActivityBestEffort never throws and returns safe failure', async () => {
     const { recordActivityBestEffort } = await import('./recordActivity')
     const supabase = {
-      from: () => ({
-        insert: () => ({
-          select: () => ({
-            single: async () => {
-              throw new Error('boom')
-            },
-          }),
-        }),
-      }),
+      rpc: async () => {
+        throw new Error('boom')
+      },
+      from: vi.fn(),
     } as never
     await expect(
       recordActivityBestEffort(supabase, {
         householdId: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
         eventKey: 'tasks.manual.created',
-        title: 'Task',
+        metadata: { taskId: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' },
       }),
-    ).resolves.toMatchObject({ ok: false, code: 'unknown' })
+    ).resolves.toMatchObject({
+      ok: false,
+      code: 'rpc_failed',
+      error: 'Unable to record activity',
+    })
+    expect(supabase.from).not.toHaveBeenCalled()
   })
 })
 

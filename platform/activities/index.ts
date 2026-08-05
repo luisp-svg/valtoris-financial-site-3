@@ -45,6 +45,18 @@ export {
 } from './recordActivity'
 
 export {
+  RECORD_CRM_ACTIVITY_ONBOARDING_METADATA_ALLOWLIST,
+  RECORD_CRM_ACTIVITY_RPC_EVENT_KEYS,
+  RECORD_CRM_ACTIVITY_RPC_NAME,
+  RECORD_CRM_ACTIVITY_TASK_METADATA_ALLOWLIST,
+  isRecordCrmActivityRpcEvent,
+  recordCrmActivityRpc,
+  toRecordCrmActivityRpcInput,
+  type RecordCrmActivityRpcEventKey,
+  type RecordCrmActivityRpcInput,
+} from './recordCrmActivityRpc'
+
+export {
   enrichHouseholdActivityMetadata,
   filterPlatformActivities,
   mapActivityToTimelinePresentation,

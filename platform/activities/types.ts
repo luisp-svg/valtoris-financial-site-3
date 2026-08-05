@@ -81,9 +81,13 @@ export type PlatformActivity = {
 
 export type RecordActivityInput = {
   householdId: string
-  /** Registry / engine event key. */
+  /** Registry / engine event key (approved RPC events only). */
   eventKey: ActivityEventKey
-  title: string
+  /**
+   * Optional client fields. Browser writers use record_crm_activity; the server
+   * derives type/title/body/visibility/actor/time for approved events.
+   */
+  title?: string
   body?: string | null
   moduleKey?: string
   entityType?: ActivityEntityType
@@ -96,16 +100,19 @@ export type RecordActivityInput = {
   visibility?: ActivityVisibility
   pinned?: boolean
   actorKind?: ActivityActorKind
-  /** Extra metadata merged after engine fields (must not strip engine keys). */
+  /** Extra metadata (RPC allowlist-filtered per event). */
   metadata?: Record<string, unknown>
-  /** Override DB enum when needed; otherwise derived from event catalog. */
   activityType?: string
   occurredAt?: string
 }
 
 export type RecordActivityResult =
   | { ok: true; id: string }
-  | { ok: false; error: string; code: 'validation' | 'insert_failed' | 'unknown' }
+  | {
+      ok: false
+      error: string
+      code: 'validation' | 'rpc_failed' | 'unknown'
+    }
 
 /** Raw row shape accepted by normalize helpers (PostgREST / tests). */
 export type ActivityRowInput = {

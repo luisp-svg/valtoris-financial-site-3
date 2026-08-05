@@ -11,7 +11,11 @@ import type {
   RecordActivityInput,
 } from './types'
 
-/** Keys permitted on Activity Engine publish (recordActivity). */
+/**
+ * Keys permitted when composing Activity Engine metadata for display/tests.
+ * Browser writes for approved events go through record_crm_activity and use
+ * the Migration 029 allowlists in recordCrmActivityRpc.ts instead.
+ */
 export const ACTIVITY_PUBLISH_METADATA_ALLOWLIST = [
   'taskId',
   'workflowType',

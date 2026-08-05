@@ -144,23 +144,17 @@ export async function createTask(
     }
   }
 
-  // Activity Engine: best-effort timeline publish (never blocks task creation).
-  // Automated Family ingest tasks are created via RPC (already writes activities).
+  // Activity Engine → Migration 029 record_crm_activity (never blocks task creation).
+  // Server derives type/title/visibility/actor/time. Automated Family ingest tasks
+  // are created via SQL RPC (already writes activities) and are not handled here.
   const sourceType = input.source_type ?? 'manual'
   if (sourceType === 'manual') {
     await recordActivityBestEffort(supabase, {
       householdId: created.household_id,
       eventKey: 'tasks.manual.created',
-      title: created.title.trim() || 'Task created',
-      // Do not copy task description / contact content into the timeline body.
-      body: null,
-      moduleKey: 'tasks',
-      entityType: 'task',
-      entityId: created.id,
       leadId: created.lead_id ?? null,
       assessmentId: created.assessment_id ?? null,
       opportunityId: created.opportunity_id,
-      actorKind: 'user',
       metadata: {
         taskId: created.id,
         workflowType: created.workflow_type ?? null,

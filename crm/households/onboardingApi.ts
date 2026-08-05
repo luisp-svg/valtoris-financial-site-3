@@ -349,21 +349,15 @@ export async function completeHouseholdOnboardingDraft(
     )
   }
 
-  // Activity Engine: best-effort timeline publish AFTER successful completion.
-  // Completion itself is gated on status=draft; a retry after success fails with
-  // draft_not_completable and therefore does not write a second activity.
+  // Activity Engine → Migration 029 record_crm_activity AFTER successful completion.
+  // Server derives type/title/visibility/actor/time. Completion is gated on
+  // status=draft; a retry after success fails with draft_not_completable and
+  // therefore does not write a second activity.
   // Soft idempotency hint only (no unique DB constraint / no migration).
   await recordActivityBestEffort(supabase, {
     householdId: hid,
     eventKey: 'onboarding.completed',
-    title: 'Household Onboarding completed',
-    body: null,
-    moduleKey: 'households',
-    entityType: 'assessment',
-    entityId: normalized.id,
     assessmentId: normalized.id,
-    actorKind: 'user',
-    occurredAt: normalized.completed_at,
     metadata: {
       assessmentType: HOUSEHOLD_ONBOARDING_ASSESSMENT_TYPE,
       idempotencyKey: `onboarding.completed:${normalized.id}`,
