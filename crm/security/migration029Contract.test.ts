@@ -84,7 +84,9 @@ describe('migration 029 security hardening contract', () => {
     expect(sql).toContain('AND opportunity_id = v_opp.id')
   })
 
-  it('keeps temporary authenticated Activity INSERT via deterministic grant rewrite', () => {
+  it('Phase A (029 SQL): temporary authenticated Activity INSERT via grant rewrite', () => {
+    // Historical Migration 029 file contract only. Final schema after Migration 030
+    // is SELECT-only for authenticated (see migration030Contract / migration030.db.test).
     const revokeIdx = sql.indexOf(
       'REVOKE ALL ON TABLE public.activities FROM authenticated',
     )

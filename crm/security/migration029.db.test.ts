@@ -1,5 +1,12 @@
 /**
- * Live local-Supabase integration for Migration 029 Phase A (corrected).
+ * Live local-Supabase integration for Migration 029 security hardening.
+ *
+ * Runs against the final local schema (migrations through 030). Migration 029
+ * Phase A historically kept authenticated Activity INSERT; Migration 030
+ * revokes it. Activity write assertions below therefore use:
+ *   - service_role for direct table INSERT (integrity / metadata triggers)
+ *   - record_crm_activity for authenticated browser-equivalent publish
+ *
  * Skips automatically when local Supabase is unavailable.
  */
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
@@ -654,7 +661,9 @@ describe.skipIf(!localEnv)('migration 029 security hardening (local DB)', () => 
 
   describe('H2 activities INSERT/UPDATE', () => {
     it('covers opportunity/lead/assessment same/foreign/NULL INSERT and UPDATE', async () => {
-      const ok = await advisorB
+      // Authenticated direct INSERT revoked by Migration 030 — exercise integrity
+      // triggers via service_role (same BEFORE INSERT/UPDATE functions).
+      const ok = await admin
         .from('activities')
         .insert({
           household_id: householdId,
@@ -670,7 +679,7 @@ describe.skipIf(!localEnv)('migration 029 security hardening (local DB)', () => 
       expect(ok.error).toBeNull()
       createdIds.activities.push(ok.data!.id)
 
-      const nul = await advisorB
+      const nul = await admin
         .from('activities')
         .insert({
           household_id: householdId,
@@ -689,7 +698,7 @@ describe.skipIf(!localEnv)('migration 029 security hardening (local DB)', () => 
         ['assessment', { assessment_id: assessmentBId, household_id: householdId }],
         ['missing', { opportunity_id: randomUUID(), household_id: householdId }],
       ] as const) {
-        const res = await advisorB
+        const res = await admin
           .from('activities')
           .insert({
             ...row,
@@ -842,8 +851,23 @@ describe.skipIf(!localEnv)('migration 029 security hardening (local DB)', () => 
     })
   })
 
-  it('direct INSERT compatibility: browser-like writes work; grants; metadata; H3 partial', async () => {
-    const taskLike = await advisorB
+  it('Migration 030 final grants: authenticated Activity INSERT denied; SELECT/RPC remain', async () => {
+    // Phase A (029) temporarily kept authenticated INSERT. Final schema (030)
+    // revokes it — browser writers must use record_crm_activity only.
+    const deniedInsert = await advisorB
+      .from('activities')
+      .insert({
+        household_id: householdId,
+        activity_type: 'task_created',
+        title: `${PREFIX} auth insert denied`,
+        metadata: { eventKey: 'tasks.manual.created' },
+      })
+      .select('id')
+      .single()
+    expect(deniedInsert.error).toBeTruthy()
+    expect(deniedInsert.data).toBeNull()
+
+    const serviceInsert = await admin
       .from('activities')
       .insert({
         household_id: householdId,
@@ -869,34 +893,10 @@ describe.skipIf(!localEnv)('migration 029 security hardening (local DB)', () => 
       })
       .select('id')
       .single()
-    expect(taskLike.error).toBeNull()
-    createdIds.activities.push(taskLike.data!.id)
+    expect(serviceInsert.error).toBeNull()
+    createdIds.activities.push(serviceInsert.data!.id)
 
-    const onboardingLike = await advisorB
-      .from('activities')
-      .insert({
-        household_id: householdId,
-        assessment_id: onboardingAssessmentId,
-        activity_type: 'assessment_completed',
-        title: 'Household Onboarding completed',
-        body: null,
-        metadata: {
-          eventKey: 'onboarding.completed',
-          module: 'households',
-          entityType: 'assessment',
-          entityId: onboardingAssessmentId,
-          visibility: 'internal',
-          actorKind: 'user',
-          assessmentType: 'household_onboarding',
-          idempotencyKey: `onboarding.completed:${onboardingAssessmentId}`,
-        },
-      })
-      .select('id')
-      .single()
-    expect(onboardingLike.error).toBeNull()
-    createdIds.activities.push(onboardingLike.data!.id)
-
-    const badMeta = await advisorB
+    const badMeta = await admin
       .from('activities')
       .insert({
         household_id: householdId,
@@ -911,16 +911,24 @@ describe.skipIf(!localEnv)('migration 029 security hardening (local DB)', () => 
     const updDenied = await advisorB
       .from('activities')
       .update({ title: 'nope' })
-      .eq('id', taskLike.data!.id)
+      .eq('id', serviceInsert.data!.id)
       .select('id')
     expect(updDenied.error).toBeTruthy()
 
     const delDenied = await advisorB
       .from('activities')
       .delete()
-      .eq('id', taskLike.data!.id)
+      .eq('id', serviceInsert.data!.id)
       .select('id')
     expect(delDenied.error).toBeTruthy()
+
+    const sel = await advisorB
+      .from('activities')
+      .select('id')
+      .eq('id', serviceInsert.data!.id)
+      .maybeSingle()
+    expect(sel.error).toBeNull()
+    expect(sel.data?.id).toBe(serviceInsert.data!.id)
   })
 
   it('record_crm_activity: event-key contract, subjects, and rejects', async () => {
