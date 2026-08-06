@@ -9611,3 +9611,113 @@ button.public-card-diagnostic:disabled {
     scroll-behavior: auto;
   }
 }
+
+/* ----- Contacts / Quick Add (Phase Q1B) ----- */
+.crm-contacts-filters {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+@media (min-width: 768px) {
+  .crm-contacts-filters {
+    grid-template-columns: 2fr 1fr 1fr;
+    align-items: end;
+  }
+}
+
+.crm-contacts-table-wrap {
+  overflow-x: auto;
+}
+
+.crm-contacts-table {
+  width: 100%;
+  min-width: 720px;
+}
+
+.crm-contacts-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+}
+
+.crm-contacts-form-wrap {
+  max-width: 840px;
+}
+
+.crm-contacts-consent {
+  border: 1px solid rgba(7, 20, 77, 0.12);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin: 12px 0;
+}
+
+.crm-contacts-consent-fields {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.crm-contacts-match-list {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0;
+  display: grid;
+  gap: 12px;
+}
+
+.crm-contacts-match-list li {
+  padding: 10px 0;
+  border-top: 1px solid rgba(7, 20, 77, 0.08);
+}
+
+.crm-contacts-detail-grid {
+  display: grid;
+  gap: 16px;
+}
+
+@media (min-width: 900px) {
+  .crm-contacts-detail-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.crm-contacts-dl {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+
+.crm-contacts-dl > div {
+  display: grid;
+  gap: 2px;
+}
+
+.crm-contacts-dl dt {
+  font-size: 0.8rem;
+  color: var(--crm-muted, #5b6475);
+}
+
+.crm-contacts-dl dd {
+  margin: 0;
+}
+
+.crm-panel-title {
+  margin: 0 0 12px;
+  font-size: 1.05rem;
+}
+
+@media (max-width: 767px) {
+  .crm-contacts-table th:nth-child(n + 5),
+  .crm-contacts-table td:nth-child(n + 5) {
+    /* Keep name/company/category/email visible; rest scroll horizontally */
+  }
+
+  .crm-contacts-form-wrap .crm-form-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

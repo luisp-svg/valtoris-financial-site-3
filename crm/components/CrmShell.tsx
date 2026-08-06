@@ -45,7 +45,11 @@ export default function CrmShell({ children }: CrmShellProps) {
             const pipelineSectionActive =
               item.path === '/crm/pipeline' &&
               (pathname === '/crm/pipeline' || pathname.startsWith('/crm/opportunities/'))
-            return `crm-nav-link${isActive || pipelineSectionActive ? ' is-active' : ''}`
+            const contactsSectionActive =
+              item.path === '/crm/contacts' && pathname.startsWith('/crm/contacts')
+            return `crm-nav-link${
+              isActive || pipelineSectionActive || contactsSectionActive ? ' is-active' : ''
+            }`
           }}
         >
           <span>{item.label}</span>

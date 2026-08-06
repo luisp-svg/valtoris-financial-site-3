@@ -26,6 +26,7 @@ export const ROUTES = {
   crmAuthRecovery: '/crm/auth/recovery',
   crmLeads: '/crm/leads',
   crmIntake: '/crm/intake',
+  crmContacts: '/crm/contacts',
   crmHouseholds: '/crm/households',
   crmPipeline: '/crm/pipeline',
   crmOpportunities: '/crm/opportunities',
@@ -40,6 +41,14 @@ export const ROUTES = {
 
 export function crmHouseholdPath(householdId: string): string {
   return `${ROUTES.crmHouseholds}/${householdId}`
+}
+
+export function crmContactPath(leadId: string): string {
+  return `${ROUTES.crmContacts}/${leadId}`
+}
+
+export function crmContactNewPath(): string {
+  return `${ROUTES.crmContacts}/new`
 }
 
 /**

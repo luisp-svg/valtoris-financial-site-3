@@ -4,6 +4,7 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { MANUAL_CONTACT_HOUSEHOLD_EXCLUSION } from '../contacts/exclusions'
 import { localDateString } from './dates'
 import { settleDashboardLoad } from './loadState'
 import { countOpportunityStatuses, buildStageSnapshot } from './stageSnapshot'
@@ -66,7 +67,8 @@ const RECENT_HOUSEHOLD_SELECT = `
   id,
   display_name,
   created_at,
-  status
+  status,
+  lead_source
 `
 
 function asSingle<T>(value: unknown): T | null {
@@ -240,6 +242,8 @@ export async function fetchRecentlyAddedHouseholds(
     .select(RECENT_HOUSEHOLD_SELECT)
     .is('deleted_at', null)
     .is('merged_into_household_id', null)
+    // Exclude networking Manual Contact households (status=lead + lead_source=manual_contact).
+    .or(MANUAL_CONTACT_HOUSEHOLD_EXCLUSION)
     .order('created_at', { ascending: false })
     .limit(limit)
 

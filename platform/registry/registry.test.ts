@@ -19,6 +19,7 @@ import {
 const LEGACY_CRM_NAV = [
   { label: 'Home', path: '/crm' },
   { label: 'Intake', path: '/crm/intake' },
+  { label: 'Contacts', path: '/crm/contacts' },
   { label: 'Campaigns', path: '/crm/campaigns' },
   { label: 'Households', path: '/crm/households' },
   { label: 'Pipeline', path: '/crm/pipeline' },

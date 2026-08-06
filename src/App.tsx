@@ -35,6 +35,9 @@ import CrmHouseholdAssessmentsPage from '../pages/crm/CrmHouseholdAssessmentsPag
 import CrmOpportunitiesPage from '../pages/crm/CrmOpportunitiesPage'
 import CrmOpportunityWorkspacePage from '../pages/crm/CrmOpportunityWorkspacePage'
 import CrmIntakePage from '../pages/crm/CrmIntakePage'
+import CrmContactsPage from '../pages/crm/CrmContactsPage'
+import CrmContactNewPage from '../pages/crm/CrmContactNewPage'
+import CrmContactDetailPage from '../pages/crm/CrmContactDetailPage'
 import CrmPlaceholderPage from '../pages/crm/CrmPlaceholderPage'
 import CrmTasksPage from '../pages/crm/CrmTasksPage'
 import CrmCampaignsPage from '../pages/crm/CrmCampaignsPage'
@@ -159,6 +162,9 @@ export default function App() {
         <Route element={<CrmProtectedGate />}>
           <Route index element={<CrmHomePage />} />
           <Route path="intake" element={<CrmIntakePage />} />
+          <Route path="contacts/new" element={<CrmContactNewPage />} />
+          <Route path="contacts/:leadId" element={<CrmContactDetailPage />} />
+          <Route path="contacts" element={<CrmContactsPage />} />
           <Route path="campaigns" element={<CrmCampaignsPage />} />
           <Route path="leads" element={<Navigate to={ROUTES.crmIntake} replace />} />
           <Route path="households" element={<CrmHouseholdsPage />} />

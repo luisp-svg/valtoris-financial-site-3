@@ -13,6 +13,7 @@ function createQuery(result: QueryResult) {
     'eq',
     'lt',
     'not',
+    'or',
     'order',
     'limit',
   ]) {

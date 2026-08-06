@@ -1,5 +1,6 @@
 import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js'
 import { formatActivityTypeLabel as formatPlatformActivityTypeLabel } from '../../platform/activities'
+import { MANUAL_CONTACT_HOUSEHOLD_EXCLUSION } from '../contacts/exclusions'
 import {
   fetchHouseholdActivityRecords,
   fetchHouseholdNotes,
@@ -455,6 +456,8 @@ export async function fetchVisibleHouseholds(
     .select(HOUSEHOLD_LIST_SELECT)
     .is('deleted_at', null)
     .is('merged_into_household_id', null)
+    // Exclude networking Manual Contact households (status=lead + lead_source=manual_contact).
+    .or(MANUAL_CONTACT_HOUSEHOLD_EXCLUSION)
     .order('updated_at', { ascending: false })
 
   if (error) throw error

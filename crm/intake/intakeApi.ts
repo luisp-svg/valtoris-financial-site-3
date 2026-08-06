@@ -169,9 +169,11 @@ function mapHousehold(value: unknown): IntakeHouseholdSummary | null {
 }
 
 /**
- * Loads public intake leads visible under RLS:
+ * Loads public intake leads visible under RLS via an explicit allowlist:
  * Family Report Card (Initial Financial Diagnostic) and Digital Identity (Let's Connect).
  * Soft-deleted leads are excluded. Onboarding assessments are never selected.
+ * Manual Contact and any future/unrelated lead_type cannot enter Intake via
+ * ingest_match_status alone. NULL lead_type is excluded by the allowlist.
  */
 export async function fetchIntakeQueue(
   supabase: SupabaseClient,
@@ -183,9 +185,7 @@ export async function fetchIntakeQueue(
     .from('leads')
     .select(LEAD_SELECT)
     .is('deleted_at', null)
-    .or(
-      `ingest_match_status.not.is.null,lead_type.eq.Family Report Card,lead_type.eq.${DIGITAL_IDENTITY_LEAD_TYPE}`,
-    )
+    .in('lead_type', ['Family Report Card', DIGITAL_IDENTITY_LEAD_TYPE])
     .order('submitted_at', { ascending: false })
     .limit(limit)
 

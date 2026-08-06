@@ -137,6 +137,17 @@ export const MODULE_CATALOG: readonly ModuleManifest[] = [
     dependencies: ['initial_financial_diagnostic', 'tasks'],
   }),
   shellNav({
+    key: 'contacts',
+    displayName: 'Contacts',
+    description: 'Networking contacts captured via Quick Add (Manual Contact leads).',
+    icon: 'contacts',
+    order: 22,
+    route: '/crm/contacts',
+    category: 'advisor_os',
+    permissions: ['crm.nav.view', 'household.read'],
+    dependencies: ['tasks'],
+  }),
+  shellNav({
     key: 'campaigns',
     displayName: 'Campaigns',
     description: 'Digital Identity campaign and event attribution links.',
