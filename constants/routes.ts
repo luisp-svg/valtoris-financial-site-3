@@ -33,6 +33,8 @@ export const ROUTES = {
   crmTasks: '/crm/tasks',
   crmAppointments: '/crm/appointments',
   crmPolicies: '/crm/policies',
+  /** Life / IUL / FIA production applications queue (P1B). */
+  crmProduction: '/crm/production',
   crmAnnualReviews: '/crm/annual-reviews',
   crmDocuments: '/crm/documents',
   crmCampaigns: '/crm/campaigns',
@@ -85,6 +87,10 @@ export function crmHouseholdOnboardingPath(
 
 export function crmOpportunityPath(opportunityId: string): string {
   return `${ROUTES.crmOpportunities}/${opportunityId}`
+}
+
+export function crmProductionPath(applicationId: string): string {
+  return `${ROUTES.crmProduction}/${applicationId}`
 }
 
 /** Public advisor card path by durable public key. */

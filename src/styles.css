@@ -7358,7 +7358,8 @@ p { color: var(--muted); line-height: 1.7; }
 
 /* CRM-8.1 Opportunities list + workspace */
 .crm-opportunities-page,
-.crm-opportunity-workspace-page {
+.crm-opportunity-workspace-page,
+.crm-production-page {
   display: grid;
   gap: 14px;
 }
@@ -9719,5 +9720,102 @@ button.public-card-diagnostic:disabled {
   .crm-contacts-form-wrap .crm-form-actions {
     flex-direction: column;
     align-items: stretch;
+  }
+}
+
+/* P1B-1 Production queue + detail */
+.crm-production-stage-badge {
+  display: inline-block;
+  padding: 0.15rem 0.55rem;
+  border: 1px solid var(--crm-border, #d5dbe7);
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  background: color-mix(in srgb, var(--crm-accent, #1f4b7a) 10%, white);
+}
+
+.crm-production-stage-badge.is-terminal {
+  background: transparent;
+  color: var(--crm-muted, #5b6475);
+  font-weight: 500;
+}
+
+.crm-production-linked-pill {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  border: 1px solid var(--crm-border, #d5dbe7);
+  color: var(--crm-muted, #5b6475);
+  vertical-align: middle;
+}
+
+.crm-production-stale-note {
+  margin-top: 0.2rem;
+  font-size: 0.75rem;
+  color: var(--crm-muted, #5b6475);
+}
+
+.crm-production-overdue {
+  color: #8a3b12;
+  font-weight: 600;
+}
+
+.crm-production-check-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.crm-production-check-field input[type='checkbox'] {
+  width: auto;
+  justify-self: start;
+}
+
+.crm-production-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px 18px;
+  margin: 0;
+}
+
+.crm-production-detail-grid dt {
+  font-size: 0.78rem;
+  color: var(--crm-muted, #5b6475);
+}
+
+.crm-production-detail-grid dd {
+  margin: 0.15rem 0 0;
+}
+
+.crm-production-simple-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.45rem;
+}
+
+.crm-production-timeline {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.9rem;
+}
+
+.crm-production-timeline-when {
+  font-size: 0.8rem;
+  color: var(--crm-muted, #5b6475);
+}
+
+.crm-production-notes {
+  white-space: pre-wrap;
+  margin: 0;
+}
+
+@media (max-width: 899px) {
+  .crm-production-page .crm-opportunities-filters-grid {
+    grid-template-columns: 1fr;
   }
 }

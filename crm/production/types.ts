@@ -1,0 +1,204 @@
+/** P1B-1 Production queue + read-only detail types (Migration 032 read models). */
+
+export const PRODUCTION_PRODUCT_LINES = ['life_term', 'life_permanent', 'fia'] as const
+export type ProductionProductLine = (typeof PRODUCTION_PRODUCT_LINES)[number]
+
+export const PRODUCTION_STAGES = [
+  'draft',
+  'pre_submitted',
+  'submitted',
+  'in_underwriting',
+  'approved',
+  'declined',
+  'postponed',
+  'withdrawn',
+  'incomplete',
+  'not_taken',
+  'issued',
+  'in_force',
+] as const
+export type ProductionStage = (typeof PRODUCTION_STAGES)[number]
+
+/** Stages with no outgoing edges in Migration 032. */
+export const PRODUCTION_TERMINAL_STAGES = [
+  'declined',
+  'withdrawn',
+  'incomplete',
+  'not_taken',
+  'in_force',
+] as const satisfies readonly ProductionStage[]
+
+export type ProductionTerminalStage = (typeof PRODUCTION_TERMINAL_STAGES)[number]
+
+export const PRODUCTION_DISPOSITIONS = [
+  'pending',
+  'approved_as_applied',
+  'approved_other_than_applied',
+  'approved_with_amendment',
+  'declined',
+  'postponed',
+] as const
+export type ProductionDisposition = (typeof PRODUCTION_DISPOSITIONS)[number]
+
+export const PRODUCTION_DELIVERY_STATUSES = [
+  'pre_issue',
+  'not_started',
+  'with_agent',
+  'with_client',
+  'requirements_pending',
+  'complete',
+  'not_required',
+] as const
+export type ProductionDeliveryStatus = (typeof PRODUCTION_DELIVERY_STATUSES)[number]
+
+export const PRODUCTION_PARTICIPANT_ROLES = [
+  'primary_client',
+  'insured',
+  'owner',
+  'joint_owner',
+  'annuitant',
+  'payor',
+] as const
+export type ProductionParticipantRole = (typeof PRODUCTION_PARTICIPANT_ROLES)[number]
+
+export const PRODUCTION_ALLOCATION_ROLES = ['writing', 'servicing'] as const
+export type ProductionAllocationRole = (typeof PRODUCTION_ALLOCATION_ROLES)[number]
+
+export const PRODUCTION_RECIPIENT_TYPES = ['advisor', 'house'] as const
+export type ProductionRecipientType = (typeof PRODUCTION_RECIPIENT_TYPES)[number]
+
+/** Named UI constant — factual stale indicator, not a risk/priority score. */
+export const PRODUCTION_STALE_DAYS_IN_STAGE = 14
+
+export type ProductionHouseholdSummary = {
+  id: string
+  display_name: string | null
+}
+
+export type ProductionCarrierSummary = {
+  id: string
+  name: string
+  code: string
+}
+
+export type ProductionProductSummary = {
+  id: string
+  name: string
+  product_line: ProductionProductLine
+}
+
+export type ProductionAdvisorSummary = {
+  id: string
+  display_name: string | null
+}
+
+export type ProductionMemberSummary = {
+  id: string
+  first_name: string | null
+  last_name: string | null
+}
+
+export type ProductionParticipant = {
+  id: string
+  role: ProductionParticipantRole
+  household_member_id: string
+  effective_to: string | null
+  member: ProductionMemberSummary | null
+}
+
+export type ProductionAllocation = {
+  id: string
+  recipient_type: ProductionRecipientType
+  advisor_id: string | null
+  allocation_role: ProductionAllocationRole
+  commission_bps: number
+  production_credit_bps: number
+  effective_to: string | null
+  advisor: ProductionAdvisorSummary | null
+}
+
+export type ProductionStageHistoryEntry = {
+  id: string
+  from_stage: ProductionStage | null
+  to_stage: ProductionStage
+  from_disposition: ProductionDisposition | null
+  to_disposition: ProductionDisposition | null
+  from_delivery_status: ProductionDeliveryStatus | null
+  to_delivery_status: ProductionDeliveryStatus | null
+  reason: string | null
+  changed_by_user_id: string | null
+  changed_at: string
+}
+
+export type ProductionLinkedPolicy = {
+  id: string
+  policy_number: string | null
+  status: string | null
+  deleted_at: string | null
+}
+
+export type ProductionApplicationListItem = {
+  id: string
+  household_id: string
+  carrier_id: string
+  product_id: string
+  product_line: ProductionProductLine
+  state: string
+  application_number: string | null
+  policy_number: string | null
+  production_stage: ProductionStage
+  underwriting_disposition: ProductionDisposition
+  delivery_status: ProductionDeliveryStatus
+  submission_date: string | null
+  next_follow_up_date: string | null
+  updated_at: string
+  deleted_at: string | null
+  household: ProductionHouseholdSummary | null
+  carrier: ProductionCarrierSummary | null
+  product: ProductionProductSummary | null
+  participants: ProductionParticipant[]
+  allocations: ProductionAllocation[]
+  stage_history: ProductionStageHistoryEntry[]
+  linked_policies: ProductionLinkedPolicy[]
+}
+
+export type ProductionApplicationDetail = ProductionApplicationListItem & {
+  opportunity_id: string | null
+  is_replacement: boolean
+  is_exchange_or_transfer: boolean
+  face_amount_cents: number | null
+  annuity_deposit_cents: number | null
+  premium_mode: string | null
+  submitted_premium_cents: number | null
+  target_premium_cents: number | null
+  total_points_scaled: number | null
+  decision_date: string | null
+  issue_date: string | null
+  in_force_date: string | null
+  production_month: string | null
+  notes: string | null
+  created_at: string
+  created_by_user_id: string | null
+}
+
+export type ProductionQueueFilters = {
+  search: string
+  stages: ProductionStage[] | 'all'
+  productLine: ProductionProductLine | 'all'
+  carrierId: string | 'all'
+  writingAdvisorId: string | 'all'
+  followUpOverdueOnly: boolean
+  staleOnly: boolean
+  /** When false (default), soft-deleted rows are excluded from the queue. */
+  includeDeleted: boolean
+}
+
+export type ProductionAdvisorOption = {
+  id: string
+  display_name: string
+}
+
+export type ProductionCarrierOption = {
+  id: string
+  name: string
+}

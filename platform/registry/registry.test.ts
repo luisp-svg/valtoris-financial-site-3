@@ -25,7 +25,7 @@ const LEGACY_CRM_NAV = [
   { label: 'Pipeline', path: '/crm/pipeline' },
   { label: 'Tasks', path: '/crm/tasks' },
   { label: 'Appointments', path: '/crm/appointments', placeholder: true },
-  { label: 'Policies', path: '/crm/policies', placeholder: true },
+  { label: 'Production', path: '/crm/production' },
   { label: 'Annual Reviews', path: '/crm/annual-reviews', placeholder: true },
   { label: 'Documents', path: '/crm/documents', placeholder: true },
   { label: 'Settings', path: '/crm/settings', placeholder: true },
