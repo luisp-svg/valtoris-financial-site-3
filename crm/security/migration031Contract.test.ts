@@ -12,7 +12,7 @@ const migrationsDir = resolve(process.cwd(), 'supabase/migrations')
 const sql = readFileSync(resolve(migrationsDir, MIGRATION_031_FILENAME), 'utf8')
 
 describe('migration 031 Quick Add Contact foundation contract', () => {
-  it('records the approved migration filename after 030 and forbids 032', () => {
+  it('records the approved migration filename after 030 and before 032', () => {
     expect(MIGRATION_031_FILENAME).toBe('031_quick_add_contact_foundation.sql')
     const files = readdirSync(migrationsDir)
       .filter((f) => /^\d{3}_.+\.sql$/.test(f))
@@ -23,7 +23,12 @@ describe('migration 031 Quick Add Contact foundation contract', () => {
       files.indexOf(MIGRATION_030_FILENAME),
     )
     expect(files.filter((f) => f.startsWith('031_'))).toEqual([MIGRATION_031_FILENAME])
-    expect(files.some((f) => f.startsWith('032_'))).toBe(false)
+    expect(files.filter((f) => f.startsWith('032_'))).toEqual([
+      '032_policy_production_foundation.sql',
+    ])
+    expect(files.indexOf('032_policy_production_foundation.sql')).toBeGreaterThan(
+      files.indexOf(MIGRATION_031_FILENAME),
+    )
   })
 
   it('includes required schema, token, trigger, RPC, and grant markers', () => {

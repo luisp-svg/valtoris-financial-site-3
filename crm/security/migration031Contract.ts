@@ -45,7 +45,6 @@ export const MIGRATION_031_CONTRACT_MARKERS = [
 ] as const
 
 export const MIGRATION_031_FORBIDDEN_MARKERS = [
-  '032_',
   'complete_task',
   'CREATE TABLE public.cases',
   'record_crm_activity',

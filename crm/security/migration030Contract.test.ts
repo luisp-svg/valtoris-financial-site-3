@@ -28,8 +28,7 @@ describe('migration 030 Activity INSERT revoke contract', () => {
     expect(files.filter((f) => f.startsWith('030_'))).toEqual([
       MIGRATION_030_FILENAME,
     ])
-    // Migration 031 (Quick Add foundation) may exist after Phase Q1A; 032 must not.
-    expect(files.some((f) => f.startsWith('032_'))).toBe(false)
+    // Later migrations 031/032 may exist after their authorized phases.
   })
 
   it('includes all required grant/policy markers', () => {

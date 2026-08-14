@@ -222,7 +222,7 @@ describe.skipIf(!localEnv)('migration 031 Quick Add Contact foundation (local DB
   }, 120_000)
 
   describe('schema', () => {
-    it('typed columns, token purpose columns, grants, no 032', () => {
+    it('typed columns, token purpose columns, grants; 031 present (032 allowed after P1A)', () => {
       expect(
         sqlQuery(`SELECT count(*) FROM information_schema.columns
           WHERE table_schema='public' AND table_name='household_members'
@@ -240,9 +240,9 @@ describe.skipIf(!localEnv)('migration 031 Quick Add Contact foundation (local DB
       ).toBe('false')
       expect(
         sqlQuery(
-          `SELECT count(*) FROM supabase_migrations.schema_migrations WHERE version LIKE '032%'`,
+          `SELECT count(*) FROM supabase_migrations.schema_migrations WHERE version LIKE '031%'`,
         ),
-      ).toBe('0')
+      ).toBe('1')
     })
   })
 
