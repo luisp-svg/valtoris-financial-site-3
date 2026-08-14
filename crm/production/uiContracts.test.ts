@@ -26,6 +26,7 @@ describe('production P1B-1 contracts', () => {
     expect(ROUTES.crmPolicies).toBe('/crm/policies')
     expect(crmProductionPath('abc')).toBe('/crm/production/abc')
     expect(appSource).toContain('path="production"')
+    expect(appSource).toContain('path="production/catalog"')
     expect(appSource).toContain('path="production/:applicationId"')
     expect(appSource).toContain('path="policies"')
   })

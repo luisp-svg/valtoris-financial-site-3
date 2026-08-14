@@ -6382,6 +6382,8 @@ p { color: var(--muted); line-height: 1.7; }
 
 .crm-form-actions {
   display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
   justify-content: flex-end;
 }
 
@@ -9817,5 +9819,72 @@ button.public-card-diagnostic:disabled {
 @media (max-width: 899px) {
   .crm-production-page .crm-opportunities-filters-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+.crm-catalog-table {
+  min-width: 560px;
+}
+
+.crm-catalog-table tr.is-inactive td {
+  color: var(--crm-muted);
+}
+
+.crm-catalog-code {
+  font-size: 0.86rem;
+}
+
+.crm-catalog-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.crm-catalog-status.is-active {
+  background: var(--crm-blue-soft);
+  color: var(--crm-navy);
+}
+
+.crm-catalog-status.is-inactive {
+  background: #f2f4f7;
+  color: var(--crm-muted);
+}
+
+.crm-catalog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+}
+
+.crm-catalog-product-group {
+  display: grid;
+  gap: 10px;
+}
+
+.crm-catalog-product-group h3 {
+  margin: 8px 0 0;
+  color: var(--crm-navy);
+  font-size: 0.95rem;
+}
+
+.crm-catalog-dialog {
+  position: relative;
+}
+
+@media (max-width: 899px) {
+  .crm-catalog-table {
+    min-width: 0;
+  }
+
+  .crm-catalog-dialog .crm-form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .crm-catalog-dialog .crm-form-actions .crm-primary-btn,
+  .crm-catalog-dialog .crm-form-actions .crm-secondary-btn {
+    width: 100%;
   }
 }

@@ -42,6 +42,7 @@ import CrmPlaceholderPage from '../pages/crm/CrmPlaceholderPage'
 import CrmTasksPage from '../pages/crm/CrmTasksPage'
 import CrmCampaignsPage from '../pages/crm/CrmCampaignsPage'
 import CrmProductionPage from '../pages/crm/CrmProductionPage'
+import CrmProductionCatalogPage from '../pages/crm/CrmProductionCatalogPage'
 import CrmProductionDetailPage from '../pages/crm/CrmProductionDetailPage'
 
 function SiteLayout({ children }: { children: ReactNode }) {
@@ -187,6 +188,7 @@ export default function App() {
           <Route path="opportunities/:opportunityId" element={<CrmOpportunityWorkspacePage />} />
           <Route path="tasks" element={<CrmTasksPage />} />
           <Route path="appointments" element={<CrmPlaceholderPage />} />
+          <Route path="production/catalog" element={<CrmProductionCatalogPage />} />
           <Route path="production/:applicationId" element={<CrmProductionDetailPage />} />
           <Route path="production" element={<CrmProductionPage />} />
           <Route path="policies" element={<CrmPlaceholderPage />} />

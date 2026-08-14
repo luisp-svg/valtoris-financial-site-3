@@ -202,3 +202,26 @@ export type ProductionCarrierOption = {
   id: string
   name: string
 }
+
+/** Owner catalog row — includes inactive carriers (RLS). */
+export type CatalogCarrier = {
+  id: string
+  code: string
+  name: string
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+/** Owner catalog product row — includes inactive products (RLS). */
+export type CatalogProduct = {
+  id: string
+  carrier_id: string
+  name: string
+  product_line: ProductionProductLine
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export type CatalogCarrierFilter = string | 'all'

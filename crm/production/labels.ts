@@ -27,6 +27,13 @@ const PRODUCT_LINE_LABELS: Record<ProductionProductLine, string> = {
   fia: 'FIA',
 }
 
+/** Catalog form/list labels (P1B-2A). Queue keeps the shorter P1B-1 labels. */
+const CATALOG_PRODUCT_LINE_LABELS: Record<ProductionProductLine, string> = {
+  life_term: 'Term Life',
+  life_permanent: 'Permanent Life / IUL',
+  fia: 'Fixed Indexed Annuity',
+}
+
 const DISPOSITION_LABELS: Record<ProductionDisposition, string> = {
   pending: 'Pending',
   approved_as_applied: 'Approved as applied',
@@ -63,6 +70,11 @@ export function formatProductionStageLabel(stage: string | null | undefined): st
 export function formatProductionProductLineLabel(line: string | null | undefined): string {
   if (!line) return '—'
   return PRODUCT_LINE_LABELS[line as ProductionProductLine] ?? line
+}
+
+export function formatCatalogProductLineLabel(line: string | null | undefined): string {
+  if (!line) return '—'
+  return CATALOG_PRODUCT_LINE_LABELS[line as ProductionProductLine] ?? line
 }
 
 export function formatProductionDispositionLabel(value: string | null | undefined): string {

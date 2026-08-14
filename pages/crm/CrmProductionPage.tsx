@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { ROUTES } from '../../constants/routes'
 import { useCrmAuth } from '../../crm/auth/CrmAuthContext'
 import ProductionQueueCards from '../../crm/production/ProductionQueueCards'
 import ProductionQueueTable from '../../crm/production/ProductionQueueTable'
@@ -157,6 +158,11 @@ export default function CrmProductionPage() {
             cases arrives in the next production slice.
           </p>
         </div>
+        {isOwner ? (
+          <Link to={ROUTES.crmProductionCatalog} className="crm-secondary-btn">
+            Manage carriers & products
+          </Link>
+        ) : null}
       </header>
 
       {error ? (
@@ -305,8 +311,9 @@ export default function CrmProductionPage() {
           <div className="crm-empty-state">
             <p className="crm-empty-state-title">No production applications yet</p>
             <p>
-              When Life, IUL, or FIA cases are entered, they will appear here. Catalog setup and
-              case creation ship in the next Production slice.
+              When Life, IUL, or FIA cases are entered, they will appear here. Owners can set up
+              carriers and products from Manage carriers & products. Case creation arrives in the
+              next production slice.
             </p>
             <p className="crm-muted">
               Issued book placeholder remains at <Link to="/crm/policies">/crm/policies</Link>.
