@@ -1,7 +1,7 @@
 /**
- * P1B-2B application entry API.
+ * P1B-2B/2C application entry and edit API.
  * Reads: SELECT only (households, members, active catalog, advisors).
- * Writes: the four approved Migration 032 RPCs — never table INSERT/UPDATE/UPSERT/DELETE.
+ * Writes: approved Migration 032 RPCs only — never table INSERT/UPDATE/UPSERT/DELETE.
  */
 
 import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js'
@@ -11,6 +11,19 @@ import {
   formatApplicationUserError,
 } from './applicationErrors'
 import {
+  allocationsEqual,
+  applicationNumberMode,
+  buildUpdatePayload,
+  formatPartialSaveMessage,
+  participantsEqual,
+  recoveryTransitionPlan,
+  type ApplicationEditDraft,
+  type ApplicationEditIntent,
+  type ApplicationEditOriginal,
+  type ApplicationEditPhase,
+} from './applicationEditView'
+import {
+  buildParticipantPayload,
   catchUpTransitionPlan,
   dollarsToCents,
   isFiaProductLine,
@@ -27,14 +40,18 @@ import type {
   ProductionMemberOption,
   ProductionParticipantDraft,
   ProductionProductLine,
+  ProductionStage,
 } from './types'
 import { PRODUCTION_PRODUCT_LINES } from './types'
 
 const APPLICATION_RPC = {
   create: 'create_policy_application',
+  update: 'update_policy_application',
   setParticipants: 'set_policy_application_participants',
   setAllocations: 'set_policy_application_allocations',
   transition: 'transition_policy_application_stage',
+  setNumber: 'set_policy_application_number',
+  correctNumber: 'correct_policy_application_number',
 } as const
 
 export const APPROVED_APPLICATION_RPCS = [
@@ -42,6 +59,15 @@ export const APPROVED_APPLICATION_RPCS = [
   APPLICATION_RPC.setParticipants,
   APPLICATION_RPC.setAllocations,
   APPLICATION_RPC.transition,
+] as const
+
+export const APPROVED_EDIT_RPCS = [
+  APPLICATION_RPC.update,
+  APPLICATION_RPC.setParticipants,
+  APPLICATION_RPC.setAllocations,
+  APPLICATION_RPC.transition,
+  APPLICATION_RPC.setNumber,
+  APPLICATION_RPC.correctNumber,
 ] as const
 
 export type ApplicationMutationResult<T> =
@@ -379,4 +405,180 @@ export async function submitProductionApplication(
   }
 
   return { ok: true, applicationId }
+}
+
+export async function updatePolicyApplication(
+  supabase: SupabaseClient,
+  applicationId: string,
+  payload: Record<string, unknown>,
+): Promise<ApplicationMutationResult<{ applicationId: string }>> {
+  const { data, error } = await supabase.rpc(APPLICATION_RPC.update, {
+    p_id: applicationId,
+    p_payload: payload,
+  })
+  if (error) return mutationFailure(error)
+  const row = asRecord(data)
+  const id = typeof row?.application_id === 'string' ? row.application_id : applicationId
+  return { ok: true, data: { applicationId: id } }
+}
+
+export async function setPolicyApplicationNumber(
+  supabase: SupabaseClient,
+  applicationId: string,
+  applicationNumber: string,
+): Promise<ApplicationMutationResult<{ applicationNumber: string }>> {
+  const { data, error } = await supabase.rpc(APPLICATION_RPC.setNumber, {
+    p_application_id: applicationId,
+    p_application_number: applicationNumber,
+  })
+  if (error) return mutationFailure(error)
+  const row = asRecord(data)
+  return {
+    ok: true,
+    data: { applicationNumber: String(row?.application_number ?? applicationNumber) },
+  }
+}
+
+export async function correctPolicyApplicationNumber(
+  supabase: SupabaseClient,
+  applicationId: string,
+  applicationNumber: string,
+  reason: string,
+): Promise<ApplicationMutationResult<{ applicationNumber: string }>> {
+  const { data, error } = await supabase.rpc(APPLICATION_RPC.correctNumber, {
+    p_application_id: applicationId,
+    p_application_number: applicationNumber,
+    p_reason: reason,
+  })
+  if (error) return mutationFailure(error)
+  const row = asRecord(data)
+  return {
+    ok: true,
+    data: { applicationNumber: String(row?.application_number ?? applicationNumber) },
+  }
+}
+
+export type ApplicationEditInput = {
+  applicationId: string
+  stage: ProductionStage
+  isOwner: boolean
+  original: ApplicationEditOriginal
+  draft: ApplicationEditDraft
+  intent: ApplicationEditIntent
+}
+
+export type ApplicationEditResult =
+  | { ok: true; applicationId: string; saved: ApplicationEditPhase[] }
+  | {
+      ok: false
+      phase: ApplicationEditPhase
+      message: string
+      applicationId: string
+      saved: ApplicationEditPhase[]
+    }
+
+function editFailure(
+  saved: ApplicationEditPhase[],
+  phase: ApplicationEditPhase,
+  applicationId: string,
+  rpcMessage: string,
+): ApplicationEditResult {
+  return {
+    ok: false,
+    phase,
+    message: `${rpcMessage} ${formatPartialSaveMessage(saved, phase)}`,
+    applicationId,
+    saved,
+  }
+}
+
+/**
+ * Browser edit workflow is not one database transaction.
+ * Successful earlier RPCs stay saved. A later failure does not roll them back.
+ */
+export async function saveProductionApplicationEdit(
+  supabase: SupabaseClient,
+  input: ApplicationEditInput,
+): Promise<ApplicationEditResult> {
+  const saved: ApplicationEditPhase[] = []
+  const { applicationId, stage, isOwner, original, draft, intent } = input
+
+  const fields = buildUpdatePayload({ stage, original, draft })
+  if (fields) {
+    const updated = await updatePolicyApplication(supabase, applicationId, fields)
+    if (!updated.ok) return editFailure(saved, 'fields', applicationId, updated.message)
+    saved.push('fields')
+  }
+
+  const line = (draft.productLine || original.productLine) as ProductionProductLine
+  const nextParticipants = buildParticipantPayload({
+    productLine: line,
+    roleMembers: draft.roleMembers,
+  })
+  if (!participantsEqual(nextParticipants, original.participants)) {
+    const reason = draft.participantReason.trim() || null
+    const participants = await setPolicyApplicationParticipants(
+      supabase,
+      applicationId,
+      nextParticipants,
+      reason,
+    )
+    if (!participants.ok) return editFailure(saved, 'participants', applicationId, participants.message)
+    saved.push('participants')
+  }
+
+  if (!allocationsEqual(draft.allocations, original.allocations)) {
+    const reason = draft.allocationReason.trim() || null
+    const allocations = await setPolicyApplicationAllocations(
+      supabase,
+      applicationId,
+      draft.allocations,
+      reason,
+    )
+    if (!allocations.ok) return editFailure(saved, 'allocations', applicationId, allocations.message)
+    saved.push('allocations')
+  }
+
+  const numberMode = applicationNumberMode({
+    stage,
+    applicationNumber: original.applicationNumber,
+    isOwner,
+  })
+  const nextNumber = draft.applicationNumber.trim()
+  if (numberMode === 'set' && nextNumber && nextNumber !== original.applicationNumber.trim()) {
+    const numbered = await setPolicyApplicationNumber(supabase, applicationId, nextNumber)
+    if (!numbered.ok) {
+      return editFailure(saved, 'application_number', applicationId, numbered.message)
+    }
+    saved.push('application_number')
+  }
+  if (numberMode === 'correct' && nextNumber && nextNumber !== original.applicationNumber.trim()) {
+    const corrected = await correctPolicyApplicationNumber(
+      supabase,
+      applicationId,
+      nextNumber,
+      draft.applicationNumberReason.trim(),
+    )
+    if (!corrected.ok) {
+      return editFailure(saved, 'application_number', applicationId, corrected.message)
+    }
+    saved.push('application_number')
+  }
+
+  const plan = recoveryTransitionPlan(stage, intent)
+  const submissionDate = draft.submissionDate.trim()
+  for (const toStage of plan) {
+    const transitionFields =
+      toStage === 'submitted' && submissionDate ? { submission_date: submissionDate } : {}
+    const moved = await transitionPolicyApplicationStage(supabase, {
+      applicationId,
+      toStage,
+      reason: transitionReasonForStage(toStage),
+      fields: transitionFields,
+    })
+    if (!moved.ok) return editFailure(saved, 'transition', applicationId, moved.message)
+    if (!saved.includes('transition')) saved.push('transition')
+  }
+
+  return { ok: true, applicationId, saved }
 }

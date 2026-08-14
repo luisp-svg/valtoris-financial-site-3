@@ -47,7 +47,7 @@ describe('production application entry P1B-2B contracts', () => {
     expect(applicationApi).toContain("rpc(APPLICATION_RPC.setParticipants")
     expect(applicationApi).toContain("rpc(APPLICATION_RPC.setAllocations")
     expect(applicationApi).toContain("rpc(APPLICATION_RPC.transition")
-    expect(applicationApi).not.toContain('update_policy_application')
+    expect(applicationApi).toContain("rpc(APPLICATION_RPC.update")
     expect(applicationApi).not.toContain('SERVICE_ROLE')
     expect(applicationApi).not.toContain("from('activities')")
   })

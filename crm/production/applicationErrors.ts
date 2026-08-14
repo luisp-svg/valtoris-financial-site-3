@@ -26,7 +26,10 @@ const APPLICATION_ERROR_MESSAGES: Record<string, string> = {
   duplicate_application_number: 'That application number is already used for this carrier.',
   household_mismatch: 'The selected opportunity does not belong to this household.',
   advisor_invalid: 'Choose an active writing advisor.',
-  participant_change_denied: 'Participants cannot be changed in this stage.',
+  participant_change_denied:
+    'Participants cannot be changed in this stage, or only an owner may replace them after submission.',
+  identifier_locked: 'That application number is already set. An owner can correct it with a reason.',
+  invalid_disposition: 'That underwriting disposition is not allowed for this stage.',
 }
 
 export function formatApplicationUserError(err: unknown): string {

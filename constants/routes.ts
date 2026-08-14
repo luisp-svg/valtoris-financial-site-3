@@ -39,6 +39,8 @@ export const ROUTES = {
   crmProductionCatalog: '/crm/production/catalog',
   /** New Life / IUL / FIA production application (P1B-2B). */
   crmProductionNew: '/crm/production/new',
+  /** Edit / complete a recoverable production application (P1B-2C). */
+  crmProductionEdit: '/crm/production/:applicationId/edit',
   crmAnnualReviews: '/crm/annual-reviews',
   crmDocuments: '/crm/documents',
   crmCampaigns: '/crm/campaigns',
@@ -103,6 +105,10 @@ export function crmProductionCatalogPath(): string {
 
 export function crmProductionNewPath(): string {
   return ROUTES.crmProductionNew
+}
+
+export function crmProductionEditPath(applicationId: string): string {
+  return `${ROUTES.crmProduction}/${applicationId}/edit`
 }
 
 /** Public advisor card path by durable public key. */

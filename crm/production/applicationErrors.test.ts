@@ -8,7 +8,8 @@ describe('application error normalization', () => {
     expect(formatApplicationUserError({ message: 'CRM_PP:duplicate_application_number' })).toMatch(
       /already used/i,
     )
-    expect(formatApplicationUserError({ message: 'CRM_PP:invalid_transition' })).toMatch(/Catch-up/)
+    expect(formatApplicationUserError({ message: 'CRM_PP:identifier_locked' })).toMatch(/already set/i)
+    expect(formatApplicationUserError({ message: 'CRM_PP:missing_required_fields' })).toMatch(/required/i)
     const leaked = formatApplicationUserError({
       message: 'permission denied for table policy_applications',
       code: '42501',

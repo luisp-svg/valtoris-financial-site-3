@@ -31,7 +31,10 @@ import {
   ROUTES,
   crmHouseholdPath,
   crmOpportunityPath,
+  crmProductionEditPath,
 } from '../../constants/routes'
+import { useCrmAuth } from '../../crm/auth/CrmAuthContext'
+import { isIncompleteDraft, canShowProductionEditAction } from '../../crm/production/applicationEditView'
 import { createSupabaseBrowserClient } from '../../lib/supabase/client'
 
 function householdWorkspaceTab(householdId: string, tab: string): string {
@@ -40,6 +43,7 @@ function householdWorkspaceTab(householdId: string, tab: string): string {
 
 export default function CrmProductionDetailPage() {
   const { applicationId = '' } = useParams<{ applicationId: string }>()
+  const { role } = useCrmAuth()
   const [application, setApplication] = useState<ProductionApplicationDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -148,6 +152,12 @@ export default function CrmProductionDetailPage() {
   const history = application.stage_history
     .slice()
     .sort((a, b) => a.changed_at.localeCompare(b.changed_at))
+  const incompleteDraft = isIncompleteDraft(application)
+  const showEdit = canShowProductionEditAction({
+    role,
+    stage: application.production_stage,
+    deletedAt: application.deleted_at,
+  })
 
   return (
     <div className="crm-page crm-production-page">
@@ -162,8 +172,22 @@ export default function CrmProductionDetailPage() {
             {formatProductionProductLineLabel(application.product_line)}
           </p>
         </div>
-        <StageBadge stage={application.production_stage} />
+        <div className="crm-production-header-actions">
+          <StageBadge stage={application.production_stage} />
+          {showEdit ? (
+            <Link to={crmProductionEditPath(application.id)} className="crm-primary-btn">
+              Edit / Complete
+            </Link>
+          ) : null}
+        </div>
       </header>
+
+      {incompleteDraft ? (
+        <div className="crm-banner crm-banner-warning" role="status">
+          Incomplete draft — required participants or writing allocations are missing. Use Edit /
+          Complete to finish this case.
+        </div>
+      ) : null}
 
       {application.deleted_at ? (
         <div className="crm-banner crm-banner-warning" role="status">
@@ -426,7 +450,9 @@ export default function CrmProductionDetailPage() {
           </div>
         </dl>
         <p className="crm-muted">
-          Stage changes and delivery actions are read-only in this slice.
+          Approval, issue, delivery, and in-force actions remain later production-stage work. Draft
+          recovery and legal catch-up to in underwriting are available from Edit / Complete when
+          authorized.
         </p>
       </section>
 

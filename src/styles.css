@@ -9936,7 +9936,17 @@ button.public-card-diagnostic:disabled {
     width: 100%;
   }
 
-  .crm-application-allocation-row {
-    grid-template-columns: 1fr;
+  .crm-application-edit-actions .crm-primary-btn,
+  .crm-application-edit-actions .crm-secondary-btn {
+    width: 100%;
   }
+}
+
+.crm-application-edit-actions {
+  flex-wrap: wrap;
+}
+
+.crm-field-locked input,
+.crm-field-locked select {
+  opacity: 0.72;
 }
