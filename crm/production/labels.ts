@@ -1,7 +1,9 @@
 import type {
   ProductionDeliveryStatus,
   ProductionDisposition,
+  ProductionEntryStage,
   ProductionParticipantRole,
+  ProductionPremiumMode,
   ProductionProductLine,
   ProductionStage,
 } from './types'
@@ -53,6 +55,21 @@ const DELIVERY_LABELS: Record<ProductionDeliveryStatus, string> = {
   not_required: 'Not required',
 }
 
+const PREMIUM_MODE_LABELS: Record<ProductionPremiumMode, string> = {
+  monthly: 'Monthly',
+  quarterly: 'Quarterly',
+  semi_annual: 'Semi-annual',
+  annual: 'Annual',
+  single: 'Single',
+  other: 'Other',
+}
+
+const ENTRY_STAGE_LABELS: Record<ProductionEntryStage, string> = {
+  draft: 'Draft',
+  submitted: 'Submitted',
+  in_underwriting: 'In underwriting',
+}
+
 const PARTICIPANT_ROLE_LABELS: Record<ProductionParticipantRole, string> = {
   primary_client: 'Primary client',
   insured: 'Insured',
@@ -85,6 +102,16 @@ export function formatProductionDispositionLabel(value: string | null | undefine
 export function formatProductionDeliveryLabel(value: string | null | undefined): string {
   if (!value) return '—'
   return DELIVERY_LABELS[value as ProductionDeliveryStatus] ?? value
+}
+
+export function formatProductionPremiumModeLabel(value: string | null | undefined): string {
+  if (!value) return '—'
+  return PREMIUM_MODE_LABELS[value as ProductionPremiumMode] ?? value
+}
+
+export function formatProductionEntryStageLabel(value: string | null | undefined): string {
+  if (!value) return '—'
+  return ENTRY_STAGE_LABELS[value as ProductionEntryStage] ?? value
 }
 
 export function formatProductionParticipantRoleLabel(role: string | null | undefined): string {

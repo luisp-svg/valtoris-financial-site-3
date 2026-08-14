@@ -3,7 +3,9 @@ import {
   formatCatalogProductLineLabel,
   formatProductionDeliveryLabel,
   formatProductionDispositionLabel,
+  formatProductionEntryStageLabel,
   formatProductionParticipantRoleLabel,
+  formatProductionPremiumModeLabel,
   formatProductionProductLineLabel,
   formatProductionProductLineShort,
   formatProductionStageLabel,
@@ -22,6 +24,8 @@ describe('production labels', () => {
     expect(formatProductionDispositionLabel('approved_as_applied')).toBe('Approved as applied')
     expect(formatProductionDeliveryLabel('requirements_pending')).toBe('Requirements pending')
     expect(formatProductionParticipantRoleLabel('annuitant')).toBe('Annuitant')
+    expect(formatProductionPremiumModeLabel('semi_annual')).toBe('Semi-annual')
+    expect(formatProductionEntryStageLabel('in_underwriting')).toBe('In underwriting')
   })
 
   it('falls back safely for unknown or empty values', () => {

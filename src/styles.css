@@ -9888,3 +9888,55 @@ button.public-card-diagnostic:disabled {
     width: 100%;
   }
 }
+
+.crm-production-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.crm-application-entry-fieldset {
+  border: 1px solid var(--crm-border, #d7dde6);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.crm-application-entry-fieldset legend {
+  font-weight: 700;
+  color: var(--crm-navy);
+  padding: 0 6px;
+}
+
+.crm-application-allocation-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(110px, 0.7fr) minmax(110px, 0.7fr) auto;
+  gap: 12px;
+  align-items: end;
+}
+
+@media (max-width: 899px) {
+  .crm-production-header-actions {
+    width: 100%;
+  }
+
+  .crm-production-header-actions .crm-primary-btn,
+  .crm-production-header-actions .crm-secondary-btn {
+    width: 100%;
+  }
+
+  .crm-application-entry-form .crm-form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .crm-application-entry-form .crm-form-actions .crm-primary-btn,
+  .crm-application-entry-form .crm-form-actions .crm-secondary-btn {
+    width: 100%;
+  }
+
+  .crm-application-allocation-row {
+    grid-template-columns: 1fr;
+  }
+}

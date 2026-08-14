@@ -154,15 +154,20 @@ export default function CrmProductionPage() {
           <p className="crm-page-eyebrow">Production</p>
           <h1 className="crm-page-title">Life / IUL / FIA production</h1>
           <p className="crm-page-subtitle">
-            Track applications through underwriting, delivery, and in force. Creating and editing
-            cases arrives in the next production slice.
+            Track applications through underwriting, delivery, and in force. Enter an existing
+            Life, IUL, or FIA case, including cases already in underwriting.
           </p>
         </div>
-        {isOwner ? (
-          <Link to={ROUTES.crmProductionCatalog} className="crm-secondary-btn">
-            Manage carriers & products
+        <div className="crm-production-header-actions">
+          <Link to={ROUTES.crmProductionNew} className="crm-primary-btn">
+            New application
           </Link>
-        ) : null}
+          {isOwner ? (
+            <Link to={ROUTES.crmProductionCatalog} className="crm-secondary-btn">
+              Manage carriers & products
+            </Link>
+          ) : null}
+        </div>
       </header>
 
       {error ? (
@@ -311,9 +316,9 @@ export default function CrmProductionPage() {
           <div className="crm-empty-state">
             <p className="crm-empty-state-title">No production applications yet</p>
             <p>
-              When Life, IUL, or FIA cases are entered, they will appear here. Owners can set up
-              carriers and products from Manage carriers & products. Case creation arrives in the
-              next production slice.
+              When Life, IUL, or FIA cases are entered, they will appear here. Use New application
+              to record a current case. Owners can set up carriers and products from Manage
+              carriers & products.
             </p>
             <p className="crm-muted">
               Issued book placeholder remains at <Link to="/crm/policies">/crm/policies</Link>.

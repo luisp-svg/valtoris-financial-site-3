@@ -67,6 +67,54 @@ export type ProductionAllocationRole = (typeof PRODUCTION_ALLOCATION_ROLES)[numb
 export const PRODUCTION_RECIPIENT_TYPES = ['advisor', 'house'] as const
 export type ProductionRecipientType = (typeof PRODUCTION_RECIPIENT_TYPES)[number]
 
+export const PRODUCTION_PREMIUM_MODES = [
+  'monthly',
+  'quarterly',
+  'semi_annual',
+  'annual',
+  'single',
+  'other',
+] as const
+export type ProductionPremiumMode = (typeof PRODUCTION_PREMIUM_MODES)[number]
+
+/** Stages the new-application form may target. Catch-up cannot skip submitted. */
+export const PRODUCTION_ENTRY_STAGES = ['draft', 'submitted', 'in_underwriting'] as const
+export type ProductionEntryStage = (typeof PRODUCTION_ENTRY_STAGES)[number]
+
+export const PRODUCTION_ENTRY_WRITING_BPS_TOTAL = 10000
+
+export type ProductionHouseholdOption = {
+  id: string
+  display_name: string
+}
+
+export type ProductionMemberOption = {
+  id: string
+  first_name: string | null
+  last_name: string | null
+  is_primary_contact: boolean
+}
+
+export type ProductionEntryProductOption = {
+  id: string
+  carrier_id: string
+  name: string
+  product_line: ProductionProductLine
+}
+
+export type ProductionParticipantDraft = {
+  household_member_id: string
+  role: ProductionParticipantRole
+}
+
+export type ProductionAllocationDraft = {
+  recipient_type: 'advisor'
+  advisor_id: string
+  allocation_role: 'writing'
+  commission_bps: number
+  production_credit_bps: number
+}
+
 /** Named UI constant — factual stale indicator, not a risk/priority score. */
 export const PRODUCTION_STALE_DAYS_IN_STAGE = 14
 
