@@ -16,6 +16,9 @@ describe('production labels', () => {
   it('maps stages, product lines, dispositions, delivery, and roles', () => {
     expect(formatProductionStageLabel('draft')).toBe('Application Draft')
     expect(formatProductionStageLabel('submitted')).toBe('Applied')
+    expect(formatProductionStageLabel('paramed')).toBe('Paramed')
+    expect(formatProductionStageLabel('sent_to_draft')).toBe('Sent to Draft')
+    expect(formatProductionStageLabel('premium_drafted')).toBe('Drafted')
     expect(formatProductionStageLabel('in_underwriting')).toBe('In underwriting')
     expect(formatProductionStageLabel('in_force')).toBe('In force')
     expect(formatProductionProductLineLabel('life_permanent')).toBe('Life — Permanent / IUL')

@@ -7,8 +7,11 @@ export const PRODUCTION_STAGES = [
   'draft',
   'pre_submitted',
   'submitted',
+  'paramed',
   'in_underwriting',
   'approved',
+  'sent_to_draft',
+  'premium_drafted',
   'declined',
   'postponed',
   'withdrawn',
@@ -85,8 +88,9 @@ export const PRODUCTION_ENTRY_MODES = ['new_business', 'existing_business'] as c
 export type ProductionEntryMode = (typeof PRODUCTION_ENTRY_MODES)[number]
 
 /**
- * Proposed 037 values. Not in the 032 enum — never send these from the client.
+ * 037 operational stages now in the backend enum.
  * `draft` remains application draft, not premium drafted.
+ * Not added to PRODUCTION_ENTRY_STAGES — new-application UI does not target them yet.
  */
 export const PROPOSED_PRODUCTION_STAGES = ['paramed', 'sent_to_draft', 'premium_drafted'] as const
 export type ProposedProductionStage = (typeof PROPOSED_PRODUCTION_STAGES)[number]

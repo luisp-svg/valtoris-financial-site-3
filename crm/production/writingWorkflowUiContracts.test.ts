@@ -90,7 +90,7 @@ describe('UI-2 policy production writing workflow contracts', () => {
     expect(applicationApi).toContain('formatApplicationUserError')
   })
 
-  it('stacks the writing form on mobile and does not add Migration 037', () => {
+    it('stacks the writing form on mobile and does not add a compensation-UI migration', () => {
     expect(styles).toContain('.crm-application-allocation-row')
     expect(styles).toContain('grid-template-columns: 1fr')
     expect(styles).toContain('.crm-application-allocation-percent input')
@@ -99,7 +99,9 @@ describe('UI-2 policy production writing workflow contracts', () => {
     expect(writingFields).toContain('crm-application-allocation-row')
     expect(existsSync(join(migrationsDir, '037_policy_production_compensation_ui.sql'))).toBe(false)
     const migrationFiles = readdirSync(migrationsDir)
-    expect(migrationFiles.some((name) => name.startsWith('037'))).toBe(false)
+    expect(migrationFiles.filter((name) => name.startsWith('037'))).toEqual([
+      '037_client_production_workflow_extensions.sql',
+    ])
     expect(applicationApi).not.toContain('CREATE TABLE')
     expect(applicationApi).not.toContain('product_compensation_schedules')
   })

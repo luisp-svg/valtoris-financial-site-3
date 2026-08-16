@@ -7,14 +7,17 @@ import { formatProductionStageLabel } from './labels'
 import type { ProductionDeliveryStatus, ProductionStage } from './types'
 import { PRODUCTION_STAGES, PRODUCTION_TERMINAL_STAGES } from './types'
 
-/** Outgoing edges from 032. Terminal stages have none. */
+/** Outgoing edges from 032 + 037. Terminal stages have none. */
 export const PRODUCTION_STAGE_TRANSITIONS: Record<ProductionStage, readonly ProductionStage[]> = {
   draft: ['pre_submitted', 'submitted', 'withdrawn'],
   pre_submitted: ['submitted', 'withdrawn'],
-  submitted: ['in_underwriting', 'withdrawn', 'incomplete'],
+  submitted: ['paramed', 'in_underwriting', 'approved', 'withdrawn', 'incomplete'],
+  paramed: ['in_underwriting', 'approved', 'declined', 'postponed', 'withdrawn', 'incomplete'],
   in_underwriting: ['submitted', 'approved', 'declined', 'postponed', 'withdrawn', 'incomplete'],
   postponed: ['in_underwriting', 'withdrawn', 'declined'],
-  approved: ['in_underwriting', 'issued', 'not_taken', 'withdrawn'],
+  approved: ['in_underwriting', 'sent_to_draft', 'issued', 'not_taken', 'withdrawn'],
+  sent_to_draft: ['premium_drafted', 'issued', 'withdrawn', 'not_taken'],
+  premium_drafted: ['issued', 'not_taken', 'withdrawn'],
   issued: ['in_force', 'not_taken'],
   declined: [],
   withdrawn: [],

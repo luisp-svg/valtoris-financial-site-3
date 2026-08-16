@@ -13,16 +13,19 @@ import {
   stageTransitionAction,
 } from './stageTransitionView'
 
-describe('production stage transition UX (032 matrix)', () => {
+describe('production stage transition UX (032 + 037 matrix)', () => {
   it('renders the current tracked stages and no compensation statuses', () => {
     expect(new Set(Object.keys(PRODUCTION_STAGE_TRANSITIONS))).toEqual(
       new Set([
         'draft',
         'pre_submitted',
         'submitted',
+        'paramed',
         'in_underwriting',
         'postponed',
         'approved',
+        'sent_to_draft',
+        'premium_drafted',
         'issued',
         'declined',
         'withdrawn',
@@ -33,7 +36,7 @@ describe('production stage transition UX (032 matrix)', () => {
     )
     const blob = JSON.stringify(PRODUCTION_STAGE_TRANSITIONS)
     expect(blob).not.toMatch(/pending|eligible|released/i)
-    expect(blob).not.toMatch(/paramed|sent_to_draft|premium_drafted|commission_released/)
+    expect(blob).not.toMatch(/commission_released/)
     expect(isTerminalProductionStage('in_force')).toBe(true)
     expect(isTerminalProductionStage('draft')).toBe(false)
   })
@@ -42,7 +45,6 @@ describe('production stage transition UX (032 matrix)', () => {
     expect(shortestStagePath('draft', 'submitted')).toEqual(['submitted'])
     expect(shortestStagePath('draft', 'issued')).toEqual([
       'submitted',
-      'in_underwriting',
       'approved',
       'issued',
     ])
@@ -64,6 +66,7 @@ describe('production stage transition UX (032 matrix)', () => {
     expect(allowedNextStages({ from: 'in_force', role: 'owner' })).toEqual([])
     expect(allowedNextStages({ from: 'approved', role: 'owner' })).toEqual([
       'in_underwriting',
+      'sent_to_draft',
       'issued',
       'not_taken',
       'withdrawn',
@@ -73,6 +76,7 @@ describe('production stage transition UX (032 matrix)', () => {
   it('does not expose unauthorized or owner-only controls to advisors', () => {
     expect(canShowStageTransitionControls({ from: 'draft', role: 'advisor' })).toBe(true)
     expect(allowedNextStages({ from: 'approved', role: 'advisor' })).toEqual([
+      'sent_to_draft',
       'issued',
       'not_taken',
       'withdrawn',

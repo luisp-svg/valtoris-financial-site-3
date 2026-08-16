@@ -141,7 +141,7 @@ describe('application API RPC mapping', () => {
     const stages = rpc.mock.calls
       .filter((call) => call[0] === 'transition_policy_application_stage')
       .map((call) => call[1].p_to_stage)
-    expect(stages).toEqual(['submitted', 'in_underwriting', 'approved', 'issued'])
+    expect(stages).toEqual(['submitted', 'approved', 'issued'])
     const issued = rpc.mock.calls.find(
       (call) =>
         call[0] === 'transition_policy_application_stage' && call[1].p_to_stage === 'issued',

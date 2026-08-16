@@ -89,7 +89,6 @@ describe('application entry view helpers', () => {
     expect(catchUpTransitionPlan('in_underwriting')).toEqual(['submitted', 'in_underwriting'])
     expect(catchUpTransitionPlan('issued')).toEqual([
       'submitted',
-      'in_underwriting',
       'approved',
       'issued',
     ])

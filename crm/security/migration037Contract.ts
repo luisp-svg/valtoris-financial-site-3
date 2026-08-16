@@ -1,0 +1,53 @@
+/** Static contract markers for Migration 037 client/production workflow extensions. */
+
+export const MIGRATION_037_FILENAME = '037_client_production_workflow_extensions.sql'
+
+export const MIGRATION_037_CONTRACT_MARKERS = [
+  "ALTER TYPE public.policy_application_stage ADD VALUE IF NOT EXISTS 'paramed'",
+  "ALTER TYPE public.policy_application_stage ADD VALUE IF NOT EXISTS 'sent_to_draft'",
+  "ALTER TYPE public.policy_application_stage ADD VALUE IF NOT EXISTS 'premium_drafted'",
+  'draft is application draft',
+  'CREATE TABLE IF NOT EXISTS public.policy_application_beneficiaries',
+  "beneficiary_type IN ('primary', 'contingent')",
+  'percentage_bps',
+  'household_member_id',
+  'beneficiary_name',
+  'deleted_at',
+  'FORCE ROW LEVEL SECURITY',
+  'set_policy_application_beneficiaries',
+  'pp_assert_beneficiaries_valid',
+  'pp_current_beneficiaries_json',
+  'pp_assert_transition_allowed',
+  'premium_drafted → in_force is rejected',
+  'date_of_birth',
+  'household_members.date_of_birth',
+  'quick_add_parse_date_of_birth',
+  'QUICK_ADD:invalid_date_of_birth',
+  'SET search_path = pg_catalog, public, extensions',
+  'GRANT SELECT ON TABLE public.policy_application_beneficiaries TO authenticated',
+  'REVOKE INSERT, UPDATE, DELETE ON TABLE public.policy_application_beneficiaries',
+  'GRANT EXECUTE ON FUNCTION public.set_policy_application_beneficiaries(uuid, jsonb, text)',
+  'expected_compensation',
+] as const
+
+export const MIGRATION_037_FORBIDDEN_MARKERS = [
+  '038_',
+  'commission_released',
+  "ADD VALUE IF NOT EXISTS 'closed'",
+  "ADD VALUE IF NOT EXISTS 'pending'",
+  "ADD VALUE IF NOT EXISTS 'eligible'",
+  "ADD VALUE IF NOT EXISTS 'released'",
+  'CREATE TABLE public.commission_expectations',
+  'CREATE TABLE public.commission_transactions',
+  'CREATE TABLE IF NOT EXISTS public.commission_ledger',
+  'ssn',
+  'social_security',
+  'bank_account',
+  'routing_number',
+  'medical_information',
+  'CREATE TABLE public.household_members',
+  'ALTER TABLE public.household_members ADD',
+  'date_of_birth date',
+  'upline_id',
+  'override_rate',
+] as const

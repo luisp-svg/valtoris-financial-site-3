@@ -41,10 +41,12 @@ describe('UI-1 compensation read-view contracts', () => {
     expect(compensationApi).not.toMatch(/\.delete\s*\(/)
   })
 
-  it('does not add Migration 037 or change the list into N+1 snapshot calls', () => {
+  it('does not add a compensation-UI migration or change the list into N+1 snapshot calls', () => {
     expect(existsSync(join(migrationsDir, '037_policy_production_compensation_ui.sql'))).toBe(false)
     const migrationFiles = readdirSync(migrationsDir)
-    expect(migrationFiles.some((name) => name.startsWith('037'))).toBe(false)
+    expect(migrationFiles.filter((name) => name.startsWith('037'))).toEqual([
+      '037_client_production_workflow_extensions.sql',
+    ])
     expect(queuePage).toContain('fetchLiveExpectedCompensations')
     expect(queuePage.match(/fetchLiveExpectedCompensations\(/g)?.length).toBe(1)
     expect(queuePage).not.toContain('pp_writing_commission_snapshot')

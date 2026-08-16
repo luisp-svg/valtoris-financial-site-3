@@ -63,14 +63,16 @@ describe('policy production + client architecture no-schema contracts', () => {
     expect(newClientDialog).toContain('Date of birth')
     expect(applicationApi).toContain(".eq('is_active', true)")
     expect(PROPOSED_PRODUCTION_STAGES).toEqual(['paramed', 'sent_to_draft', 'premium_drafted'])
-    expect(PRODUCTION_STAGES).not.toContain('paramed')
-    expect(PRODUCTION_STAGES).not.toContain('sent_to_draft')
-    expect(PRODUCTION_STAGES).not.toContain('premium_drafted')
+    expect(PRODUCTION_STAGES).toContain('paramed')
+    expect(PRODUCTION_STAGES).toContain('sent_to_draft')
+    expect(PRODUCTION_STAGES).toContain('premium_drafted')
   })
 
-  it('does not add Migration 037 or use the service role in browser production files', () => {
+  it('does not use the service role in browser production files', () => {
     const files = existsSync(migrationsDir) ? readdirSync(migrationsDir) : []
-    expect(files.some((name) => name.includes('037'))).toBe(false)
+    expect(files.some((name) => name.includes('037_client_production_workflow_extensions'))).toBe(
+      true,
+    )
     expect(applicationApi).not.toContain('SERVICE_ROLE')
     expect(productionApi).not.toContain('SERVICE_ROLE')
     expect(newPage).not.toContain('SERVICE_ROLE')
