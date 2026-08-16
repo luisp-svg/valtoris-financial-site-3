@@ -1,0 +1,50 @@
+/** Static contract markers for Migration 034 writing-advisor expected compensation. */
+
+export const MIGRATION_034_FILENAME = '034_writing_advisor_expected_compensation.sql'
+
+export const MIGRATION_034_CONTRACT_MARKERS = [
+  'CREATE TABLE IF NOT EXISTS public.policy_application_expected_compensations',
+  'calculation_status IN (\'resolved\', \'review_required\', \'unavailable\')',
+  'pp_refresh_application_expected_compensation',
+  'recalculate_policy_application_expected_compensation',
+  'pp_expected_compensation_snapshot',
+  'pp_expected_comp_round_cents',
+  'writing_contract_level',
+  'compensation_base_cents',
+  'expected_compensation_cents',
+  'submission_date',
+  'issue_date',
+  'review_required',
+  'no_rate_card',
+  'FORCE ROW LEVEL SECURITY',
+  'SET search_path = pg_catalog, public, extensions',
+  'advisor_id = public.crm_advisor_id()',
+  'policy_applications_refresh_expected_compensation',
+  'age_sensitive_rate_card',
+  'crm_write_audit',
+  'Never store $0 for those cases',
+  'Do NOT use created_at for money calculations',
+] as const
+
+export const MIGRATION_034_FORBIDDEN_MARKERS = [
+  '035_',
+  'CREATE TYPE public.advisor_contract_level',
+  'CREATE TABLE public.commission_expectations',
+  'CREATE TABLE public.commission_transactions',
+  'CREATE TABLE IF NOT EXISTS public.commission_ledger',
+  'upline_id',
+  'override_rate',
+  'generational_rate',
+  'hierarchy_rate',
+  'spread_rate',
+  'pending_eligible_released',
+  'Excel Empire',
+  'TrusteeFriend',
+  'product_compensation_schedules_source_legacy',
+  '03-Experior',
+  'CREATE TABLE public.commission_status',
+  "date_part('year', age(",
+  'missing_writing_allocation',
+  'missing_issue_age_dob',
+  'no_rate_card_for_issue_age',
+] as const

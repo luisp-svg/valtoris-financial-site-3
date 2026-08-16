@@ -271,6 +271,13 @@ describe.skipIf(!localEnv)('migration 033 writing-advisor compensation foundatio
   }, 120000)
 
   afterAll(async () => {
+    if (created.applications.length) {
+      sqlQuery(
+        `DELETE FROM public.policy_application_expected_compensations WHERE application_id IN (${created.applications
+          .map((id) => `'${id}'`)
+          .join(',')})`,
+      )
+    }
     if (created.schedules.length) {
       sqlQuery(
         `DELETE FROM public.product_compensation_schedules WHERE id IN (${created.schedules

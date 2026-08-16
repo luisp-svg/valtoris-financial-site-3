@@ -590,6 +590,10 @@ describe.skipIf(!localEnv)('migration 032 policy production foundation (local DB
     if (created.applications.length) {
       // The link is one-directional, so the policies rows simply go first;
       // there is no mirror column on policy_applications to unwind.
+      // Migration 034 expected-compensation rows RESTRICT application delete.
+      sqlQuery(
+        `DELETE FROM public.policy_application_expected_compensations WHERE application_id IN (${apps})`,
+      )
       sqlQuery(`DELETE FROM public.policies WHERE source_application_id IN (${apps})`)
       sqlQuery(
         `DELETE FROM public.audit_logs WHERE entity_table = 'policy_applications' AND entity_id IN (${apps})`,
