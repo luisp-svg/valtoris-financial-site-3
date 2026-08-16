@@ -9946,6 +9946,13 @@ button.public-card-diagnostic:disabled {
   align-items: center;
 }
 
+.crm-production-stage-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 0.75rem;
+}
+
 .crm-application-entry-fieldset {
   border: 1px solid var(--crm-border, #d7dde6);
   border-radius: 12px;
@@ -9974,6 +9981,15 @@ button.public-card-diagnostic:disabled {
 
   .crm-production-header-actions .crm-primary-btn,
   .crm-production-header-actions .crm-secondary-btn {
+    width: 100%;
+  }
+
+  .crm-production-stage-actions {
+    display: grid;
+  }
+
+  .crm-production-stage-actions .crm-secondary-btn,
+  .crm-production-stage-actions .crm-primary-btn {
     width: 100%;
   }
 

@@ -45,6 +45,12 @@ import {
 import { ACTUAL_LOAD_ERROR, formatCompensationUserError } from '../../crm/production/compensationErrors'
 import type { CompensationViewer, LiveExpectedCompensationRow } from '../../crm/production/types'
 import { isIncompleteDraft, canShowProductionEditAction } from '../../crm/production/applicationEditView'
+import { transitionPolicyApplicationStage } from '../../crm/production/applicationApi'
+import StageTransitionPanel from '../../crm/production/StageTransitionPanel'
+import {
+  defaultStageTransitionReason,
+  type StageTransitionAction,
+} from '../../crm/production/stageTransitionView'
 import { createSupabaseBrowserClient } from '../../lib/supabase/client'
 
 function householdWorkspaceTab(householdId: string, tab: string): string {
@@ -65,6 +71,10 @@ export default function CrmProductionDetailPage() {
   const [actualSnapshot, setActualSnapshot] = useState<WritingCommissionSnapshotView | null>(null)
   const [actualLoading, setActualLoading] = useState(false)
   const [actualError, setActualError] = useState<string | null>(null)
+  const [reloadKey, setReloadKey] = useState(0)
+  const [pendingAction, setPendingAction] = useState<StageTransitionAction | null>(null)
+  const [stageSubmitting, setStageSubmitting] = useState(false)
+  const [stageError, setStageError] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -77,6 +87,9 @@ export default function CrmProductionDetailPage() {
         setActualSnapshot(null)
         setExpectedError(null)
         setActualError(null)
+        setPendingAction(null)
+        setStageSubmitting(false)
+        setStageError(null)
       try {
         const supabase = createSupabaseBrowserClient()
         const result = await fetchProductionApplicationById(supabase, applicationId)
@@ -148,7 +161,7 @@ export default function CrmProductionDetailPage() {
     return () => {
       cancelled = true
     }
-  }, [applicationId])
+  }, [applicationId, reloadKey])
 
   const viewState = getProductionDetailViewState({
     loading,
@@ -220,6 +233,36 @@ export default function CrmProductionDetailPage() {
     stage: application.production_stage,
     deletedAt: application.deleted_at,
   })
+  const caseApplication = application
+
+  async function runStageTransition(
+    action: StageTransitionAction,
+    input: { reason: string; policyNumber: string },
+  ) {
+    if (stageSubmitting) return
+    setStageSubmitting(true)
+    setStageError(null)
+    const supabase = createSupabaseBrowserClient()
+    const fields: Record<string, unknown> = {}
+    const policyNumber = input.policyNumber.trim() || caseApplication.policy_number?.trim() || ''
+    if (action.toStage === 'issued' && policyNumber) {
+      fields.policy_number = policyNumber
+    }
+    const result = await transitionPolicyApplicationStage(supabase, {
+      applicationId: caseApplication.id,
+      toStage: action.toStage,
+      reason: input.reason.trim() || defaultStageTransitionReason(action.toStage),
+      fields,
+    })
+    if (!result.ok) {
+      setStageError(result.message)
+      setStageSubmitting(false)
+      return
+    }
+    setPendingAction(null)
+    setStageSubmitting(false)
+    setReloadKey((n) => n + 1)
+  }
 
   return (
     <div className="crm-page crm-production-page">
@@ -306,6 +349,32 @@ export default function CrmProductionDetailPage() {
           </div>
         </dl>
       </section>
+
+      <StageTransitionPanel
+        application={application}
+        role={role}
+        submitting={stageSubmitting}
+        error={stageError}
+        pendingAction={pendingAction}
+        onSelect={(action) => {
+          if (stageSubmitting) return
+          setStageError(null)
+          if (action.consequential || action.needsReason || action.needsPolicyNumber) {
+            setPendingAction(action)
+            return
+          }
+          void runStageTransition(action, { reason: '', policyNumber: application.policy_number ?? '' })
+        }}
+        onCancel={() => {
+          if (stageSubmitting) return
+          setPendingAction(null)
+          setStageError(null)
+        }}
+        onConfirm={(input) => {
+          if (!pendingAction) return
+          void runStageTransition(pendingAction, input)
+        }}
+      />
 
       <section className="crm-panel" aria-labelledby="pp-household-heading">
         <div className="crm-panel-head">

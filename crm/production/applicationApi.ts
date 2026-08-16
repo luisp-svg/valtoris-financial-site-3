@@ -10,6 +10,7 @@ import {
   applicationRecoveryCopy,
   formatApplicationUserError,
 } from './applicationErrors'
+import { formatStageTransitionUserError } from './stageTransitionErrors'
 import {
   allocationsEqual,
   applicationNumberMode,
@@ -330,7 +331,7 @@ export async function transitionPolicyApplicationStage(
     p_reason: input.reason,
     p_fields: input.fields ?? {},
   })
-  if (error) return mutationFailure(error)
+  if (error) return { ok: false, message: formatStageTransitionUserError(error) }
   const row = asRecord(data)
   const id = typeof row?.application_id === 'string' ? row.application_id : input.applicationId
   return { ok: true, data: { applicationId: id } }

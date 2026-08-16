@@ -141,6 +141,23 @@ describe('application API RPC mapping', () => {
     }
   })
 
+  it('maps transition RPC failures to stage-safe copy', async () => {
+    const rpc = vi.fn().mockResolvedValue({
+      data: null,
+      error: { message: 'CRM_PP:invalid_transition', details: 'SQLSTATE 42501' },
+    })
+    const result = await transitionPolicyApplicationStage(rpcClient(rpc), {
+      applicationId: 'app1',
+      toStage: 'issued',
+      reason: 'issue',
+    })
+    expect(result.ok).toBe(false)
+    if (!result.ok) {
+      expect(result.message).toMatch(/not allowed from the current stage/i)
+      expect(result.message).not.toMatch(/SQLSTATE|CRM_PP|42501/)
+    }
+  })
+
   it('only exposes the four approved application RPCs', () => {
     expect([...APPROVED_APPLICATION_RPCS]).toEqual([
       'create_policy_application',
