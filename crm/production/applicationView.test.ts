@@ -87,9 +87,41 @@ describe('application entry view helpers', () => {
     expect(catchUpTransitionPlan('draft')).toEqual([])
     expect(catchUpTransitionPlan('submitted')).toEqual(['submitted'])
     expect(catchUpTransitionPlan('in_underwriting')).toEqual(['submitted', 'in_underwriting'])
+    expect(catchUpTransitionPlan('issued')).toEqual([
+      'submitted',
+      'in_underwriting',
+      'approved',
+      'issued',
+    ])
+    expect(catchUpTransitionPlan('issued')).not.toContain('paramed')
     expect(neverJumpsDraftToUnderwriting(catchUpTransitionPlan('in_underwriting'))).toBe(true)
+    expect(neverJumpsDraftToUnderwriting(catchUpTransitionPlan('issued'))).toBe(true)
     expect(transitionReasonForStage('submitted')).toMatch(/submitted/)
     expect(transitionReasonForStage('in_underwriting')).toMatch(/underwriting/)
+    expect(transitionReasonForStage('approved', 'existing_business')).toMatch(/Existing business/)
+  })
+
+  it('requires a policy number for issued historical business and rejects unsupported stages', () => {
+    const issued = validateApplicationDraft(
+      lifeDraft({
+        entryMode: 'existing_business',
+        isOwner: true,
+        targetStage: 'issued',
+        policyNumber: '',
+      }),
+    )
+    expect(issued.fieldErrors.policyNumber).toBeTruthy()
+    const ok = validateApplicationDraft(
+      lifeDraft({
+        entryMode: 'existing_business',
+        isOwner: true,
+        targetStage: 'issued',
+        policyNumber: 'NLG-123',
+      }),
+    )
+    expect(ok.invalid).toBe(false)
+    const newBusinessIssued = validateApplicationDraft(lifeDraft({ targetStage: 'issued' }))
+    expect(newBusinessIssued.fieldErrors.targetStage).toBeTruthy()
   })
 
   it('blocks submit while pending and converts dollars to cents', () => {

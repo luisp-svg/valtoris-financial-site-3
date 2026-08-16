@@ -448,6 +448,27 @@ export async function fetchProductionApplicationById(
   return { ok: true, application: mapped }
 }
 
+/**
+ * Production applications for a household. SELECT only; does not load compensation rows.
+ */
+export async function fetchHouseholdProductionApplications(
+  supabase: SupabaseClient,
+  householdId: string,
+): Promise<ProductionApplicationDetail[]> {
+  if (!householdId.trim()) return []
+  const { data, error } = await supabase
+    .from('policy_applications')
+    .select(APPLICATION_DETAIL_SELECT)
+    .eq('household_id', householdId)
+    .is('deleted_at', null)
+    .order('updated_at', { ascending: false })
+  if (error) throw error
+  return (data as unknown as RawDetailRow[])
+    .map(mapDetail)
+    .filter((row): row is ProductionApplicationDetail => row != null)
+    .map((row) => ({ ...row, expected_compensations: [] }))
+}
+
 /** Active carriers for filter dropdowns (RLS: advisors see active only). */
 export async function fetchProductionCarrierOptions(
   supabase: SupabaseClient,

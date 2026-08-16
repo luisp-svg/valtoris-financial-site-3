@@ -53,6 +53,7 @@ describe('application API RPC mapping', () => {
     expect(payload).not.toHaveProperty('annuity_deposit_cents')
     expect(payload).not.toHaveProperty('participants')
     expect(payload).not.toHaveProperty('allocations')
+    expect(payload).not.toHaveProperty('production_stage')
   })
 
   it('maps FIA create payload without insured money fields', () => {
@@ -126,6 +127,27 @@ describe('application API RPC mapping', () => {
     ])
     expect(rpc.mock.calls[3][1].p_to_stage).toBe('submitted')
     expect(rpc.mock.calls[4][1].p_to_stage).toBe('in_underwriting')
+  })
+
+  it('advances existing business to issued through server transitions and never updates the stage column', async () => {
+    const rpc = vi.fn().mockResolvedValue({ data: { application_id: 'app1' }, error: null })
+    const result = await submitProductionApplication(rpcClient(rpc), {
+      ...lifeInput,
+      entryMode: 'existing_business',
+      targetStage: 'issued',
+      policyNumber: 'NLG-99',
+    })
+    expect(result.ok).toBe(true)
+    const stages = rpc.mock.calls
+      .filter((call) => call[0] === 'transition_policy_application_stage')
+      .map((call) => call[1].p_to_stage)
+    expect(stages).toEqual(['submitted', 'in_underwriting', 'approved', 'issued'])
+    const issued = rpc.mock.calls.find(
+      (call) =>
+        call[0] === 'transition_policy_application_stage' && call[1].p_to_stage === 'issued',
+    )
+    expect(issued?.[1].p_fields).toEqual({ policy_number: 'NLG-99' })
+    expect(rpc.mock.calls.some((call) => call[0] === 'transition_policy_application_stage' && call[1].p_to_stage === 'paramed')).toBe(false)
   })
 
   it('returns safe copy for CRM_PP create failures without leaking postgres', async () => {

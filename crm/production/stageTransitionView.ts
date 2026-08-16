@@ -139,6 +139,45 @@ export function stageTransitionAction(
   }
 }
 
+export function shortestStagePath(
+  from: ProductionStage,
+  to: ProductionStage,
+): ProductionStage[] | null {
+  if (from === to) return []
+  const queue: ProductionStage[][] = [[from]]
+  const seen = new Set<ProductionStage>([from])
+  while (queue.length > 0) {
+    const current = queue.shift()
+    if (!current) break
+    const last = current[current.length - 1]
+    for (const next of PRODUCTION_STAGE_TRANSITIONS[last]) {
+      if (seen.has(next)) continue
+      const path = [...current, next]
+      if (next === to) return path.slice(1)
+      seen.add(next)
+      queue.push(path)
+    }
+  }
+  return null
+}
+
+export function existingBusinessCatchUpStages(options?: { isOwner?: boolean }): ProductionStage[] {
+  const allowed: ProductionStage[] = [
+    'draft',
+    'submitted',
+    'in_underwriting',
+    'approved',
+    'issued',
+    'postponed',
+    'declined',
+    'withdrawn',
+    'incomplete',
+    'not_taken',
+  ]
+  if (options?.isOwner) allowed.push('in_force')
+  return allowed.filter((stage) => shortestStagePath('draft', stage) != null || stage === 'draft')
+}
+
 export function expectedCompensationDoesNotBlockSubmit(options: {
   from: ProductionStage
   expectedStatus?: string | null
@@ -155,7 +194,7 @@ export function defaultStageTransitionReason(to: ProductionStage): string {
 }
 
 function actionLabel(from: ProductionStage, to: ProductionStage): string {
-  if (to === 'submitted') return 'Submit application'
+  if (to === 'submitted') return 'Mark applied'
   if (to === 'issued') return 'Issue policy'
   if (to === 'in_force') return 'Place in force'
   if (to === 'withdrawn') return 'Mark withdrawn'
@@ -178,7 +217,7 @@ function confirmTitle(to: ProductionStage): string {
   if (to === 'not_taken') return 'Mark this application not taken?'
   if (to === 'incomplete') return 'Mark this application incomplete?'
   if (to === 'in_force') return 'Place this policy in force?'
-  if (to === 'submitted') return 'Submit this application?'
+  if (to === 'submitted') return 'Mark this application applied?'
   return `Move this application to ${formatProductionStageLabel(to)}?`
 }
 

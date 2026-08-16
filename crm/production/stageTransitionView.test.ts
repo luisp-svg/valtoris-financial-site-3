@@ -3,11 +3,13 @@ import { canSubmitApplicationForm } from './applicationView'
 import {
   allowedNextStages,
   canShowStageTransitionControls,
+  existingBusinessCatchUpStages,
   expectedCompensationDoesNotBlockSubmit,
   isBackwardStageTransition,
   isOwnerOnlyStageTransition,
   isTerminalProductionStage,
   PRODUCTION_STAGE_TRANSITIONS,
+  shortestStagePath,
   stageTransitionAction,
 } from './stageTransitionView'
 
@@ -31,8 +33,26 @@ describe('production stage transition UX (032 matrix)', () => {
     )
     const blob = JSON.stringify(PRODUCTION_STAGE_TRANSITIONS)
     expect(blob).not.toMatch(/pending|eligible|released/i)
+    expect(blob).not.toMatch(/paramed|sent_to_draft|premium_drafted|commission_released/)
     expect(isTerminalProductionStage('in_force')).toBe(true)
     expect(isTerminalProductionStage('draft')).toBe(false)
+  })
+
+  it('computes legal historical catch-up paths without inventing 037 stages', () => {
+    expect(shortestStagePath('draft', 'submitted')).toEqual(['submitted'])
+    expect(shortestStagePath('draft', 'issued')).toEqual([
+      'submitted',
+      'in_underwriting',
+      'approved',
+      'issued',
+    ])
+    expect(existingBusinessCatchUpStages()).toContain('submitted')
+    expect(existingBusinessCatchUpStages()).toContain('issued')
+    expect(existingBusinessCatchUpStages()).not.toContain('in_force')
+    expect(existingBusinessCatchUpStages({ isOwner: true })).toContain('in_force')
+    expect(existingBusinessCatchUpStages({ isOwner: true })).not.toContain('paramed')
+    expect(existingBusinessCatchUpStages({ isOwner: true })).not.toContain('premium_drafted')
+    expect(stageTransitionAction('draft', 'submitted').label).toBe('Mark applied')
   })
 
   it('offers owner valid next stages and does not offer invalid ones', () => {

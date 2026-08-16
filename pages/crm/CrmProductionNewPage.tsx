@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { ROUTES, crmProductionPath } from '../../constants/routes'
 import { useCrmAuth } from '../../crm/auth/CrmAuthContext'
 import ApplicationEntryForm from '../../crm/production/ApplicationEntryForm'
+import NewClientFromApplicationDialog from '../../crm/production/NewClientFromApplicationDialog'
 import {
   fetchActiveApplicationCarriers,
   fetchActiveApplicationProducts,
@@ -24,17 +25,20 @@ import {
   productsForCarrier,
   validateApplicationDraft,
 } from '../../crm/production/applicationView'
+import { existingBusinessCatchUpStages } from '../../crm/production/stageTransitionView'
 import { shouldShowCatalogManagement } from '../../crm/production/catalogView'
 import type {
   ProductionAdvisorOption,
   ProductionAllocationDraft,
+  ProductionEntryMode,
   ProductionEntryProductOption,
-  ProductionEntryStage,
   ProductionHouseholdOption,
   ProductionMemberOption,
   ProductionParticipantRole,
   ProductionProductLine,
+  ProductionStage,
 } from '../../crm/production/types'
+import { PRODUCTION_ENTRY_STAGES } from '../../crm/production/types'
 import { createSupabaseBrowserClient } from '../../lib/supabase/client'
 import {
   confirmLeaveUnsavedForm,
@@ -45,6 +49,7 @@ export default function CrmProductionNewPage() {
   const { role, user } = useCrmAuth()
   const navigate = useNavigate()
   const canManageCatalog = shouldShowCatalogManagement(role)
+  const isOwner = role === 'owner'
 
   const [households, setHouseholds] = useState<ProductionHouseholdOption[]>([])
   const [members, setMembers] = useState<ProductionMemberOption[]>([])
@@ -58,19 +63,22 @@ export default function CrmProductionNewPage() {
   const [carrierId, setCarrierId] = useState('')
   const [productId, setProductId] = useState('')
   const [state, setState] = useState('')
-  const [targetStage, setTargetStage] = useState<ProductionEntryStage | ''>('draft')
+  const [entryMode, setEntryMode] = useState<ProductionEntryMode>('new_business')
+  const [targetStage, setTargetStage] = useState<ProductionStage | ''>('draft')
   const [premiumMode, setPremiumMode] = useState('')
   const [plannedPremium, setPlannedPremium] = useState('')
   const [faceAmount, setFaceAmount] = useState('')
   const [initialDeposit, setInitialDeposit] = useState('')
   const [applicationNumber, setApplicationNumber] = useState('')
   const [submissionDate, setSubmissionDate] = useState('')
+  const [policyNumber, setPolicyNumber] = useState('')
   const [roleMembers, setRoleMembers] = useState<Partial<Record<ProductionParticipantRole, string>>>({})
   const [allocations, setAllocations] = useState<ProductionAllocationDraft[]>([])
   const [fieldErrors, setFieldErrors] = useState<Record<string, string | undefined>>({})
   const [submitting, setSubmitting] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
   const [recoveryApplicationId, setRecoveryApplicationId] = useState<string | null>(null)
+  const [newClientOpen, setNewClientOpen] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -142,6 +150,13 @@ export default function CrmProductionNewPage() {
   const carrierProducts = useMemo(() => productsForCarrier(products, carrierId), [products, carrierId])
   const selectedProduct = carrierProducts.find((row) => row.id === productId) ?? null
   const productLine: ProductionProductLine | '' = selectedProduct?.product_line ?? ''
+  const stageOptions = useMemo(
+    () =>
+      entryMode === 'existing_business'
+        ? existingBusinessCatchUpStages({ isOwner })
+        : [...PRODUCTION_ENTRY_STAGES],
+    [entryMode, isOwner],
+  )
   const isDirty = isCreateFormDirty({
     householdId,
     carrierId,
@@ -149,12 +164,14 @@ export default function CrmProductionNewPage() {
     productLine,
     state,
     targetStage,
+    entryMode,
     premiumMode,
     plannedPremium,
     faceAmount,
     initialDeposit,
     applicationNumber,
     submissionDate,
+    policyNumber,
     roleMembers,
     allocations,
   })
@@ -167,6 +184,28 @@ export default function CrmProductionNewPage() {
 
   function handleAllocationsChange(rows: ProductionAllocationDraft[]) {
     setAllocations(rows)
+  }
+
+  function handleEntryModeChange(mode: ProductionEntryMode) {
+    setEntryMode(mode)
+    const nextOptions =
+      mode === 'existing_business'
+        ? existingBusinessCatchUpStages({ isOwner })
+        : [...PRODUCTION_ENTRY_STAGES]
+    if (targetStage && !(nextOptions as readonly string[]).includes(targetStage)) {
+      setTargetStage('draft')
+    }
+  }
+
+  async function handleHouseholdCreated(nextHouseholdId: string) {
+    try {
+      const supabase = createSupabaseBrowserClient()
+      const householdRows = await fetchApplicationHouseholds(supabase)
+      setHouseholds(householdRows)
+    } catch {
+      /* Keep the current list; the new household id is still selected. */
+    }
+    setHouseholdId(nextHouseholdId)
   }
 
   function handleCancel() {
@@ -183,12 +222,15 @@ export default function CrmProductionNewPage() {
       productLine,
       state,
       targetStage,
+      entryMode,
+      isOwner,
       premiumMode,
       plannedPremium,
       faceAmount,
       initialDeposit,
       applicationNumber,
       submissionDate,
+      policyNumber,
       roleMembers,
       allocations,
     })
@@ -208,12 +250,14 @@ export default function CrmProductionNewPage() {
         productLine,
         state,
         targetStage,
+        entryMode,
         premiumMode,
         plannedPremium,
         faceAmount,
         initialDeposit,
         applicationNumber,
         submissionDate,
+        policyNumber,
         participants: buildParticipantPayload({ productLine, roleMembers }),
         allocations,
       })
@@ -235,9 +279,9 @@ export default function CrmProductionNewPage() {
           <p className="crm-page-eyebrow">Production</p>
           <h1 className="crm-page-title">New application</h1>
           <p className="crm-page-subtitle">
-            Enter an existing Life, IUL, or FIA case, including cases already in underwriting.
-            Catch-up walks Draft → Submitted → In underwriting. The browser workflow is not one
-            database transaction.
+            Enter new or existing Life, IUL, or FIA business. New business starts through the
+            controlled workflow. Existing business is created as Application Draft, then advanced
+            through server-side transitions to the selected current stage.
           </p>
         </div>
         <button type="button" className="crm-secondary-btn" onClick={handleCancel}>
@@ -270,48 +314,61 @@ export default function CrmProductionNewPage() {
       ) : null}
 
       {!loading && !loadError && catalogReady ? (
-        <ApplicationEntryForm
-          submitting={submitting}
-          error={formError}
-          recoveryApplicationId={recoveryApplicationId}
-          households={households}
-          members={members}
-          carriers={carriers}
-          products={carrierProducts}
-          advisors={advisors}
-          householdId={householdId}
-          carrierId={carrierId}
-          productId={productId}
-          productLine={productLine}
-          state={state}
-          targetStage={targetStage}
-          premiumMode={premiumMode}
-          plannedPremium={plannedPremium}
-          faceAmount={faceAmount}
-          initialDeposit={initialDeposit}
-          applicationNumber={applicationNumber}
-          submissionDate={submissionDate}
-          roleMembers={roleMembers}
-          allocations={allocations}
-          fieldErrors={fieldErrors}
-          onHouseholdChange={setHouseholdId}
-          onCarrierChange={handleCarrierChange}
-          onProductChange={setProductId}
-          onStateChange={setState}
-          onTargetStageChange={setTargetStage}
-          onPremiumModeChange={setPremiumMode}
-          onPlannedPremiumChange={setPlannedPremium}
-          onFaceAmountChange={setFaceAmount}
-          onInitialDepositChange={setInitialDeposit}
-          onApplicationNumberChange={setApplicationNumber}
-          onSubmissionDateChange={setSubmissionDate}
-          onRoleMemberChange={(role, memberId) =>
-            setRoleMembers((prev) => ({ ...prev, [role]: memberId }))
-          }
-          onAllocationsChange={handleAllocationsChange}
-          onCancel={handleCancel}
-          onSubmit={() => void handleSubmit()}
-        />
+        <>
+          <ApplicationEntryForm
+            submitting={submitting}
+            error={formError}
+            recoveryApplicationId={recoveryApplicationId}
+            households={households}
+            members={members}
+            carriers={carriers}
+            products={carrierProducts}
+            advisors={advisors}
+            householdId={householdId}
+            carrierId={carrierId}
+            productId={productId}
+            productLine={productLine}
+            state={state}
+            entryMode={entryMode}
+            targetStage={targetStage}
+            stageOptions={stageOptions}
+            premiumMode={premiumMode}
+            plannedPremium={plannedPremium}
+            faceAmount={faceAmount}
+            initialDeposit={initialDeposit}
+            applicationNumber={applicationNumber}
+            submissionDate={submissionDate}
+            policyNumber={policyNumber}
+            roleMembers={roleMembers}
+            allocations={allocations}
+            fieldErrors={fieldErrors}
+            onHouseholdChange={setHouseholdId}
+            onNewClient={() => setNewClientOpen(true)}
+            onCarrierChange={handleCarrierChange}
+            onProductChange={setProductId}
+            onStateChange={setState}
+            onEntryModeChange={handleEntryModeChange}
+            onTargetStageChange={setTargetStage}
+            onPremiumModeChange={setPremiumMode}
+            onPlannedPremiumChange={setPlannedPremium}
+            onFaceAmountChange={setFaceAmount}
+            onInitialDepositChange={setInitialDeposit}
+            onApplicationNumberChange={setApplicationNumber}
+            onSubmissionDateChange={setSubmissionDate}
+            onPolicyNumberChange={setPolicyNumber}
+            onRoleMemberChange={(role, memberId) =>
+              setRoleMembers((prev) => ({ ...prev, [role]: memberId }))
+            }
+            onAllocationsChange={handleAllocationsChange}
+            onCancel={handleCancel}
+            onSubmit={() => void handleSubmit()}
+          />
+          <NewClientFromApplicationDialog
+            open={newClientOpen}
+            onClose={() => setNewClientOpen(false)}
+            onHouseholdReady={(nextHouseholdId) => void handleHouseholdCreated(nextHouseholdId)}
+          />
+        </>
       ) : null}
     </div>
   )

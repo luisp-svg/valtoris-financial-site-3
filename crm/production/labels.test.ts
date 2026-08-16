@@ -14,6 +14,8 @@ import {
 
 describe('production labels', () => {
   it('maps stages, product lines, dispositions, delivery, and roles', () => {
+    expect(formatProductionStageLabel('draft')).toBe('Application Draft')
+    expect(formatProductionStageLabel('submitted')).toBe('Applied')
     expect(formatProductionStageLabel('in_underwriting')).toBe('In underwriting')
     expect(formatProductionStageLabel('in_force')).toBe('In force')
     expect(formatProductionProductLineLabel('life_permanent')).toBe('Life — Permanent / IUL')
@@ -29,6 +31,8 @@ describe('production labels', () => {
     expect(formatProductionDeliveryLabel('requirements_pending')).toBe('Requirements pending')
     expect(formatProductionParticipantRoleLabel('annuitant')).toBe('Annuitant')
     expect(formatProductionPremiumModeLabel('semi_annual')).toBe('Semi-annual')
+    expect(formatProductionEntryStageLabel('draft')).toBe('Application Draft')
+    expect(formatProductionEntryStageLabel('submitted')).toBe('Applied')
     expect(formatProductionEntryStageLabel('in_underwriting')).toBe('In underwriting')
   })
 

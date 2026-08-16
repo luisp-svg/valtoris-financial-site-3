@@ -4,22 +4,23 @@ import { ROUTES } from '../../constants/routes'
 import { formatMemberDisplayName } from './daysInStage'
 import {
   formatApplicationProductLineLabel,
-  formatProductionEntryStageLabel,
   formatProductionParticipantRoleLabel,
   formatProductionPremiumModeLabel,
+  formatProductionStageLabel,
 } from './labels'
 import { US_STATES, requiredParticipantRoles } from './applicationView'
 import WritingAdvisorsFields from './WritingAdvisorsFields'
-import { PRODUCTION_ENTRY_STAGES, PRODUCTION_PREMIUM_MODES } from './types'
+import { PRODUCTION_PREMIUM_MODES } from './types'
 import type {
   ProductionAdvisorOption,
   ProductionAllocationDraft,
+  ProductionEntryMode,
   ProductionEntryProductOption,
-  ProductionEntryStage,
   ProductionHouseholdOption,
   ProductionMemberOption,
   ProductionParticipantRole,
   ProductionProductLine,
+  ProductionStage,
 } from './types'
 
 export type ApplicationEntryFormProps = {
@@ -36,27 +37,33 @@ export type ApplicationEntryFormProps = {
   productId: string
   productLine: ProductionProductLine | ''
   state: string
-  targetStage: ProductionEntryStage | ''
+  entryMode: ProductionEntryMode
+  targetStage: ProductionStage | ''
+  stageOptions: readonly ProductionStage[]
   premiumMode: string
   plannedPremium: string
   faceAmount: string
   initialDeposit: string
   applicationNumber: string
   submissionDate: string
+  policyNumber: string
   roleMembers: Partial<Record<ProductionParticipantRole, string>>
   allocations: ProductionAllocationDraft[]
   fieldErrors: Record<string, string | undefined>
   onHouseholdChange: (householdId: string) => void
+  onNewClient: () => void
   onCarrierChange: (carrierId: string) => void
   onProductChange: (productId: string) => void
   onStateChange: (state: string) => void
-  onTargetStageChange: (stage: ProductionEntryStage) => void
+  onEntryModeChange: (mode: ProductionEntryMode) => void
+  onTargetStageChange: (stage: ProductionStage) => void
   onPremiumModeChange: (mode: string) => void
   onPlannedPremiumChange: (value: string) => void
   onFaceAmountChange: (value: string) => void
   onInitialDepositChange: (value: string) => void
   onApplicationNumberChange: (value: string) => void
   onSubmissionDateChange: (value: string) => void
+  onPolicyNumberChange: (value: string) => void
   onRoleMemberChange: (role: ProductionParticipantRole, memberId: string) => void
   onAllocationsChange: (rows: ProductionAllocationDraft[]) => void
   onCancel: () => void
@@ -122,27 +129,37 @@ export default function ApplicationEntryForm(props: ApplicationEntryFormProps) {
       <form className="crm-opportunity-form" onSubmit={handleSubmit} noValidate>
         <fieldset className="crm-application-entry-fieldset" disabled={props.submitting}>
           <legend>Client</legend>
-          <label className="crm-field">
-            <span>Household</span>
-            <select
-              aria-label="Household"
-              value={props.householdId}
-              onChange={(e) => props.onHouseholdChange(e.target.value)}
-              required
+          <div className="crm-application-client-row">
+            <label className="crm-field">
+              <span>Household</span>
+              <select
+                aria-label="Household"
+                value={props.householdId}
+                onChange={(e) => props.onHouseholdChange(e.target.value)}
+                required
+                disabled={props.submitting}
+                aria-invalid={Boolean(props.fieldErrors.householdId)}
+              >
+                <option value="">Select a household</option>
+                {props.households.map((household) => (
+                  <option key={household.id} value={household.id}>
+                    {household.display_name}
+                  </option>
+                ))}
+              </select>
+              {props.fieldErrors.householdId ? (
+                <span className="crm-field-error">{props.fieldErrors.householdId}</span>
+              ) : null}
+            </label>
+            <button
+              type="button"
+              className="crm-secondary-btn"
+              onClick={props.onNewClient}
               disabled={props.submitting}
-              aria-invalid={Boolean(props.fieldErrors.householdId)}
             >
-              <option value="">Select a household</option>
-              {props.households.map((household) => (
-                <option key={household.id} value={household.id}>
-                  {household.display_name}
-                </option>
-              ))}
-            </select>
-            {props.fieldErrors.householdId ? (
-              <span className="crm-field-error">{props.fieldErrors.householdId}</span>
-            ) : null}
-          </label>
+              + New Client
+            </button>
+          </div>
         </fieldset>
 
         <fieldset className="crm-application-entry-fieldset" disabled={props.submitting}>
@@ -223,30 +240,75 @@ export default function ApplicationEntryForm(props: ApplicationEntryFormProps) {
 
         <fieldset className="crm-application-entry-fieldset" disabled={props.submitting}>
           <legend>Policy details</legend>
+          <fieldset className="crm-application-entry-mode">
+            <legend>Entry type</legend>
+            <label className="crm-radio-field">
+              <input
+                type="radio"
+                name="production-entry-mode"
+                value="new_business"
+                checked={props.entryMode === 'new_business'}
+                onChange={() => props.onEntryModeChange('new_business')}
+                disabled={props.submitting}
+              />
+              <span>New business</span>
+            </label>
+            <label className="crm-radio-field">
+              <input
+                type="radio"
+                name="production-entry-mode"
+                value="existing_business"
+                checked={props.entryMode === 'existing_business'}
+                onChange={() => props.onEntryModeChange('existing_business')}
+                disabled={props.submitting}
+              />
+              <span>Existing / historical business</span>
+            </label>
+          </fieldset>
           <label className="crm-field">
             <span>Current stage</span>
             <select
               aria-label="Current stage"
               value={props.targetStage}
-              onChange={(e) => props.onTargetStageChange(e.target.value as ProductionEntryStage)}
+              onChange={(e) => props.onTargetStageChange(e.target.value as ProductionStage)}
               required
               disabled={props.submitting}
               aria-invalid={Boolean(props.fieldErrors.targetStage)}
             >
-              {PRODUCTION_ENTRY_STAGES.map((stage) => (
+              {props.stageOptions.map((stage) => (
                 <option key={stage} value={stage}>
-                  {formatProductionEntryStageLabel(stage)}
+                  {formatProductionStageLabel(stage)}
                 </option>
               ))}
             </select>
             <span className="crm-muted">
-              Draft saves without submitting. Catch-up to In underwriting records Draft → Submitted →
-              In underwriting through existing stage controls.
+              {props.entryMode === 'existing_business'
+                ? 'Created as Application Draft, then advanced through existing server-side transitions to the selected current stage. Paramed, Sent to Draft, and Drafted are not available until the production stage model is extended.'
+                : 'Application Draft saves without applying. Catch-up to In underwriting records Application Draft → Applied → In underwriting through existing stage controls.'}
             </span>
             {props.fieldErrors.targetStage ? (
               <span className="crm-field-error">{props.fieldErrors.targetStage}</span>
             ) : null}
           </label>
+
+          {props.targetStage === 'issued' || props.targetStage === 'in_force' ? (
+            <label className="crm-field">
+              <span>Policy number</span>
+              <input
+                aria-label="Policy number"
+                type="text"
+                value={props.policyNumber}
+                onChange={(e) => props.onPolicyNumberChange(e.target.value)}
+                required
+                disabled={props.submitting}
+                aria-invalid={Boolean(props.fieldErrors.policyNumber)}
+                autoComplete="off"
+              />
+              {props.fieldErrors.policyNumber ? (
+                <span className="crm-field-error">{props.fieldErrors.policyNumber}</span>
+              ) : null}
+            </label>
+          ) : null}
 
           {isLife ? (
             <>
@@ -423,7 +485,7 @@ export default function ApplicationEntryForm(props: ApplicationEntryFormProps) {
             </div>
             <div>
               <dt>Stage</dt>
-              <dd>{formatProductionEntryStageLabel(props.targetStage || '')}</dd>
+              <dd>{formatProductionStageLabel(props.targetStage || '')}</dd>
             </div>
           </dl>
           <p className="crm-muted">

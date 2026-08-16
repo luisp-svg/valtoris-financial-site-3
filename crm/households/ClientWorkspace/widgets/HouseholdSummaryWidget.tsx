@@ -5,6 +5,7 @@ import {
   getRelationshipLabel,
 } from '../../householdsApi'
 import type { CrmHouseholdWorkspace } from '../../types'
+import { formatWorkspaceDate } from '../format'
 import type { ClientWorkspaceTabId } from '../types'
 
 type Props = {
@@ -53,6 +54,9 @@ export default function HouseholdSummaryWidget({ workspace, onNavigateTab }: Pro
               <p className="crm-task-meta">
                 {getRelationshipLabel(member.relationship)}
                 {member.is_primary_contact ? ' · Primary contact' : ''}
+                {member.date_of_birth
+                  ? ` · Born ${formatWorkspaceDate(member.date_of_birth)}`
+                  : ''}
               </p>
             </li>
           ))}

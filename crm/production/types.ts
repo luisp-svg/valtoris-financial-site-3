@@ -77,9 +77,19 @@ export const PRODUCTION_PREMIUM_MODES = [
 ] as const
 export type ProductionPremiumMode = (typeof PRODUCTION_PREMIUM_MODES)[number]
 
-/** Stages the new-application form may target. Catch-up cannot skip submitted. */
+/** Stages new-business entry may target. Catch-up cannot skip submitted. */
 export const PRODUCTION_ENTRY_STAGES = ['draft', 'submitted', 'in_underwriting'] as const
 export type ProductionEntryStage = (typeof PRODUCTION_ENTRY_STAGES)[number]
+
+export const PRODUCTION_ENTRY_MODES = ['new_business', 'existing_business'] as const
+export type ProductionEntryMode = (typeof PRODUCTION_ENTRY_MODES)[number]
+
+/**
+ * Proposed 037 values. Not in the 032 enum — never send these from the client.
+ * `draft` remains application draft, not premium drafted.
+ */
+export const PROPOSED_PRODUCTION_STAGES = ['paramed', 'sent_to_draft', 'premium_drafted'] as const
+export type ProposedProductionStage = (typeof PROPOSED_PRODUCTION_STAGES)[number]
 
 export const PRODUCTION_ENTRY_WRITING_BPS_TOTAL = 10000
 

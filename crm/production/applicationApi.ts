@@ -35,8 +35,8 @@ import {
 import type {
   ProductionAdvisorOption,
   ProductionAllocationDraft,
+  ProductionEntryMode,
   ProductionEntryProductOption,
-  ProductionEntryStage,
   ProductionHouseholdOption,
   ProductionMemberOption,
   ProductionParticipantDraft,
@@ -94,13 +94,15 @@ export type ApplicationCreateInput = {
   productId: string
   productLine: ProductionProductLine
   state: string
-  targetStage: ProductionEntryStage
+  targetStage: ProductionStage
+  entryMode?: ProductionEntryMode
   premiumMode: string
   plannedPremium: string
   faceAmount: string
   initialDeposit: string
   applicationNumber: string
   submissionDate: string
+  policyNumber?: string
   participants: ProductionParticipantDraft[]
   allocations: ProductionAllocationDraft[]
 }
@@ -325,13 +327,14 @@ export async function transitionPolicyApplicationStage(
     toStage: string
     reason: string
     fields?: Record<string, unknown>
+    deliveryStatus?: string | null
   },
 ): Promise<ApplicationMutationResult<{ applicationId: string }>> {
   const { data, error } = await supabase.rpc(APPLICATION_RPC.transition, {
     p_application_id: input.applicationId,
     p_to_stage: input.toStage,
     p_disposition: null,
-    p_delivery_status: null,
+    p_delivery_status: input.deliveryStatus ?? null,
     p_reason: input.reason,
     p_fields: input.fields ?? {},
   })
@@ -389,14 +392,18 @@ export async function submitProductionApplication(
 
   const plan = catchUpTransitionPlan(input.targetStage)
   const submissionDate = input.submissionDate.trim()
+  const policyNumber = input.policyNumber?.trim() ?? ''
+  const entryMode = input.entryMode ?? 'new_business'
   for (const stage of plan) {
-    const fields =
-      stage === 'submitted' && submissionDate ? { submission_date: submissionDate } : {}
+    const fields: Record<string, unknown> = {}
+    if (stage === 'submitted' && submissionDate) fields.submission_date = submissionDate
+    if (stage === 'issued' && policyNumber) fields.policy_number = policyNumber
     const moved = await transitionPolicyApplicationStage(supabase, {
       applicationId,
       toStage: stage,
-      reason: transitionReasonForStage(stage),
+      reason: transitionReasonForStage(stage, entryMode),
       fields,
+      deliveryStatus: stage === 'in_force' ? 'not_required' : null,
     })
     if (!moved.ok) {
       return {

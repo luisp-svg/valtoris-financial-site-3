@@ -23,6 +23,7 @@ import type {
   ContactFormField,
   ContactFormValues,
   DuplicateMatch,
+  QuickAddCreateResult,
 } from './types'
 import { resetFormAfterSaveAndAddAnother } from './formReset'
 import {
@@ -35,6 +36,11 @@ export type QuickAddContactFormProps = {
   /** Optional heading slot */
   title?: ReactNode
   onCreated?: (leadId: string) => void
+  onCreatedRecord?: (result: QuickAddCreateResult) => void
+  /** Stay on the current page and reuse the form inside Policy Production. */
+  embedded?: boolean
+  onCancel?: () => void
+  onOpenExistingHousehold?: (householdId: string) => void
 }
 
 type TokenState = {
@@ -47,7 +53,14 @@ type TokenState = {
  * Keyboard-first Quick Add Contact form.
  * Duplicate tokens stay in component memory only — never storage/logs.
  */
-export default function QuickAddContactForm({ title, onCreated }: QuickAddContactFormProps) {
+export default function QuickAddContactForm({
+  title,
+  onCreated,
+  onCreatedRecord,
+  embedded = false,
+  onCancel,
+  onOpenExistingHousehold,
+}: QuickAddContactFormProps) {
   const { role } = useCrmAuth()
   const isOwner = role === 'owner'
   const navigate = useNavigate()
@@ -132,7 +145,7 @@ export default function QuickAddContactForm({ title, onCreated }: QuickAddContac
     queueMicrotask(() => firstNameRef.current?.focus())
   }
 
-  async function persistCreate(mode: 'create' | 'create_separate') {
+  async function persistCreate(mode: 'create' | 'create_separate'): Promise<QuickAddCreateResult | null> {
     const result = await createManualContact(supabase, values, {
       mode,
       createToken: mode === 'create_separate' ? tokenRef.current?.token ?? null : null,
@@ -146,7 +159,7 @@ export default function QuickAddContactForm({ title, onCreated }: QuickAddContac
     }
     clearToken()
     setCollisionOpen(false)
-    return result.leadId
+    return result
   }
 
   async function handleSubmit(event: FormEvent, addAnother: boolean) {
@@ -171,9 +184,9 @@ export default function QuickAddContactForm({ title, onCreated }: QuickAddContac
         token.fingerprint === fingerprint &&
         (!token.expiresAt || Date.parse(token.expiresAt) > Date.now())
 
-      let leadId: string | null = null
+      let created: QuickAddCreateResult | null = null
       if (tokenFresh) {
-        leadId = await persistCreate('create_separate')
+        created = await persistCreate('create_separate')
       } else {
         clearToken()
         const preview = await previewContactDuplicates(supabase, values, 'create')
@@ -190,15 +203,16 @@ export default function QuickAddContactForm({ title, onCreated }: QuickAddContac
           setCollisionOpen(true)
           return
         }
-        leadId = await persistCreate('create')
+        created = await persistCreate('create')
       }
 
-      if (!leadId) return
-      setSuccessLeadId(leadId)
+      if (!created) return
+      setSuccessLeadId(created.leadId)
       setSuccessMessage('Contact saved.')
-      onCreated?.(leadId)
+      onCreated?.(created.leadId)
+      onCreatedRecord?.(created)
       if (addAnother) resetAfterSaveAndAddAnother()
-      else navigate(`/crm/contacts/${leadId}`)
+      else if (!embedded) navigate(`/crm/contacts/${created.leadId}`)
     } catch (error) {
       const mapped = mapQuickAddError((error as { cause?: unknown })?.cause ?? error)
       setBannerError(mapped.message)
@@ -218,16 +232,17 @@ export default function QuickAddContactForm({ title, onCreated }: QuickAddContac
     submittingRef.current = true
     setBusy(true)
     try {
-      const leadId = await persistCreate('create_separate')
-      if (!leadId) {
+      const created = await persistCreate('create_separate')
+      if (!created) {
         clearToken()
         setBannerError('Please review duplicates again.')
         return
       }
-      setSuccessLeadId(leadId)
+      setSuccessLeadId(created.leadId)
       setSuccessMessage('Separate contact created.')
-      onCreated?.(leadId)
-      navigate(`/crm/contacts/${leadId}`)
+      onCreated?.(created.leadId)
+      onCreatedRecord?.(created)
+      if (!embedded) navigate(`/crm/contacts/${created.leadId}`)
     } catch (error) {
       const mapped = mapQuickAddError((error as { cause?: unknown })?.cause ?? error)
       setBannerError(mapped.message)
@@ -240,6 +255,12 @@ export default function QuickAddContactForm({ title, onCreated }: QuickAddContac
   }
 
   async function handleOpenExisting(householdId: string) {
+    if (embedded && onOpenExistingHousehold) {
+      clearToken()
+      setCollisionOpen(false)
+      onOpenExistingHousehold(householdId)
+      return
+    }
     try {
       const leadId = await findManualContactLeadIdByHousehold(supabase, householdId)
       if (!leadId) {
@@ -266,7 +287,7 @@ export default function QuickAddContactForm({ title, onCreated }: QuickAddContac
           {bannerError}
         </div>
       ) : null}
-      {successMessage && successLeadId ? (
+      {successMessage && successLeadId && !embedded ? (
         <div className="crm-banner crm-banner-success" role="status">
           {successMessage}{' '}
           <Link to={`/crm/contacts/${successLeadId}`}>View contact</Link>
@@ -514,37 +535,42 @@ export default function QuickAddContactForm({ title, onCreated }: QuickAddContac
           ) : null}
         </fieldset>
 
-        <label className="crm-checkbox-field">
-          <input
-            type="checkbox"
-            checked={keepDefaults}
-            onChange={(e) => setKeepDefaults(e.target.checked)}
-          />
-          <span>
-            Keep entry defaults after Save &amp; Add Another (category / how we met / state
-            {isOwner ? ' / advisor' : ''})
-          </span>
-        </label>
+        {embedded ? null : (
+          <label className="crm-checkbox-field">
+            <input
+              type="checkbox"
+              checked={keepDefaults}
+              onChange={(e) => setKeepDefaults(e.target.checked)}
+            />
+            <span>
+              Keep entry defaults after Save &amp; Add Another (category / how we met / state
+              {isOwner ? ' / advisor' : ''})
+            </span>
+          </label>
+        )}
 
         <div className="crm-form-actions">
           <button type="submit" className="crm-primary-btn" disabled={busy}>
             {busy ? 'Saving…' : 'Save Contact'}
           </button>
-          <button
-            type="button"
-            className="crm-secondary-btn"
-            disabled={busy}
-            onClick={(event) => void handleSubmit(event as unknown as FormEvent, true)}
-          >
-            Save &amp; Add Another
-          </button>
+          {embedded ? null : (
+            <button
+              type="button"
+              className="crm-secondary-btn"
+              disabled={busy}
+              onClick={(event) => void handleSubmit(event as unknown as FormEvent, true)}
+            >
+              Save &amp; Add Another
+            </button>
+          )}
           <button
             type="button"
             className="crm-text-btn"
             disabled={busy}
             onClick={() => {
               clearToken()
-              navigate('/crm/contacts')
+              if (embedded) onCancel?.()
+              else navigate('/crm/contacts')
             }}
           >
             Cancel

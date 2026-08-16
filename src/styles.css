@@ -9967,6 +9967,42 @@ button.public-card-diagnostic:disabled {
   padding: 0 6px;
 }
 
+.crm-application-client-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.crm-application-entry-mode {
+  border: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.crm-application-entry-mode legend {
+  font-weight: 650;
+  padding: 0;
+}
+
+.crm-radio-field {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  min-height: 44px;
+}
+
+.crm-new-client-dialog {
+  width: min(40rem, 100%);
+  max-height: min(90vh, 52rem);
+  overflow: auto;
+}
+
+.crm-client-policies-list .crm-text-btn {
+  margin-top: 6px;
+}
+
 .crm-application-allocation-row {
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(140px, 0.55fr) auto;
@@ -10029,6 +10065,22 @@ button.public-card-diagnostic:disabled {
 
   .crm-application-allocation-row {
     grid-template-columns: 1fr;
+  }
+
+  .crm-application-client-row {
+    grid-template-columns: 1fr;
+  }
+
+  .crm-application-client-row .crm-secondary-btn {
+    width: 100%;
+  }
+
+  .crm-application-client-row {
+    grid-template-columns: 1fr;
+  }
+
+  .crm-application-client-row .crm-secondary-btn {
+    width: 100%;
   }
 
   .crm-application-allocation-row .crm-field,

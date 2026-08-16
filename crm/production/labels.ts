@@ -9,9 +9,9 @@ import type {
 } from './types'
 
 const STAGE_LABELS: Record<ProductionStage, string> = {
-  draft: 'Draft',
+  draft: 'Application Draft',
   pre_submitted: 'Pre-submitted',
-  submitted: 'Submitted',
+  submitted: 'Applied',
   in_underwriting: 'In underwriting',
   approved: 'Approved',
   declined: 'Declined',
@@ -65,8 +65,8 @@ const PREMIUM_MODE_LABELS: Record<ProductionPremiumMode, string> = {
 }
 
 const ENTRY_STAGE_LABELS: Record<ProductionEntryStage, string> = {
-  draft: 'Draft',
-  submitted: 'Submitted',
+  draft: 'Application Draft',
+  submitted: 'Applied',
   in_underwriting: 'In underwriting',
 }
 

@@ -1,7 +1,7 @@
 import type {
   ProductionAllocationDraft,
+  ProductionEntryMode,
   ProductionEntryProductOption,
-  ProductionEntryStage,
   ProductionMemberOption,
   ProductionParticipantDraft,
   ProductionParticipantRole,
@@ -9,7 +9,12 @@ import type {
   ProductionProductLine,
   ProductionStage,
 } from './types'
-import { PRODUCTION_ENTRY_WRITING_BPS_TOTAL, PRODUCTION_PREMIUM_MODES } from './types'
+import {
+  PRODUCTION_ENTRY_STAGES,
+  PRODUCTION_ENTRY_WRITING_BPS_TOTAL,
+  PRODUCTION_PREMIUM_MODES,
+} from './types'
+import { existingBusinessCatchUpStages, shortestStagePath } from './stageTransitionView'
 import { writingSplitError } from './writingSplits'
 
 export const US_STATES = [
@@ -35,6 +40,10 @@ export const FIA_REQUIRED_ROLES: ProductionParticipantRole[] = [
 export const SUBMITTED_ENTRY_REASON = 'Initial production entry — recorded as submitted.'
 export const UNDERWRITING_ENTRY_REASON =
   'Initial production entry — catch-up to in underwriting.'
+export const HISTORICAL_ENTRY_REASON =
+  'Existing business entry — catch-up through controlled stage transitions.'
+export const HISTORICAL_IN_FORCE_REASON =
+  'Existing business entry — delivery not required for historical in-force placement.'
 
 export function requiredParticipantRoles(
   productLine: ProductionProductLine | null | undefined,
@@ -130,13 +139,21 @@ export function splitWritingEvenly(advisorIds: string[]): ProductionAllocationDr
   }))
 }
 
-export function catchUpTransitionPlan(target: ProductionEntryStage): ProductionStage[] {
+export function catchUpTransitionPlan(target: ProductionStage): ProductionStage[] {
   if (target === 'draft') return []
-  if (target === 'submitted') return ['submitted']
-  return ['submitted', 'in_underwriting']
+  return shortestStagePath('draft', target) ?? []
 }
 
-export function transitionReasonForStage(stage: ProductionStage): string {
+export function hasLegalCatchUpPath(target: ProductionStage): boolean {
+  return target === 'draft' || shortestStagePath('draft', target) != null
+}
+
+export function transitionReasonForStage(
+  stage: ProductionStage,
+  entryMode: ProductionEntryMode = 'new_business',
+): string {
+  if (stage === 'in_force') return HISTORICAL_IN_FORCE_REASON
+  if (entryMode === 'existing_business') return HISTORICAL_ENTRY_REASON
   if (stage === 'submitted') return SUBMITTED_ENTRY_REASON
   if (stage === 'in_underwriting') return UNDERWRITING_ENTRY_REASON
   return 'Initial production entry.'
@@ -186,6 +203,8 @@ export type ApplicationDraftFieldErrors = {
   allocations?: string
   applicationNumber?: string
   submissionDate?: string
+  policyNumber?: string
+  entryMode?: string
 }
 
 export type ApplicationDraftInput = {
@@ -194,13 +213,16 @@ export type ApplicationDraftInput = {
   productId: string
   productLine: ProductionProductLine | ''
   state: string
-  targetStage: ProductionEntryStage | ''
+  targetStage: ProductionStage | ''
+  entryMode?: ProductionEntryMode
+  isOwner?: boolean
   premiumMode: string
   plannedPremium: string
   faceAmount: string
   initialDeposit: string
   applicationNumber: string
   submissionDate: string
+  policyNumber?: string
   roleMembers: Partial<Record<ProductionParticipantRole, string>>
   allocations: ProductionAllocationDraft[]
 }
@@ -217,7 +239,25 @@ export function validateApplicationDraft(input: ApplicationDraftInput): {
   if (!state || !(US_STATES as readonly string[]).includes(state)) {
     fieldErrors.state = 'Select a two-letter state.'
   }
+  const entryMode: ProductionEntryMode = input.entryMode ?? 'new_business'
   if (!input.targetStage) fieldErrors.targetStage = 'Select the current stage.'
+  else if (entryMode === 'new_business') {
+    if (!(PRODUCTION_ENTRY_STAGES as readonly string[]).includes(input.targetStage)) {
+      fieldErrors.targetStage = 'New business can start as Application Draft, Applied, or In underwriting.'
+    }
+  } else {
+    const allowed = existingBusinessCatchUpStages({ isOwner: Boolean(input.isOwner) })
+    if (!(allowed as readonly string[]).includes(input.targetStage) || !hasLegalCatchUpPath(input.targetStage)) {
+      fieldErrors.targetStage = 'Select a current stage supported by the production workflow.'
+    }
+  }
+  if (input.targetStage === 'issued' || input.targetStage === 'in_force') {
+    if (!input.policyNumber?.trim()) {
+      fieldErrors.policyNumber = 'Policy number is required for issued or in-force historical business.'
+    } else if (input.policyNumber.trim().length > 60) {
+      fieldErrors.policyNumber = 'Policy number must be 60 characters or fewer.'
+    }
+  }
 
   const line = input.productLine
   if (isLifeProductLine(line)) {
@@ -286,12 +326,14 @@ export function isCreateFormDirty(input: ApplicationDraftInput): boolean {
       input.carrierId.trim() ||
       input.productId.trim() ||
       input.state.trim() ||
+      (input.entryMode && input.entryMode !== 'new_business') ||
       (input.targetStage && input.targetStage !== 'draft') ||
       input.premiumMode.trim() ||
       input.plannedPremium.trim() ||
       input.faceAmount.trim() ||
       input.initialDeposit.trim() ||
       input.applicationNumber.trim() ||
-      input.submissionDate.trim(),
+      input.submissionDate.trim() ||
+      input.policyNumber?.trim(),
   )
 }
