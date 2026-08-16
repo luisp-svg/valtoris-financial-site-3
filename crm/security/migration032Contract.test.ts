@@ -7,23 +7,28 @@ import {
   MIGRATION_032_FILENAME,
   MIGRATION_032_FORBIDDEN_MARKERS,
 } from './migration032Contract'
+import { MIGRATION_033_FILENAME } from './migration033Contract'
 
 const migrationsDir = resolve(process.cwd(), 'supabase/migrations')
 const sql = readFileSync(resolve(migrationsDir, MIGRATION_032_FILENAME), 'utf8')
 
 describe('migration 032 Policy Production P1A foundation contract', () => {
-  it('records the approved migration filename after 031 and forbids 033', () => {
+  it('records the approved migration filename after 031 and before 033', () => {
     expect(MIGRATION_032_FILENAME).toBe('032_policy_production_foundation.sql')
     const files = readdirSync(migrationsDir)
       .filter((f) => /^\d{3}_.+\.sql$/.test(f))
       .sort()
     expect(files).toContain(MIGRATION_031_FILENAME)
     expect(files).toContain(MIGRATION_032_FILENAME)
+    expect(files).toContain(MIGRATION_033_FILENAME)
     expect(files.indexOf(MIGRATION_032_FILENAME)).toBeGreaterThan(
       files.indexOf(MIGRATION_031_FILENAME),
     )
+    expect(files.indexOf(MIGRATION_033_FILENAME)).toBeGreaterThan(
+      files.indexOf(MIGRATION_032_FILENAME),
+    )
     expect(files.filter((f) => f.startsWith('032_'))).toEqual([MIGRATION_032_FILENAME])
-    expect(files.some((f) => f.startsWith('033_'))).toBe(false)
+    expect(files.filter((f) => f.startsWith('033_'))).toEqual([MIGRATION_033_FILENAME])
   })
 
   it('includes required schema, RPC, RLS, grant, and search_path markers', () => {
