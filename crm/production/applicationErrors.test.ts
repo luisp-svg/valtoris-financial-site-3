@@ -9,7 +9,15 @@ describe('application error normalization', () => {
       /already used/i,
     )
     expect(formatApplicationUserError({ message: 'CRM_PP:identifier_locked' })).toMatch(/already set/i)
-    expect(formatApplicationUserError({ message: 'CRM_PP:missing_required_fields' })).toMatch(/required/i)
+    expect(formatApplicationUserError({ message: 'CRM_PP:invalid_allocations' })).toBe(
+      'Writing allocations must total 100%.',
+    )
+    expect(formatApplicationUserError({ message: 'CRM_PP:not_authorized' })).toBe(
+      'You do not have permission to update this application.',
+    )
+    expect(formatApplicationUserError({ message: 'CRM_PP:invalid_premium' })).toBe(
+      'Premium information is incomplete.',
+    )
     const leaked = formatApplicationUserError({
       message: 'permission denied for table policy_applications',
       code: '42501',

@@ -286,6 +286,8 @@ export type ProductionQueueFilters = {
 export type ProductionAdvisorOption = {
   id: string
   display_name: string
+  /** Present when loaded for application entry; used only as a licensing warning. */
+  states_licensed?: string[]
 }
 
 export type ProductionCarrierOption = {

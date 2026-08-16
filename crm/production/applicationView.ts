@@ -10,6 +10,7 @@ import type {
   ProductionStage,
 } from './types'
 import { PRODUCTION_ENTRY_WRITING_BPS_TOTAL, PRODUCTION_PREMIUM_MODES } from './types'
+import { writingSplitError } from './writingSplits'
 
 export const US_STATES = [
   'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'DC', 'FL',
@@ -209,9 +210,9 @@ export function validateApplicationDraft(input: ApplicationDraftInput): {
   fieldErrors: ApplicationDraftFieldErrors
 } {
   const fieldErrors: ApplicationDraftFieldErrors = {}
-  if (!input.householdId.trim()) fieldErrors.householdId = 'Select a household.'
-  if (!input.carrierId.trim()) fieldErrors.carrierId = 'Select a carrier.'
-  if (!input.productId.trim()) fieldErrors.productId = 'Select a product.'
+  if (!input.householdId.trim()) fieldErrors.householdId = 'Missing client'
+  if (!input.carrierId.trim()) fieldErrors.carrierId = 'Choose a carrier'
+  if (!input.productId.trim()) fieldErrors.productId = 'Choose a product'
   const state = input.state.trim().toUpperCase()
   if (!state || !(US_STATES as readonly string[]).includes(state)) {
     fieldErrors.state = 'Select a two-letter state.'
@@ -221,9 +222,9 @@ export function validateApplicationDraft(input: ApplicationDraftInput): {
   const line = input.productLine
   if (isLifeProductLine(line)) {
     const cents = dollarsToCents(input.plannedPremium)
-    if (cents == null || cents <= 0) fieldErrors.plannedPremium = 'Enter a planned premium greater than zero.'
+    if (cents == null || cents <= 0) fieldErrors.plannedPremium = 'Premium information is incomplete'
     if (!(PRODUCTION_PREMIUM_MODES as readonly string[]).includes(input.premiumMode)) {
-      fieldErrors.premiumMode = 'Select a premium mode.'
+      fieldErrors.premiumMode = 'Premium information is incomplete'
     }
     if (input.faceAmount.trim()) {
       const face = dollarsToCents(input.faceAmount)
@@ -232,7 +233,7 @@ export function validateApplicationDraft(input: ApplicationDraftInput): {
   } else if (isFiaProductLine(line)) {
     const deposit = dollarsToCents(input.initialDeposit)
     if (deposit == null || deposit <= 0) {
-      fieldErrors.initialDeposit = 'Enter an initial deposit greater than zero.'
+      fieldErrors.initialDeposit = 'Premium information is incomplete'
     }
   }
 
@@ -256,16 +257,8 @@ export function validateApplicationDraft(input: ApplicationDraftInput): {
     }
   }
 
-  const totals = writingBpsTotals(input.allocations)
-  const advisorIds = input.allocations.map((row) => row.advisor_id)
-  if (input.allocations.length === 0 || advisorIds.some((id) => !id)) {
-    fieldErrors.allocations = 'Select at least one writing advisor.'
-  } else if (new Set(advisorIds).size !== advisorIds.length) {
-    fieldErrors.allocations = 'Each writing advisor can appear only once.'
-  } else if (!totals.valid) {
-    fieldErrors.allocations =
-      'Writing commission and production credit must each total exactly 10,000 bps.'
-  }
+  const allocationMessage = writingSplitError(input.allocations)
+  if (allocationMessage) fieldErrors.allocations = allocationMessage
 
   return { invalid: Object.keys(fieldErrors).length > 0, fieldErrors }
 }
@@ -285,4 +278,20 @@ export function defaultRoleMembers(
 
 export function isPremiumMode(value: string): value is ProductionPremiumMode {
   return (PRODUCTION_PREMIUM_MODES as readonly string[]).includes(value)
+}
+
+export function isCreateFormDirty(input: ApplicationDraftInput): boolean {
+  return Boolean(
+    input.householdId.trim() ||
+      input.carrierId.trim() ||
+      input.productId.trim() ||
+      input.state.trim() ||
+      (input.targetStage && input.targetStage !== 'draft') ||
+      input.premiumMode.trim() ||
+      input.plannedPremium.trim() ||
+      input.faceAmount.trim() ||
+      input.initialDeposit.trim() ||
+      input.applicationNumber.trim() ||
+      input.submissionDate.trim(),
+  )
 }

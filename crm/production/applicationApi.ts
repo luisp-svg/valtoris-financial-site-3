@@ -44,6 +44,7 @@ import type {
   ProductionStage,
 } from './types'
 import { PRODUCTION_PRODUCT_LINES } from './types'
+import { toWritingAllocationRpcPayload } from './writingSplits'
 
 const APPLICATION_RPC = {
   create: 'create_policy_application',
@@ -239,7 +240,7 @@ export async function fetchActiveWritingAdvisors(
 ): Promise<ProductionAdvisorOption[]> {
   const { data, error } = await supabase
     .from('advisor_profiles')
-    .select('id, display_name')
+    .select('id, display_name, states_licensed')
     .eq('is_active', true)
     .is('deleted_at', null)
     .order('display_name', { ascending: true })
@@ -249,6 +250,9 @@ export async function fetchActiveWritingAdvisors(
     .map((row) => ({
       id: String(row.id),
       display_name: String(row.display_name ?? 'Advisor'),
+      states_licensed: Array.isArray(row.states_licensed)
+        ? row.states_licensed.map((value) => String(value))
+        : [],
     }))
 }
 
@@ -306,7 +310,7 @@ export async function setPolicyApplicationAllocations(
 ): Promise<ApplicationMutationResult<{ allocationCount: number }>> {
   const { data, error } = await supabase.rpc(APPLICATION_RPC.setAllocations, {
     p_application_id: applicationId,
-    p_allocations: allocations,
+    p_allocations: toWritingAllocationRpcPayload(allocations),
     p_reason: reason,
   })
   if (error) return mutationFailure(error)

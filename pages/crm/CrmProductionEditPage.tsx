@@ -21,6 +21,7 @@ import {
   canReplaceParticipants,
   canShowProductionEditAction,
   draftFromOriginal,
+  isApplicationEditDirty,
   originalFromApplication,
   validateApplicationEdit,
   type ApplicationEditDraft,
@@ -41,6 +42,10 @@ import type {
   ProductionProductLine,
 } from '../../crm/production/types'
 import { createSupabaseBrowserClient } from '../../lib/supabase/client'
+import {
+  confirmLeaveUnsavedForm,
+  useUnsavedChangesWarning,
+} from '../../crm/production/useUnsavedChangesWarning'
 
 export default function CrmProductionEditPage() {
   const { applicationId = '' } = useParams<{ applicationId: string }>()
@@ -138,6 +143,8 @@ export default function CrmProductionEditPage() {
     stage: application?.production_stage,
     deletedAt: application?.deleted_at,
   })
+  const isDirty = Boolean(original && draft && isApplicationEditDirty(original, draft))
+  useUnsavedChangesWarning(isDirty && !submitting)
 
   function patchDraft(patch: Partial<ApplicationEditDraft>) {
     setDraft((prev) => (prev ? { ...prev, ...patch } : prev))
@@ -157,6 +164,15 @@ export default function CrmProductionEditPage() {
 
   function handleAllocationsChange(rows: ProductionAllocationDraft[]) {
     patchDraft({ allocations: rows })
+  }
+
+  function handleCancel() {
+    if (!application) {
+      navigate(ROUTES.crmProduction)
+      return
+    }
+    if (!confirmLeaveUnsavedForm(isDirty)) return
+    navigate(crmProductionPath(application.id))
   }
 
   async function handleSubmit(intent: ApplicationEditIntent) {
@@ -219,8 +235,8 @@ export default function CrmProductionEditPage() {
             <p className="crm-page-eyebrow">Production</p>
             <h1 className="crm-page-title">Application cannot be edited</h1>
             <p className="crm-page-subtitle">
-              This application is not available for draft recovery in this slice, or it is not
-              visible for your account.
+              This application can no longer be edited from this screen, or it is not visible for
+              your account.
             </p>
           </div>
         </header>
@@ -263,9 +279,9 @@ export default function CrmProductionEditPage() {
             transaction.
           </p>
         </div>
-        <Link to={crmProductionPath(application.id)} className="crm-secondary-btn">
+        <button type="button" className="crm-secondary-btn" onClick={handleCancel}>
           Back to application
-        </Link>
+        </button>
       </header>
 
       <ApplicationEditForm
@@ -296,6 +312,7 @@ export default function CrmProductionEditPage() {
         submissionDate={draft.submissionDate}
         nextFollowUpDate={draft.nextFollowUpDate}
         applicationNumber={draft.applicationNumber}
+        policyNumber={draft.policyNumber}
         applicationNumberReason={draft.applicationNumberReason}
         participantReason={draft.participantReason}
         allocationReason={draft.allocationReason}
@@ -313,6 +330,7 @@ export default function CrmProductionEditPage() {
         onSubmissionDateChange={(submissionDate) => patchDraft({ submissionDate })}
         onNextFollowUpDateChange={(nextFollowUpDate) => patchDraft({ nextFollowUpDate })}
         onApplicationNumberChange={(applicationNumber) => patchDraft({ applicationNumber })}
+        onPolicyNumberChange={(policyNumber) => patchDraft({ policyNumber })}
         onApplicationNumberReasonChange={(applicationNumberReason) =>
           patchDraft({ applicationNumberReason })
         }
@@ -322,6 +340,7 @@ export default function CrmProductionEditPage() {
           patchDraft({ roleMembers: { ...draft.roleMembers, [roleName]: memberId } })
         }
         onAllocationsChange={handleAllocationsChange}
+        onCancel={handleCancel}
         onSubmit={(intent) => void handleSubmit(intent)}
       />
     </div>

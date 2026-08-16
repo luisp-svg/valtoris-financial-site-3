@@ -7,8 +7,8 @@ import {
   isPremiumMode,
   participantPayloadOmitsInsuredForFia,
   requiredParticipantRoles,
-  writingBpsTotals,
 } from './applicationView'
+import { writingSplitError } from './writingSplits'
 import { getCurrentAllocations, getCurrentParticipants } from './daysInStage'
 import type {
   ProductionAllocation,
@@ -66,6 +66,10 @@ export function canEditCatalogFields(stage: ProductionStage): boolean {
 
 export function canEditMoneyAndDates(stage: ProductionStage): boolean {
   return PRODUCTION_EDIT_STAGES.includes(stage)
+}
+
+export function canEditPolicyNumber(stage: ProductionStage): boolean {
+  return stage === 'submitted' || stage === 'in_underwriting'
 }
 
 export function canReplaceParticipants(options: {
@@ -140,7 +144,7 @@ export function isIncompleteDraft(application: {
   const current = getCurrentParticipants(application.participants)
   const missingRole = roles.some((role) => !current.some((row) => row.role === role))
   const writing = writingDraftsFromAllocations(getCurrentAllocations(application.allocations))
-  return missingRole || !writingBpsTotals(writing).valid
+  return missingRole || Boolean(writingSplitError(writing))
 }
 
 export function centsToDollarsInput(cents: number | null | undefined): string {
@@ -238,6 +242,7 @@ export type ApplicationEditDraft = {
   submissionDate: string
   nextFollowUpDate: string
   applicationNumber: string
+  policyNumber: string
   applicationNumberReason: string
   participantReason: string
   allocationReason: string
@@ -257,6 +262,7 @@ export type ApplicationEditOriginal = {
   submissionDate: string
   nextFollowUpDate: string
   applicationNumber: string
+  policyNumber: string
   participants: ProductionParticipantDraft[]
   allocations: ProductionAllocationDraft[]
 }
@@ -274,6 +280,7 @@ export function originalFromApplication(application: ProductionApplicationDetail
     submissionDate: application.submission_date?.slice(0, 10) ?? '',
     nextFollowUpDate: application.next_follow_up_date?.slice(0, 10) ?? '',
     applicationNumber: application.application_number ?? '',
+    policyNumber: application.policy_number ?? '',
     participants: getCurrentParticipants(application.participants).map((row) => ({
       household_member_id: row.household_member_id,
       role: row.role,
@@ -297,6 +304,7 @@ export function draftFromOriginal(original: ApplicationEditOriginal): Applicatio
     submissionDate: original.submissionDate,
     nextFollowUpDate: original.nextFollowUpDate,
     applicationNumber: original.applicationNumber,
+    policyNumber: original.policyNumber,
     applicationNumberReason: '',
     participantReason: '',
     allocationReason: '',
@@ -316,6 +324,7 @@ export type ApplicationEditFieldErrors = {
   submissionDate?: string
   nextFollowUpDate?: string
   applicationNumber?: string
+  policyNumber?: string
   applicationNumberReason?: string
   participants?: string
   participantReason?: string
@@ -336,8 +345,8 @@ export function validateApplicationEdit(options: {
   const line = draft.productLine || original.productLine
 
   if (canEditCatalogFields(stage)) {
-    if (!draft.carrierId.trim()) fieldErrors.carrierId = 'Select a carrier.'
-    if (!draft.productId.trim()) fieldErrors.productId = 'Select a product.'
+    if (!draft.carrierId.trim()) fieldErrors.carrierId = 'Choose a carrier'
+    if (!draft.productId.trim()) fieldErrors.productId = 'Choose a product'
     const state = draft.state.trim().toUpperCase()
     if (!/^[A-Z]{2}$/.test(state)) fieldErrors.state = 'Select a two-letter state.'
   }
@@ -346,15 +355,15 @@ export function validateApplicationEdit(options: {
     if (isLifeProductLine(line)) {
       const cents = dollarsToCents(draft.plannedPremium)
       if (intent !== 'save' && (cents == null || cents <= 0)) {
-        fieldErrors.plannedPremium = 'Enter a planned premium greater than zero.'
+        fieldErrors.plannedPremium = 'Premium information is incomplete'
       } else if (draft.plannedPremium.trim() && (cents == null || cents <= 0)) {
-        fieldErrors.plannedPremium = 'Enter a planned premium greater than zero.'
+        fieldErrors.plannedPremium = 'Premium information is incomplete'
       }
       if (draft.premiumMode && !(PRODUCTION_PREMIUM_MODES as readonly string[]).includes(draft.premiumMode)) {
-        fieldErrors.premiumMode = 'Select a premium mode.'
+        fieldErrors.premiumMode = 'Premium information is incomplete'
       }
       if (intent !== 'save' && !isPremiumMode(draft.premiumMode)) {
-        fieldErrors.premiumMode = 'Select a premium mode.'
+        fieldErrors.premiumMode = 'Premium information is incomplete'
       }
       if (draft.faceAmount.trim()) {
         const face = dollarsToCents(draft.faceAmount)
@@ -363,9 +372,9 @@ export function validateApplicationEdit(options: {
     } else if (isFiaProductLine(line)) {
       const deposit = dollarsToCents(draft.initialDeposit)
       if (intent !== 'save' && (deposit == null || deposit <= 0)) {
-        fieldErrors.initialDeposit = 'Enter an initial deposit greater than zero.'
+        fieldErrors.initialDeposit = 'Premium information is incomplete'
       } else if (draft.initialDeposit.trim() && (deposit == null || deposit <= 0)) {
-        fieldErrors.initialDeposit = 'Enter an initial deposit greater than zero.'
+        fieldErrors.initialDeposit = 'Premium information is incomplete'
       }
     }
     if (draft.submissionDate.trim() && !/^\d{4}-\d{2}-\d{2}$/.test(draft.submissionDate.trim())) {
@@ -395,11 +404,11 @@ export function validateApplicationEdit(options: {
 
   const allocationsChanged = !allocationsEqual(draft.allocations, original.allocations)
   if (canReplaceAllocations({ stage, isOwner }) && (allocationsChanged || intent !== 'save')) {
-    const totals = writingBpsTotals(draft.allocations)
-    if (intent !== 'save' && !totals.valid) {
-      fieldErrors.allocations = 'Writing commission and production credit must each total exactly 10,000 bps.'
-    } else if (allocationsChanged && !totals.valid) {
-      fieldErrors.allocations = 'Writing commission and production credit must each total exactly 10,000 bps.'
+    const allocationMessage = writingSplitError(draft.allocations)
+    if (intent !== 'save' && allocationMessage) {
+      fieldErrors.allocations = allocationMessage
+    } else if (allocationsChanged && allocationMessage) {
+      fieldErrors.allocations = allocationMessage
     }
     if (allocationsChanged && participantReasonRequired(stage) && !draft.allocationReason.trim()) {
       fieldErrors.allocationReason = 'Enter a reason to replace writing allocations after submission.'
@@ -420,6 +429,13 @@ export function validateApplicationEdit(options: {
     if (nextNumber.length > 60) fieldErrors.applicationNumber = 'Application number must be 60 characters or fewer.'
     if (!draft.applicationNumberReason.trim()) {
       fieldErrors.applicationNumberReason = 'Enter a reason. Corrections are written to the audit log.'
+    }
+  }
+
+  if (canEditPolicyNumber(stage)) {
+    const policyNumber = draft.policyNumber.trim()
+    if (policyNumber.length > 60) {
+      fieldErrors.policyNumber = 'Policy number must be 60 characters or fewer.'
     }
   }
 
@@ -476,6 +492,13 @@ export function buildUpdatePayload(options: {
     }
   }
 
+  if (canEditPolicyNumber(stage)) {
+    const policyNumber = draft.policyNumber.trim()
+    if (policyNumber !== original.policyNumber.trim()) {
+      payload.policy_number = policyNumber || null
+    }
+  }
+
   return Object.keys(payload).length > 0 ? payload : null
 }
 
@@ -485,4 +508,25 @@ export function formatPartialSaveMessage(saved: ApplicationEditPhase[], failed: 
   }
   const savedText = saved.map((phase) => EDIT_PHASE_LABELS[phase]).join(', ')
   return `Saved: ${savedText}. ${EDIT_PHASE_LABELS[failed]} was not saved. The page reloaded from the server. Nothing was rolled back.`
+}
+
+export function isApplicationEditDirty(original: ApplicationEditOriginal, draft: ApplicationEditDraft): boolean {
+  if (draft.carrierId !== original.carrierId) return true
+  if (draft.productId !== original.productId) return true
+  if (draft.state !== original.state) return true
+  if (draft.premiumMode !== original.premiumMode) return true
+  if (draft.plannedPremium !== original.plannedPremium) return true
+  if (draft.faceAmount !== original.faceAmount) return true
+  if (draft.initialDeposit !== original.initialDeposit) return true
+  if (draft.submissionDate !== original.submissionDate) return true
+  if (draft.nextFollowUpDate !== original.nextFollowUpDate) return true
+  if (draft.applicationNumber !== original.applicationNumber) return true
+  if (draft.policyNumber !== original.policyNumber) return true
+  const nextParticipants = buildParticipantPayload({
+    productLine: (draft.productLine || original.productLine) as ProductionProductLine,
+    roleMembers: draft.roleMembers,
+  })
+  if (!participantsEqual(nextParticipants, original.participants)) return true
+  if (!allocationsEqual(draft.allocations, original.allocations)) return true
+  return false
 }

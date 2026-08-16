@@ -54,9 +54,10 @@ describe('production application entry P1B-2B contracts', () => {
 
   it('locks pending submit, product-line fields, and mobile-accessible form contracts', () => {
     expect(newPage).toContain('if (submitting) return')
-    expect(form).toContain('Planned premium')
-    expect(form).toContain('Initial deposit')
+    expect(form).toContain('Submitted premium')
+    expect(form).toContain('Annuity deposit')
     expect(form).toContain('FIA does not use an insured')
+    expect(form).toContain('WritingAdvisorsFields')
     expect(form).toContain('disabled={props.submitting}')
     expect(form).toContain('crm-field')
     expect(styles).toContain('.crm-application-entry-form .crm-form-actions')

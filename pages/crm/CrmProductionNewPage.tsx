@@ -20,6 +20,7 @@ import {
   catalogReadyForApplications,
   defaultRoleMembers,
   defaultWritingAllocations,
+  isCreateFormDirty,
   productsForCarrier,
   validateApplicationDraft,
 } from '../../crm/production/applicationView'
@@ -35,6 +36,10 @@ import type {
   ProductionProductLine,
 } from '../../crm/production/types'
 import { createSupabaseBrowserClient } from '../../lib/supabase/client'
+import {
+  confirmLeaveUnsavedForm,
+  useUnsavedChangesWarning,
+} from '../../crm/production/useUnsavedChangesWarning'
 
 export default function CrmProductionNewPage() {
   const { role, user } = useCrmAuth()
@@ -53,7 +58,7 @@ export default function CrmProductionNewPage() {
   const [carrierId, setCarrierId] = useState('')
   const [productId, setProductId] = useState('')
   const [state, setState] = useState('')
-  const [targetStage, setTargetStage] = useState<ProductionEntryStage | ''>('')
+  const [targetStage, setTargetStage] = useState<ProductionEntryStage | ''>('draft')
   const [premiumMode, setPremiumMode] = useState('')
   const [plannedPremium, setPlannedPremium] = useState('')
   const [faceAmount, setFaceAmount] = useState('')
@@ -137,6 +142,23 @@ export default function CrmProductionNewPage() {
   const carrierProducts = useMemo(() => productsForCarrier(products, carrierId), [products, carrierId])
   const selectedProduct = carrierProducts.find((row) => row.id === productId) ?? null
   const productLine: ProductionProductLine | '' = selectedProduct?.product_line ?? ''
+  const isDirty = isCreateFormDirty({
+    householdId,
+    carrierId,
+    productId,
+    productLine,
+    state,
+    targetStage,
+    premiumMode,
+    plannedPremium,
+    faceAmount,
+    initialDeposit,
+    applicationNumber,
+    submissionDate,
+    roleMembers,
+    allocations,
+  })
+  useUnsavedChangesWarning(isDirty && !submitting)
 
   function handleCarrierChange(nextCarrierId: string) {
     setCarrierId(nextCarrierId)
@@ -144,11 +166,12 @@ export default function CrmProductionNewPage() {
   }
 
   function handleAllocationsChange(rows: ProductionAllocationDraft[]) {
-    if (rows.length === 1 && rows[0].advisor_id) {
-      setAllocations(defaultWritingAllocations(rows[0].advisor_id))
-      return
-    }
     setAllocations(rows)
+  }
+
+  function handleCancel() {
+    if (!confirmLeaveUnsavedForm(isDirty)) return
+    navigate(ROUTES.crmProduction)
   }
 
   async function handleSubmit() {
@@ -217,9 +240,9 @@ export default function CrmProductionNewPage() {
             database transaction.
           </p>
         </div>
-        <Link to={ROUTES.crmProduction} className="crm-secondary-btn">
+        <button type="button" className="crm-secondary-btn" onClick={handleCancel}>
           Back to Production
-        </Link>
+        </button>
       </header>
 
       {loading ? <p className="crm-muted">Loading application options…</p> : null}
@@ -286,6 +309,7 @@ export default function CrmProductionNewPage() {
             setRoleMembers((prev) => ({ ...prev, [role]: memberId }))
           }
           onAllocationsChange={handleAllocationsChange}
+          onCancel={handleCancel}
           onSubmit={() => void handleSubmit()}
         />
       ) : null}

@@ -126,3 +126,11 @@ export function formatProductionProductLineShort(line: string | null | undefined
   if (line === 'fia') return 'FIA'
   return formatProductionProductLineLabel(line)
 }
+
+/** Create/edit product-line context: Term / Permanent / FIA. */
+export function formatApplicationProductLineLabel(line: string | null | undefined): string {
+  if (line === 'life_term') return 'Term'
+  if (line === 'life_permanent') return 'Permanent'
+  if (line === 'fia') return 'FIA'
+  return formatProductionProductLineLabel(line)
+}

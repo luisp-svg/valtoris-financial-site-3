@@ -80,7 +80,7 @@ describe('application entry view helpers', () => {
     const invalid = validateApplicationDraft(
       lifeDraft({ allocations: defaultWritingAllocations('a1').map((row) => ({ ...row, commission_bps: 1 })) }),
     )
-    expect(invalid.fieldErrors.allocations).toMatch(/10,000/)
+    expect(invalid.fieldErrors.allocations).toMatch(/100%/)
   })
 
   it('walks the legal catch-up sequence and never jumps draft to in_underwriting', () => {

@@ -25,6 +25,7 @@ const original: ApplicationEditOriginal = {
   submissionDate: '',
   nextFollowUpDate: '',
   applicationNumber: '',
+  policyNumber: '',
   participants: [
     { household_member_id: 'm1', role: 'primary_client' },
     { household_member_id: 'm1', role: 'insured' },
@@ -46,6 +47,7 @@ function draft(over: Partial<ApplicationEditDraft> = {}): ApplicationEditDraft {
     submissionDate: original.submissionDate,
     nextFollowUpDate: original.nextFollowUpDate,
     applicationNumber: original.applicationNumber,
+    policyNumber: original.policyNumber,
     applicationNumberReason: '',
     participantReason: '',
     allocationReason: '',

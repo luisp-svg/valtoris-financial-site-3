@@ -9969,9 +9969,29 @@ button.public-card-diagnostic:disabled {
 
 .crm-application-allocation-row {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(110px, 0.7fr) minmax(110px, 0.7fr) auto;
+  grid-template-columns: minmax(0, 1.4fr) minmax(140px, 0.55fr) auto;
   gap: 12px;
   align-items: end;
+}
+
+.crm-application-allocation-percent input {
+  font-size: 1.125rem;
+  min-height: 44px;
+}
+
+.crm-application-split-summary {
+  margin: 0;
+  font-weight: 600;
+  color: var(--crm-navy);
+}
+
+.crm-application-license-warning {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+.crm-application-review .crm-opportunity-form-readonly {
+  margin-bottom: 8px;
 }
 
 @media (max-width: 899px) {
@@ -10005,6 +10025,22 @@ button.public-card-diagnostic:disabled {
   .crm-application-edit-actions .crm-primary-btn,
   .crm-application-edit-actions .crm-secondary-btn {
     width: 100%;
+  }
+
+  .crm-application-allocation-row {
+    grid-template-columns: 1fr;
+  }
+
+  .crm-application-allocation-row .crm-field,
+  .crm-application-allocation-row select,
+  .crm-application-allocation-row input,
+  .crm-application-allocation-percent input {
+    width: 100%;
+  }
+
+  .crm-application-allocation-percent input {
+    min-height: 48px;
+    font-size: 1.25rem;
   }
 }
 

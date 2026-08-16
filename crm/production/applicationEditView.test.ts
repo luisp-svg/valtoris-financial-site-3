@@ -31,6 +31,7 @@ function original(over: Partial<ApplicationEditOriginal> = {}): ApplicationEditO
     submissionDate: '',
     nextFollowUpDate: '',
     applicationNumber: '',
+    policyNumber: '',
     participants: [
       { household_member_id: 'm1', role: 'primary_client' },
       { household_member_id: 'm1', role: 'insured' },
@@ -59,6 +60,7 @@ function draftFrom(base: ApplicationEditOriginal, over: Partial<ApplicationEditD
     submissionDate: base.submissionDate,
     nextFollowUpDate: base.nextFollowUpDate,
     applicationNumber: base.applicationNumber,
+    policyNumber: base.policyNumber,
     applicationNumberReason: '',
     participantReason: '',
     allocationReason: '',
@@ -171,6 +173,22 @@ describe('production application edit helpers', () => {
     expect(payload).not.toHaveProperty('state')
     expect(payload).not.toHaveProperty('carrier_id')
     expect(payload?.submitted_premium_cents).toBe(150000)
+  })
+
+  it('includes policy number on submitted update payloads only', () => {
+    const base = original()
+    const draftPayload = buildUpdatePayload({
+      stage: 'draft',
+      original: base,
+      draft: draftFrom(base, { policyNumber: 'POL-1' }),
+    })
+    expect(draftPayload).toBeNull()
+    const submitted = buildUpdatePayload({
+      stage: 'submitted',
+      original: base,
+      draft: draftFrom(base, { policyNumber: 'POL-1' }),
+    })
+    expect(submitted?.policy_number).toBe('POL-1')
   })
 
   it('flags incomplete drafts and maps partial-save copy without claiming rollback', () => {

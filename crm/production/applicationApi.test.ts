@@ -166,4 +166,25 @@ describe('application API RPC mapping', () => {
       'transition_policy_application_stage',
     ])
   })
+
+  it('strips forbidden compensation keys before set_policy_application_allocations', async () => {
+    const rpc = vi.fn().mockResolvedValue({ data: { ok: true, allocation_count: 1 }, error: null })
+    const dirty = [
+      {
+        ...defaultWritingAllocations('adv1')[0],
+        writing_contract_level: 'SFA',
+        compensation_rate: '0.9',
+      },
+    ]
+    await setPolicyApplicationAllocations(rpcClient(rpc), 'app1', dirty as never)
+    const payload = rpc.mock.calls[0][1].p_allocations
+    expect(payload[0]).toEqual({
+      recipient_type: 'advisor',
+      advisor_id: 'adv1',
+      allocation_role: 'writing',
+      commission_bps: 10000,
+      production_credit_bps: 10000,
+    })
+    expect(JSON.stringify(payload)).not.toMatch(/writing_contract_level|compensation_rate/)
+  })
 })

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  formatApplicationProductLineLabel,
   formatCatalogProductLineLabel,
   formatProductionDeliveryLabel,
   formatProductionDispositionLabel,
@@ -19,6 +20,9 @@ describe('production labels', () => {
     expect(formatCatalogProductLineLabel('life_term')).toBe('Term Life')
     expect(formatCatalogProductLineLabel('life_permanent')).toBe('Permanent Life / IUL')
     expect(formatCatalogProductLineLabel('fia')).toBe('Fixed Indexed Annuity')
+    expect(formatApplicationProductLineLabel('life_term')).toBe('Term')
+    expect(formatApplicationProductLineLabel('life_permanent')).toBe('Permanent')
+    expect(formatApplicationProductLineLabel('fia')).toBe('FIA')
     expect(formatProductionProductLineShort('life_permanent')).toBe('IUL / Permanent')
     expect(formatProductionProductLineShort('fia')).toBe('FIA')
     expect(formatProductionDispositionLabel('approved_as_applied')).toBe('Approved as applied')
