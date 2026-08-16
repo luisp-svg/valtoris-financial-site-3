@@ -328,6 +328,7 @@ function mapListItem(row: RawListRow): ProductionApplicationListItem | null {
     allocations: mapAllocations(row.allocations ?? null),
     stage_history: mapHistory(row.stage_history ?? null),
     linked_policies: mapLinkedPolicies(row.linked_policies ?? null),
+    expected_compensations: [],
   }
 }
 

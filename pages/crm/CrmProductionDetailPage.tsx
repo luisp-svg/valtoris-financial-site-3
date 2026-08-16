@@ -27,13 +27,23 @@ import {
 } from '../../crm/production/productionApi'
 import type { ProductionApplicationDetail } from '../../crm/production/types'
 import { PRODUCTION_STALE_DAYS_IN_STAGE } from '../../crm/production/types'
+import { useCrmAuth } from '../../crm/auth/CrmAuthContext'
 import {
   ROUTES,
   crmHouseholdPath,
   crmOpportunityPath,
   crmProductionEditPath,
 } from '../../constants/routes'
-import { useCrmAuth } from '../../crm/auth/CrmAuthContext'
+import ActualCommissionPanel from '../../crm/production/ActualCommissionPanel'
+import ExpectedCompensationPanel from '../../crm/production/ExpectedCompensationPanel'
+import {
+  fetchLiveExpectedCompensations,
+  fetchWritingCommissionSnapshot,
+  formatCompensationDevError,
+  type WritingCommissionSnapshotView,
+} from '../../crm/production/compensationApi'
+import { ACTUAL_LOAD_ERROR, formatCompensationUserError } from '../../crm/production/compensationErrors'
+import type { CompensationViewer, LiveExpectedCompensationRow } from '../../crm/production/types'
 import { isIncompleteDraft, canShowProductionEditAction } from '../../crm/production/applicationEditView'
 import { createSupabaseBrowserClient } from '../../lib/supabase/client'
 
@@ -44,18 +54,29 @@ function householdWorkspaceTab(householdId: string, tab: string): string {
 export default function CrmProductionDetailPage() {
   const { applicationId = '' } = useParams<{ applicationId: string }>()
   const { role } = useCrmAuth()
+  const viewer: CompensationViewer = role === 'owner' ? 'owner' : 'advisor'
   const [application, setApplication] = useState<ProductionApplicationDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [notFound, setNotFound] = useState(false)
+  const [expectedRows, setExpectedRows] = useState<LiveExpectedCompensationRow[]>([])
+  const [expectedLoading, setExpectedLoading] = useState(false)
+  const [expectedError, setExpectedError] = useState<string | null>(null)
+  const [actualSnapshot, setActualSnapshot] = useState<WritingCommissionSnapshotView | null>(null)
+  const [actualLoading, setActualLoading] = useState(false)
+  const [actualError, setActualError] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
     ;(async () => {
       setLoading(true)
       setError(null)
-      setNotFound(false)
-      setApplication(null)
+        setNotFound(false)
+        setApplication(null)
+        setExpectedRows([])
+        setActualSnapshot(null)
+        setExpectedError(null)
+        setActualError(null)
       try {
         const supabase = createSupabaseBrowserClient()
         const result = await fetchProductionApplicationById(supabase, applicationId)
@@ -69,6 +90,47 @@ export default function CrmProductionDetailPage() {
           return
         }
         setApplication(result.application)
+        setLoading(false)
+        setExpectedLoading(true)
+        setActualLoading(true)
+        setExpectedError(null)
+        setActualError(null)
+        const [expectedResult, actualResult] = await Promise.allSettled([
+          fetchLiveExpectedCompensations(supabase, [result.application.id]),
+          fetchWritingCommissionSnapshot(supabase, result.application.id),
+        ])
+        if (cancelled) return
+        if (expectedResult.status === 'fulfilled') {
+          setExpectedRows(expectedResult.value.get(result.application.id) ?? [])
+        } else {
+          setExpectedRows([])
+          setExpectedError(formatCompensationUserError(expectedResult.reason))
+          if (import.meta.env.DEV) {
+            console.error(
+              '[crm/production/expected]',
+              formatCompensationDevError('production-expected-detail', expectedResult.reason),
+            )
+          }
+        }
+        if (actualResult.status === 'fulfilled') {
+          if (actualResult.value.ok) {
+            setActualSnapshot(actualResult.value.snapshot)
+          } else {
+            setActualSnapshot(null)
+            setActualError(actualResult.value.message)
+          }
+        } else {
+          setActualSnapshot(null)
+          setActualError(ACTUAL_LOAD_ERROR)
+          if (import.meta.env.DEV) {
+            console.error(
+              '[crm/production/actual]',
+              formatCompensationDevError('production-actual-detail', actualResult.reason),
+            )
+          }
+        }
+        setExpectedLoading(false)
+        setActualLoading(false)
       } catch (err) {
         if (!cancelled) {
           setError('Unable to load this production application.')
@@ -370,6 +432,22 @@ export default function CrmProductionDetailPage() {
           </ul>
         )}
       </section>
+
+      <ExpectedCompensationPanel
+        viewer={viewer}
+        productionStage={application.production_stage}
+        allocations={allocations}
+        liveRows={expectedRows}
+        loading={expectedLoading}
+        error={expectedError}
+      />
+
+      <ActualCommissionPanel
+        viewer={viewer}
+        snapshot={actualSnapshot}
+        loading={actualLoading}
+        error={actualError}
+      />
 
       <section className="crm-panel" aria-labelledby="pp-ids-heading">
         <div className="crm-panel-head">

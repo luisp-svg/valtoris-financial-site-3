@@ -9816,6 +9816,56 @@ button.public-card-diagnostic:disabled {
   margin: 0;
 }
 
+.crm-production-comp-badge {
+  display: inline-block;
+  padding: 0.15rem 0.55rem;
+  border: 1px solid var(--crm-border, #d5dbe7);
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  background: color-mix(in srgb, var(--crm-accent, #1f4b7a) 10%, white);
+}
+
+.crm-production-comp-badge.is-review {
+  background: transparent;
+  border-style: dashed;
+}
+
+.crm-production-money {
+  font-variant-numeric: tabular-nums;
+}
+
+.crm-production-money.is-negative {
+  font-weight: 600;
+}
+
+.crm-production-comp-table .crm-production-money {
+  text-align: right;
+}
+
+.crm-production-comp-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  align-items: center;
+  margin: 0 0 0.75rem;
+}
+
+.crm-production-comp-subheading {
+  font-size: 1rem;
+  margin: 1.25rem 0 0.5rem;
+}
+
+.crm-production-event-reversed {
+  border-left: 3px solid var(--crm-border, #d5dbe7);
+  padding-left: 0.65rem;
+}
+
+.crm-production-advisor-expected {
+  display: grid;
+  gap: 1rem;
+}
+
 @media (max-width: 899px) {
   .crm-production-page .crm-opportunities-filters-grid {
     grid-template-columns: 1fr;

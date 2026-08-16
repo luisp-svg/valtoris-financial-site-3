@@ -9,11 +9,17 @@ import {
   getProductionListViewState,
 } from '../../crm/production/listLoadState'
 import {
+  fetchLiveExpectedCompensations,
+  formatCompensationDevError,
+} from '../../crm/production/compensationApi'
+import { EXPECTED_LIST_LOAD_ERROR } from '../../crm/production/compensationErrors'
+import {
   fetchProductionAdvisorOptions,
   fetchProductionApplications,
   fetchProductionCarrierOptions,
   formatProductionSupabaseError,
 } from '../../crm/production/productionApi'
+import type { CompensationViewer } from '../../crm/production/types'
 import {
   applyProductionQueueView,
   defaultProductionQueueFilters,
@@ -47,6 +53,7 @@ function useViewportWidth(): number {
 export default function CrmProductionPage() {
   const { role } = useCrmAuth()
   const isOwner = role === 'owner'
+  const viewer: CompensationViewer = role === 'owner' ? 'owner' : 'advisor'
   const viewportWidth = useViewportWidth()
   const presentation = getProductionListPresentation(viewportWidth)
 
@@ -55,6 +62,7 @@ export default function CrmProductionPage() {
   const [advisors, setAdvisors] = useState<ProductionAdvisorOption[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [expectedError, setExpectedError] = useState<string | null>(null)
   const [filters, setFilters] = useState<ProductionQueueFilters>(() =>
     defaultProductionQueueFilters(),
   )
@@ -65,15 +73,38 @@ export default function CrmProductionPage() {
     ;(async () => {
       setLoading(true)
       setError(null)
+      setExpectedError(null)
       try {
         const supabase = createSupabaseBrowserClient()
         const [rows, carrierRows] = await Promise.all([
           fetchProductionApplications(supabase, { includeDeleted: false }),
           fetchProductionCarrierOptions(supabase),
         ])
+        let expectedByApp = new Map<string, typeof rows[number]['expected_compensations']>()
+        let expectedLoadError: string | null = null
+        try {
+          expectedByApp = await fetchLiveExpectedCompensations(
+            supabase,
+            rows.map((row) => row.id),
+          )
+        } catch (expectedErr) {
+          expectedLoadError = EXPECTED_LIST_LOAD_ERROR
+          if (import.meta.env.DEV) {
+            console.error(
+              '[crm/production/expected]',
+              formatCompensationDevError('production-expected-list', expectedErr),
+            )
+          }
+        }
         if (!cancelled) {
-          setItems(rows)
+          setItems(
+            rows.map((row) => ({
+              ...row,
+              expected_compensations: expectedByApp.get(row.id) ?? [],
+            })),
+          )
           setCarriers(carrierRows)
+          setExpectedError(expectedLoadError)
         }
       } catch (err) {
         if (!cancelled) {
@@ -173,6 +204,15 @@ export default function CrmProductionPage() {
       {error ? (
         <div className="crm-banner crm-banner-error" role="alert">
           {error}{' '}
+          <button type="button" className="crm-text-btn" onClick={() => setReloadKey((n) => n + 1)}>
+            Retry
+          </button>
+        </div>
+      ) : null}
+
+      {expectedError ? (
+        <div className="crm-banner crm-banner-warning" role="status">
+          {expectedError}{' '}
           <button type="button" className="crm-text-btn" onClick={() => setReloadKey((n) => n + 1)}>
             Retry
           </button>
@@ -342,9 +382,9 @@ export default function CrmProductionPage() {
 
         {viewState.kind === 'ready' ? (
           presentation === 'table' ? (
-            <ProductionQueueTable items={filteredItems} />
+            <ProductionQueueTable items={filteredItems} viewer={viewer} />
           ) : (
-            <ProductionQueueCards items={filteredItems} />
+            <ProductionQueueCards items={filteredItems} viewer={viewer} />
           )
         ) : null}
       </section>

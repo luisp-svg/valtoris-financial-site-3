@@ -69,7 +69,6 @@ describe.skipIf(!localEnv)('migration 033 writing-advisor compensation foundatio
   let admin: SupabaseClient
   let owner: SupabaseClient
   let advisorA: SupabaseClient
-  let advisorB: SupabaseClient
 
   let ownerId = ''
   let advisorAUserId = ''
@@ -218,7 +217,7 @@ describe.skipIf(!localEnv)('migration 033 writing-advisor compensation foundatio
     advisorBProfileId = await ensureAdvisorProfile(advisorBUserId, `${PREFIX}-adv-b`)
     owner = await signIn(`${PREFIX}-owner@valtoris.test`)
     advisorA = await signIn(`${PREFIX}-adv-a@valtoris.test`)
-    advisorB = await signIn(`${PREFIX}-adv-b@valtoris.test`)
+    await signIn(`${PREFIX}-adv-b@valtoris.test`)
 
     householdA = randomUUID()
     const { error: hhError } = await admin.from('households').insert({

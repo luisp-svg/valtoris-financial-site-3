@@ -31,6 +31,7 @@ function item(
     allocations: [],
     stage_history: [],
     linked_policies: [],
+    expected_compensations: [],
     ...partial,
   }
 }

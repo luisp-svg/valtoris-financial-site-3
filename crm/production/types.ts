@@ -185,6 +185,46 @@ export type ProductionLinkedPolicy = {
   deleted_at: string | null
 }
 
+export const EXPECTED_CALCULATION_STATUSES = [
+  'resolved',
+  'review_required',
+  'unavailable',
+] as const
+export type ExpectedCalculationStatus = (typeof EXPECTED_CALCULATION_STATUSES)[number]
+
+export const WRITING_CONTRACT_LEVELS = ['FA', 'SFA', 'SM', 'ED'] as const
+export type WritingContractLevel = (typeof WRITING_CONTRACT_LEVELS)[number]
+
+export const EXPECTED_REVIEW_REASONS = [
+  'missing_writing_contract_level',
+  'missing_lookup_date',
+  'missing_compensation_base',
+  'premium_mode_not_annualizable',
+  'no_rate_card',
+  'no_rate_card_for_lookup_date',
+  'age_sensitive_rate_card',
+] as const
+export type ExpectedReviewReason = (typeof EXPECTED_REVIEW_REASONS)[number]
+
+/** Live (non-superseded) expected-compensation row visible to the current viewer. */
+export type LiveExpectedCompensationRow = {
+  id: string
+  application_id: string
+  allocation_id: string
+  advisor_id: string
+  advisor_display_name: string | null
+  writing_contract_level: WritingContractLevel | null
+  writing_rate: string | null
+  compensation_base_cents: number | null
+  commission_bps: number | null
+  expected_compensation_cents: number | null
+  calculation_status: ExpectedCalculationStatus
+  review_reason: ExpectedReviewReason | null
+  calculated_at: string
+}
+
+export type CompensationViewer = 'owner' | 'advisor'
+
 export type ProductionApplicationListItem = {
   id: string
   household_id: string
@@ -208,6 +248,8 @@ export type ProductionApplicationListItem = {
   allocations: ProductionAllocation[]
   stage_history: ProductionStageHistoryEntry[]
   linked_policies: ProductionLinkedPolicy[]
+  /** Live 034 rows visible under RLS. Never a second-writer leak for advisors. */
+  expected_compensations: LiveExpectedCompensationRow[]
 }
 
 export type ProductionApplicationDetail = ProductionApplicationListItem & {

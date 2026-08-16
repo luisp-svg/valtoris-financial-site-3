@@ -1,4 +1,11 @@
 import { Link } from 'react-router-dom'
+import CompensationStatusBadge from './CompensationStatusBadge'
+import {
+  countCurrentWritingAdvisors,
+  deriveExpectedListPresentation,
+  formatListExpectedAmount,
+  listExpectedAmountCaption,
+} from './compensationView'
 import {
   computeDaysInStage,
   getActiveLinkedPolicy,
@@ -14,16 +21,17 @@ import {
   formatProductionStageLabel,
 } from './labels'
 import { formatProductionDate } from './productionApi'
-import type { ProductionApplicationListItem } from './types'
+import type { CompensationViewer, ProductionApplicationListItem } from './types'
 import { PRODUCTION_STALE_DAYS_IN_STAGE } from './types'
 import { crmProductionPath } from '../../constants/routes'
 
 type ProductionQueueCardsProps = {
   items: ProductionApplicationListItem[]
+  viewer: CompensationViewer
   now?: Date
 }
 
-export default function ProductionQueueCards({ items, now }: ProductionQueueCardsProps) {
+export default function ProductionQueueCards({ items, viewer, now }: ProductionQueueCardsProps) {
   const asOf = now ?? new Date()
 
   return (
@@ -38,6 +46,13 @@ export default function ProductionQueueCards({ items, now }: ProductionQueueCard
         const stale = isStaleDaysInStage(days)
         const overdue = isFollowUpOverdue(item.next_follow_up_date, asOf)
         const linked = getActiveLinkedPolicy(item)
+        const expected = deriveExpectedListPresentation({
+          viewer,
+          productionStage: item.production_stage,
+          liveRows: item.expected_compensations,
+          writingAdvisorCount: countCurrentWritingAdvisors(item.allocations),
+        })
+        const amountCaption = listExpectedAmountCaption(expected)
 
         return (
           <li key={item.id}>
@@ -78,7 +93,21 @@ export default function ProductionQueueCards({ items, now }: ProductionQueueCard
                   </div>
                   <div>
                     <dt>Writing advisor</dt>
-                    <dd>{getWritingAdvisorLabel(item)}</dd>
+                    <dd>
+                      {getWritingAdvisorLabel(item)}
+                      {expected.split ? ' · Split' : ''}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Expected</dt>
+                    <dd>
+                      <CompensationStatusBadge status={expected.status} review={expected.review} />
+                      <div className="crm-production-money">
+                        {formatListExpectedAmount(expected)}
+                      </div>
+                      {amountCaption ? <div className="crm-muted">{amountCaption}</div> : null}
+                      {expected.review ? <div>Review</div> : null}
+                    </dd>
                   </div>
                   <div>
                     <dt>Delivery / disposition</dt>
