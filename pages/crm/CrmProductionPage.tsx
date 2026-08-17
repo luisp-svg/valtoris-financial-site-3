@@ -2,9 +2,16 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ROUTES } from '../../constants/routes'
 import { useCrmAuth } from '../../crm/auth/CrmAuthContext'
+import { localDateString } from '../../crm/dashboard/dates'
 import ProductionDashboard from '../../crm/production/ProductionDashboard'
 import ProductionQueueCards from '../../crm/production/ProductionQueueCards'
 import ProductionQueueTable from '../../crm/production/ProductionQueueTable'
+import { buildAdvisorCompensationDashboard } from '../../crm/production/advisorCompensationView'
+import {
+  DEFAULT_COMPENSATION_DASHBOARD_PERIOD,
+  DEFAULT_PRODUCTION_DASHBOARD_PERIOD,
+  type DashboardReportingPeriod,
+} from '../../crm/production/dashboardPeriod'
 import { buildProductionDashboard, type PaidCommissionListEvent } from '../../crm/production/dashboardView'
 import {
   getProductionListPresentation,
@@ -76,6 +83,12 @@ export default function CrmProductionPage() {
   const [paidEvents, setPaidEvents] = useState<PaidCommissionListEvent[]>([])
   const [filters, setFilters] = useState<ProductionQueueFilters>(() =>
     defaultProductionQueueFilters(),
+  )
+  const [productionPeriod, setProductionPeriod] = useState<DashboardReportingPeriod>(
+    DEFAULT_PRODUCTION_DASHBOARD_PERIOD,
+  )
+  const [compensationPeriod, setCompensationPeriod] = useState<DashboardReportingPeriod>(
+    DEFAULT_COMPENSATION_DASHBOARD_PERIOD,
   )
   const [reloadKey, setReloadKey] = useState(0)
 
@@ -181,9 +194,20 @@ export default function CrmProductionPage() {
     [items, filters],
   )
 
+  const today = localDateString()
   const dashboard = useMemo(
-    () => buildProductionDashboard(filteredItems, paidEvents),
-    [filteredItems, paidEvents],
+    () => buildProductionDashboard(filteredItems, { period: productionPeriod, today }),
+    [filteredItems, productionPeriod, today],
+  )
+  const compensation = useMemo(
+    () =>
+      buildAdvisorCompensationDashboard({
+        items: filteredItems,
+        events: paidEvents,
+        period: compensationPeriod,
+        today,
+      }),
+    [filteredItems, paidEvents, compensationPeriod, today],
   )
   const writtenStates = useMemo(() => writtenStateFilterOptions(items), [items])
   const capWarning = productionListCapWarning(items.length, PRODUCTION_LIST_DEFAULT_LIMIT)
@@ -274,7 +298,15 @@ export default function CrmProductionPage() {
         </div>
       ) : null}
 
-      <ProductionDashboard model={dashboard} loading={loading} />
+      <ProductionDashboard
+        model={dashboard}
+        compensation={compensation}
+        productionPeriod={productionPeriod}
+        compensationPeriod={compensationPeriod}
+        onProductionPeriodChange={setProductionPeriod}
+        onCompensationPeriodChange={setCompensationPeriod}
+        loading={loading}
+      />
 
       <section
         className="crm-panel crm-opportunities-filters-grid"

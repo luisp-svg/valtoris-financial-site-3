@@ -144,9 +144,11 @@ describe('paid commission list SELECT', () => {
       {
         id: 'e1',
         application_id: 'app-1',
+        advisor_id: null,
         event_type: 'paid',
         amount_cents: 25000,
         reversed_event_id: null,
+        transaction_date: null,
       },
     ])
   })

@@ -256,6 +256,9 @@ export type ProductionApplicationListItem = {
   submitted_premium_cents: number | null
   annuity_deposit_cents: number | null
   face_amount_cents: number | null
+  premium_mode: string | null
+  issue_date: string | null
+  in_force_date: string | null
   updated_at: string
   deleted_at: string | null
   household: ProductionHouseholdSummary | null
@@ -273,12 +276,9 @@ export type ProductionApplicationDetail = ProductionApplicationListItem & {
   opportunity_id: string | null
   is_replacement: boolean
   is_exchange_or_transfer: boolean
-  premium_mode: string | null
   target_premium_cents: number | null
   total_points_scaled: number | null
   decision_date: string | null
-  issue_date: string | null
-  in_force_date: string | null
   production_month: string | null
   notes: string | null
   created_at: string

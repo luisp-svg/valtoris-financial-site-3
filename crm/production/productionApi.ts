@@ -89,6 +89,9 @@ const APPLICATION_LIST_SELECT = `
   submitted_premium_cents,
   annuity_deposit_cents,
   face_amount_cents,
+  premium_mode,
+  issue_date,
+  in_force_date,
   updated_at,
   deleted_at,
   household:households!household_id ( id, display_name ),
@@ -105,12 +108,9 @@ const APPLICATION_DETAIL_SELECT = `
   opportunity_id,
   is_replacement,
   is_exchange_or_transfer,
-  premium_mode,
   target_premium_cents,
   total_points_scaled,
   decision_date,
-  issue_date,
-  in_force_date,
   production_month,
   notes,
   created_at,
@@ -293,6 +293,9 @@ type RawListRow = {
   submitted_premium_cents: number | null
   annuity_deposit_cents: number | null
   face_amount_cents: number | null
+  premium_mode: string | null
+  issue_date: string | null
+  in_force_date: string | null
   updated_at: string
   deleted_at: string | null
   household?: EmbedOne<ProductionHouseholdSummary>
@@ -327,6 +330,9 @@ function mapListItem(row: RawListRow): ProductionApplicationListItem | null {
     annuity_deposit_cents:
       row.annuity_deposit_cents == null ? null : Number(row.annuity_deposit_cents),
     face_amount_cents: row.face_amount_cents == null ? null : Number(row.face_amount_cents),
+    premium_mode: row.premium_mode ?? null,
+    issue_date: row.issue_date ?? null,
+    in_force_date: row.in_force_date ?? null,
     updated_at: String(row.updated_at),
     deleted_at: row.deleted_at ?? null,
     household: mapHousehold(row.household ?? null),
@@ -344,12 +350,9 @@ type RawDetailRow = RawListRow & {
   opportunity_id: string | null
   is_replacement: boolean
   is_exchange_or_transfer: boolean
-  premium_mode: string | null
   target_premium_cents: number | null
   total_points_scaled: number | null
   decision_date: string | null
-  issue_date: string | null
-  in_force_date: string | null
   production_month: string | null
   notes: string | null
   created_at: string
@@ -364,14 +367,11 @@ function mapDetail(row: RawDetailRow): ProductionApplicationDetail | null {
     opportunity_id: row.opportunity_id ? String(row.opportunity_id) : null,
     is_replacement: Boolean(row.is_replacement),
     is_exchange_or_transfer: Boolean(row.is_exchange_or_transfer),
-    premium_mode: row.premium_mode ?? null,
     target_premium_cents:
       row.target_premium_cents == null ? null : Number(row.target_premium_cents),
     total_points_scaled:
       row.total_points_scaled == null ? null : Number(row.total_points_scaled),
     decision_date: row.decision_date ?? null,
-    issue_date: row.issue_date ?? null,
-    in_force_date: row.in_force_date ?? null,
     production_month: row.production_month ?? null,
     notes: row.notes ?? null,
     created_at: String(row.created_at),

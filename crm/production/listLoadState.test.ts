@@ -92,7 +92,7 @@ describe('production list/detail view states', () => {
   it('warns when the loaded list hits the 200-row cap', () => {
     expect(productionListCapWarning(199, 200)).toBeNull()
     expect(productionListCapWarning(200, 200)).toBe(
-      'Showing the first 200 production records. Dashboard totals may be incomplete.',
+      'Showing the first 200 production records. Production dashboard and Advisor Compensation totals may be incomplete.',
     )
     expect(productionListCapWarning(0, 200)).toBeNull()
   })

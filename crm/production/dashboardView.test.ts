@@ -1,10 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
-  aggregateActivePaidCommission,
   buildProductionDashboard,
   computeActiveLifeProtection,
   summarizeLifeAndAnnuity,
-  type PaidCommissionListEvent,
 } from './dashboardView'
 import { defaultProductionQueueFilters, filterProductionQueueItems } from './queueView'
 import type { ProductionApplicationListItem } from './types'
@@ -28,6 +26,9 @@ function item(
     submitted_premium_cents: null,
     annuity_deposit_cents: null,
     face_amount_cents: null,
+    premium_mode: 'annual',
+    issue_date: null,
+    in_force_date: null,
     updated_at: '2026-08-01T00:00:00.000Z',
     deleted_at: null,
     household: { id: 'hh1', display_name: 'Rivera Household' },
@@ -38,17 +39,6 @@ function item(
     stage_history: [],
     linked_policies: [],
     expected_compensations: [],
-    ...partial,
-  }
-}
-
-function paidEvent(
-  partial: Partial<PaidCommissionListEvent> & Pick<PaidCommissionListEvent, 'id' | 'application_id'>,
-): PaidCommissionListEvent {
-  return {
-    event_type: 'paid',
-    amount_cents: 10000,
-    reversed_event_id: null,
     ...partial,
   }
 }
@@ -77,6 +67,56 @@ describe('production dashboard aggregation', () => {
     expect(model.pipeline.premium_drafted.caseCount).toBe(1)
     expect(model.pipeline.premium_drafted.lifePremiumCents).toBe(100000)
     expect(model.pipeline.paramed.caseCount).toBe(0)
+  })
+
+  it('annualizes stored monthly premium using premium_mode and never treats face as premium', () => {
+    const rows = [
+      item({
+        id: 'm1',
+        production_stage: 'paramed',
+        submitted_premium_cents: 12915,
+        premium_mode: 'monthly',
+        face_amount_cents: 50000000,
+      }),
+      item({
+        id: 'm2',
+        production_stage: 'in_underwriting',
+        submitted_premium_cents: 66155,
+        premium_mode: 'monthly',
+      }),
+      item({
+        id: 'm3',
+        production_stage: 'approved',
+        submitted_premium_cents: 24074,
+        premium_mode: 'monthly',
+      }),
+    ]
+    const model = buildProductionDashboard(rows)
+    expect(model.pipeline.paramed.lifePremiumCents).toBe(154980)
+    expect(model.pipeline.in_underwriting.lifePremiumCents).toBe(793860)
+    expect(model.pipeline.approved.lifePremiumCents).toBe(288888)
+    expect(model.summary.lifePremiumCents).toBe(154980 + 793860 + 288888)
+  })
+
+  it('omits unsupported premium modes from life premium totals', () => {
+    const model = buildProductionDashboard([
+      item({
+        id: 'single',
+        production_stage: 'submitted',
+        submitted_premium_cents: 100000,
+        premium_mode: 'single',
+      }),
+      item({
+        id: 'annual',
+        production_stage: 'submitted',
+        submitted_premium_cents: 50000,
+        premium_mode: 'annual',
+      }),
+    ])
+    expect(model.pipeline.submitted.caseCount).toBe(2)
+    expect(model.pipeline.submitted.lifePremiumCents).toBe(50000)
+    expect(model.pipeline.submitted.unannualizableLifeCount).toBe(1)
+    expect(model.summary.unannualizableLifeCount).toBe(1)
   })
 
   it('keeps paramed separate from in underwriting', () => {
@@ -120,7 +160,24 @@ describe('production dashboard aggregation', () => {
     expect(summarizeLifeAndAnnuity(rows)).toEqual({
       lifePremiumCents: 200000,
       annuityDepositCents: 18072611,
+      unannualizableLifeCount: 0,
     })
+  })
+
+  it('does not change FIA deposit calculations when annualizing life premium', () => {
+    const model = buildProductionDashboard([
+      item({
+        id: 'fia',
+        production_stage: 'submitted',
+        product_line: 'fia',
+        submitted_premium_cents: 100,
+        premium_mode: 'monthly',
+        annuity_deposit_cents: 2500000,
+      }),
+    ])
+    expect(model.summary.annuityDepositCents).toBe(2500000)
+    expect(model.summary.lifePremiumCents).toBe(0)
+    expect(model.pipeline.submitted.annuityDepositCents).toBe(2500000)
   })
 
   it('excludes NULL money from sums and does not treat missing values as stored zeros', () => {
@@ -140,13 +197,14 @@ describe('production dashboard aggregation', () => {
     expect(model.pipeline.submitted.lifePremiumCents).toBe(1000)
   })
 
-  it('computes Active Life Protection from in-force life only, excluding issued and NULL face from dollars', () => {
+  it('computes Lifetime Active Life Protection from in-force life only', () => {
     const rows = [
       item({
         id: 'in-force-known',
         production_stage: 'in_force',
         product_line: 'life_permanent',
         face_amount_cents: 1247609400,
+        in_force_date: '2025-01-01',
       }),
       item({
         id: 'in-force-null',
@@ -161,12 +219,6 @@ describe('production dashboard aggregation', () => {
         face_amount_cents: 999999999,
       }),
       item({
-        id: 'approved-life',
-        production_stage: 'approved',
-        product_line: 'life_term',
-        face_amount_cents: 888888888,
-      }),
-      item({
         id: 'fia-in-force',
         production_stage: 'in_force',
         product_line: 'fia',
@@ -178,85 +230,111 @@ describe('production dashboard aggregation', () => {
     expect(protection.knownFaceCents).toBe(1247609400)
     expect(protection.unknownFaceCount).toBe(1)
     expect(protection.inForceLifeCount).toBe(2)
-    expect(buildProductionDashboard(rows).protection).toEqual(protection)
-    expect(buildProductionDashboard(rows).pipeline.approved.caseCount).toBe(1)
-    expect(buildProductionDashboard(rows).pipeline.submitted.caseCount).toBe(0)
   })
 
-  it('counts commission paid from active paid events and excludes reversals', () => {
-    const events: PaidCommissionListEvent[] = [
-      paidEvent({ id: 'p1', application_id: 'a1', amount_cents: 25000 }),
-      paidEvent({ id: 'p2', application_id: 'a2', amount_cents: 40000 }),
-      paidEvent({
-        id: 'rev',
-        application_id: 'a2',
-        event_type: 'reversal',
-        amount_cents: -40000,
-        reversed_event_id: 'p2',
-      }),
-    ]
-    const visible = new Set(['a1', 'a2', 'a3'])
-    expect(aggregateActivePaidCommission(events, visible)).toEqual({
-      applicationCount: 1,
-      paidCents: 25000,
-    })
-    expect(aggregateActivePaidCommission([], visible)).toEqual({
-      applicationCount: 0,
-      paidCents: 0,
-    })
-  })
-
-  it('scopes Paid and pipeline KPIs to the same filtered working set', () => {
+  it('scopes Active Life Protection YTD and This Month by in-force date, not submission date', () => {
     const rows = [
       item({
-        id: 'jazmin-tx',
-        production_stage: 'in_underwriting',
-        state: 'TX',
-        submitted_premium_cents: 50000,
-        allocations: [
-          {
-            id: 'al1',
-            recipient_type: 'advisor',
-            advisor_id: 'jazmin',
-            allocation_role: 'writing',
-            commission_bps: 10000,
-            production_credit_bps: 10000,
-            effective_to: null,
-            advisor: { id: 'jazmin', display_name: 'Jazmin Perez' },
-          },
-        ],
+        id: 'placed-jan',
+        production_stage: 'in_force',
+        submission_date: '2025-12-01',
+        in_force_date: '2026-01-20',
+        face_amount_cents: 100000,
       }),
       item({
-        id: 'other-fl',
+        id: 'placed-aug',
+        production_stage: 'in_force',
+        submission_date: '2026-01-02',
+        in_force_date: '2026-08-02',
+        face_amount_cents: 200000,
+      }),
+      item({
+        id: 'null-place',
+        production_stage: 'in_force',
+        submission_date: '2026-08-02',
+        in_force_date: null,
+        face_amount_cents: 300000,
+      }),
+    ]
+    const today = '2026-08-16'
+    expect(computeActiveLifeProtection(rows, { period: 'lifetime', today }).knownFaceCents).toBe(600000)
+    expect(computeActiveLifeProtection(rows, { period: 'ytd', today }).knownFaceCents).toBe(300000)
+    expect(computeActiveLifeProtection(rows, { period: 'this_month', today }).knownFaceCents).toBe(200000)
+    expect(computeActiveLifeProtection(rows, { period: 'ytd', today }).inForceLifeCount).toBe(2)
+  })
+
+  it('scopes pipeline snapshots by submission date for YTD and This Month', () => {
+    const rows = [
+      item({
+        id: 'last-year',
+        production_stage: 'approved',
+        submission_date: '2025-12-31',
+        submitted_premium_cents: 10000,
+      }),
+      item({
+        id: 'ytd',
+        production_stage: 'approved',
+        submission_date: '2026-01-02',
+        submitted_premium_cents: 20000,
+      }),
+      item({
+        id: 'month',
+        production_stage: 'in_underwriting',
+        submission_date: '2026-08-10',
+        submitted_premium_cents: 30000,
+      }),
+      item({
+        id: 'null-date',
+        production_stage: 'approved',
+        submission_date: null,
+        submitted_premium_cents: 40000,
+      }),
+    ]
+    const today = '2026-08-16'
+    const lifetime = buildProductionDashboard(rows, { period: 'lifetime', today })
+    const ytd = buildProductionDashboard(rows, { period: 'ytd', today })
+    const month = buildProductionDashboard(rows, { period: 'this_month', today })
+    expect(lifetime.pipeline.approved.caseCount).toBe(3)
+    expect(lifetime.pipeline.approved.lifePremiumCents).toBe(70000)
+    expect(ytd.pipeline.approved.caseCount).toBe(1)
+    expect(ytd.pipeline.approved.lifePremiumCents).toBe(20000)
+    expect(ytd.pipeline.in_underwriting.caseCount).toBe(1)
+    expect(month.pipeline.in_underwriting.caseCount).toBe(1)
+    expect(month.pipeline.approved.caseCount).toBe(0)
+    expect(month.summary.lifePremiumCents).toBe(30000)
+  })
+
+  it('composes operational filters with the reporting period without mutating the queue set', () => {
+    const rows = [
+      item({
+        id: 'tx-month',
+        production_stage: 'in_underwriting',
+        state: 'TX',
+        submission_date: '2026-08-05',
+        submitted_premium_cents: 50000,
+      }),
+      item({
+        id: 'tx-old',
+        production_stage: 'in_underwriting',
+        state: 'TX',
+        submission_date: '2025-08-05',
+        submitted_premium_cents: 90000,
+      }),
+      item({
+        id: 'fl-month',
         production_stage: 'in_underwriting',
         state: 'FL',
-        submitted_premium_cents: 90000,
-        allocations: [
-          {
-            id: 'al2',
-            recipient_type: 'advisor',
-            advisor_id: 'other',
-            allocation_role: 'writing',
-            commission_bps: 10000,
-            production_credit_bps: 10000,
-            effective_to: null,
-            advisor: { id: 'other', display_name: 'Other' },
-          },
-        ],
+        submission_date: '2026-08-05',
+        submitted_premium_cents: 70000,
       }),
     ]
     const filtered = filterProductionQueueItems(rows, {
       ...defaultProductionQueueFilters(),
-      writingAdvisorId: 'jazmin',
       writtenState: 'TX',
     })
-    const model = buildProductionDashboard(filtered, [
-      paidEvent({ id: 'pay-j', application_id: 'jazmin-tx', amount_cents: 1200 }),
-      paidEvent({ id: 'pay-o', application_id: 'other-fl', amount_cents: 8800 }),
-    ])
-    expect(filtered.map((row) => row.id)).toEqual(['jazmin-tx'])
-    expect(model.pipeline.in_underwriting.caseCount).toBe(1)
-    expect(model.pipeline.in_underwriting.lifePremiumCents).toBe(50000)
-    expect(model.commissionPaid).toEqual({ applicationCount: 1, paidCents: 1200 })
+    const month = buildProductionDashboard(filtered, { period: 'this_month', today: '2026-08-16' })
+    expect(filtered.map((row) => row.id).sort()).toEqual(['tx-month', 'tx-old'])
+    expect(month.pipeline.in_underwriting.caseCount).toBe(1)
+    expect(month.pipeline.in_underwriting.lifePremiumCents).toBe(50000)
   })
 })

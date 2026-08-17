@@ -7371,6 +7371,59 @@ p { color: var(--muted); line-height: 1.7; }
   gap: 14px;
 }
 
+.crm-production-dashboard-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.crm-production-period-toggle {
+  display: inline-flex;
+  border: 1px solid var(--crm-border);
+  border-radius: 999px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.crm-production-period-toggle button {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 6px 12px;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--crm-muted);
+  cursor: pointer;
+}
+
+.crm-production-period-toggle button.is-active {
+  background: var(--crm-navy);
+  color: #fff;
+}
+
+.crm-production-period-toggle button:focus-visible {
+  outline: 2px solid var(--crm-blue);
+  outline-offset: -2px;
+}
+
+.crm-production-compensation {
+  display: grid;
+  gap: 10px;
+}
+
+.crm-production-compensation h3 {
+  margin: 0;
+  color: var(--crm-navy);
+  font-size: 1rem;
+}
+
+.crm-production-compensation-table {
+  font-variant-numeric: tabular-nums;
+}
+
 .crm-production-kpi-grid {
   display: grid;
   gap: 12px;
