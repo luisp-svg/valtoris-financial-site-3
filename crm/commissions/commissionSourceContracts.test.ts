@@ -19,6 +19,13 @@ function readCommissionSources(): string[] {
     'CommissionQueueTable.tsx',
     'CommissionQueueCards.tsx',
     'CommissionWorkItemDetail.tsx',
+    'CommissionOwnerActions.tsx',
+    'RecordCommissionEventDialog.tsx',
+    'ReverseCommissionEventDialog.tsx',
+    'AttributeCommissionEventDialog.tsx',
+    'commissionWriteApi.ts',
+    'commissionWriteView.ts',
+    'commissionIdempotency.ts',
   ]
   return files.map((name) => readFileSync(join(here, name), 'utf8'))
 }

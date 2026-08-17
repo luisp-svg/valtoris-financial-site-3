@@ -2,13 +2,23 @@ import { formatCents, formatProductionDate } from '../production/productionApi'
 import { formatSignedCents } from '../production/compensationView'
 import type { CommissionWorkItem } from './commissionWorkView'
 import { formatCommissionWorkStatusLabel } from './commissionWorkView'
+import CommissionOwnerActions from './CommissionOwnerActions'
 
 type CommissionQueueCardsProps = {
   items: readonly CommissionWorkItem[]
+  isOwner: boolean
   onOpenItem: (item: CommissionWorkItem) => void
+  onRecord: (item: CommissionWorkItem) => void
+  onPreIssue: (item: CommissionWorkItem) => void
 }
 
-export default function CommissionQueueCards({ items, onOpenItem }: CommissionQueueCardsProps) {
+export default function CommissionQueueCards({
+  items,
+  isOwner,
+  onOpenItem,
+  onRecord,
+  onPreIssue,
+}: CommissionQueueCardsProps) {
   return (
     <ul className="crm-opportunities-card-list" aria-label="Commission work queue cards">
       {items.map((item) => (
@@ -79,6 +89,12 @@ export default function CommissionQueueCards({ items, onOpenItem }: CommissionQu
             {item.reviewReason ? (
               <p className="crm-production-review-reason">{item.reviewReason}</p>
             ) : null}
+            <CommissionOwnerActions
+              isOwner={isOwner}
+              item={item}
+              onRecord={onRecord}
+              onPreIssue={onPreIssue}
+            />
           </article>
         </li>
       ))}

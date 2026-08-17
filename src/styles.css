@@ -11035,6 +11035,54 @@ button.public-card-diagnostic:disabled {
   font-variant-numeric: tabular-nums;
 }
 
+.crm-commissions-write-overlay {
+  z-index: 50;
+}
+
+.crm-commissions-write-dialog {
+  width: min(36rem, 100%);
+  max-height: min(90vh, 52rem);
+  overflow: auto;
+}
+
+.crm-commissions-write-context {
+  margin: 0 0 16px;
+}
+
+.crm-commissions-write-details {
+  display: grid;
+  gap: 12px;
+  margin: 12px 0 16px;
+}
+
+.crm-commissions-owner-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.crm-commissions-event-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.crm-commissions-attribute-line {
+  display: grid;
+  gap: 8px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--crm-border);
+}
+
+.crm-commissions-owner-actions .crm-primary-btn,
+.crm-commissions-owner-actions .crm-secondary-btn,
+.crm-commissions-event-actions .crm-primary-btn,
+.crm-commissions-event-actions .crm-secondary-btn {
+  min-height: 44px;
+}
+
 @media (max-width: 899px) {
   .crm-commissions-kpi-grid {
     grid-template-columns: 1fr 1fr;

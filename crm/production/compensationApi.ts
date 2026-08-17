@@ -252,6 +252,14 @@ function mapEvent(value: unknown): WritingCommissionEvent | null {
       typeof row.import_batch_identifier === 'string' ? row.import_batch_identifier : null,
     reason: typeof row.reason === 'string' ? row.reason : null,
     created_at: typeof row.created_at === 'string' ? row.created_at : '',
+    idempotency_key: typeof row.idempotency_key === 'string' ? row.idempotency_key : null,
+    advisor_id: typeof row.advisor_id === 'string' ? row.advisor_id : null,
+    allocation_id: typeof row.allocation_id === 'string' ? row.allocation_id : null,
+    attribution_status:
+      typeof row.attribution_status === 'string' ? row.attribution_status : null,
+    carrier_transaction_id:
+      typeof row.carrier_transaction_id === 'string' ? row.carrier_transaction_id : null,
+    statement_date: typeof row.statement_date === 'string' ? row.statement_date : null,
   }
 }
 

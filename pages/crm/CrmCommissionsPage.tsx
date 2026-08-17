@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { localDateString } from '../../crm/dashboard/dates'
 import { useCrmAuth } from '../../crm/auth/CrmAuthContext'
+import AttributeCommissionEventDialog from '../../crm/commissions/AttributeCommissionEventDialog'
 import CommissionWorkspace from '../../crm/commissions/CommissionWorkspace'
+import RecordCommissionEventDialog from '../../crm/commissions/RecordCommissionEventDialog'
+import ReverseCommissionEventDialog from '../../crm/commissions/ReverseCommissionEventDialog'
+import { createManualCommissionIdempotencyKey } from '../../crm/commissions/commissionIdempotency'
 import {
   defaultCommissionQueueFilters,
   filterCommissionWorkItems,
@@ -14,6 +18,13 @@ import {
   summarizeUnattributedCommission,
   type CommissionWorkItem,
 } from '../../crm/commissions/commissionWorkView'
+import {
+  attributeUnattributedCommissionEvent,
+  recordPolicyWritingCommissionEvent,
+  reversePolicyWritingCommissionEvent,
+  type RecordCommissionEventArgs,
+} from '../../crm/commissions/commissionWriteApi'
+import { writingAttributionTargets } from '../../crm/commissions/commissionWriteView'
 import { buildAdvisorCompensationDashboard } from '../../crm/production/advisorCompensationView'
 import {
   fetchLiveExpectedCompensations,
@@ -26,6 +37,7 @@ import {
   EXPECTED_LIST_LOAD_ERROR,
   PAID_LIST_LOAD_ERROR,
 } from '../../crm/production/compensationErrors'
+import type { WritingCommissionEvent } from '../../crm/production/compensationView'
 import {
   DEFAULT_COMPENSATION_DASHBOARD_PERIOD,
   type DashboardReportingPeriod,
@@ -60,6 +72,25 @@ function useViewportWidth(): number {
 
 type ReviewScope = 'all' | { advisorId: string | null }
 
+type CommissionWriteFlow =
+  | {
+      kind: 'record'
+      item: CommissionWorkItem
+      preIssue: boolean
+      idempotencyKey: string
+    }
+  | {
+      kind: 'reverse'
+      item: CommissionWorkItem
+      event: WritingCommissionEvent
+    }
+  | {
+      kind: 'attribute'
+      item: CommissionWorkItem
+      event: WritingCommissionEvent
+      idempotencyKey: string
+    }
+
 export default function CrmCommissionsPage() {
   const { role } = useCrmAuth()
   const isOwner = role === 'owner'
@@ -82,10 +113,14 @@ export default function CrmCommissionsPage() {
     defaultCommissionQueueFilters(),
   )
   const [reviewScope, setReviewScope] = useState<ReviewScope | null>(null)
-  const [selectedItem, setSelectedItem] = useState<CommissionWorkItem | null>(null)
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
   const [snapshot, setSnapshot] = useState<WritingCommissionSnapshotView | null>(null)
   const [snapshotLoading, setSnapshotLoading] = useState(false)
   const [snapshotError, setSnapshotError] = useState<string | null>(null)
+  const [snapshotNonce, setSnapshotNonce] = useState(0)
+  const [writeFlow, setWriteFlow] = useState<CommissionWriteFlow | null>(null)
+  const [writeSubmitting, setWriteSubmitting] = useState(false)
+  const [writeError, setWriteError] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -184,44 +219,12 @@ export default function CrmCommissionsPage() {
     }
   }, [isOwner])
 
-  useEffect(() => {
-    if (!selectedItem) {
-      setSnapshot(null)
-      setSnapshotError(null)
-      setSnapshotLoading(false)
-      return
-    }
-    let cancelled = false
-    ;(async () => {
-      setSnapshotLoading(true)
-      setSnapshotError(null)
-      const supabase = createSupabaseBrowserClient()
-      const result = await fetchWritingCommissionSnapshot(supabase, selectedItem.applicationId)
-      if (cancelled) return
-      if (!result.ok) {
-        setSnapshot(null)
-        setSnapshotError(result.message)
-        setSnapshotLoading(false)
-        return
-      }
-      setSnapshot(
-        snapshotForCommissionWorkItem(result.snapshot, {
-          advisorId: selectedItem.advisorId,
-          kind: selectedItem.kind,
-        }),
-      )
-      setSnapshotLoading(false)
-    })()
-    return () => {
-      cancelled = true
-    }
-  }, [selectedItem])
-
   const today = localDateString()
   const workItems = useMemo(
     () => buildCommissionWorkItems({ items, events: paidEvents }),
     [items, paidEvents],
   )
+  const selectedItem = workItems.find((item) => item.id === selectedItemId) ?? null
   const compensation = useMemo(
     () =>
       buildAdvisorCompensationDashboard({
@@ -246,7 +249,142 @@ export default function CrmCommissionsPage() {
     return compensation.reviewItems.filter((item) => item.advisorId === reviewScope.advisorId)
   }, [compensation.reviewItems, reviewScope])
 
+  useEffect(() => {
+    if (!selectedItem) {
+      setSnapshot(null)
+      setSnapshotError(null)
+      setSnapshotLoading(false)
+      return
+    }
+    const applicationId = selectedItem.applicationId
+    const advisorId = selectedItem.advisorId
+    const kind = selectedItem.kind
+    let cancelled = false
+    ;(async () => {
+      setSnapshotLoading(true)
+      setSnapshotError(null)
+      const supabase = createSupabaseBrowserClient()
+      const result = await fetchWritingCommissionSnapshot(supabase, applicationId)
+      if (cancelled) return
+      if (!result.ok) {
+        setSnapshot(null)
+        setSnapshotError(result.message)
+        setSnapshotLoading(false)
+        return
+      }
+      setSnapshot(
+        snapshotForCommissionWorkItem(result.snapshot, {
+          advisorId,
+          kind,
+        }),
+      )
+      setSnapshotLoading(false)
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [selectedItem, snapshotNonce])
+
+  function closeWriteFlow() {
+    if (writeSubmitting) return
+    setWriteFlow(null)
+    setWriteError(null)
+  }
+
+  function openRecord(item: CommissionWorkItem, preIssue: boolean) {
+    if (!isOwner) return
+    setWriteError(null)
+    setWriteFlow({
+      kind: 'record',
+      item,
+      preIssue,
+      idempotencyKey: createManualCommissionIdempotencyKey(),
+    })
+  }
+
+  function openReverse(item: CommissionWorkItem, event: WritingCommissionEvent) {
+    if (!isOwner) return
+    setWriteError(null)
+    setWriteFlow({ kind: 'reverse', item, event })
+  }
+
+  function openAttribute(item: CommissionWorkItem, event: WritingCommissionEvent) {
+    if (!isOwner) return
+    setWriteError(null)
+    setWriteFlow({
+      kind: 'attribute',
+      item,
+      event,
+      idempotencyKey: createManualCommissionIdempotencyKey(),
+    })
+  }
+
+  async function refreshAfterWrite() {
+    setReloadKey((n) => n + 1)
+    setSnapshotNonce((n) => n + 1)
+  }
+
+  async function handleRecord(args: RecordCommissionEventArgs) {
+    if (!isOwner || writeSubmitting) return
+    setWriteSubmitting(true)
+    setWriteError(null)
+    try {
+      const supabase = createSupabaseBrowserClient()
+      const result = await recordPolicyWritingCommissionEvent(supabase, args)
+      if (!result.ok) {
+        setWriteError(result.message)
+        return
+      }
+      setWriteFlow(null)
+      await refreshAfterWrite()
+    } finally {
+      setWriteSubmitting(false)
+    }
+  }
+
+  async function handleReverse(input: { eventId: string; reason: string }) {
+    if (!isOwner || writeSubmitting) return
+    setWriteSubmitting(true)
+    setWriteError(null)
+    try {
+      const supabase = createSupabaseBrowserClient()
+      const result = await reversePolicyWritingCommissionEvent(supabase, input)
+      if (!result.ok) {
+        setWriteError(result.message)
+        return
+      }
+      setWriteFlow(null)
+      await refreshAfterWrite()
+    } finally {
+      setWriteSubmitting(false)
+    }
+  }
+
+  async function handleAttribute(input: {
+    eventId: string
+    reason: string
+    idempotencyKey: string
+    attributions: Array<{ allocationId: string; amountCents: number }>
+  }) {
+    if (!isOwner || writeSubmitting) return
+    setWriteSubmitting(true)
+    setWriteError(null)
+    try {
+      const supabase = createSupabaseBrowserClient()
+      const result = await attributeUnattributedCommissionEvent(supabase, input)
+      if (!result.ok) {
+        setWriteError(result.message)
+        return
+      }
+      setWriteFlow(null)
+      await refreshAfterWrite()
+    } finally {
+      setWriteSubmitting(false)
+    }
+  }
+
   return (
+    <>
     <CommissionWorkspace
       viewer={viewer}
       isOwner={isOwner}
@@ -270,11 +408,51 @@ export default function CrmCommissionsPage() {
       reviewItems={reviewItems}
       onReviewScopeChange={setReviewScope}
       selectedItem={selectedItem}
-      onSelectItem={setSelectedItem}
+      onSelectItem={(item) => setSelectedItemId(item?.id ?? null)}
       snapshot={snapshot}
       snapshotLoading={snapshotLoading}
       snapshotError={snapshotError}
       onRetry={() => setReloadKey((n) => n + 1)}
+      onRecord={(item) => openRecord(item, false)}
+      onPreIssue={(item) => openRecord(item, true)}
+      onReverse={openReverse}
+      onAttribute={openAttribute}
+      writeDialogOpen={writeFlow != null}
     />
+    {writeFlow?.kind === 'record' ? (
+      <RecordCommissionEventDialog
+        item={writeFlow.item}
+        preIssue={writeFlow.preIssue}
+        idempotencyKey={writeFlow.idempotencyKey}
+        today={today}
+        submitting={writeSubmitting}
+        error={writeError}
+        onCancel={closeWriteFlow}
+        onConfirm={handleRecord}
+      />
+    ) : null}
+    {writeFlow?.kind === 'reverse' ? (
+      <ReverseCommissionEventDialog
+        item={writeFlow.item}
+        event={writeFlow.event}
+        submitting={writeSubmitting}
+        error={writeError}
+        onCancel={closeWriteFlow}
+        onConfirm={handleReverse}
+      />
+    ) : null}
+    {writeFlow?.kind === 'attribute' ? (
+      <AttributeCommissionEventDialog
+        item={writeFlow.item}
+        event={writeFlow.event}
+        targets={writingAttributionTargets(workItems, writeFlow.item.applicationId)}
+        idempotencyKey={writeFlow.idempotencyKey}
+        submitting={writeSubmitting}
+        error={writeError}
+        onCancel={closeWriteFlow}
+        onConfirm={handleAttribute}
+      />
+    ) : null}
+    </>
   )
 }

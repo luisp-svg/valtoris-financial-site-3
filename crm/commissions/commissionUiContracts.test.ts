@@ -47,28 +47,31 @@ describe('commission Phase 1 route and navigation', () => {
   })
 })
 
-describe('commission Phase 1 read-only workspace', () => {
+describe('commission Phase 2 owner write workspace', () => {
   it('loads 034/035 in batches and snapshots only on drill-down', () => {
     expect(page).toContain('fetchLiveExpectedCompensations')
     expect(page).toContain('fetchPaidCommissionEvents')
     expect(page.match(/fetchLiveExpectedCompensations\(/g)?.length).toBe(1)
     expect(page.match(/fetchPaidCommissionEvents\(/g)?.length).toBe(1)
     expect(page).toContain('fetchWritingCommissionSnapshot')
+    expect(page).toContain('createManualCommissionIdempotencyKey')
+    expect(page).toContain('setReloadKey')
+    expect(page).toContain('setSnapshotNonce')
+    expect(page).not.toContain('paidCents +=')
+    expect(page).not.toContain('outstandingCents =')
     expect(page).toContain('selectedItem')
     expect(workspace).not.toContain('fetchWritingCommissionSnapshot')
     expect(queueTable).not.toContain('fetchWritingCommissionSnapshot')
   })
 
-  it('does not add write controls, import UI, or a new migration', () => {
+  it('keeps import UI and schema changes out of the commissions workspace', () => {
     const sources = [page, workspace, summary, queueTable, queueCards, detail]
     for (const source of sources) {
-      expect(source).not.toContain('record_policy_writing_commission_event')
-      expect(source).not.toContain('reverse_policy_writing_commission_event')
-      expect(source).not.toContain('attribute_unattributed_commission_event')
       expect(source).not.toContain('create_commission_import_batch')
       expect(source).not.toContain('post_commission_import_row')
-      expect(source).not.toMatch(/Record Payment|Record Paid|Record Adjustment|Record Chargeback/)
-      expect(source).not.toMatch(/Record Recovery|\bReverse\b|\bAttribute\b|\bImport\b|\bPost\b/)
+      expect(source).not.toMatch(/\.insert\s*\(/)
+      expect(source).not.toMatch(/\.update\s*\(/)
+      expect(source).not.toMatch(/\.delete\s*\(/)
     }
     expect(existsSync(join(migrationsDir, '039_commission_lifecycle.sql'))).toBe(false)
     const numbered = readdirSync(migrationsDir).filter((name) => /^\d{3}_/.test(name))

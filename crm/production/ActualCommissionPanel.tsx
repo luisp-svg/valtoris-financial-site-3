@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import {
   formatActualStatusLabel,
   formatCommissionEventTypeLabel,
@@ -7,6 +8,7 @@ import {
   deriveActualStatus,
   formatSignedCents,
   presentEventReversal,
+  type EventReversalPresentation,
   type WritingCommissionEvent,
 } from './compensationView'
 import type { WritingCommissionSnapshotView } from './compensationApi'
@@ -18,6 +20,13 @@ type ActualCommissionPanelProps = {
   snapshot: WritingCommissionSnapshotView | null
   loading: boolean
   error: string | null
+  headerActions?: ReactNode
+  formatEventSource?: (event: WritingCommissionEvent) => string
+  renderEventActions?: (
+    event: WritingCommissionEvent,
+    reversal: EventReversalPresentation,
+    unattributed: boolean,
+  ) => ReactNode
 }
 
 export default function ActualCommissionPanel({
@@ -25,6 +34,9 @@ export default function ActualCommissionPanel({
   snapshot,
   loading,
   error,
+  headerActions,
+  formatEventSource,
+  renderEventActions,
 }: ActualCommissionPanelProps) {
   const events = snapshot
     ? snapshot.accounts.flatMap((account) => account.events)
@@ -48,6 +60,7 @@ export default function ActualCommissionPanel({
     <section className="crm-panel" aria-labelledby="pp-actual-heading">
       <div className="crm-panel-head">
         <h2 id="pp-actual-heading">Actual commission</h2>
+        {headerActions}
       </div>
 
       {loading ? <p className="crm-muted">Loading actual commission…</p> : null}
@@ -99,13 +112,23 @@ export default function ActualCommissionPanel({
           {events.length === 0 ? (
             <p className="crm-muted">No actual commission has been recorded yet.</p>
           ) : (
-            <EventHistory events={events} />
+            <EventHistory
+              events={events}
+              formatEventSource={formatEventSource}
+              renderEventActions={renderEventActions}
+              unattributed={false}
+            />
           )}
 
           {canSeeUnattributed ? (
             <>
               <h3 className="crm-production-comp-subheading">Unattributed</h3>
-              <EventHistory events={snapshot.unattributedEvents} />
+              <EventHistory
+                events={snapshot.unattributedEvents}
+                formatEventSource={formatEventSource}
+                renderEventActions={renderEventActions}
+                unattributed
+              />
             </>
           ) : null}
         </>
@@ -143,7 +166,21 @@ function SummaryItem({
   )
 }
 
-function EventHistory({ events }: { events: readonly WritingCommissionEvent[] }) {
+function EventHistory({
+  events,
+  formatEventSource,
+  renderEventActions,
+  unattributed,
+}: {
+  events: readonly WritingCommissionEvent[]
+  formatEventSource?: (event: WritingCommissionEvent) => string
+  renderEventActions?: (
+    event: WritingCommissionEvent,
+    reversal: EventReversalPresentation,
+    unattributed: boolean,
+  ) => ReactNode
+  unattributed: boolean
+}) {
   const ordered = events.slice().sort((a, b) => {
     const aDate = a.transaction_date || a.created_at
     const bDate = b.transaction_date || b.created_at
@@ -179,16 +216,19 @@ function EventHistory({ events }: { events: readonly WritingCommissionEvent[] })
               <div>Reversal of a prior commission event. Not added again into net actual.</div>
             ) : null}
             <div className="crm-muted">
-              {[
-                event.statement_identifier ? `Statement ${event.statement_identifier}` : null,
-                event.policy_reference ? `Policy ${event.policy_reference}` : null,
-                event.source_file ? event.source_file : null,
-                event.source_row != null ? `Row ${event.source_row}` : null,
-              ]
-                .filter(Boolean)
-                .join(' · ') || 'No source reference'}
+              {formatEventSource
+                ? formatEventSource(event)
+                : [
+                    event.statement_identifier ? `Statement ${event.statement_identifier}` : null,
+                    event.policy_reference ? `Policy ${event.policy_reference}` : null,
+                    event.source_file ? event.source_file : null,
+                    event.source_row != null ? `Row ${event.source_row}` : null,
+                  ]
+                    .filter(Boolean)
+                    .join(' · ') || 'No source reference'}
             </div>
             {event.reason ? <div>Reason: {event.reason}</div> : null}
+            {renderEventActions?.(event, reversal, unattributed)}
           </li>
         )
       })}

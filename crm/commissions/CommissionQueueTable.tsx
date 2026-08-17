@@ -2,13 +2,23 @@ import { formatCents, formatProductionDate } from '../production/productionApi'
 import { formatSignedCents } from '../production/compensationView'
 import type { CommissionWorkItem } from './commissionWorkView'
 import { formatCommissionWorkStatusLabel } from './commissionWorkView'
+import CommissionOwnerActions from './CommissionOwnerActions'
 
 type CommissionQueueTableProps = {
   items: readonly CommissionWorkItem[]
+  isOwner: boolean
   onOpenItem: (item: CommissionWorkItem) => void
+  onRecord: (item: CommissionWorkItem) => void
+  onPreIssue: (item: CommissionWorkItem) => void
 }
 
-export default function CommissionQueueTable({ items, onOpenItem }: CommissionQueueTableProps) {
+export default function CommissionQueueTable({
+  items,
+  isOwner,
+  onOpenItem,
+  onRecord,
+  onPreIssue,
+}: CommissionQueueTableProps) {
   return (
     <div className="crm-opportunities-table-wrap" role="region" aria-label="Commission work queue">
       <table className="crm-opportunities-table crm-commissions-queue-table">
@@ -27,6 +37,7 @@ export default function CommissionQueueTable({ items, onOpenItem }: CommissionQu
             <th scope="col">Status</th>
             <th scope="col">Needs Review</th>
             <th scope="col">Last financial activity</th>
+            {isOwner ? <th scope="col">Actions</th> : null}
           </tr>
         </thead>
         <tbody>
@@ -81,6 +92,16 @@ export default function CommissionQueueTable({ items, onOpenItem }: CommissionQu
                 )}
               </td>
               <td>{formatProductionDate(item.lastFinancialActivity)}</td>
+              {isOwner ? (
+                <td>
+                  <CommissionOwnerActions
+                    isOwner={isOwner}
+                    item={item}
+                    onRecord={onRecord}
+                    onPreIssue={onPreIssue}
+                  />
+                </td>
+              ) : null}
             </tr>
           ))}
         </tbody>

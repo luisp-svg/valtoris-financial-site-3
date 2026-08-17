@@ -54,6 +54,12 @@ export type WritingCommissionEvent = {
   import_batch_identifier: string | null
   reason: string | null
   created_at: string
+  idempotency_key?: string | null
+  advisor_id?: string | null
+  allocation_id?: string | null
+  attribution_status?: string | null
+  carrier_transaction_id?: string | null
+  statement_date?: string | null
 }
 
 export type EventReversalPresentation =

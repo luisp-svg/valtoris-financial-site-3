@@ -3,8 +3,8 @@ import type {
   AdvisorCompensationDashboardModel,
   ExpectedReviewListItem,
 } from '../production/advisorCompensationView'
+import { formatSignedCents, type WritingCommissionEvent } from '../production/compensationView'
 import type { WritingCommissionSnapshotView } from '../production/compensationApi'
-import { formatSignedCents } from '../production/compensationView'
 import type { DashboardReportingPeriod } from '../production/dashboardPeriod'
 import ExpectedReviewDialog from '../production/ExpectedReviewDialog'
 import { formatProductionProductLineLabel, formatProductionStageLabel } from '../production/labels'
@@ -65,6 +65,11 @@ type CommissionWorkspaceProps = {
   snapshotLoading: boolean
   snapshotError: string | null
   onRetry: () => void
+  onRecord: (item: CommissionWorkItem) => void
+  onPreIssue: (item: CommissionWorkItem) => void
+  onReverse: (item: CommissionWorkItem, event: WritingCommissionEvent) => void
+  onAttribute: (item: CommissionWorkItem, event: WritingCommissionEvent) => void
+  writeDialogOpen?: boolean
 }
 
 export default function CommissionWorkspace({
@@ -95,6 +100,11 @@ export default function CommissionWorkspace({
   snapshotLoading,
   snapshotError,
   onRetry,
+  onRecord,
+  onPreIssue,
+  onReverse,
+  onAttribute,
+  writeDialogOpen = false,
 }: CommissionWorkspaceProps) {
   const presentation = getProductionListPresentation(viewportWidth)
   const reviewTitle =
@@ -333,8 +343,8 @@ export default function CommissionWorkspace({
           <div className="crm-empty-state">
             <p className="crm-empty-state-title">No commission records yet</p>
             <p>
-              Writing-advisor expected compensation and actual paid events will appear here. This
-              workspace does not record payments or stage carrier statements.
+              Writing-advisor expected compensation and actual paid events will appear here.
+              Carrier statement import is not staged from this workspace.
             </p>
           </div>
         ) : null}
@@ -357,9 +367,21 @@ export default function CommissionWorkspace({
         ) : null}
         {viewState === 'ready' ? (
           presentation === 'table' ? (
-            <CommissionQueueTable items={filteredWorkItems} onOpenItem={onSelectItem} />
+            <CommissionQueueTable
+              items={filteredWorkItems}
+              isOwner={isOwner}
+              onOpenItem={onSelectItem}
+              onRecord={onRecord}
+              onPreIssue={onPreIssue}
+            />
           ) : (
-            <CommissionQueueCards items={filteredWorkItems} onOpenItem={onSelectItem} />
+            <CommissionQueueCards
+              items={filteredWorkItems}
+              isOwner={isOwner}
+              onOpenItem={onSelectItem}
+              onRecord={onRecord}
+              onPreIssue={onPreIssue}
+            />
           )
         ) : null}
       </section>
@@ -376,10 +398,16 @@ export default function CommissionWorkspace({
         <CommissionWorkItemDetail
           item={selectedItem}
           viewer={viewer}
+          isOwner={isOwner}
           snapshot={snapshot}
           loading={snapshotLoading}
           error={snapshotError}
+          closeOnEscape={!writeDialogOpen}
           onClose={() => onSelectItem(null)}
+          onRecord={onRecord}
+          onPreIssue={onPreIssue}
+          onReverse={onReverse}
+          onAttribute={onAttribute}
         />
       ) : null}
     </div>
