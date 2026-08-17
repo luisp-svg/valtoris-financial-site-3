@@ -1,4 +1,6 @@
 import { useMemo } from 'react'
+import { Link } from 'react-router-dom'
+import { ROUTES } from '../../constants/routes'
 import type {
   AdvisorCompensationDashboardModel,
   ExpectedReviewListItem,
@@ -129,7 +131,7 @@ export default function CommissionWorkspace({
 
   return (
     <div className="crm-page crm-opportunities-page crm-commissions-page">
-      <header className="crm-page-header">
+      <header className="crm-page-header crm-opportunities-header">
         <div>
           <p className="crm-page-eyebrow">Commissions</p>
           <h1 className="crm-page-title">Commission workspace</h1>
@@ -138,6 +140,13 @@ export default function CommissionWorkspace({
             commission. Production underwriting stages stay on Production.
           </p>
         </div>
+        {isOwner ? (
+          <div className="crm-production-header-actions">
+            <Link to={ROUTES.crmCommissionsImport} className="crm-primary-btn">
+              Import Statement
+            </Link>
+          </div>
+        ) : null}
       </header>
 
       {error ? (

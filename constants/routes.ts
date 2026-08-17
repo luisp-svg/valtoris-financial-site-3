@@ -37,6 +37,8 @@ export const ROUTES = {
   crmProduction: '/crm/production',
   /** Writing-advisor commission workspace (read-only 034/035). */
   crmCommissions: '/crm/commissions',
+  /** Owner-only Experior commission import intake (036 staging). */
+  crmCommissionsImport: '/crm/commissions/import',
   /** Owner-only carrier and product catalog (P1B-2A). */
   crmProductionCatalog: '/crm/production/catalog',
   /** New Life / IUL / FIA production application (P1B-2B). */
@@ -103,6 +105,10 @@ export function crmProductionPath(applicationId: string): string {
 
 export function crmCommissionsPath(): string {
   return ROUTES.crmCommissions
+}
+
+export function crmCommissionsImportPath(): string {
+  return ROUTES.crmCommissionsImport
 }
 
 export function crmProductionCatalogPath(): string {

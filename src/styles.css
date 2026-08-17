@@ -11114,3 +11114,47 @@ button.public-card-diagnostic:disabled {
     text-align: right;
   }
 }
+
+.crm-commissions-import-create {
+  display: grid;
+  gap: 12px;
+}
+
+.crm-commissions-import-paste textarea {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85rem;
+}
+
+.crm-commissions-import-help {
+  margin-top: 8px;
+}
+
+.crm-commissions-import-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0 16px;
+}
+
+.crm-commissions-import-tabs .is-selected {
+  border-color: var(--brand);
+}
+
+.crm-commissions-import-preview-table-wrap {
+  overflow-x: auto;
+}
+
+.crm-commissions-import-override {
+  font-weight: 700;
+}
+
+.crm-commissions-import-batch-cards,
+.crm-commissions-import-row-cards {
+  display: grid;
+  gap: 12px;
+}
+
+.crm-commissions-import-summary {
+  display: grid;
+  gap: 12px;
+}

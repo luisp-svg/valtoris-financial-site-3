@@ -43,6 +43,7 @@ import CrmTasksPage from '../pages/crm/CrmTasksPage'
 import CrmCampaignsPage from '../pages/crm/CrmCampaignsPage'
 import CrmProductionPage from '../pages/crm/CrmProductionPage'
 import CrmCommissionsPage from '../pages/crm/CrmCommissionsPage'
+import CrmCommissionsImportPage from '../pages/crm/CrmCommissionsImportPage'
 import CrmProductionCatalogPage from '../pages/crm/CrmProductionCatalogPage'
 import CrmProductionNewPage from '../pages/crm/CrmProductionNewPage'
 import CrmProductionEditPage from '../pages/crm/CrmProductionEditPage'
@@ -196,6 +197,7 @@ export default function App() {
           <Route path="production/:applicationId/edit" element={<CrmProductionEditPage />} />
           <Route path="production/:applicationId" element={<CrmProductionDetailPage />} />
           <Route path="production" element={<CrmProductionPage />} />
+          <Route path="commissions/import" element={<CrmCommissionsImportPage />} />
           <Route path="commissions" element={<CrmCommissionsPage />} />
           <Route path="policies" element={<CrmPlaceholderPage />} />
           <Route path="annual-reviews" element={<CrmPlaceholderPage />} />

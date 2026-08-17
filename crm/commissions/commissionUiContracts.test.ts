@@ -64,7 +64,7 @@ describe('commission Phase 2 owner write workspace', () => {
     expect(queueTable).not.toContain('fetchWritingCommissionSnapshot')
   })
 
-  it('keeps import UI and schema changes out of the commissions workspace', () => {
+  it('keeps import RPCs out of the Phase 1/2 commissions workspace', () => {
     const sources = [page, workspace, summary, queueTable, queueCards, detail]
     for (const source of sources) {
       expect(source).not.toContain('create_commission_import_batch')
