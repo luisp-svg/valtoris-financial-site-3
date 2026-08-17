@@ -7,6 +7,7 @@ import {
   MIGRATION_037_FILENAME,
   MIGRATION_037_FORBIDDEN_MARKERS,
 } from './migration037Contract'
+import { MIGRATION_038_FILENAME } from './migration038Contract'
 
 const migrationsDir = resolve(process.cwd(), 'supabase/migrations')
 const sql = readFileSync(resolve(migrationsDir, MIGRATION_037_FILENAME), 'utf8')
@@ -23,7 +24,10 @@ describe('migration 037 client production workflow extensions contract', () => {
       files.indexOf(MIGRATION_036_FILENAME),
     )
     expect(files.filter((f) => f.startsWith('037_'))).toEqual([MIGRATION_037_FILENAME])
-    expect(files.filter((f) => f.startsWith('038_'))).toEqual([])
+    expect(files.filter((f) => f.startsWith('038_'))).toEqual([MIGRATION_038_FILENAME])
+    expect(files.indexOf(MIGRATION_038_FILENAME)).toBeGreaterThan(
+      files.indexOf(MIGRATION_037_FILENAME),
+    )
   })
 
   it('includes required stage, beneficiary, DOB, RLS, and RPC markers', () => {

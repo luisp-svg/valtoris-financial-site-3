@@ -1,0 +1,51 @@
+/** Static contract markers for Migration 038 historical import support. */
+
+export const MIGRATION_038_FILENAME = '038_historical_import_support.sql'
+
+export const MIGRATION_038_CONTRACT_MARKERS = [
+  'create_canonical_client',
+  'households + household_members',
+  'household_members.date_of_birth',
+  'HISTORICAL_CLIENT:duplicate_identity',
+  'HISTORICAL_CLIENT:identity_conflict',
+  'Does not weaken quick_add_contact',
+  'historical_entry',
+  'p_allow_inactive',
+  'Does not reactivate or substitute products',
+  'Owner historical_entry',
+  'CURRENT_DATE',
+  'premium_drafted cannot skip issued',
+  'policies.source_application_id',
+  'SET search_path = pg_catalog, public, extensions',
+  'GRANT EXECUTE ON FUNCTION public.create_canonical_client(jsonb) TO authenticated',
+  'REVOKE ALL ON FUNCTION public.create_canonical_client(jsonb) FROM PUBLIC, anon',
+  'pp_assert_owner',
+  'crm_write_audit',
+] as const
+
+export const MIGRATION_038_FORBIDDEN_MARKERS = [
+  '039_',
+  'CREATE TABLE public.households',
+  'CREATE TABLE public.household_members',
+  'CREATE TABLE public.policies',
+  'CREATE TABLE public.clients',
+  'CREATE TABLE IF NOT EXISTS public.canonical_clients',
+  'CREATE TABLE IF NOT EXISTS public.historical_clients',
+  'CREATE OR REPLACE FUNCTION public.quick_add_contact(',
+  'CREATE OR REPLACE FUNCTION public.pp_refresh_application_expected_compensation',
+  'CREATE OR REPLACE FUNCTION public.record_policy_writing_commission_event',
+  'CREATE OR REPLACE FUNCTION public.create_commission_import_batch',
+  'CREATE OR REPLACE FUNCTION public.stage_commission_import_rows',
+  'CREATE OR REPLACE FUNCTION public.post_commission_import_row',
+  'upline_id',
+  'override_rate',
+  'generational_rate',
+  'GRANT EXECUTE ON FUNCTION public.create_canonical_client(jsonb) TO anon',
+  'GRANT EXECUTE ON FUNCTION public.create_canonical_client(jsonb) TO PUBLIC',
+  'TO service_role',
+  'DROP POLICY',
+  'DISABLE ROW LEVEL SECURITY',
+  'placeholder@',
+  'fake@',
+  '000-000-0000',
+] as const
