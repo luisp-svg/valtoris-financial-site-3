@@ -1,8 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
 import {
   fetchLiveExpectedCompensations,
+  fetchPaidCommissionEvents,
   fetchWritingCommissionSnapshot,
   mapLiveExpectedRow,
+  mapPaidCommissionListEvent,
   mapWritingCommissionSnapshot,
 } from './compensationApi'
 
@@ -109,6 +111,64 @@ describe('expected compensation mapping', () => {
     expect(is).toHaveBeenCalledWith('superseded_at', null)
     expect(byApp.get('app-1')?.[0]?.expected_compensation_cents).toBe(250)
     expect(byApp.get('app-2')).toBeUndefined()
+  })
+})
+
+describe('paid commission list SELECT', () => {
+  function paidSelectClient(result: { data: unknown; error: unknown }) {
+    const inFn = vi.fn().mockResolvedValue(result)
+    const select = vi.fn().mockReturnValue({ in: inFn })
+    const from = vi.fn().mockReturnValue({ select })
+    return { client: { from } as never, from, select, inFn }
+  }
+
+  it('loads 035 events in one batched SELECT and does not call the snapshot RPC', async () => {
+    const { client, from, select, inFn } = paidSelectClient({
+      data: [
+        {
+          id: 'e1',
+          application_id: 'app-1',
+          event_type: 'paid',
+          amount_cents: 25000,
+          reversed_event_id: null,
+        },
+      ],
+      error: null,
+    })
+    const rows = await fetchPaidCommissionEvents(client, ['app-1', 'app-2'])
+    expect(from).toHaveBeenCalledTimes(1)
+    expect(from).toHaveBeenCalledWith('policy_writing_commission_events')
+    expect(select).toHaveBeenCalledTimes(1)
+    expect(inFn).toHaveBeenCalledWith('application_id', ['app-1', 'app-2'])
+    expect(rows).toEqual([
+      {
+        id: 'e1',
+        application_id: 'app-1',
+        event_type: 'paid',
+        amount_cents: 25000,
+        reversed_event_id: null,
+      },
+    ])
+  })
+
+  it('returns an empty list when there are no application ids', async () => {
+    const from = vi.fn()
+    const rows = await fetchPaidCommissionEvents({ from } as never, [])
+    expect(from).not.toHaveBeenCalled()
+    expect(rows).toEqual([])
+  })
+
+  it('drops unusable event rows', () => {
+    expect(mapPaidCommissionListEvent({ id: 'x' })).toBeNull()
+    expect(
+      mapPaidCommissionListEvent({
+        id: 'e1',
+        application_id: 'app-1',
+        event_type: 'paid',
+        amount_cents: 100,
+        reversed_event_id: null,
+      }),
+    ).toMatchObject({ amount_cents: 100 })
   })
 })
 

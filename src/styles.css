@@ -7366,6 +7366,111 @@ p { color: var(--muted); line-height: 1.7; }
   gap: 14px;
 }
 
+.crm-production-dashboard-stack {
+  display: grid;
+  gap: 14px;
+}
+
+.crm-production-kpi-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.crm-production-kpi-grid-summary {
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.crm-production-kpi-grid-pipeline {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.crm-production-kpi-grid-paid {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.crm-production-kpi-card {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--crm-border);
+  border-radius: 14px;
+  background: #fff;
+}
+
+.crm-production-kpi-card-hero,
+.crm-production-kpi-card-paid {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+}
+
+.crm-production-kpi-label {
+  margin: 0;
+  color: var(--crm-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.crm-production-kpi-value {
+  margin: 0;
+  color: var(--crm-navy);
+  font-size: clamp(1.15rem, 1.8vw, 1.55rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+}
+
+.crm-production-kpi-caption {
+  margin: 0;
+  color: var(--crm-muted);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.crm-production-kpi-money {
+  display: grid;
+  gap: 4px;
+  margin: 4px 0 0;
+}
+
+.crm-production-kpi-money > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.82rem;
+}
+
+.crm-production-kpi-money dt {
+  color: var(--crm-muted);
+}
+
+.crm-production-kpi-money dd {
+  margin: 0;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+@media (max-width: 899px) {
+  .crm-production-kpi-grid-summary,
+  .crm-production-kpi-grid-pipeline {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 900px) and (max-width: 1199px) {
+  .crm-production-kpi-grid-summary,
+  .crm-production-kpi-grid-pipeline {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.crm-production-page .crm-opportunities-filters-grid {
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
 .crm-opportunities-filters-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(160px, 220px);

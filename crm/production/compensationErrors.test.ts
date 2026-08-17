@@ -3,6 +3,7 @@ import {
   ACTUAL_LOAD_ERROR,
   COMPENSATION_GENERIC_ERROR,
   EXPECTED_LIST_LOAD_ERROR,
+  PAID_LIST_LOAD_ERROR,
   formatCompensationUserError,
 } from './compensationErrors'
 import { formatCompensationDevError } from './compensationApi'
@@ -21,6 +22,7 @@ describe('compensation error normalization', () => {
     expect(leaked).toBe(COMPENSATION_GENERIC_ERROR)
     expect(leaked).not.toMatch(/CRM_PP|42501|SQLSTATE|permission denied|PGRST|SELECT \*/i)
     expect(EXPECTED_LIST_LOAD_ERROR).toMatch(/still shown/i)
+    expect(PAID_LIST_LOAD_ERROR).toMatch(/still shown/i)
     expect(ACTUAL_LOAD_ERROR).toMatch(/try again/i)
   })
 

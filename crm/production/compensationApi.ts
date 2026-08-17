@@ -9,6 +9,7 @@ import type {
   WritingCommissionEvent,
   WritingCommissionTotals,
 } from './compensationView'
+import type { PaidCommissionListEvent } from './dashboardView'
 import {
   EXPECTED_CALCULATION_STATUSES,
   EXPECTED_REVIEW_REASONS,
@@ -151,6 +152,47 @@ export async function fetchLiveExpectedCompensations(
     byApp.set(mapped.application_id, list)
   }
   return byApp
+}
+
+const PAID_EVENT_SELECT = 'id, application_id, event_type, amount_cents, reversed_event_id'
+
+export function mapPaidCommissionListEvent(value: unknown): PaidCommissionListEvent | null {
+  const row = asRecord(value)
+  if (!row?.id || typeof row.application_id !== 'string') return null
+  if (typeof row.event_type !== 'string') return null
+  const amount = asCents(row.amount_cents)
+  if (amount == null) return null
+  return {
+    id: String(row.id),
+    application_id: String(row.application_id),
+    event_type: row.event_type,
+    amount_cents: amount,
+    reversed_event_id:
+      typeof row.reversed_event_id === 'string' ? row.reversed_event_id : null,
+  }
+}
+
+/**
+ * One batched SELECT of 035 events for the loaded application ids.
+ * RLS remains in force. Never N+1 snapshot RPCs.
+ */
+export async function fetchPaidCommissionEvents(
+  supabase: SupabaseClient,
+  applicationIds: readonly string[],
+): Promise<PaidCommissionListEvent[]> {
+  const ids = applicationIds.filter((id) => id.trim().length > 0)
+  if (ids.length === 0) return []
+
+  const { data, error } = await supabase
+    .from('policy_writing_commission_events')
+    .select(PAID_EVENT_SELECT)
+    .in('application_id', ids)
+
+  if (error) throw error
+
+  return asArray(data as EmbedOne<Record<string, unknown>>)
+    .map(mapPaidCommissionListEvent)
+    .filter((row): row is PaidCommissionListEvent => row != null)
 }
 
 export type WritingCommissionAccountView = {

@@ -4,6 +4,8 @@ export const COMPENSATION_GENERIC_ERROR =
   'Unable to load compensation for this application. Please try again.'
 export const EXPECTED_LIST_LOAD_ERROR =
   'Unable to load expected compensation. Production applications are still shown.'
+export const PAID_LIST_LOAD_ERROR =
+  'Unable to load commission paid totals. Production applications are still shown.'
 export const ACTUAL_LOAD_ERROR =
   'Unable to load actual commission. Please try again.'
 

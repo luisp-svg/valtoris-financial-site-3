@@ -45,3 +45,11 @@ export type ProductionListPresentation = 'table' | 'cards'
 export function getProductionListPresentation(viewportWidth: number): ProductionListPresentation {
   return viewportWidth < 900 ? 'cards' : 'table'
 }
+
+export function productionListCapWarning(
+  loadedCount: number,
+  limit: number,
+): string | null {
+  if (loadedCount !== limit) return null
+  return `Showing the first ${limit} production records. Dashboard totals may be incomplete.`
+}

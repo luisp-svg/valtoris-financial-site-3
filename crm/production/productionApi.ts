@@ -86,6 +86,9 @@ const APPLICATION_LIST_SELECT = `
   delivery_status,
   submission_date,
   next_follow_up_date,
+  submitted_premium_cents,
+  annuity_deposit_cents,
+  face_amount_cents,
   updated_at,
   deleted_at,
   household:households!household_id ( id, display_name ),
@@ -102,10 +105,7 @@ const APPLICATION_DETAIL_SELECT = `
   opportunity_id,
   is_replacement,
   is_exchange_or_transfer,
-  face_amount_cents,
-  annuity_deposit_cents,
   premium_mode,
-  submitted_premium_cents,
   target_premium_cents,
   total_points_scaled,
   decision_date,
@@ -290,6 +290,9 @@ type RawListRow = {
   delivery_status: string
   submission_date: string | null
   next_follow_up_date: string | null
+  submitted_premium_cents: number | null
+  annuity_deposit_cents: number | null
+  face_amount_cents: number | null
   updated_at: string
   deleted_at: string | null
   household?: EmbedOne<ProductionHouseholdSummary>
@@ -319,6 +322,11 @@ function mapListItem(row: RawListRow): ProductionApplicationListItem | null {
     delivery_status: row.delivery_status as ProductionDeliveryStatus,
     submission_date: row.submission_date ?? null,
     next_follow_up_date: row.next_follow_up_date ?? null,
+    submitted_premium_cents:
+      row.submitted_premium_cents == null ? null : Number(row.submitted_premium_cents),
+    annuity_deposit_cents:
+      row.annuity_deposit_cents == null ? null : Number(row.annuity_deposit_cents),
+    face_amount_cents: row.face_amount_cents == null ? null : Number(row.face_amount_cents),
     updated_at: String(row.updated_at),
     deleted_at: row.deleted_at ?? null,
     household: mapHousehold(row.household ?? null),
@@ -336,10 +344,7 @@ type RawDetailRow = RawListRow & {
   opportunity_id: string | null
   is_replacement: boolean
   is_exchange_or_transfer: boolean
-  face_amount_cents: number | null
-  annuity_deposit_cents: number | null
   premium_mode: string | null
-  submitted_premium_cents: number | null
   target_premium_cents: number | null
   total_points_scaled: number | null
   decision_date: string | null
@@ -359,13 +364,7 @@ function mapDetail(row: RawDetailRow): ProductionApplicationDetail | null {
     opportunity_id: row.opportunity_id ? String(row.opportunity_id) : null,
     is_replacement: Boolean(row.is_replacement),
     is_exchange_or_transfer: Boolean(row.is_exchange_or_transfer),
-    face_amount_cents:
-      row.face_amount_cents == null ? null : Number(row.face_amount_cents),
-    annuity_deposit_cents:
-      row.annuity_deposit_cents == null ? null : Number(row.annuity_deposit_cents),
     premium_mode: row.premium_mode ?? null,
-    submitted_premium_cents:
-      row.submitted_premium_cents == null ? null : Number(row.submitted_premium_cents),
     target_premium_cents:
       row.target_premium_cents == null ? null : Number(row.target_premium_cents),
     total_points_scaled:

@@ -73,6 +73,19 @@ export function filterProductionQueueItems(
       if (!ids.includes(filters.writingAdvisorId)) return false
     }
 
+    if (filters.writtenState !== 'all' && item.state !== filters.writtenState) {
+      return false
+    }
+
+    if (hasActiveSubmissionDateRange(filters)) {
+      const day = submissionDateDay(item.submission_date)
+      if (!day) return false
+      const from = normalizeDateBound(filters.submissionDateFrom)
+      const to = normalizeDateBound(filters.submissionDateTo)
+      if (from && day < from) return false
+      if (to && day > to) return false
+    }
+
     if (filters.followUpOverdueOnly && !isFollowUpOverdue(item.next_follow_up_date, now)) {
       return false
     }
@@ -121,8 +134,42 @@ export function defaultProductionQueueFilters(): ProductionQueueFilters {
     productLine: 'all',
     carrierId: 'all',
     writingAdvisorId: 'all',
+    writtenState: 'all',
+    submissionDateFrom: '',
+    submissionDateTo: '',
     followUpOverdueOnly: false,
     staleOnly: false,
     includeDeleted: false,
   }
+}
+
+export function hasActiveSubmissionDateRange(
+  filters: Pick<ProductionQueueFilters, 'submissionDateFrom' | 'submissionDateTo'>,
+): boolean {
+  return Boolean(
+    normalizeDateBound(filters.submissionDateFrom) || normalizeDateBound(filters.submissionDateTo),
+  )
+}
+
+/** Unique written states from the loaded book, sorted. Empty values omitted. */
+export function writtenStateFilterOptions(
+  items: readonly Pick<ProductionApplicationListItem, 'state'>[],
+): string[] {
+  const states = new Set<string>()
+  for (const item of items) {
+    const state = item.state.trim()
+    if (state) states.add(state)
+  }
+  return [...states].sort((a, b) => a.localeCompare(b))
+}
+
+function normalizeDateBound(value: string): string | null {
+  const day = value.trim().slice(0, 10)
+  return /^\d{4}-\d{2}-\d{2}$/.test(day) ? day : null
+}
+
+function submissionDateDay(value: string | null | undefined): string | null {
+  if (!value) return null
+  const day = value.slice(0, 10)
+  return /^\d{4}-\d{2}-\d{2}$/.test(day) ? day : null
 }

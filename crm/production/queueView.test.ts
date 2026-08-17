@@ -23,6 +23,9 @@ function item(
     delivery_status: 'pre_issue',
     submission_date: null,
     next_follow_up_date: null,
+    submitted_premium_cents: null,
+    annuity_deposit_cents: null,
+    face_amount_cents: null,
     deleted_at: null,
     household: { id: 'hh1', display_name: 'Rivera Household' },
     carrier: { id: 'c1', name: 'Acme Life', code: 'ACME' },
@@ -186,5 +189,54 @@ describe('production queue view', () => {
     expect(
       filterProductionQueueItems(rows, defaultProductionQueueFilters()).map((r) => r.id),
     ).toEqual(['live'])
+  })
+
+  it('filters written state and submission date range, excluding NULL dates when a range is active', () => {
+    const rows = [
+      item({
+        id: 'tx-in',
+        production_stage: 'submitted',
+        updated_at: '2026-08-10T00:00:00.000Z',
+        state: 'TX',
+        submission_date: '2026-07-15',
+      }),
+      item({
+        id: 'tx-out',
+        production_stage: 'submitted',
+        updated_at: '2026-08-10T00:00:00.000Z',
+        state: 'TX',
+        submission_date: '2026-01-01',
+      }),
+      item({
+        id: 'fl',
+        production_stage: 'submitted',
+        updated_at: '2026-08-10T00:00:00.000Z',
+        state: 'FL',
+        submission_date: '2026-07-20',
+      }),
+      item({
+        id: 'undated',
+        production_stage: 'submitted',
+        updated_at: '2026-08-10T00:00:00.000Z',
+        state: 'TX',
+        submission_date: null,
+      }),
+    ]
+
+    expect(
+      filterProductionQueueItems(rows, {
+        ...defaultProductionQueueFilters(),
+        writtenState: 'TX',
+      }).map((r) => r.id),
+    ).toEqual(['tx-in', 'tx-out', 'undated'])
+
+    expect(
+      filterProductionQueueItems(rows, {
+        ...defaultProductionQueueFilters(),
+        writtenState: 'TX',
+        submissionDateFrom: '2026-07-01',
+        submissionDateTo: '2026-07-31',
+      }).map((r) => r.id),
+    ).toEqual(['tx-in'])
   })
 })

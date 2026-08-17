@@ -3,6 +3,7 @@ import {
   getProductionDetailViewState,
   getProductionListPresentation,
   getProductionListViewState,
+  productionListCapWarning,
 } from './listLoadState'
 
 describe('production list/detail view states', () => {
@@ -86,5 +87,13 @@ describe('production list/detail view states', () => {
   it('uses cards below 900px', () => {
     expect(getProductionListPresentation(899)).toBe('cards')
     expect(getProductionListPresentation(900)).toBe('table')
+  })
+
+  it('warns when the loaded list hits the 200-row cap', () => {
+    expect(productionListCapWarning(199, 200)).toBeNull()
+    expect(productionListCapWarning(200, 200)).toBe(
+      'Showing the first 200 production records. Dashboard totals may be incomplete.',
+    )
+    expect(productionListCapWarning(0, 200)).toBeNull()
   })
 })

@@ -253,6 +253,9 @@ export type ProductionApplicationListItem = {
   delivery_status: ProductionDeliveryStatus
   submission_date: string | null
   next_follow_up_date: string | null
+  submitted_premium_cents: number | null
+  annuity_deposit_cents: number | null
+  face_amount_cents: number | null
   updated_at: string
   deleted_at: string | null
   household: ProductionHouseholdSummary | null
@@ -270,10 +273,7 @@ export type ProductionApplicationDetail = ProductionApplicationListItem & {
   opportunity_id: string | null
   is_replacement: boolean
   is_exchange_or_transfer: boolean
-  face_amount_cents: number | null
-  annuity_deposit_cents: number | null
   premium_mode: string | null
-  submitted_premium_cents: number | null
   target_premium_cents: number | null
   total_points_scaled: number | null
   decision_date: string | null
@@ -291,6 +291,12 @@ export type ProductionQueueFilters = {
   productLine: ProductionProductLine | 'all'
   carrierId: string | 'all'
   writingAdvisorId: string | 'all'
+  /** Written application `state` (e.g. TX). */
+  writtenState: string | 'all'
+  /** Inclusive YYYY-MM-DD working-set bound on `submission_date`. Empty = unset. */
+  submissionDateFrom: string
+  /** Inclusive YYYY-MM-DD working-set bound on `submission_date`. Empty = unset. */
+  submissionDateTo: string
   followUpOverdueOnly: boolean
   staleOnly: boolean
   /** When false (default), soft-deleted rows are excluded from the queue. */

@@ -2,27 +2,36 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ROUTES } from '../../constants/routes'
 import { useCrmAuth } from '../../crm/auth/CrmAuthContext'
+import ProductionDashboard from '../../crm/production/ProductionDashboard'
 import ProductionQueueCards from '../../crm/production/ProductionQueueCards'
 import ProductionQueueTable from '../../crm/production/ProductionQueueTable'
+import { buildProductionDashboard, type PaidCommissionListEvent } from '../../crm/production/dashboardView'
 import {
   getProductionListPresentation,
   getProductionListViewState,
+  productionListCapWarning,
 } from '../../crm/production/listLoadState'
 import {
   fetchLiveExpectedCompensations,
+  fetchPaidCommissionEvents,
   formatCompensationDevError,
 } from '../../crm/production/compensationApi'
-import { EXPECTED_LIST_LOAD_ERROR } from '../../crm/production/compensationErrors'
+import {
+  EXPECTED_LIST_LOAD_ERROR,
+  PAID_LIST_LOAD_ERROR,
+} from '../../crm/production/compensationErrors'
 import {
   fetchProductionAdvisorOptions,
   fetchProductionApplications,
   fetchProductionCarrierOptions,
   formatProductionSupabaseError,
+  PRODUCTION_LIST_DEFAULT_LIMIT,
 } from '../../crm/production/productionApi'
 import type { CompensationViewer } from '../../crm/production/types'
 import {
   applyProductionQueueView,
   defaultProductionQueueFilters,
+  writtenStateFilterOptions,
 } from '../../crm/production/queueView'
 import {
   PRODUCTION_PRODUCT_LINES,
@@ -63,6 +72,8 @@ export default function CrmProductionPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [expectedError, setExpectedError] = useState<string | null>(null)
+  const [paidError, setPaidError] = useState<string | null>(null)
+  const [paidEvents, setPaidEvents] = useState<PaidCommissionListEvent[]>([])
   const [filters, setFilters] = useState<ProductionQueueFilters>(() =>
     defaultProductionQueueFilters(),
   )
@@ -74,6 +85,7 @@ export default function CrmProductionPage() {
       setLoading(true)
       setError(null)
       setExpectedError(null)
+      setPaidError(null)
       try {
         const supabase = createSupabaseBrowserClient()
         const [rows, carrierRows] = await Promise.all([
@@ -82,17 +94,32 @@ export default function CrmProductionPage() {
         ])
         let expectedByApp = new Map<string, typeof rows[number]['expected_compensations']>()
         let expectedLoadError: string | null = null
-        try {
-          expectedByApp = await fetchLiveExpectedCompensations(
-            supabase,
-            rows.map((row) => row.id),
-          )
-        } catch (expectedErr) {
+        let paidRows: PaidCommissionListEvent[] = []
+        let paidLoadError: string | null = null
+        const applicationIds = rows.map((row) => row.id)
+        const [expectedResult, paidResult] = await Promise.allSettled([
+          fetchLiveExpectedCompensations(supabase, applicationIds),
+          fetchPaidCommissionEvents(supabase, applicationIds),
+        ])
+        if (expectedResult.status === 'fulfilled') {
+          expectedByApp = expectedResult.value
+        } else {
           expectedLoadError = EXPECTED_LIST_LOAD_ERROR
           if (import.meta.env.DEV) {
             console.error(
               '[crm/production/expected]',
-              formatCompensationDevError('production-expected-list', expectedErr),
+              formatCompensationDevError('production-expected-list', expectedResult.reason),
+            )
+          }
+        }
+        if (paidResult.status === 'fulfilled') {
+          paidRows = paidResult.value
+        } else {
+          paidLoadError = PAID_LIST_LOAD_ERROR
+          if (import.meta.env.DEV) {
+            console.error(
+              '[crm/production/paid]',
+              formatCompensationDevError('production-paid-list', paidResult.reason),
             )
           }
         }
@@ -103,12 +130,15 @@ export default function CrmProductionPage() {
               expected_compensations: expectedByApp.get(row.id) ?? [],
             })),
           )
+          setPaidEvents(paidRows)
           setCarriers(carrierRows)
           setExpectedError(expectedLoadError)
+          setPaidError(paidLoadError)
         }
       } catch (err) {
         if (!cancelled) {
           setItems([])
+          setPaidEvents([])
           setError('Unable to load production applications. Please try again.')
           if (import.meta.env.DEV) {
             console.error(
@@ -151,6 +181,13 @@ export default function CrmProductionPage() {
     [items, filters],
   )
 
+  const dashboard = useMemo(
+    () => buildProductionDashboard(filteredItems, paidEvents),
+    [filteredItems, paidEvents],
+  )
+  const writtenStates = useMemo(() => writtenStateFilterOptions(items), [items])
+  const capWarning = productionListCapWarning(items.length, PRODUCTION_LIST_DEFAULT_LIMIT)
+
   const viewState = getProductionListViewState({
     loading,
     error,
@@ -164,6 +201,9 @@ export default function CrmProductionPage() {
     filters.productLine !== 'all' ||
     filters.carrierId !== 'all' ||
     filters.writingAdvisorId !== 'all' ||
+    filters.writtenState !== 'all' ||
+    filters.submissionDateFrom.trim() !== '' ||
+    filters.submissionDateTo.trim() !== '' ||
     filters.followUpOverdueOnly ||
     filters.staleOnly
 
@@ -218,6 +258,23 @@ export default function CrmProductionPage() {
           </button>
         </div>
       ) : null}
+
+      {paidError ? (
+        <div className="crm-banner crm-banner-warning" role="status">
+          {paidError}{' '}
+          <button type="button" className="crm-text-btn" onClick={() => setReloadKey((n) => n + 1)}>
+            Retry
+          </button>
+        </div>
+      ) : null}
+
+      {capWarning ? (
+        <div className="crm-banner crm-banner-warning" role="status">
+          {capWarning}
+        </div>
+      ) : null}
+
+      <ProductionDashboard model={dashboard} loading={loading} />
 
       <section
         className="crm-panel crm-opportunities-filters-grid"
@@ -311,6 +368,42 @@ export default function CrmProductionPage() {
             </select>
           </label>
         ) : null}
+
+        <label className="crm-field">
+          <span>Written state</span>
+          <select
+            value={filters.writtenState}
+            onChange={(e) => updateFilter('writtenState', e.target.value)}
+            disabled={loading}
+          >
+            <option value="all">All states</option>
+            {writtenStates.map((state) => (
+              <option key={state} value={state}>
+                {state}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="crm-field">
+          <span>Submitted from</span>
+          <input
+            type="date"
+            value={filters.submissionDateFrom}
+            onChange={(e) => updateFilter('submissionDateFrom', e.target.value)}
+            disabled={loading}
+          />
+        </label>
+
+        <label className="crm-field">
+          <span>Submitted to</span>
+          <input
+            type="date"
+            value={filters.submissionDateTo}
+            onChange={(e) => updateFilter('submissionDateTo', e.target.value)}
+            disabled={loading}
+          />
+        </label>
 
         <label className="crm-field crm-production-check-field">
           <span>Follow-up overdue</span>
