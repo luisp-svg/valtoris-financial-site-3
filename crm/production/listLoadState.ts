@@ -42,8 +42,17 @@ export function getProductionDetailViewState(options: {
 
 export type ProductionListPresentation = 'table' | 'cards'
 
+/** Table-mode density only. Board vs Table is an explicit user toggle. */
 export function getProductionListPresentation(viewportWidth: number): ProductionListPresentation {
   return viewportWidth < 900 ? 'cards' : 'table'
+}
+
+export type ProductionQueueViewMode = 'board' | 'table'
+
+export const DEFAULT_PRODUCTION_QUEUE_VIEW: ProductionQueueViewMode = 'board'
+
+export function isProductionQueueViewMode(value: string): value is ProductionQueueViewMode {
+  return value === 'board' || value === 'table'
 }
 
 export function productionListCapWarning(

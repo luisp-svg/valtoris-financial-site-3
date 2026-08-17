@@ -1,0 +1,86 @@
+import { existsSync, readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { describe, expect, it } from 'vitest'
+import { DEFAULT_PRODUCTION_QUEUE_VIEW } from './listLoadState'
+
+const here = dirname(fileURLToPath(import.meta.url))
+const queuePage = readFileSync(join(here, '../../pages/crm/CrmProductionPage.tsx'), 'utf8')
+const board = readFileSync(join(here, 'ProductionBoard.tsx'), 'utf8')
+const card = readFileSync(join(here, 'ProductionBoardCard.tsx'), 'utf8')
+const boardMoney = readFileSync(join(here, 'boardCardMoney.ts'), 'utf8')
+const boardView = readFileSync(join(here, 'boardView.ts'), 'utf8')
+const styles = readFileSync(join(here, '../../src/styles.css'), 'utf8')
+const packageJson = readFileSync(join(here, '../../package.json'), 'utf8')
+const packageLock = existsSync(join(here, '../../package-lock.json'))
+  ? readFileSync(join(here, '../../package-lock.json'), 'utf8')
+  : ''
+
+describe('Phase B production board contracts', () => {
+  it('defaults to Board and keeps Table as an explicit toggle without refetch', () => {
+    expect(DEFAULT_PRODUCTION_QUEUE_VIEW).toBe('board')
+    expect(queuePage).toContain('DEFAULT_PRODUCTION_QUEUE_VIEW')
+    expect(queuePage).toContain('ProductionViewToggle')
+    expect(queuePage).toContain('ProductionBoard')
+    expect(queuePage).toContain('ProductionQueueTable')
+    expect(queuePage).toContain("viewMode === 'board'")
+    expect(queuePage).toContain("viewMode === 'table'")
+    expect(queuePage).toContain('onChange={setViewMode}')
+    expect(queuePage).not.toMatch(/setViewMode\([^)]*(setFilters|resetFilters)/)
+    expect(queuePage).toMatch(/useEffect\([\s\S]*, \[reloadKey\]\)/)
+    expect(queuePage).not.toMatch(/useEffect\([\s\S]*, \[[^\]]*viewMode/)
+    expect(queuePage).toContain('buildProductionDashboard(filteredItems, { period: productionPeriod, today })')
+    expect(queuePage).not.toMatch(/buildProductionDashboard\([^)]*viewMode/)
+    expect(queuePage).not.toMatch(/useEffect\([\s\S]*, \[[^\]]*productionPeriod/)
+    expect(queuePage).not.toMatch(/useEffect\([\s\S]*, \[[^\]]*compensationPeriod/)
+  })
+
+  it('does not install drag/drop, notes, stage mutation, or a new query', () => {
+    expect(packageJson).not.toMatch(/dnd-kit|hello-pangea|react-beautiful-dnd|react-dnd/)
+    expect(packageLock).not.toMatch(/@dnd-kit/)
+    expect(board).not.toMatch(/onDrag|draggable|dnd-kit|Move to/)
+    expect(card).not.toMatch(/onDrag|createHouseholdNote|fetchHouseholdNotes/)
+    expect(board).not.toContain('transitionPolicyApplicationStage')
+    expect(queuePage).not.toContain('transitionPolicyApplicationStage')
+    expect(queuePage).not.toContain('fetchWritingCommissionSnapshot')
+    expect(card).not.toContain('expected_compensations')
+    expect(card).not.toContain('fetchPaidCommissionEvents')
+    expect(boardView).not.toContain('from(')
+    expect(boardView).not.toContain('SERVICE_ROLE')
+    expect(board).not.toContain('createSupabaseBrowserClient')
+    expect(card).not.toContain('createSupabaseBrowserClient')
+    expect(boardView).not.toContain('createSupabaseBrowserClient')
+    expect(queuePage).not.toContain('SERVICE_ROLE')
+    expect(existsSync(join(here, '../../supabase/migrations/039_production_board.sql'))).toBe(false)
+  })
+
+  it('uses the existing detail path and shared filtered items', () => {
+    expect(card).toContain('crmProductionPath(item.id)')
+    expect(queuePage).toContain('items={filteredItems}')
+    expect(queuePage).toContain('stageFilter={filters.stages}')
+    expect(queuePage).toContain('ProductionQueueCards')
+    expect(queuePage).toContain('productionListCapWarning')
+    expect(board).toContain('Intake / Application Drafts')
+    expect(board).toContain('Exceptions')
+    expect(board).toContain('is-stacked')
+    expect(board).toContain('Intake')
+    expect(board).toContain('role="tablist"')
+    expect(card).toContain('Annual Life Premium')
+    expect(card).toContain('Annuity Deposit')
+    expect(card).toContain('productionBoardCardMoney')
+    expect(boardMoney).toContain('annualizeProductionPremium')
+    expect(boardMoney).not.toContain('expected_compensation')
+    expect(card).not.toMatch(/Your expected|Gross paid/)
+    expect(card).not.toContain('fetchHouseholdNotes')
+    expect(board).not.toContain('fetchHouseholdNotes')
+    expect(queuePage).not.toContain('fetchHouseholdNotes')
+  })
+
+  it('does not render eight miniature columns in stacked layout', () => {
+    expect(board).toContain("layout === 'stacked'")
+    expect(board).toContain('crm-production-board-tabs')
+    expect(board.indexOf("if (layout === 'stacked')")).toBeLessThan(board.indexOf('crm-production-board-pipeline'))
+    expect(styles).toContain('.crm-production-board-pipeline')
+    expect(styles).toContain('min-width: 240px')
+  })
+})

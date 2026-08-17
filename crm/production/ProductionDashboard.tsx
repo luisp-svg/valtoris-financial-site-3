@@ -1,7 +1,6 @@
-import { formatCents } from './productionApi'
-import { formatSignedCents } from './compensationView'
-import ProductionPeriodToggle from './ProductionPeriodToggle'
+import { useMemo, useState } from 'react'
 import type { AdvisorCompensationDashboardModel } from './advisorCompensationView'
+import { formatSignedCents } from './compensationView'
 import type { DashboardReportingPeriod } from './dashboardPeriod'
 import {
   DASHBOARD_PIPELINE_STAGES,
@@ -9,6 +8,9 @@ import {
   type ProductionDashboardModel,
   type StageMoneyTotals,
 } from './dashboardView'
+import ExpectedReviewDialog from './ExpectedReviewDialog'
+import ProductionPeriodToggle from './ProductionPeriodToggle'
+import { formatCents } from './productionApi'
 
 type ProductionDashboardProps = {
   model: ProductionDashboardModel
@@ -20,8 +22,14 @@ type ProductionDashboardProps = {
   loading: boolean
 }
 
+type ReviewScope = 'all' | { advisorId: string | null }
+
 function caseLabel(count: number): string {
   return count === 1 ? '1 case' : `${count} cases`
+}
+
+function reviewCountLabel(count: number): string {
+  return count === 1 ? '1 needs review' : `${count} need review`
 }
 
 function StageKpiCard({
@@ -56,6 +64,21 @@ function StageKpiCard({
   )
 }
 
+function ReviewCountButton({
+  count,
+  onClick,
+}: {
+  count: number
+  onClick: () => void
+}) {
+  if (count <= 0) return null
+  return (
+    <button type="button" className="crm-production-review-btn" onClick={onClick}>
+      {reviewCountLabel(count)}
+    </button>
+  )
+}
+
 export default function ProductionDashboard({
   model,
   compensation,
@@ -66,6 +89,18 @@ export default function ProductionDashboard({
   loading,
 }: ProductionDashboardProps) {
   const { summary, protection, pipeline } = model
+  const [reviewScope, setReviewScope] = useState<ReviewScope | null>(null)
+
+  const reviewItems = useMemo(() => {
+    if (reviewScope == null) return []
+    if (reviewScope === 'all') return compensation.reviewItems
+    return compensation.reviewItems.filter((item) => item.advisorId === reviewScope.advisorId)
+  }, [compensation.reviewItems, reviewScope])
+
+  const reviewTitle =
+    reviewScope === 'all'
+      ? 'Expected compensation needing review'
+      : 'Advisor expected compensation needing review'
 
   return (
     <section className="crm-panel crm-production-dashboard" aria-label="Production dashboard">
@@ -148,50 +183,91 @@ export default function ProductionDashboard({
               issue date. Paid, Chargebacks, and Net Paid use commission transaction date.
             </p>
             {compensation.totals.reviewCount > 0 ? (
-              <p className="crm-production-kpi-caption">
-                {compensation.totals.reviewCount === 1
-                  ? '1 expected row needs review'
-                  : `${compensation.totals.reviewCount} expected rows need review`}
-              </p>
+              <ReviewCountButton
+                count={compensation.totals.reviewCount}
+                onClick={() => setReviewScope('all')}
+              />
             ) : null}
             {compensation.rows.length === 0 ? (
               <p className="crm-muted">No advisor compensation in this period.</p>
             ) : (
-              <div className="crm-table-wrap">
-                <table className="crm-table crm-production-compensation-table">
-                  <thead>
-                    <tr>
-                      <th>Advisor</th>
-                      <th>Expected</th>
-                      <th>Outstanding</th>
-                      <th>Paid</th>
-                      <th>Chargebacks</th>
-                      <th>Net Paid</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {compensation.rows.map((row) => (
-                      <tr key={row.advisorId ?? 'unattributed'}>
-                        <td>
-                          {row.advisorName}
-                          {row.reviewCount > 0
-                            ? ` · ${row.reviewCount} need review`
-                            : ''}
-                        </td>
-                        <td>{formatCents(row.expectedCents)}</td>
-                        <td>{formatCents(row.outstandingCents)}</td>
-                        <td>{formatCents(row.paidCents)}</td>
-                        <td>{formatSignedCents(row.chargebackCents)}</td>
-                        <td>{formatCents(row.netPaidCents)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div
+                className="crm-production-comp-grid"
+                role="table"
+                aria-label="Advisor compensation by writing advisor"
+              >
+                <div className="crm-production-comp-row is-head" role="row">
+                  <div className="is-name" role="columnheader">
+                    Advisor
+                  </div>
+                  <div className="is-money" role="columnheader">
+                    Expected
+                  </div>
+                  <div className="is-money" role="columnheader">
+                    Outstanding
+                  </div>
+                  <div className="is-money" role="columnheader">
+                    Paid
+                  </div>
+                  <div className="is-money" role="columnheader">
+                    Chargebacks
+                  </div>
+                  <div className="is-money" role="columnheader">
+                    Net Paid
+                  </div>
+                </div>
+                {compensation.rows.map((row) => {
+                  const unresolved = row.expectedCents === 0 && row.reviewCount > 0
+                  return (
+                    <div
+                      key={row.advisorId ?? 'unattributed'}
+                      className="crm-production-comp-row"
+                      role="row"
+                    >
+                      <div className="is-name" role="cell">
+                        <span className="crm-production-comp-advisor">{row.advisorName}</span>
+                        <ReviewCountButton
+                          count={row.reviewCount}
+                          onClick={() => setReviewScope({ advisorId: row.advisorId })}
+                        />
+                      </div>
+                      <div
+                        className={unresolved ? 'is-money is-unresolved' : 'is-money'}
+                        role="cell"
+                        data-label="Expected"
+                      >
+                        {formatCents(row.expectedCents)}
+                        {unresolved ? (
+                          <span className="crm-production-comp-incomplete">Incomplete</span>
+                        ) : null}
+                      </div>
+                      <div className="is-money" role="cell" data-label="Outstanding">
+                        {formatCents(row.outstandingCents)}
+                      </div>
+                      <div className="is-money" role="cell" data-label="Paid">
+                        {formatCents(row.paidCents)}
+                      </div>
+                      <div className="is-money" role="cell" data-label="Chargebacks">
+                        {formatSignedCents(row.chargebackCents)}
+                      </div>
+                      <div className="is-money" role="cell" data-label="Net Paid">
+                        {formatCents(row.netPaidCents)}
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
             )}
           </section>
         </div>
       )}
+      {reviewScope ? (
+        <ExpectedReviewDialog
+          items={reviewItems}
+          title={reviewTitle}
+          onClose={() => setReviewScope(null)}
+        />
+      ) : null}
     </section>
   )
 }

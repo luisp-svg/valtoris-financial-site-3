@@ -3,7 +3,9 @@ import {
   buildAdvisorCompensationDashboard,
   expectedCompensationPeriodDate,
   isOutstandingProductionStage,
+  listExpectedReviewItems,
 } from './advisorCompensationView'
+import { formatExpectedUnavailableOrReviewCopy } from './compensationLabels'
 import type { PaidCommissionListEvent } from './dashboardView'
 import type {
   LiveExpectedCompensationRow,
@@ -373,5 +375,143 @@ describe('advisor compensation dashboard', () => {
     ])
     expect(model.rows).toHaveLength(1)
     expect(model.rows[0]?.advisorId).toBe('adv-a')
+    expect(model.reviewItems.every((row) => row.advisorId === 'adv-a')).toBe(true)
+  })
+
+  it('lists only review_required and unavailable rows with human review reasons', () => {
+    const rows = [
+      item({
+        id: 'app-1',
+        production_stage: 'approved',
+        application_number: 'A-100',
+        policy_number: 'P-100',
+        submitted_premium_cents: 10000,
+        premium_mode: 'monthly',
+        expected_compensations: [
+          expectedRow({
+            id: 'ok',
+            application_id: 'app-1',
+            advisor_id: 'adv-a',
+            expected_compensation_cents: 0,
+          }),
+          expectedRow({
+            id: 'rev',
+            application_id: 'app-1',
+            advisor_id: 'adv-a',
+            calculation_status: 'review_required',
+            review_reason: 'premium_mode_not_annualizable',
+            expected_compensation_cents: null,
+          }),
+          expectedRow({
+            id: 'na',
+            application_id: 'app-1',
+            advisor_id: 'adv-a',
+            calculation_status: 'unavailable',
+            review_reason: 'no_rate_card',
+            expected_compensation_cents: 99999,
+          }),
+        ],
+      }),
+    ]
+    const model = dashboard(rows)
+    expect(model.reviewItems.map((row) => row.id).sort()).toEqual(['na', 'rev'])
+    expect(model.reviewItems.find((row) => row.id === 'rev')?.reviewReason).toBe(
+      formatExpectedUnavailableOrReviewCopy('review_required', 'premium_mode_not_annualizable'),
+    )
+    expect(model.reviewItems.find((row) => row.id === 'na')?.reviewReason).toBe(
+      formatExpectedUnavailableOrReviewCopy('unavailable', 'no_rate_card'),
+    )
+    expect(model.reviewItems.some((row) => row.reviewReason === 'no_rate_card')).toBe(false)
+    expect(model.reviewItems[0]?.householdName).toBe('Rivera Household')
+    expect(model.reviewItems[0]?.carrierName).toBe('Acme Life')
+    expect(model.reviewItems[0]?.productName).toBe('Term 20')
+    expect(model.reviewItems[0]?.applicationNumber).toBe('A-100')
+    expect(model.reviewItems[0]?.advisorName).toBe('Alex Advisor')
+    expect(model.reviewItems[0]?.stage).toBe('approved')
+    expect(model.reviewItems.find((row) => row.id === 'rev')?.moneyKind).toBe('annual_premium')
+    expect(model.reviewItems.find((row) => row.id === 'rev')?.moneyCents).toBe(120000)
+  })
+
+  it('keeps $0 resolved expected while still surfacing the review count', () => {
+    const model = dashboard([
+      item({
+        id: 'app-1',
+        production_stage: 'submitted',
+        expected_compensations: [
+          expectedRow({
+            id: 'rev',
+            application_id: 'app-1',
+            advisor_id: 'adv-a',
+            calculation_status: 'review_required',
+            review_reason: 'missing_writing_contract_level',
+            expected_compensation_cents: null,
+          }),
+        ],
+      }),
+    ])
+    expect(model.rows[0]?.expectedCents).toBe(0)
+    expect(model.rows[0]?.reviewCount).toBe(1)
+    expect(model.reviewItems).toHaveLength(1)
+  })
+
+  it('does not leak another advisor’s review row when scoped to one advisor', () => {
+    const items = [
+      item({
+        id: 'split',
+        production_stage: 'submitted',
+        expected_compensations: [
+          expectedRow({
+            id: 'mine',
+            application_id: 'split',
+            advisor_id: 'adv-a',
+            calculation_status: 'review_required',
+            review_reason: 'age_sensitive_rate_card',
+            expected_compensation_cents: null,
+          }),
+          expectedRow({
+            id: 'theirs',
+            application_id: 'split',
+            advisor_id: 'adv-b',
+            advisor_display_name: 'Jordan Advisor',
+            calculation_status: 'unavailable',
+            review_reason: 'no_rate_card_for_lookup_date',
+            expected_compensation_cents: null,
+          }),
+        ],
+      }),
+    ]
+    const mine = listExpectedReviewItems({
+      items,
+      period: 'lifetime',
+      today: TODAY,
+      advisorId: 'adv-a',
+    })
+    expect(mine.map((row) => row.id)).toEqual(['mine'])
+    expect(mine.every((row) => row.advisorId === 'adv-a')).toBe(true)
+  })
+
+  it('shows FIA deposit on review items instead of life premium', () => {
+    const model = dashboard([
+      item({
+        id: 'fia-1',
+        production_stage: 'submitted',
+        product_line: 'fia',
+        submitted_premium_cents: 10000,
+        premium_mode: 'annual',
+        annuity_deposit_cents: 25000000,
+        expected_compensations: [
+          expectedRow({
+            id: 'rev',
+            application_id: 'fia-1',
+            advisor_id: 'adv-a',
+            calculation_status: 'review_required',
+            review_reason: 'missing_compensation_base',
+            expected_compensation_cents: null,
+          }),
+        ],
+      }),
+    ])
+    expect(model.reviewItems[0]?.moneyKind).toBe('deposit')
+    expect(model.reviewItems[0]?.moneyCents).toBe(25000000)
   })
 })

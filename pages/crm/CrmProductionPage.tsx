@@ -3,10 +3,13 @@ import { Link } from 'react-router-dom'
 import { ROUTES } from '../../constants/routes'
 import { useCrmAuth } from '../../crm/auth/CrmAuthContext'
 import { localDateString } from '../../crm/dashboard/dates'
+import ProductionBoard from '../../crm/production/ProductionBoard'
 import ProductionDashboard from '../../crm/production/ProductionDashboard'
 import ProductionQueueCards from '../../crm/production/ProductionQueueCards'
 import ProductionQueueTable from '../../crm/production/ProductionQueueTable'
+import ProductionViewToggle from '../../crm/production/ProductionViewToggle'
 import { buildAdvisorCompensationDashboard } from '../../crm/production/advisorCompensationView'
+import { getProductionBoardLayout } from '../../crm/production/boardView'
 import {
   DEFAULT_COMPENSATION_DASHBOARD_PERIOD,
   DEFAULT_PRODUCTION_DASHBOARD_PERIOD,
@@ -14,9 +17,11 @@ import {
 } from '../../crm/production/dashboardPeriod'
 import { buildProductionDashboard, type PaidCommissionListEvent } from '../../crm/production/dashboardView'
 import {
+  DEFAULT_PRODUCTION_QUEUE_VIEW,
   getProductionListPresentation,
   getProductionListViewState,
   productionListCapWarning,
+  type ProductionQueueViewMode,
 } from '../../crm/production/listLoadState'
 import {
   fetchLiveExpectedCompensations,
@@ -71,7 +76,8 @@ export default function CrmProductionPage() {
   const isOwner = role === 'owner'
   const viewer: CompensationViewer = role === 'owner' ? 'owner' : 'advisor'
   const viewportWidth = useViewportWidth()
-  const presentation = getProductionListPresentation(viewportWidth)
+  const tablePresentation = getProductionListPresentation(viewportWidth)
+  const boardLayout = getProductionBoardLayout(viewportWidth)
 
   const [items, setItems] = useState<ProductionApplicationListItem[]>([])
   const [carriers, setCarriers] = useState<ProductionCarrierOption[]>([])
@@ -90,6 +96,7 @@ export default function CrmProductionPage() {
   const [compensationPeriod, setCompensationPeriod] = useState<DashboardReportingPeriod>(
     DEFAULT_COMPENSATION_DASHBOARD_PERIOD,
   )
+  const [viewMode, setViewMode] = useState<ProductionQueueViewMode>(DEFAULT_PRODUCTION_QUEUE_VIEW)
   const [reloadKey, setReloadKey] = useState(0)
 
   useEffect(() => {
@@ -467,10 +474,11 @@ export default function CrmProductionPage() {
       </section>
 
       <section className="crm-panel" aria-labelledby="crm-production-list-heading">
-        <div className="crm-panel-head">
+        <div className="crm-panel-head crm-production-view-head">
           <h2 id="crm-production-list-heading">
             Applications ({loading ? '…' : filteredItems.length})
           </h2>
+          <ProductionViewToggle value={viewMode} onChange={setViewMode} />
         </div>
 
         {viewState.kind === 'loading' ? (
@@ -505,8 +513,16 @@ export default function CrmProductionPage() {
           </div>
         ) : null}
 
-        {viewState.kind === 'ready' ? (
-          presentation === 'table' ? (
+        {viewState.kind === 'ready' && viewMode === 'board' ? (
+          <ProductionBoard
+            items={filteredItems}
+            layout={boardLayout}
+            stageFilter={filters.stages}
+          />
+        ) : null}
+
+        {viewState.kind === 'ready' && viewMode === 'table' ? (
+          tablePresentation === 'table' ? (
             <ProductionQueueTable items={filteredItems} viewer={viewer} />
           ) : (
             <ProductionQueueCards items={filteredItems} viewer={viewer} />

@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import {
+  DEFAULT_PRODUCTION_QUEUE_VIEW,
   getProductionDetailViewState,
   getProductionListPresentation,
   getProductionListViewState,
+  isProductionQueueViewMode,
   productionListCapWarning,
 } from './listLoadState'
 
@@ -84,9 +86,13 @@ describe('production list/detail view states', () => {
     ).toEqual({ kind: 'ready' })
   })
 
-  it('uses cards below 900px', () => {
+  it('uses cards below 900px for table-mode density only', () => {
     expect(getProductionListPresentation(899)).toBe('cards')
     expect(getProductionListPresentation(900)).toBe('table')
+    expect(DEFAULT_PRODUCTION_QUEUE_VIEW).toBe('board')
+    expect(isProductionQueueViewMode('board')).toBe(true)
+    expect(isProductionQueueViewMode('table')).toBe(true)
+    expect(isProductionQueueViewMode('cards')).toBe(false)
   })
 
   it('warns when the loaded list hits the 200-row cap', () => {

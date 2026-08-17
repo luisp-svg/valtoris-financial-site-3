@@ -12,13 +12,18 @@
  * writing advisor + application (035 remaining_expected semantics), then
  * floors at 0. Terminal/intake stages contribute 0 Outstanding.
  */
+import { formatExpectedUnavailableOrReviewCopy } from './compensationLabels'
 import { presentEventReversal } from './compensationView'
 import {
   calendarDateInPeriod,
   type DashboardReportingPeriod,
 } from './dashboardPeriod'
-import type { PaidCommissionListEvent } from './dashboardView'
+import { isFiaProductionLine, isLifeProductionLine, type PaidCommissionListEvent } from './dashboardView'
+import { getActiveLinkedPolicy } from './daysInStage'
+import { formatProductionStageLabel } from './labels'
+import { annualizeProductionPremium } from './premiumAnnualize'
 import type {
+  ExpectedCalculationStatus,
   LiveExpectedCompensationRow,
   ProductionApplicationListItem,
   ProductionStage,
@@ -58,9 +63,28 @@ export type AdvisorCompensationRow = {
   reviewCount: number
 }
 
+export type ExpectedReviewListItem = {
+  id: string
+  applicationId: string
+  householdName: string
+  applicationNumber: string | null
+  policyNumber: string | null
+  carrierName: string
+  productName: string
+  advisorId: string
+  advisorName: string
+  stage: ProductionStage
+  stageLabel: string
+  moneyKind: 'annual_premium' | 'deposit' | 'none'
+  moneyCents: number | null
+  reviewReason: string
+  calculationStatus: ExpectedCalculationStatus
+}
+
 export type AdvisorCompensationDashboardModel = {
   period: DashboardReportingPeriod
   rows: AdvisorCompensationRow[]
+  reviewItems: ExpectedReviewListItem[]
   totals: Omit<AdvisorCompensationRow, 'advisorId' | 'advisorName' | 'reviewCount'> & {
     reviewCount: number
   }
@@ -255,5 +279,56 @@ export function buildAdvisorCompensationDashboard(options: {
     },
   )
 
-  return { period, rows, totals }
+  return {
+    period,
+    rows,
+    reviewItems: listExpectedReviewItems({ items: options.items, period, today }),
+    totals,
+  }
+}
+
+export function listExpectedReviewItems(options: {
+  items: readonly ProductionApplicationListItem[]
+  period: DashboardReportingPeriod
+  today: string
+  advisorId?: string | null
+}): ExpectedReviewListItem[] {
+  const items: ExpectedReviewListItem[] = []
+  for (const item of options.items) {
+    if (!calendarDateInPeriod(expectedCompensationPeriodDate(item), options.period, options.today)) {
+      continue
+    }
+    const linked = getActiveLinkedPolicy(item)
+    const isFia = isFiaProductionLine(item.product_line)
+    const isLife = isLifeProductionLine(item.product_line)
+    const annualPremium = isLife
+      ? annualizeProductionPremium(item.submitted_premium_cents, item.premium_mode)
+      : null
+    for (const row of item.expected_compensations) {
+      if (row.calculation_status !== 'review_required' && row.calculation_status !== 'unavailable') {
+        continue
+      }
+      if (options.advisorId != null && row.advisor_id !== options.advisorId) continue
+      items.push({
+        id: row.id,
+        applicationId: item.id,
+        householdName: item.household?.display_name?.trim() || 'Household',
+        applicationNumber: item.application_number,
+        policyNumber: linked?.policy_number ?? item.policy_number,
+        carrierName: item.carrier?.name ?? '—',
+        productName: item.product?.name ?? '—',
+        advisorId: row.advisor_id,
+        advisorName: row.advisor_display_name?.trim() || 'Advisor',
+        stage: item.production_stage,
+        stageLabel: formatProductionStageLabel(item.production_stage),
+        moneyKind: isFia ? 'deposit' : isLife ? 'annual_premium' : 'none',
+        moneyCents: isFia ? item.annuity_deposit_cents : annualPremium,
+        reviewReason:
+          formatExpectedUnavailableOrReviewCopy(row.calculation_status, row.review_reason) ??
+          'Expected compensation needs review. Policy Production can continue.',
+        calculationStatus: row.calculation_status,
+      })
+    }
+  }
+  return items
 }
