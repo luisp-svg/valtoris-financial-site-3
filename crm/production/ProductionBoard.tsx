@@ -1,9 +1,29 @@
 import { useEffect, useMemo, useState, type KeyboardEvent } from 'react'
+import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  closestCorners,
+  useDroppable,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+  type DragStartEvent,
+} from '@dnd-kit/core'
+import type { CrmSupportedRole } from '../types'
 import ProductionBoardCard, { type ProductionBoardNotesTarget } from './ProductionBoardCard'
+import {
+  boardDroppableId,
+  isLegalBoardMove,
+  parseBoardDraggableApplicationId,
+  resolveBoardDropDestination,
+} from './boardMovement'
 import {
   BOARD_PIPELINE_COLUMNS,
   defaultMobileBoardFocus,
   groupProductionBoardItems,
+  isBoardPipelineStage,
+  boardLaneForStage,
   mobileFocusHeading,
   type MobileBoardFocus,
   type ProductionBoardColumn,
@@ -16,23 +36,56 @@ type ProductionBoardProps = {
   layout: ProductionBoardLayout
   stageFilter?: ProductionStage[] | 'all'
   now?: Date
+  role?: CrmSupportedRole | null
+  movementBusy?: boolean
+  focusStage?: ProductionStage | null
   onOpenNotes?: (target: ProductionBoardNotesTarget) => void
+  onRequestMove?: (item: ProductionApplicationListItem, toStage: ProductionStage) => void
 }
 
 function BoardColumn({
   column,
   now,
   showStageBadge,
+  role,
+  enableDrag,
+  movementBusy,
+  activeItem,
   onOpenNotes,
+  onRequestMove,
 }: {
   column: ProductionBoardColumn
   now?: Date
   showStageBadge?: boolean
+  role?: CrmSupportedRole | null
+  enableDrag: boolean
+  movementBusy: boolean
+  activeItem: ProductionApplicationListItem | null
   onOpenNotes?: (target: ProductionBoardNotesTarget) => void
+  onRequestMove?: (item: ProductionApplicationListItem, toStage: ProductionStage) => void
 }) {
+  const legal =
+    activeItem != null && isLegalBoardMove(activeItem, column.stage, role ?? null)
+  const isOrigin = activeItem?.production_stage === column.stage
+  const unavailable = activeItem != null && !isOrigin && !legal
+  const { setNodeRef, isOver } = useDroppable({
+    id: boardDroppableId(column.stage),
+    data: { stage: column.stage },
+    disabled: !enableDrag || movementBusy || (activeItem != null && !legal),
+  })
+  const className = [
+    'crm-production-board-column',
+    isOver && legal ? 'is-drop-over' : '',
+    legal ? 'is-drop-allowed' : '',
+    unavailable ? 'is-drop-unavailable' : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
+
   return (
     <section
-      className="crm-production-board-column"
+      ref={setNodeRef}
+      className={className}
       data-stage={column.stage}
       aria-labelledby={`pp-board-${column.stage}`}
     >
@@ -40,6 +93,14 @@ function BoardColumn({
         <h3 id={`pp-board-${column.stage}`}>{column.label}</h3>
         <span className="crm-production-board-count">{column.items.length}</span>
       </header>
+      {legal ? (
+        <p className="crm-production-board-drop-hint">
+          {isOver ? `Drop to move to ${column.label}` : `Can move to ${column.label}`}
+        </p>
+      ) : null}
+      {unavailable ? (
+        <p className="crm-production-board-drop-hint">Not a valid next stage</p>
+      ) : null}
       {column.items.length === 0 ? (
         <p className="crm-muted crm-production-board-empty">No applications</p>
       ) : (
@@ -50,7 +111,11 @@ function BoardColumn({
                 item={item}
                 now={now}
                 showStageBadge={showStageBadge}
+                role={role}
+                enableDrag={enableDrag}
+                movementBusy={movementBusy}
                 onOpenNotes={onOpenNotes}
+                onRequestMove={onRequestMove}
               />
             </li>
           ))}
@@ -65,7 +130,11 @@ export default function ProductionBoard({
   layout,
   stageFilter = 'all',
   now,
+  role = null,
+  movementBusy = false,
+  focusStage = null,
   onOpenNotes,
+  onRequestMove,
 }: ProductionBoardProps) {
   const model = useMemo(() => groupProductionBoardItems(items), [items])
   const derivedFocus = useMemo(
@@ -73,10 +142,27 @@ export default function ProductionBoard({
     [model, stageFilter],
   )
   const [focus, setFocus] = useState<MobileBoardFocus>(derivedFocus)
+  const [activeId, setActiveId] = useState<string | null>(null)
+  const enableDrag = layout === 'horizontal' && Boolean(onRequestMove)
+  const pointerSensor = useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
+  const sensors = useSensors(pointerSensor)
+  const itemsById = useMemo(() => new Map(items.map((item) => [item.id, item])), [items])
+  const activeItem = activeId ? (itemsById.get(activeId) ?? null) : null
 
   useEffect(() => {
     setFocus(derivedFocus)
   }, [derivedFocus])
+
+  useEffect(() => {
+    if (!focusStage) return
+    const lane = boardLaneForStage(focusStage)
+    if (lane === 'pipeline' && isBoardPipelineStage(focusStage)) {
+      setFocus({ kind: 'pipeline', stage: focusStage })
+      return
+    }
+    if (lane === 'intake') setFocus({ kind: 'intake' })
+    else setFocus({ kind: 'exceptions' })
+  }, [focusStage])
 
   const stackedColumns =
     focus.kind === 'intake'
@@ -106,9 +192,31 @@ export default function ProductionBoard({
     tabs[nextIndex]?.click()
   }
 
-  if (layout === 'stacked') {
-    return (
-      <div className="crm-production-board is-stacked" aria-label="Production board">
+  function onDragStart(event: DragStartEvent) {
+    setActiveId(parseBoardDraggableApplicationId(event.active.id))
+  }
+
+  function onDragEnd(event: DragEndEvent) {
+    const destination = resolveBoardDropDestination({
+      activeId: event.active.id,
+      overId: event.over?.id,
+      items,
+      role,
+    })
+    setActiveId(null)
+    if (!destination || !onRequestMove) return
+    const item = itemsById.get(destination.item.id)
+    if (!item) return
+    onRequestMove(item, destination.toStage)
+  }
+
+  function onDragCancel() {
+    setActiveId(null)
+  }
+
+  const boardBody =
+    layout === 'stacked' ? (
+      <div className="crm-production-board is-stacked" aria-label="Production board" aria-busy={movementBusy || undefined}>
         <div
           className="crm-production-board-tabs"
           role="tablist"
@@ -171,60 +279,110 @@ export default function ProductionBoard({
               column={column}
               now={now}
               showStageBadge={focus.kind !== 'pipeline'}
+              role={role}
+              enableDrag={false}
+              movementBusy={movementBusy}
+              activeItem={null}
               onOpenNotes={onOpenNotes}
+              onRequestMove={onRequestMove}
             />
           ))}
         </div>
+      </div>
+    ) : (
+      <div
+        className={`crm-production-board is-horizontal${activeId ? ' is-dnd-active' : ''}`}
+        aria-label="Production board"
+        aria-busy={movementBusy || undefined}
+      >
+        <div
+          className="crm-production-board-pipeline"
+          role="region"
+          aria-label="Primary pipeline"
+          tabIndex={0}
+        >
+          {model.pipeline.map((column) => (
+            <BoardColumn
+              key={column.stage}
+              column={column}
+              now={now}
+              role={role}
+              enableDrag={enableDrag}
+              movementBusy={movementBusy}
+              activeItem={activeItem}
+              onOpenNotes={onOpenNotes}
+              onRequestMove={onRequestMove}
+            />
+          ))}
+        </div>
+        <details className="crm-production-board-rail" open={model.intakeCount > 0}>
+          <summary>
+            Intake / Application Drafts
+            <span className="crm-production-board-count">{model.intakeCount}</span>
+          </summary>
+          <div className="crm-production-board-rail-columns">
+            {model.intake.map((column) => (
+              <BoardColumn
+                key={column.stage}
+                column={column}
+                now={now}
+                showStageBadge
+                role={role}
+                enableDrag={enableDrag}
+                movementBusy={movementBusy}
+                activeItem={activeItem}
+                onOpenNotes={onOpenNotes}
+                onRequestMove={onRequestMove}
+              />
+            ))}
+          </div>
+        </details>
+        <details className="crm-production-board-rail" open={model.exceptionCount > 0}>
+          <summary>
+            Exceptions
+            <span className="crm-production-board-count">{model.exceptionCount}</span>
+          </summary>
+          <div className="crm-production-board-rail-columns">
+            {model.exceptions.map((column) => (
+              <BoardColumn
+                key={column.stage}
+                column={column}
+                now={now}
+                showStageBadge
+                role={role}
+                enableDrag={enableDrag}
+                movementBusy={movementBusy}
+                activeItem={activeItem}
+                onOpenNotes={onOpenNotes}
+                onRequestMove={onRequestMove}
+              />
+            ))}
+          </div>
+        </details>
       </div>
     )
-  }
 
   return (
-    <div className="crm-production-board is-horizontal" aria-label="Production board">
-      <div
-        className="crm-production-board-pipeline"
-        role="region"
-        aria-label="Primary pipeline"
-        tabIndex={0}
-      >
-        {model.pipeline.map((column) => (
-          <BoardColumn key={column.stage} column={column} now={now} onOpenNotes={onOpenNotes} />
-        ))}
-      </div>
-      <details className="crm-production-board-rail" open={model.intakeCount > 0}>
-        <summary>
-          Intake / Application Drafts
-          <span className="crm-production-board-count">{model.intakeCount}</span>
-        </summary>
-        <div className="crm-production-board-rail-columns">
-          {model.intake.map((column) => (
-            <BoardColumn
-              key={column.stage}
-              column={column}
-              now={now}
-              showStageBadge
-              onOpenNotes={onOpenNotes}
-            />
-          ))}
-        </div>
-      </details>
-      <details className="crm-production-board-rail" open={model.exceptionCount > 0}>
-        <summary>
-          Exceptions
-          <span className="crm-production-board-count">{model.exceptionCount}</span>
-        </summary>
-        <div className="crm-production-board-rail-columns">
-          {model.exceptions.map((column) => (
-            <BoardColumn
-              key={column.stage}
-              column={column}
-              now={now}
-              showStageBadge
-              onOpenNotes={onOpenNotes}
-            />
-          ))}
-        </div>
-      </details>
-    </div>
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCorners}
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+      onDragCancel={onDragCancel}
+    >
+      {boardBody}
+      <DragOverlay dropAnimation={null}>
+        {activeItem ? (
+          <div className="crm-production-board-card is-drag-overlay" data-stage={activeItem.production_stage}>
+            <p className="crm-production-board-card-name">
+              {activeItem.household?.display_name?.trim() || 'Household'}
+            </p>
+            <p className="crm-production-board-card-product">
+              Moving from {activeItem.production_stage.replace(/_/g, ' ')}
+            </p>
+          </div>
+        ) : null}
+      </DragOverlay>
+    </DndContext>
   )
 }

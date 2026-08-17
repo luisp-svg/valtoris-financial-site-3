@@ -7888,8 +7888,109 @@ p { color: var(--muted); line-height: 1.7; }
 
 .crm-production-board-card-actions {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   justify-content: flex-end;
+  gap: 8px 12px;
   padding: 0 10px 8px;
+}
+
+.crm-production-board-drag-handle {
+  margin-right: auto;
+  appearance: none;
+  border: 1px solid var(--crm-border);
+  border-radius: 8px;
+  background: #fff;
+  padding: 2px 8px;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 750;
+  color: var(--crm-navy);
+  cursor: grab;
+  touch-action: none;
+}
+
+.crm-production-board-drag-handle:active {
+  cursor: grabbing;
+}
+
+.crm-production-board-drag-handle:focus-visible {
+  outline: 2px solid var(--crm-blue);
+  outline-offset: 2px;
+}
+
+.crm-production-board-card.is-dragging {
+  opacity: 0.45;
+}
+
+.crm-production-board-card.is-drag-overlay {
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.18);
+  padding: 10px 12px;
+  cursor: grabbing;
+}
+
+.crm-production-board.is-dnd-active .crm-production-board-card-list,
+.crm-production-board.is-dnd-active .crm-production-board-card {
+  pointer-events: none;
+}
+
+.crm-production-board-column.is-drop-allowed {
+  outline: 2px dashed var(--crm-navy);
+  outline-offset: 2px;
+}
+
+.crm-production-board-column.is-drop-over {
+  background: #eef4ff;
+}
+
+.crm-production-board-column.is-drop-unavailable {
+  opacity: 0.55;
+}
+
+.crm-production-board-drop-hint {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--crm-navy);
+}
+
+.crm-production-board-move {
+  position: relative;
+}
+
+.crm-production-board-move-list {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 4px);
+  z-index: 8;
+  min-width: 12rem;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  border: 1px solid var(--crm-border);
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.12);
+}
+
+.crm-production-board-move-option {
+  display: block;
+  width: 100%;
+  appearance: none;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  padding: 6px 8px;
+  font: inherit;
+  font-size: 0.82rem;
+  text-align: left;
+  color: var(--crm-navy);
+  cursor: pointer;
+}
+
+.crm-production-board-move-option:hover,
+.crm-production-board-move-option:focus-visible {
+  background: #eef4ff;
 }
 
 .crm-production-board-notes-btn {

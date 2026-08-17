@@ -10,8 +10,16 @@ import ProductionDashboard from '../../crm/production/ProductionDashboard'
 import ProductionQueueCards from '../../crm/production/ProductionQueueCards'
 import ProductionQueueTable from '../../crm/production/ProductionQueueTable'
 import ProductionViewToggle from '../../crm/production/ProductionViewToggle'
+import StageTransitionConfirmDialog from '../../crm/production/StageTransitionConfirmDialog'
+import { transitionPolicyApplicationStage } from '../../crm/production/applicationApi'
 import { buildAdvisorCompensationDashboard } from '../../crm/production/advisorCompensationView'
 import { getProductionBoardLayout } from '../../crm/production/boardView'
+import {
+  beginBoardMove,
+  buildBoardTransitionRpcArgs,
+  defaultBoardStageTransitionReason,
+  interpretBoardMoveResult,
+} from '../../crm/production/boardMovement'
 import {
   DEFAULT_COMPENSATION_DASHBOARD_PERIOD,
   DEFAULT_PRODUCTION_DASHBOARD_PERIOD,
@@ -59,6 +67,7 @@ import {
   type ProductionStage,
 } from '../../crm/production/types'
 import { formatProductionProductLineLabel, formatProductionStageLabel } from '../../crm/production/labels'
+import { type StageTransitionAction } from '../../crm/production/stageTransitionView'
 import { createSupabaseBrowserClient } from '../../lib/supabase/client'
 
 function useViewportWidth(): number {
@@ -104,6 +113,13 @@ export default function CrmProductionPage() {
     householdId: string
     householdName: string
   } | null>(null)
+  const [pendingMove, setPendingMove] = useState<{
+    item: ProductionApplicationListItem
+    action: StageTransitionAction
+  } | null>(null)
+  const [movementBusy, setMovementBusy] = useState(false)
+  const [movementError, setMovementError] = useState<string | null>(null)
+  const [boardFocusStage, setBoardFocusStage] = useState<ProductionStage | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -255,6 +271,50 @@ export default function CrmProductionPage() {
     setFilters((prev) => ({ ...prev, [key]: value }))
   }
 
+  async function runBoardTransition(
+    item: ProductionApplicationListItem,
+    action: StageTransitionAction,
+    input: { reason: string; policyNumber: string },
+  ) {
+    if (movementBusy) return
+    setMovementBusy(true)
+    setMovementError(null)
+    const supabase = createSupabaseBrowserClient()
+    const result = await transitionPolicyApplicationStage(
+      supabase,
+      buildBoardTransitionRpcArgs(item, action, input),
+    )
+    const outcome = interpretBoardMoveResult(result.ok, result.ok ? null : result.message, action.toStage)
+    if (outcome.kind !== 'success') {
+      setMovementError(outcome.message)
+      setMovementBusy(false)
+      if (outcome.kind === 'stale') {
+        setPendingMove(null)
+        setReloadKey((n) => n + 1)
+      }
+      return
+    }
+    setPendingMove(null)
+    setMovementBusy(false)
+    setBoardFocusStage(action.toStage)
+    setReloadKey((n) => n + 1)
+  }
+
+  function requestBoardMove(item: ProductionApplicationListItem, toStage: ProductionStage) {
+    if (movementBusy) return
+    const plan = beginBoardMove(item, toStage, role)
+    if (plan.kind === 'ignore') return
+    setMovementError(null)
+    if (plan.kind === 'confirm') {
+      setPendingMove({ item, action: plan.action })
+      return
+    }
+    void runBoardTransition(item, plan.action, {
+      reason: defaultBoardStageTransitionReason(plan.action.toStage),
+      policyNumber: item.policy_number ?? '',
+    })
+  }
+
   return (
     <div className="crm-page crm-opportunities-page crm-production-page">
       <header className="crm-page-header crm-opportunities-header">
@@ -302,6 +362,12 @@ export default function CrmProductionPage() {
           <button type="button" className="crm-text-btn" onClick={() => setReloadKey((n) => n + 1)}>
             Retry
           </button>
+        </div>
+      ) : null}
+
+      {movementError && !pendingMove ? (
+        <div className="crm-banner crm-banner-error" role="alert">
+          {movementError}
         </div>
       ) : null}
 
@@ -524,7 +590,11 @@ export default function CrmProductionPage() {
             items={filteredItems}
             layout={boardLayout}
             stageFilter={filters.stages}
+            role={role}
+            movementBusy={movementBusy}
+            focusStage={boardFocusStage}
             onOpenNotes={setNotesTarget}
+            onRequestMove={requestBoardMove}
           />
         ) : null}
 
@@ -536,6 +606,25 @@ export default function CrmProductionPage() {
           )
         ) : null}
       </section>
+
+      {pendingMove ? (
+        <div className="crm-production-review-overlay">
+          <StageTransitionConfirmDialog
+            action={pendingMove.action}
+            submitting={movementBusy}
+            error={movementError}
+            initialPolicyNumber={pendingMove.item.policy_number ?? ''}
+            onCancel={() => {
+              if (movementBusy) return
+              setPendingMove(null)
+              setMovementError(null)
+            }}
+            onConfirm={(input) => {
+              void runBoardTransition(pendingMove.item, pendingMove.action, input)
+            }}
+          />
+        </div>
+      ) : null}
 
       {notesTarget ? (
         <OperationalNotesDialog

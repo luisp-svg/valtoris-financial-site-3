@@ -35,13 +35,13 @@ describe('Phase B production board contracts', () => {
     expect(queuePage).not.toMatch(/useEffect\([\s\S]*, \[[^\]]*compensationPeriod/)
   })
 
-  it('does not install drag/drop, stage mutation, or a new query', () => {
-    expect(packageJson).not.toMatch(/dnd-kit|hello-pangea|react-beautiful-dnd|react-dnd/)
-    expect(packageLock).not.toMatch(/@dnd-kit/)
-    expect(board).not.toMatch(/onDrag|draggable|dnd-kit|Move to/)
-    expect(card).not.toMatch(/onDrag|createHouseholdNote|fetchHouseholdNotes/)
+  it('does not install competing drag libraries, direct stage writes, or a new query', () => {
+    expect(packageJson).not.toMatch(/hello-pangea|react-beautiful-dnd|react-dnd/)
+    expect(packageJson).toContain('"@dnd-kit/core"')
+    expect(packageLock).toContain('@dnd-kit/core')
+    expect(card).not.toMatch(/createHouseholdNote|fetchHouseholdNotes/)
     expect(board).not.toContain('transitionPolicyApplicationStage')
-    expect(queuePage).not.toContain('transitionPolicyApplicationStage')
+    expect(queuePage).toContain('transitionPolicyApplicationStage')
     expect(queuePage).not.toContain('fetchWritingCommissionSnapshot')
     expect(card).not.toContain('expected_compensations')
     expect(card).not.toContain('fetchPaidCommissionEvents')
@@ -82,7 +82,7 @@ describe('Phase B production board contracts', () => {
   it('does not render eight miniature columns in stacked layout', () => {
     expect(board).toContain("layout === 'stacked'")
     expect(board).toContain('crm-production-board-tabs')
-    expect(board.indexOf("if (layout === 'stacked')")).toBeLessThan(board.indexOf('crm-production-board-pipeline'))
+    expect(board.indexOf("layout === 'stacked'")).toBeLessThan(board.indexOf('crm-production-board-pipeline'))
     expect(styles).toContain('.crm-production-board-pipeline')
     expect(styles).toContain('min-width: 240px')
   })

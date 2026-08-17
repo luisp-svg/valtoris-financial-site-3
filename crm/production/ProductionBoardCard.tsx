@@ -1,6 +1,10 @@
+import { useDraggable } from '@dnd-kit/core'
 import { Link } from 'react-router-dom'
 import { crmProductionPath } from '../../constants/routes'
+import type { CrmSupportedRole } from '../types'
 import { productionBoardCardMoney } from './boardCardMoney'
+import { boardDraggableId, boardMoveDestinations } from './boardMovement'
+import ProductionBoardMoveMenu from './ProductionBoardMoveMenu'
 import {
   computeDaysInStage,
   getActiveLinkedPolicy,
@@ -8,7 +12,7 @@ import {
 } from './daysInStage'
 import StageBadge from './StageBadge'
 import { formatCents } from './productionApi'
-import type { ProductionApplicationListItem } from './types'
+import type { ProductionApplicationListItem, ProductionStage } from './types'
 import { PRODUCTION_STALE_DAYS_IN_STAGE } from './types'
 
 export type ProductionBoardNotesTarget = {
@@ -20,7 +24,11 @@ type ProductionBoardCardProps = {
   item: ProductionApplicationListItem
   now?: Date
   showStageBadge?: boolean
+  role?: CrmSupportedRole | null
+  enableDrag?: boolean
+  movementBusy?: boolean
   onOpenNotes?: (target: ProductionBoardNotesTarget) => void
+  onRequestMove?: (item: ProductionApplicationListItem, toStage: ProductionStage) => void
 }
 
 function BoardCardMoney({ item }: { item: ProductionApplicationListItem }) {
@@ -43,7 +51,11 @@ export default function ProductionBoardCard({
   item,
   now,
   showStageBadge = false,
+  role = null,
+  enableDrag = false,
+  movementBusy = false,
   onOpenNotes,
+  onRequestMove,
 }: ProductionBoardCardProps) {
   const asOf = now ?? new Date()
   const { days } = computeDaysInStage({
@@ -56,9 +68,19 @@ export default function ProductionBoardCard({
   const linked = getActiveLinkedPolicy(item)
   const policyNumber = linked?.policy_number ?? item.policy_number
   const householdName = item.household?.display_name?.trim() || 'Household'
+  const destinations = boardMoveDestinations(item, role)
+  const canMove = destinations.length > 0 && Boolean(onRequestMove)
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: boardDraggableId(item.id),
+    data: { applicationId: item.id },
+    disabled: !enableDrag || !canMove || movementBusy,
+  })
 
   return (
-    <article className="crm-production-board-card" data-stage={item.production_stage}>
+    <article
+      className={`crm-production-board-card${isDragging ? ' is-dragging' : ''}`}
+      data-stage={item.production_stage}
+    >
       <Link to={crmProductionPath(item.id)} className="crm-production-board-card-link">
         <h4 className="crm-production-board-card-name">{householdName}</h4>
         <p className="crm-production-board-card-product">
@@ -97,8 +119,31 @@ export default function ProductionBoardCard({
           <BoardCardMoney item={item} />
         </p>
       </Link>
-      {onOpenNotes ? (
-        <div className="crm-production-board-card-actions">
+      <div className="crm-production-board-card-actions" onClick={(event) => event.stopPropagation()}>
+        {enableDrag && canMove ? (
+          <button
+            ref={setNodeRef}
+            type="button"
+            className="crm-production-board-drag-handle"
+            aria-label={`Drag to change stage for ${householdName}`}
+            disabled={movementBusy}
+            {...listeners}
+            {...attributes}
+            tabIndex={-1}
+            onClick={(event) => event.preventDefault()}
+          >
+            Drag
+          </button>
+        ) : null}
+        {canMove ? (
+          <ProductionBoardMoveMenu
+            householdName={householdName}
+            destinations={destinations}
+            disabled={movementBusy}
+            onSelect={(stage) => onRequestMove?.(item, stage)}
+          />
+        ) : null}
+        {onOpenNotes ? (
           <button
             type="button"
             className="crm-production-board-notes-btn"
@@ -112,8 +157,8 @@ export default function ProductionBoardCard({
           >
             Notes
           </button>
-        </div>
-      ) : null}
+        ) : null}
+      </div>
     </article>
   )
 }
