@@ -23,6 +23,7 @@ export type PaidCommissionListEvent = {
   id: string
   application_id: string
   advisor_id: string | null
+  allocation_id: string | null
   event_type: string
   amount_cents: number
   reversed_event_id: string | null

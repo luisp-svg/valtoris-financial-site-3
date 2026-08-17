@@ -183,6 +183,7 @@ function EventHistory({ events }: { events: readonly WritingCommissionEvent[] })
                 event.statement_identifier ? `Statement ${event.statement_identifier}` : null,
                 event.policy_reference ? `Policy ${event.policy_reference}` : null,
                 event.source_file ? event.source_file : null,
+                event.source_row != null ? `Row ${event.source_row}` : null,
               ]
                 .filter(Boolean)
                 .join(' · ') || 'No source reference'}

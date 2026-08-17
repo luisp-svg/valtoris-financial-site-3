@@ -15,8 +15,8 @@ import {
   requireModule,
 } from './index'
 
-/** Exact legacy sidebar contract before Module Registry. */
-const LEGACY_CRM_NAV = [
+/** Canonical CRM sidebar after Commission Phase 1. */
+const CANONICAL_CRM_NAV = [
   { label: 'Home', path: '/crm' },
   { label: 'Intake', path: '/crm/intake' },
   { label: 'Contacts', path: '/crm/contacts' },
@@ -26,6 +26,7 @@ const LEGACY_CRM_NAV = [
   { label: 'Tasks', path: '/crm/tasks' },
   { label: 'Appointments', path: '/crm/appointments', placeholder: true },
   { label: 'Production', path: '/crm/production' },
+  { label: 'Commissions', path: '/crm/commissions' },
   { label: 'Annual Reviews', path: '/crm/annual-reviews', placeholder: true },
   { label: 'Documents', path: '/crm/documents', placeholder: true },
   { label: 'Settings', path: '/crm/settings', placeholder: true },
@@ -52,9 +53,9 @@ describe('Module Registry', () => {
     }
   })
 
-  it('preserves legacy CRM sidebar labels, paths, order, and placeholders', () => {
+  it('keeps the canonical CRM sidebar labels, paths, order, and placeholders', () => {
     const nav = getCrmSidebarNavItems()
-    expect(nav).toEqual([...LEGACY_CRM_NAV])
+    expect(nav).toEqual([...CANONICAL_CRM_NAV])
   })
 
   it('orders sidebar navigation deterministically by navigation.order', () => {
@@ -76,7 +77,7 @@ describe('Module Registry', () => {
   })
 
   it('exposes the same sidebar via crm/nav CRM_NAV_ITEMS compatibility export', () => {
-    expect(CRM_NAV_ITEMS).toEqual([...LEGACY_CRM_NAV])
+    expect(CRM_NAV_ITEMS).toEqual([...CANONICAL_CRM_NAV])
     expect(CRM_NAV_ITEMS).toEqual(getCrmSidebarNavItems())
   })
 
@@ -159,7 +160,7 @@ describe('Module Registry semantics: registered vs enabled vs visible vs declare
     )
     const sidebarPaths = getCrmSidebarNavItems().map((item) => item.path)
 
-    expect(sidebarPaths).toHaveLength(LEGACY_CRM_NAV.length)
+    expect(sidebarPaths).toHaveLength(CANONICAL_CRM_NAV.length)
     expect(getModule('financial_progress')?.navigation.visible).toBe(false)
     expect(sidebarPaths.includes('/crm')).toBe(true)
     expect(findModuleByNavPath('/crm/intake')?.key).toBe('intake')
@@ -212,6 +213,6 @@ describe('Module Registry semantics: registered vs enabled vs visible vs declare
   it('does not use registry permissions to filter sidebar (auth unchanged)', () => {
     // Sidebar includes every legacy item for any authenticated CRM user.
     // Role-based gating remains in CrmAuth / RLS — not Module Registry.
-    expect(getCrmSidebarNavItems()).toEqual([...LEGACY_CRM_NAV])
+    expect(getCrmSidebarNavItems()).toEqual([...CANONICAL_CRM_NAV])
   })
 })

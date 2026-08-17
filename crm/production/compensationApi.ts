@@ -155,7 +155,7 @@ export async function fetchLiveExpectedCompensations(
 }
 
 const PAID_EVENT_SELECT =
-  'id, application_id, advisor_id, event_type, amount_cents, reversed_event_id, transaction_date'
+  'id, application_id, advisor_id, allocation_id, event_type, amount_cents, reversed_event_id, transaction_date'
 
 export function mapPaidCommissionListEvent(value: unknown): PaidCommissionListEvent | null {
   const row = asRecord(value)
@@ -167,6 +167,7 @@ export function mapPaidCommissionListEvent(value: unknown): PaidCommissionListEv
     id: String(row.id),
     application_id: String(row.application_id),
     advisor_id: typeof row.advisor_id === 'string' ? row.advisor_id : null,
+    allocation_id: typeof row.allocation_id === 'string' ? row.allocation_id : null,
     event_type: row.event_type,
     amount_cents: amount,
     reversed_event_id:

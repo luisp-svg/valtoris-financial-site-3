@@ -10936,3 +10936,133 @@ button.public-card-diagnostic:disabled {
 .crm-field-locked select {
   opacity: 0.72;
 }
+
+.crm-commissions-kpi-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.crm-commissions-advisor-grid {
+  min-width: 0;
+}
+
+.crm-commissions-advisor-row {
+  display: grid;
+  grid-template-columns: minmax(9.5rem, 1.4fr) repeat(5, minmax(5.5rem, 1fr)) minmax(7rem, 0.9fr);
+  gap: 12px 16px;
+  align-items: start;
+  min-height: 44px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--crm-border);
+}
+
+.crm-commissions-advisor-row.is-head {
+  min-height: 0;
+  padding-bottom: 8px;
+  border-bottom-width: 2px;
+}
+
+.crm-commissions-advisor-row.is-head [role='columnheader'] {
+  color: var(--crm-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.crm-commissions-advisor-row .is-money {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+}
+
+.crm-commissions-advisor-row.is-selected {
+  background: color-mix(in srgb, var(--crm-accent, #1f4b7a) 8%, white);
+}
+
+.crm-commissions-advisor-btn {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 650;
+  color: var(--crm-navy);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.crm-commissions-advisor-btn:focus-visible {
+  outline: 2px solid var(--crm-blue);
+  outline-offset: 2px;
+}
+
+.crm-commissions-chargeback-text {
+  display: inline;
+  margin-left: 0.25rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.crm-commissions-queue-open {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 650;
+  color: var(--crm-navy);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.crm-commissions-queue-open:focus-visible,
+.crm-commissions-queue-open:focus-visible {
+  outline: 2px solid var(--crm-blue);
+  outline-offset: 2px;
+}
+
+.crm-commissions-detail-dialog {
+  width: min(48rem, 100%);
+  max-height: min(90vh, 52rem);
+  overflow: auto;
+}
+
+.crm-commissions-queue-table .crm-production-money {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 899px) {
+  .crm-commissions-kpi-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .crm-commissions-advisor-row.is-head {
+    display: none;
+  }
+
+  .crm-commissions-advisor-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .crm-commissions-advisor-row .is-name,
+  .crm-commissions-advisor-row .is-review {
+    grid-column: 1 / -1;
+  }
+
+  .crm-commissions-advisor-row .is-money::before,
+  .crm-commissions-advisor-row .is-review::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 2px;
+    color: var(--crm-muted);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    text-align: right;
+  }
+}

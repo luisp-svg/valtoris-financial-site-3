@@ -231,6 +231,17 @@ export const MODULE_CATALOG: readonly ModuleManifest[] = [
     dependencies: ['insurance'],
   }),
   shellNav({
+    key: 'commissions_nav',
+    displayName: 'Commissions',
+    description: 'Writing-advisor expected and actual commission workspace.',
+    icon: 'commissions',
+    order: 75,
+    route: '/crm/commissions',
+    category: 'insurance',
+    permissions: ['crm.nav.view', 'policy.read'],
+    dependencies: ['insurance'],
+  }),
+  shellNav({
     key: 'annual_reviews',
     displayName: 'Annual Reviews',
     description: 'Annual review workflows (placeholder).',

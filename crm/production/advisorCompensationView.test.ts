@@ -73,6 +73,7 @@ function event(
 ): PaidCommissionListEvent {
   return {
     advisor_id: 'adv-a',
+    allocation_id: null,
     event_type: 'paid',
     amount_cents: 10000,
     reversed_event_id: null,
