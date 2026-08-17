@@ -20,17 +20,30 @@ describe('getRelationshipLabel', () => {
 })
 
 describe('getRelationshipSelectOptions', () => {
-  it('omits partner and dependent for create', () => {
+  it('exposes partner and dependent from the existing enum on create and edit', () => {
     const values = getRelationshipSelectOptions().map((o) => o.value)
-    expect(values).not.toContain('partner')
-    expect(values).not.toContain('dependent')
+    expect(values).toContain('partner')
+    expect(values).toContain('dependent')
     expect(values).toContain('parent')
     expect(values).toContain('business_partner')
+    expect(values).not.toContain('sibling')
+    expect(values).toEqual([
+      'primary',
+      'spouse',
+      'partner',
+      'child',
+      'dependent',
+      'parent',
+      'grandparent',
+      'business_partner',
+      'employee',
+      'other',
+    ])
   })
 
-  it('includes legacy value only while editing that member', () => {
+  it('does not invent extra enum values when editing a current member', () => {
     expect(getRelationshipSelectOptions('partner').map((o) => o.value)).toContain('partner')
     expect(getRelationshipSelectOptions('dependent').map((o) => o.value)).toContain('dependent')
-    expect(getRelationshipSelectOptions('spouse').map((o) => o.value)).not.toContain('partner')
+    expect(getRelationshipSelectOptions('spouse').map((o) => o.label)).toContain('Primary/Self')
   })
 })

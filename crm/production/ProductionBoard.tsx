@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type KeyboardEvent } from 'react'
-import ProductionBoardCard from './ProductionBoardCard'
+import ProductionBoardCard, { type ProductionBoardNotesTarget } from './ProductionBoardCard'
 import {
   BOARD_PIPELINE_COLUMNS,
   defaultMobileBoardFocus,
@@ -16,16 +16,19 @@ type ProductionBoardProps = {
   layout: ProductionBoardLayout
   stageFilter?: ProductionStage[] | 'all'
   now?: Date
+  onOpenNotes?: (target: ProductionBoardNotesTarget) => void
 }
 
 function BoardColumn({
   column,
   now,
   showStageBadge,
+  onOpenNotes,
 }: {
   column: ProductionBoardColumn
   now?: Date
   showStageBadge?: boolean
+  onOpenNotes?: (target: ProductionBoardNotesTarget) => void
 }) {
   return (
     <section
@@ -43,7 +46,12 @@ function BoardColumn({
         <ul className="crm-production-board-card-list">
           {column.items.map((item) => (
             <li key={item.id}>
-              <ProductionBoardCard item={item} now={now} showStageBadge={showStageBadge} />
+              <ProductionBoardCard
+                item={item}
+                now={now}
+                showStageBadge={showStageBadge}
+                onOpenNotes={onOpenNotes}
+              />
             </li>
           ))}
         </ul>
@@ -57,6 +65,7 @@ export default function ProductionBoard({
   layout,
   stageFilter = 'all',
   now,
+  onOpenNotes,
 }: ProductionBoardProps) {
   const model = useMemo(() => groupProductionBoardItems(items), [items])
   const derivedFocus = useMemo(
@@ -162,6 +171,7 @@ export default function ProductionBoard({
               column={column}
               now={now}
               showStageBadge={focus.kind !== 'pipeline'}
+              onOpenNotes={onOpenNotes}
             />
           ))}
         </div>
@@ -178,7 +188,7 @@ export default function ProductionBoard({
         tabIndex={0}
       >
         {model.pipeline.map((column) => (
-          <BoardColumn key={column.stage} column={column} now={now} />
+          <BoardColumn key={column.stage} column={column} now={now} onOpenNotes={onOpenNotes} />
         ))}
       </div>
       <details className="crm-production-board-rail" open={model.intakeCount > 0}>
@@ -188,7 +198,13 @@ export default function ProductionBoard({
         </summary>
         <div className="crm-production-board-rail-columns">
           {model.intake.map((column) => (
-            <BoardColumn key={column.stage} column={column} now={now} showStageBadge />
+            <BoardColumn
+              key={column.stage}
+              column={column}
+              now={now}
+              showStageBadge
+              onOpenNotes={onOpenNotes}
+            />
           ))}
         </div>
       </details>
@@ -199,7 +215,13 @@ export default function ProductionBoard({
         </summary>
         <div className="crm-production-board-rail-columns">
           {model.exceptions.map((column) => (
-            <BoardColumn key={column.stage} column={column} now={now} showStageBadge />
+            <BoardColumn
+              key={column.stage}
+              column={column}
+              now={now}
+              showStageBadge
+              onOpenNotes={onOpenNotes}
+            />
           ))}
         </div>
       </details>

@@ -156,14 +156,16 @@ const MEMBER_RELATIONSHIPS = new Set<MemberRelationship>([
   'other',
 ])
 
-/** Options shown for create / edit of non-legacy relationships. */
+/** Options shown for create / edit. Includes schema-supported Partner and Dependent. */
 export const MEMBER_RELATIONSHIP_CREATE_OPTIONS: {
   value: MemberRelationshipCreateOption
   label: string
 }[] = [
-  { value: 'primary', label: 'Self' },
+  { value: 'primary', label: 'Primary/Self' },
   { value: 'spouse', label: 'Spouse' },
+  { value: 'partner', label: 'Partner' },
   { value: 'child', label: 'Child' },
+  { value: 'dependent', label: 'Dependent' },
   { value: 'parent', label: 'Parent' },
   { value: 'grandparent', label: 'Grandparent' },
   { value: 'business_partner', label: 'Business Partner' },
@@ -420,23 +422,14 @@ export function getRelationshipLabel(relationship: MemberRelationship): string {
   }
 }
 
-/** Dropdown options; legacy partner/dependent included only when editing that value. */
+/** Dropdown options from the existing member_relationship enum only. */
 export function getRelationshipSelectOptions(
-  current?: MemberRelationship | null,
+  _current?: MemberRelationship | null,
 ): { value: MemberRelationship; label: string }[] {
-  const options: { value: MemberRelationship; label: string }[] =
-    MEMBER_RELATIONSHIP_CREATE_OPTIONS.map((option) => ({
-      value: option.value,
-      label: option.label,
-    }))
-
-  if (current === 'partner') {
-    options.push({ value: 'partner', label: 'Partner' })
-  }
-  if (current === 'dependent') {
-    options.push({ value: 'dependent', label: 'Dependent' })
-  }
-  return options
+  return MEMBER_RELATIONSHIP_CREATE_OPTIONS.map((option) => ({
+    value: option.value,
+    label: option.label,
+  }))
 }
 
 export function getMemberDisplayName(member: HouseholdMemberSummary): string {

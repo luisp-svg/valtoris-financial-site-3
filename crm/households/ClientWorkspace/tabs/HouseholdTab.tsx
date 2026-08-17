@@ -2,9 +2,11 @@ import { useId } from 'react'
 import EmptyState from '../../../components/ui/EmptyState'
 import Panel from '../../../components/ui/Panel'
 import SectionHeader from '../../../components/ui/SectionHeader'
+import HouseholdFamilyList from '../../HouseholdFamilyList'
 import HouseholdMemberFormPanel from '../../HouseholdMemberFormPanel'
 import HouseholdMembersTable from '../../HouseholdMembersTable'
 import { getMemberDisplayName } from '../../householdsApi'
+import { sortHouseholdMembersForFamilyView } from '../../familyView'
 import type { ClientWorkspaceMembersHandlers, ClientWorkspaceTabProps } from '../types'
 
 type HouseholdTabProps = ClientWorkspaceTabProps & ClientWorkspaceMembersHandlers
@@ -28,6 +30,7 @@ export default function HouseholdTab({
 }: HouseholdTabProps) {
   const deleteHeadingId = useId()
   const members = workspace.household.members
+  const familyMembers = sortHouseholdMembersForFamilyView(members)
   const hasPrimary = members.some((member) => member.is_primary_contact)
 
   return (
@@ -133,12 +136,15 @@ export default function HouseholdTab({
             }
           />
         ) : members.length > 0 ? (
-          <HouseholdMembersTable
-            members={members}
-            showActions={!memberForm.open && !deleteConfirm}
-            onEdit={onOpenEditMember}
-            onDelete={onRequestDeleteMember}
-          />
+          <>
+            <HouseholdFamilyList members={familyMembers} showContact />
+            <HouseholdMembersTable
+              members={familyMembers}
+              showActions={!memberForm.open && !deleteConfirm}
+              onEdit={onOpenEditMember}
+              onDelete={onRequestDeleteMember}
+            />
+          </>
         ) : null}
       </Panel>
     </div>

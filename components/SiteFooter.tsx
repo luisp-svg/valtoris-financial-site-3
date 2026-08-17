@@ -12,8 +12,9 @@ export default function SiteFooter() {
           </p>
         </div>
         <div className="footer-meta">
-          <nav className="footer-nav" aria-label="Legal">
+          <nav className="footer-nav" aria-label="Company">
             <Link to={ROUTES.privacy}>Privacy Policy</Link>
+            <Link to={ROUTES.crmLogin}>Advisor Login</Link>
           </nav>
           <p className="notice">
             For educational purposes only. Coverage and solutions depend on underwriting, carrier

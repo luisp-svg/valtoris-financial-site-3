@@ -140,6 +140,13 @@ main { flex: 1 0 auto; }
   outline-offset: 3px;
   border-radius: 4px;
 }
+.nav-advisor-login {
+  margin-left: 2px;
+  min-height: 36px;
+  padding: 6px 12px;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
 .hero, .section, .card-grid { padding: 56px 0; }
 .hero-grid, .two-col { display: grid; gap: 28px; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: center; }
 .card-grid { display: grid; gap: 20px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -7741,6 +7748,7 @@ p { color: var(--muted); line-height: 1.7; }
 }
 
 .crm-production-board-column {
+  --pp-stage-accent: #94a3b8;
   flex: 0 0 240px;
   min-width: 240px;
   scroll-snap-align: start;
@@ -7749,15 +7757,70 @@ p { color: var(--muted); line-height: 1.7; }
   gap: 8px;
   padding: 10px;
   border: 1px solid var(--crm-border);
+  border-left: 4px solid var(--pp-stage-accent);
   border-radius: 14px;
   background: #f8fbff;
 }
 
+.crm-production-board-column[data-stage='submitted'],
+.crm-production-board-card[data-stage='submitted'] {
+  --pp-stage-accent: #64748b;
+}
+.crm-production-board-column[data-stage='paramed'],
+.crm-production-board-card[data-stage='paramed'] {
+  --pp-stage-accent: #7c3aed;
+}
+.crm-production-board-column[data-stage='in_underwriting'],
+.crm-production-board-card[data-stage='in_underwriting'] {
+  --pp-stage-accent: #2563eb;
+}
+.crm-production-board-column[data-stage='approved'],
+.crm-production-board-card[data-stage='approved'] {
+  --pp-stage-accent: #16a34a;
+}
+.crm-production-board-column[data-stage='sent_to_draft'],
+.crm-production-board-card[data-stage='sent_to_draft'] {
+  --pp-stage-accent: #d97706;
+}
+.crm-production-board-column[data-stage='premium_drafted'],
+.crm-production-board-card[data-stage='premium_drafted'] {
+  --pp-stage-accent: #0f766e;
+}
+.crm-production-board-column[data-stage='issued'],
+.crm-production-board-card[data-stage='issued'] {
+  --pp-stage-accent: #15803d;
+}
+.crm-production-board-column[data-stage='in_force'],
+.crm-production-board-card[data-stage='in_force'] {
+  --pp-stage-accent: #059669;
+}
 .crm-production-board-column[data-stage='in_force'] {
   background: #f4faf6;
 }
-
+.crm-production-board-column[data-stage='draft'],
+.crm-production-board-column[data-stage='pre_submitted'],
+.crm-production-board-card[data-stage='draft'],
+.crm-production-board-card[data-stage='pre_submitted'] {
+  --pp-stage-accent: #94a3b8;
+}
+.crm-production-board-column[data-stage='draft'],
+.crm-production-board-column[data-stage='pre_submitted'] {
+  background: #f8fafc;
+}
 .crm-production-board-column[data-stage='declined'],
+.crm-production-board-column[data-stage='postponed'],
+.crm-production-board-column[data-stage='withdrawn'],
+.crm-production-board-column[data-stage='incomplete'],
+.crm-production-board-column[data-stage='not_taken'],
+.crm-production-board-card[data-stage='declined'],
+.crm-production-board-card[data-stage='postponed'],
+.crm-production-board-card[data-stage='withdrawn'],
+.crm-production-board-card[data-stage='incomplete'],
+.crm-production-board-card[data-stage='not_taken'] {
+  --pp-stage-accent: #b45353;
+}
+.crm-production-board-column[data-stage='declined'],
+.crm-production-board-column[data-stage='postponed'],
 .crm-production-board-column[data-stage='withdrawn'],
 .crm-production-board-column[data-stage='incomplete'],
 .crm-production-board-column[data-stage='not_taken'] {
@@ -7769,6 +7832,17 @@ p { color: var(--muted); line-height: 1.7; }
   align-items: baseline;
   justify-content: space-between;
   gap: 8px;
+}
+
+.crm-production-board-column-head h3::before {
+  content: '';
+  display: inline-block;
+  width: 0.55em;
+  height: 0.55em;
+  margin-right: 0.4em;
+  border-radius: 999px;
+  background: var(--pp-stage-accent);
+  vertical-align: 0.05em;
 }
 
 .crm-production-board-column-head h3,
@@ -7807,8 +7881,88 @@ p { color: var(--muted); line-height: 1.7; }
 
 .crm-production-board-card {
   border: 1px solid var(--crm-border);
+  border-left: 3px solid var(--pp-stage-accent, var(--crm-border));
   border-radius: 12px;
   background: #fff;
+}
+
+.crm-production-board-card-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 10px 8px;
+}
+
+.crm-production-board-notes-btn {
+  appearance: none;
+  border: 0;
+  background: none;
+  padding: 2px 0;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 750;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  color: var(--crm-navy);
+  cursor: pointer;
+}
+
+.crm-production-board-notes-btn:focus-visible {
+  outline: 2px solid var(--crm-blue);
+  outline-offset: 2px;
+}
+
+.crm-operational-notes-dialog {
+  width: min(32rem, 100%);
+  max-height: min(88vh, 44rem);
+  overflow: auto;
+}
+
+.crm-operational-notes-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.crm-operational-notes-client {
+  margin: 0;
+  color: var(--crm-navy);
+  font-size: 1rem;
+}
+
+.crm-operational-notes-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.crm-operational-notes-item {
+  padding: 10px 0;
+  border-top: 1px solid var(--crm-border);
+}
+
+.crm-household-family-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.crm-household-family-item {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--crm-border);
+}
+
+.crm-household-family-item:last-child {
+  border-bottom: 0;
+}
+
+@media (max-width: 767px) {
+  .crm-operational-notes-dialog {
+    width: 100%;
+    max-height: 94vh;
+  }
 }
 
 .crm-production-board-card-link {

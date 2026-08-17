@@ -13,7 +13,7 @@ export const CLIENT_WORKSPACE_TABS: ClientWorkspaceTabDefinition[] = [
   { id: 'policies', label: 'Policies', enabled: true },
   { id: 'timeline', label: 'Timeline', enabled: true },
   { id: 'tasks', label: 'Tasks', enabled: true },
-  { id: 'notes', label: 'Notes', enabled: true },
+  { id: 'notes', label: 'Operational Notes', enabled: true },
   { id: 'documents', label: 'Documents', enabled: true },
   { id: 'reviews', label: 'Reviews', enabled: true },
   { id: 'household', label: 'Household', enabled: true },
@@ -41,7 +41,7 @@ const SLUG_TO_TAB_ID: Record<string, ClientWorkspaceTabId> = Object.fromEntries(
 
 export const CLIENT_WORKSPACE_QUICK_ACTIONS: QuickActionDefinition[] = [
   { id: 'add_task', label: 'Add Task', availability: 'enabled' },
-  { id: 'add_note', label: 'Add Note', availability: 'enabled' },
+  { id: 'add_note', label: 'Add Operational Note', availability: 'enabled' },
   { id: 'create_opportunity', label: 'Create Opportunity', availability: 'enabled' },
   {
     id: 'create_case',

@@ -35,7 +35,7 @@ describe('Phase B production board contracts', () => {
     expect(queuePage).not.toMatch(/useEffect\([\s\S]*, \[[^\]]*compensationPeriod/)
   })
 
-  it('does not install drag/drop, notes, stage mutation, or a new query', () => {
+  it('does not install drag/drop, stage mutation, or a new query', () => {
     expect(packageJson).not.toMatch(/dnd-kit|hello-pangea|react-beautiful-dnd|react-dnd/)
     expect(packageLock).not.toMatch(/@dnd-kit/)
     expect(board).not.toMatch(/onDrag|draggable|dnd-kit|Move to/)
@@ -74,6 +74,9 @@ describe('Phase B production board contracts', () => {
     expect(card).not.toContain('fetchHouseholdNotes')
     expect(board).not.toContain('fetchHouseholdNotes')
     expect(queuePage).not.toContain('fetchHouseholdNotes')
+    expect(queuePage).toContain('OperationalNotesDialog')
+    expect(queuePage).toContain('crmNoteAuthorUserId(profile)')
+    expect(card).toContain('Operational notes for')
   })
 
   it('does not render eight miniature columns in stacked layout', () => {

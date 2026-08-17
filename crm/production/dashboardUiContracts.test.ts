@@ -61,9 +61,9 @@ describe('Phase A production dashboard contracts', () => {
     expect(existsSync(join(migrationsDir, '039_production_dashboard.sql'))).toBe(false)
   })
 
-  it('does not introduce drag/drop, notes drawer, pending commission stage, or stage mutation', () => {
+  it('does not introduce drag/drop, pending commission stage, or stage mutation', () => {
     expect(queuePage).not.toMatch(/dnd-kit|onDragEnd/)
-    expect(queuePage).not.toMatch(/createHouseholdNote|policy_notes|production_notes/)
+    expect(queuePage).not.toMatch(/policy_notes|production_notes/)
     expect(dashboardUi).not.toMatch(/dnd-kit|createHouseholdNote/)
     expect(dashboardUi).not.toMatch(/pending commission|commission_released|eligible/)
     expect(dashboardView).not.toMatch(/pending|eligible|released/)

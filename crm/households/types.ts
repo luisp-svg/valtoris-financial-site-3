@@ -13,11 +13,13 @@ export type MemberRelationship =
   | 'employee'
   | 'other'
 
-/** Relationships offered when creating a member (or editing non-legacy values). */
+/** Relationships offered when creating or editing a member. Schema enum is unchanged. */
 export type MemberRelationshipCreateOption =
   | 'primary'
   | 'spouse'
+  | 'partner'
   | 'child'
+  | 'dependent'
   | 'parent'
   | 'grandparent'
   | 'business_partner'

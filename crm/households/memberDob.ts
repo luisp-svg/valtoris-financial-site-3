@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { updateHouseholdMember } from './householdsApi'
+import { ageFromDateOfBirth } from './onboarding/onboardingCrossSection'
 import type { MemberRelationship } from './types'
 
 const MEMBER_RELATIONSHIPS = new Set<MemberRelationship>([
@@ -32,6 +33,14 @@ export function isValidMemberDateOfBirth(value: string): boolean {
   if (date.getTime() > todayUtc) return false
   if (year < 1900) return false
   return true
+}
+
+export function formatMemberAge(
+  dateOfBirth: string | null | undefined,
+  now = new Date(),
+): string | null {
+  const age = ageFromDateOfBirth(dateOfBirth, now)
+  return age == null ? null : String(age)
 }
 
 /**

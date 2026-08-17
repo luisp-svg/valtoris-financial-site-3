@@ -59,7 +59,10 @@ describe('policy production + client architecture no-schema contracts', () => {
   })
 
   it('shows DOB from household_members and excludes inactive products from the picker', () => {
-    expect(householdSummary).toContain('date_of_birth')
+    expect(
+      readFileSync(join(here, '../households/HouseholdFamilyList.tsx'), 'utf8'),
+    ).toContain('date_of_birth')
+    expect(householdSummary).toContain('HouseholdFamilyList')
     expect(newClientDialog).toContain('Date of birth')
     expect(applicationApi).toContain(".eq('is_active', true)")
     expect(PROPOSED_PRODUCTION_STAGES).toEqual(['paramed', 'sent_to_draft', 'premium_drafted'])

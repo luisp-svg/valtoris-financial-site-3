@@ -11,10 +11,16 @@ import { formatCents } from './productionApi'
 import type { ProductionApplicationListItem } from './types'
 import { PRODUCTION_STALE_DAYS_IN_STAGE } from './types'
 
+export type ProductionBoardNotesTarget = {
+  householdId: string
+  householdName: string
+}
+
 type ProductionBoardCardProps = {
   item: ProductionApplicationListItem
   now?: Date
   showStageBadge?: boolean
+  onOpenNotes?: (target: ProductionBoardNotesTarget) => void
 }
 
 function BoardCardMoney({ item }: { item: ProductionApplicationListItem }) {
@@ -37,6 +43,7 @@ export default function ProductionBoardCard({
   item,
   now,
   showStageBadge = false,
+  onOpenNotes,
 }: ProductionBoardCardProps) {
   const asOf = now ?? new Date()
   const { days } = computeDaysInStage({
@@ -51,7 +58,7 @@ export default function ProductionBoardCard({
   const householdName = item.household?.display_name?.trim() || 'Household'
 
   return (
-    <article className="crm-production-board-card">
+    <article className="crm-production-board-card" data-stage={item.production_stage}>
       <Link to={crmProductionPath(item.id)} className="crm-production-board-card-link">
         <h4 className="crm-production-board-card-name">{householdName}</h4>
         <p className="crm-production-board-card-product">
@@ -90,6 +97,23 @@ export default function ProductionBoardCard({
           <BoardCardMoney item={item} />
         </p>
       </Link>
+      {onOpenNotes ? (
+        <div className="crm-production-board-card-actions">
+          <button
+            type="button"
+            className="crm-production-board-notes-btn"
+            aria-label={`Operational notes for ${householdName}`}
+            onClick={() =>
+              onOpenNotes({
+                householdId: item.household_id,
+                householdName,
+              })
+            }
+          >
+            Notes
+          </button>
+        </div>
+      ) : null}
     </article>
   )
 }

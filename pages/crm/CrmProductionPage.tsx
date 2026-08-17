@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ROUTES } from '../../constants/routes'
 import { useCrmAuth } from '../../crm/auth/CrmAuthContext'
+import { crmNoteAuthorUserId } from '../../crm/households/noteAuthor'
+import OperationalNotesDialog from '../../crm/households/OperationalNotesDialog'
 import { localDateString } from '../../crm/dashboard/dates'
 import ProductionBoard from '../../crm/production/ProductionBoard'
 import ProductionDashboard from '../../crm/production/ProductionDashboard'
@@ -72,7 +74,7 @@ function useViewportWidth(): number {
 }
 
 export default function CrmProductionPage() {
-  const { role } = useCrmAuth()
+  const { role, profile } = useCrmAuth()
   const isOwner = role === 'owner'
   const viewer: CompensationViewer = role === 'owner' ? 'owner' : 'advisor'
   const viewportWidth = useViewportWidth()
@@ -98,6 +100,10 @@ export default function CrmProductionPage() {
   )
   const [viewMode, setViewMode] = useState<ProductionQueueViewMode>(DEFAULT_PRODUCTION_QUEUE_VIEW)
   const [reloadKey, setReloadKey] = useState(0)
+  const [notesTarget, setNotesTarget] = useState<{
+    householdId: string
+    householdName: string
+  } | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -518,6 +524,7 @@ export default function CrmProductionPage() {
             items={filteredItems}
             layout={boardLayout}
             stageFilter={filters.stages}
+            onOpenNotes={setNotesTarget}
           />
         ) : null}
 
@@ -529,6 +536,15 @@ export default function CrmProductionPage() {
           )
         ) : null}
       </section>
+
+      {notesTarget ? (
+        <OperationalNotesDialog
+          householdId={notesTarget.householdId}
+          householdName={notesTarget.householdName}
+          authorUserId={crmNoteAuthorUserId(profile)}
+          onClose={() => setNotesTarget(null)}
+        />
+      ) : null}
     </div>
   )
 }

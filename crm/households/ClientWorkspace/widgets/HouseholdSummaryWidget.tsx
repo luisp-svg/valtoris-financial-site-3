@@ -1,11 +1,8 @@
 import EmptyState from '../../../components/ui/EmptyState'
 import Widget from '../../../components/ui/Widget'
-import {
-  getMemberDisplayName,
-  getRelationshipLabel,
-} from '../../householdsApi'
+import HouseholdFamilyList from '../../HouseholdFamilyList'
+import { sortHouseholdMembersForFamilyView } from '../../familyView'
 import type { CrmHouseholdWorkspace } from '../../types'
-import { formatWorkspaceDate } from '../format'
 import type { ClientWorkspaceTabId } from '../types'
 
 type Props = {
@@ -15,7 +12,7 @@ type Props = {
 
 export default function HouseholdSummaryWidget({ workspace, onNavigateTab }: Props) {
   const members = workspace.household.members
-  const preview = members.slice(0, 4)
+  const preview = sortHouseholdMembersForFamilyView(members).slice(0, 4)
 
   return (
     <Widget
@@ -47,20 +44,7 @@ export default function HouseholdSummaryWidget({ workspace, onNavigateTab }: Pro
           }
         />
       ) : (
-        <ul className="crm-household-overview-list">
-          {preview.map((member) => (
-            <li key={member.id}>
-              <p className="crm-task-title">{getMemberDisplayName(member)}</p>
-              <p className="crm-task-meta">
-                {getRelationshipLabel(member.relationship)}
-                {member.is_primary_contact ? ' · Primary contact' : ''}
-                {member.date_of_birth
-                  ? ` · Born ${formatWorkspaceDate(member.date_of_birth)}`
-                  : ''}
-              </p>
-            </li>
-          ))}
-        </ul>
+        <HouseholdFamilyList members={preview} />
       )}
     </Widget>
   )

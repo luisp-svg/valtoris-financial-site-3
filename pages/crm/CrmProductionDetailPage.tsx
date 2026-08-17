@@ -28,6 +28,8 @@ import {
 import type { ProductionApplicationDetail } from '../../crm/production/types'
 import { PRODUCTION_STALE_DAYS_IN_STAGE } from '../../crm/production/types'
 import { useCrmAuth } from '../../crm/auth/CrmAuthContext'
+import { crmNoteAuthorUserId } from '../../crm/households/noteAuthor'
+import OperationalNotesPanel from '../../crm/households/OperationalNotesPanel'
 import {
   ROUTES,
   crmHouseholdPath,
@@ -59,7 +61,7 @@ function householdWorkspaceTab(householdId: string, tab: string): string {
 
 export default function CrmProductionDetailPage() {
   const { applicationId = '' } = useParams<{ applicationId: string }>()
-  const { role } = useCrmAuth()
+  const { role, profile } = useCrmAuth()
   const viewer: CompensationViewer = role === 'owner' ? 'owner' : 'advisor'
   const [application, setApplication] = useState<ProductionApplicationDetail | null>(null)
   const [loading, setLoading] = useState(true)
@@ -636,14 +638,34 @@ export default function CrmProductionDetailPage() {
         )}
       </section>
 
+      <section className="crm-panel" aria-labelledby="pp-operational-notes-heading">
+        <div className="crm-panel-head">
+          <h2 id="pp-operational-notes-heading">Operational Notes — {householdName}</h2>
+        </div>
+        <OperationalNotesPanel
+          householdId={application.household_id}
+          householdName={householdName}
+          authorUserId={crmNoteAuthorUserId(profile)}
+        />
+        <p>
+          <Link to={householdWorkspaceTab(application.household_id, 'notes')}>
+            Open full Operational Notes in household workspace
+          </Link>
+        </p>
+      </section>
+
       <section className="crm-panel" aria-labelledby="pp-notes-heading">
         <div className="crm-panel-head">
-          <h2 id="pp-notes-heading">Operational notes</h2>
+          <h2 id="pp-notes-heading">Application notes</h2>
         </div>
+        <p className="crm-muted">
+          Legacy application field. This is not the household Operational Notes timeline and is not
+          updated from Production Notes.
+        </p>
         {application.notes?.trim() ? (
           <p className="crm-production-notes">{application.notes}</p>
         ) : (
-          <p className="crm-muted">No operational notes on this application.</p>
+          <p className="crm-muted">No application notes on this record.</p>
         )}
       </section>
 
@@ -652,6 +674,11 @@ export default function CrmProductionDetailPage() {
           <h2 id="pp-links-heading">Household workspace</h2>
         </div>
         <ul className="crm-production-simple-list">
+          <li>
+            <Link to={householdWorkspaceTab(application.household_id, 'notes')}>
+              Household Operational Notes
+            </Link>
+          </li>
           <li>
             <Link to={householdWorkspaceTab(application.household_id, 'tasks')}>
               Household tasks

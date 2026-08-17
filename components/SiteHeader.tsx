@@ -16,6 +16,9 @@ export default function SiteHeader() {
           <Link to={ROUTES.businessReportCard}>Business Report Card™</Link>
           <Link to={ROUTES.retirementReportCard}>Retirement Report Card™</Link>
           <Link to={ROUTES.protectionAnalysis}>Protection Analysis™</Link>
+          <Link to={ROUTES.crmLogin} className="platform-btn platform-btn-outline nav-advisor-login">
+            Advisor Login
+          </Link>
         </nav>
       </div>
     </header>

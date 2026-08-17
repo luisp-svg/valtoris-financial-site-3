@@ -14,6 +14,10 @@ type HouseholdNoteComposerProps = {
   disabledReason?: string | null
   /** Increment to request focus on the note body (e.g. Quick Action → Notes). */
   focusRequestId?: number
+  heading?: string
+  bodyLabel?: string
+  placeholder?: string
+  submitLabel?: string
   onSaved: () => void | Promise<void>
   onSaveFailed?: () => void | Promise<void>
 }
@@ -24,6 +28,10 @@ export default function HouseholdNoteComposer({
   disabled = false,
   disabledReason = null,
   focusRequestId = 0,
+  heading = 'Add operational note',
+  bodyLabel = 'Operational note',
+  placeholder = 'Carrier requested APS. Follow up Friday.',
+  submitLabel = 'Save note',
   onSaved,
   onSaveFailed,
 }: HouseholdNoteComposerProps) {
@@ -83,7 +91,7 @@ export default function HouseholdNoteComposer({
   return (
     <section className="crm-panel crm-note-composer-panel" aria-labelledby={headingId}>
       <div className="crm-panel-head">
-        <h2 id={headingId}>Add note</h2>
+        <h2 id={headingId}>{heading}</h2>
       </div>
 
       {disabled && disabledReason ? (
@@ -98,7 +106,7 @@ export default function HouseholdNoteComposer({
 
       <form className="crm-task-form crm-note-composer-form" onSubmit={(e) => void onSubmit(e)} noValidate>
         <label className="crm-field">
-          Internal note
+          {bodyLabel}
           <textarea
             ref={bodyRef}
             value={body}
@@ -106,7 +114,7 @@ export default function HouseholdNoteComposer({
             rows={4}
             maxLength={8000}
             disabled={controlsDisabled}
-            placeholder="Write a household note…"
+            placeholder={placeholder}
             aria-invalid={Boolean(fieldError)}
           />
           {fieldError ? <span className="crm-field-error">{fieldError}</span> : null}
@@ -114,7 +122,7 @@ export default function HouseholdNoteComposer({
 
         <div className="crm-form-actions">
           <button type="submit" className="crm-primary-btn" disabled={controlsDisabled}>
-            {submitting ? 'Saving…' : 'Add note'}
+            {submitting ? 'Saving…' : submitLabel}
           </button>
         </div>
       </form>
