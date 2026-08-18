@@ -1,0 +1,51 @@
+/** Static contract markers for Migration 039 review/post hardening. */
+
+export const MIGRATION_039_FILENAME = '039_commission_import_review_post_hardening.sql'
+
+export const MIGRATION_039_CONTRACT_MARKERS = [
+  'CREATE OR REPLACE FUNCTION public.review_commission_import_row(',
+  'CREATE OR REPLACE FUNCTION public.post_commission_import_row(',
+  "lower(btrim(COALESCE(v_row.source_type, ''))) = 'override'",
+  "v_row.source_section = 'additional_commissions'",
+  "'ignored_nonwriting'",
+  "'ignored_nonpolicy'",
+  "'duplicate'",
+  'review_duplicate_candidate may still resolve distinct',
+  'Override source rows cannot post regardless of review_status',
+  'SECURITY DEFINER',
+  'SET search_path = pg_catalog, public, extensions',
+  'pp_assert_owner',
+  'crm_write_audit',
+  'GRANT EXECUTE ON FUNCTION public.review_commission_import_row(',
+  'GRANT EXECUTE ON FUNCTION public.post_commission_import_row(uuid, text)',
+  'REVOKE ALL ON FUNCTION public.review_commission_import_row(',
+  'REVOKE ALL ON FUNCTION public.post_commission_import_row(uuid, text)',
+  'FROM PUBLIC, anon',
+  'TO authenticated',
+] as const
+
+export const MIGRATION_039_FORBIDDEN_MARKERS = [
+  '040_',
+  'CREATE TABLE',
+  'ALTER TABLE',
+  'ADD COLUMN',
+  'DROP TABLE',
+  'DROP POLICY',
+  'DISABLE ROW LEVEL SECURITY',
+  'FORCE ROW LEVEL SECURITY',
+  'duplicate_confirmed',
+  'duplicate_confirm',
+  'CREATE OR REPLACE FUNCTION public.create_commission_import_batch',
+  'CREATE OR REPLACE FUNCTION public.stage_commission_import_rows',
+  'CREATE OR REPLACE FUNCTION public.pp_commission_import_classify_row',
+  'CREATE OR REPLACE FUNCTION public.record_policy_writing_commission_event',
+  'CREATE OR REPLACE FUNCTION public.pp_refresh_application_expected_compensation',
+  'upline_id',
+  'override_rate',
+  'generational_rate',
+  'GRANT EXECUTE ON FUNCTION public.review_commission_import_row(\n  uuid, text, text, uuid, uuid, text\n) TO anon',
+  'GRANT EXECUTE ON FUNCTION public.review_commission_import_row(\n  uuid, text, text, uuid, uuid, text\n) TO PUBLIC',
+  'GRANT EXECUTE ON FUNCTION public.post_commission_import_row(uuid, text)\n  TO anon',
+  'GRANT EXECUTE ON FUNCTION public.post_commission_import_row(uuid, text)\n  TO PUBLIC',
+  'TO service_role',
+] as const

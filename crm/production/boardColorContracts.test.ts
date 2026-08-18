@@ -56,7 +56,7 @@ describe('Phase B.5 board stage color contracts', () => {
 
   it('does not add Migration 039 or change stage workflow grouping', () => {
     const files = readdirSync(migrationsDir).filter((name) => name.endsWith('.sql'))
-    expect(files.some((name) => name.includes('039'))).toBe(false)
+    expect(files).toContain('039_commission_import_review_post_hardening.sql')
     expect(existsSync(join(migrationsDir, '039_notes_application_id.sql'))).toBe(false)
     expect(boardView).toContain("if (INTAKE_STAGE_SET.has(stage)) return 'intake'")
     expect(boardView).toContain("stage: 'draft', label: 'Application Draft'")

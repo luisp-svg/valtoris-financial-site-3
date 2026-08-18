@@ -7,6 +7,7 @@ import {
   MIGRATION_038_FILENAME,
   MIGRATION_038_FORBIDDEN_MARKERS,
 } from './migration038Contract'
+import { MIGRATION_039_FILENAME } from './migration039Contract'
 
 const migrationsDir = resolve(process.cwd(), 'supabase/migrations')
 const sql = readFileSync(resolve(migrationsDir, MIGRATION_038_FILENAME), 'utf8')
@@ -23,7 +24,10 @@ describe('migration 038 historical import support contract', () => {
       files.indexOf(MIGRATION_037_FILENAME),
     )
     expect(files.filter((f) => f.startsWith('038_'))).toEqual([MIGRATION_038_FILENAME])
-    expect(files.filter((f) => f.startsWith('039_'))).toEqual([])
+    expect(files.filter((f) => f.startsWith('039_'))).toEqual([MIGRATION_039_FILENAME])
+    expect(files.indexOf(MIGRATION_039_FILENAME)).toBeGreaterThan(
+      files.indexOf(MIGRATION_038_FILENAME),
+    )
   })
 
   it('includes required owner-only historical import markers', () => {

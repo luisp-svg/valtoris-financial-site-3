@@ -83,9 +83,10 @@ describe('commission Phase 1 multi-service guardrail', () => {
     expect(workspace).not.toMatch(/written premium|service fee|completion milestone/)
   })
 
-  it('does not add a generic compensation table or Migration 039', () => {
+  it('does not add a generic compensation table or commission lifecycle migration', () => {
     const migrations = readdirSync(join(root, 'supabase/migrations'))
-    expect(migrations.some((name) => name.startsWith('039'))).toBe(false)
+    expect(migrations).toContain('039_commission_import_review_post_hardening.sql')
+    expect(migrations).not.toContain('039_commission_lifecycle.sql')
     const view = readFileSync(join(here, 'commissionWorkView.ts'), 'utf8')
     expect(view).not.toMatch(/from\('generic_compensation|create table.*commission_lifecycle/i)
   })

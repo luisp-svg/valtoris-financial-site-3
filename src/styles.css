@@ -11158,3 +11158,24 @@ button.public-card-diagnostic:disabled {
   display: grid;
   gap: 12px;
 }
+
+.crm-commissions-import-row-actions,
+.crm-commissions-import-resolve,
+.crm-commissions-import-duplicate-compare,
+.crm-commissions-import-posted {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.crm-commissions-import-choice {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin: 6px 0;
+}
+
+.crm-commissions-import-peer,
+.crm-commissions-import-post-dialog {
+  margin-top: 8px;
+}

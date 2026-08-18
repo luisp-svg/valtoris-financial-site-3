@@ -80,6 +80,9 @@ export type ResolvedImportContext = {
   policyNumber: string | null
   clientName: string | null
   advisorName: string | null
+  carrierName: string | null
+  productName: string | null
+  productionStage: string | null
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -133,7 +136,9 @@ export function formatImportReviewReason(reason: string | null | undefined): str
 export function importRowBucket(row: Pick<CommissionImportRowView, 'review_status' | 'posted_commission_event_id'>): CommissionImportRowBucket {
   if (row.posted_commission_event_id) return 'posted'
   if (row.review_status === 'ready_to_post') return 'ready'
-  if (row.review_status === 'duplicate') return 'duplicate'
+  if (row.review_status === 'duplicate' || row.review_status === 'review_duplicate_candidate') {
+    return 'duplicate'
+  }
   if (row.review_status === 'ignored_nonwriting' || row.review_status === 'ignored_nonpolicy') {
     return 'ignored'
   }
@@ -168,10 +173,7 @@ export function negativeTransactionCopy(row: Pick<
 
 export function overrideSafetyCopy(row: Pick<CommissionImportRowView, 'source_type' | 'review_status'>): string | null {
   if (!isOverrideSourceType(row.source_type)) return null
-  if (row.review_status === 'ignored_nonwriting') {
-    return 'Excluded from Valtoris writing-advisor compensation.'
-  }
-  return 'Override source row — not treated as writing-advisor compensation.'
+  return 'Excluded from Valtoris writing-advisor compensation — Override source row.'
 }
 
 export function ignoredSafetyCopy(row: Pick<CommissionImportRowView, 'review_status' | 'source_section'>): string | null {

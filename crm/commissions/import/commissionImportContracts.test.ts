@@ -32,16 +32,18 @@ describe('commission Phase 3A contracts', () => {
     expect(header).not.toContain('/crm/commissions/import')
   })
 
-  it('does not post, review, mutate aliases, or write 035 from import', () => {
+  it('reviews and posts only through 036 RPCs and never writes 035 or aliases', () => {
     const blob = [
       source('commissionImportApi.ts'),
       source('CommissionImportWorkspace.tsx'),
+      source('CommissionImportReviewPanel.tsx'),
+      source('commissionImportReview.ts'),
       readFileSync(join(root, 'pages/crm/CrmCommissionsImportPage.tsx'), 'utf8'),
     ].join('\n')
     expect(blob).toContain('create_commission_import_batch')
     expect(blob).toContain('stage_commission_import_rows')
-    expect(blob).not.toContain('post_commission_import_row')
-    expect(blob).not.toContain('review_commission_import_row')
+    expect(blob).toContain('review_commission_import_row')
+    expect(blob).toContain('post_commission_import_row')
     expect(blob).not.toContain('upsert_commission_import_carrier_alias')
     expect(blob).not.toContain('record_policy_writing_commission_event')
     expect(blob).not.toContain('record_policy_writing_commission_event_pre_issue')
@@ -52,9 +54,12 @@ describe('commission Phase 3A contracts', () => {
     expect(blob).not.toMatch(/\.update\s*\(/)
     expect(blob).not.toMatch(/\.delete\s*\(/)
     expect(blob).not.toContain('storage.from')
+    expect(blob).not.toContain('Mark Ready')
+    expect(blob).not.toContain('Post All')
+    expect(blob).not.toContain('fetchProductionApplications')
   })
 
-  it('does not add OCR, AI, PDF parsing, XLSX, or Migration 039', () => {
+  it('does not add OCR, AI, PDF parsing, XLSX, or a commission lifecycle migration', () => {
     const blob = [
       source('commissionImportApi.ts'),
       source('commissionImportCsv.ts'),
@@ -66,8 +71,8 @@ describe('commission Phase 3A contracts', () => {
     expect(blob).not.toMatch(/xlsx|exceljs|sheetjs/i)
     expect(blob).not.toMatch(/P&C Commission|Student Loan Commission|Credit Repair Commission/)
     const numbered = readdirSync(migrationsDir).filter((name) => /^\d{3}_/.test(name))
-    expect(numbered).toHaveLength(38)
-    expect(numbered.some((name) => name.startsWith('039'))).toBe(false)
+    expect(numbered).toHaveLength(39)
+    expect(numbered).toContain('039_commission_import_review_post_hardening.sql')
     expect(existsSync(join(migrationsDir, '039_commission_lifecycle.sql'))).toBe(false)
   })
 
@@ -95,5 +100,60 @@ describe('commission Phase 3A contracts', () => {
     expect(workspace).toContain('onReverse')
     expect(workspace).toContain('onAttribute')
     expect(workspace).toContain('Import Statement')
+  })
+})
+
+describe('commission Phase 3B contracts', () => {
+  it('keeps a single import route and owner-only review/post controls', () => {
+    const app = readFileSync(join(root, 'src/App.tsx'), 'utf8')
+    const page = readFileSync(join(root, 'pages/crm/CrmCommissionsImportPage.tsx'), 'utf8')
+    const panel = source('CommissionImportReviewPanel.tsx')
+    expect(app).toContain('path="commissions/import"')
+    expect(app).toContain('CrmCommissionsImportPage')
+    expect(page).toContain('shouldShowImportEntry')
+    expect(page).toContain("Navigate to={ROUTES.crmCommissions}")
+    expect(page).toContain('reviewCommissionImportRow')
+    expect(page).toContain('postCommissionImportRow')
+    expect(page).toContain('setRowsNonce')
+    expect(panel).toContain('Post to Ledger')
+    expect(panel).toContain('Confirm Duplicate')
+    expect(panel).toContain('Confirm Distinct')
+    expect(panel).toContain('Resolve for posting')
+    expect(panel).not.toContain('Mark Ready')
+    expect(panel).not.toContain('Post All')
+    expect(panel).not.toContain('carrier alias')
+    expect(panel).not.toContain('Pending')
+    expect(panel).not.toContain('Eligible')
+    expect(panel).not.toContain('Released')
+  })
+
+  it('loads constrained application and allocation candidates on demand', () => {
+    const api = source('commissionImportApi.ts')
+    const page = readFileSync(join(root, 'pages/crm/CrmCommissionsImportPage.tsx'), 'utf8')
+    expect(api).toContain("eq('policy_number_normalized'")
+    expect(api).toContain('.limit(20)')
+    expect(api).toContain("eq('application_id', applicationId)")
+    expect(api).toContain("eq('allocation_role', 'writing')")
+    expect(api).toContain("eq('transaction_fingerprint'")
+    expect(api).not.toContain('fetchProductionApplications')
+    expect(page).toContain('fetchImportApplicationCandidates')
+    expect(page).toContain('fetchLiveWritingAllocations')
+    expect(page).toContain('fetchFingerprintPeers')
+    expect(page).toContain('inFlightRef')
+    expect(page).toContain("openResolution(row, 'distinct', false)")
+    expect(page).not.toContain('createSupabaseServiceRole')
+    expect(page).not.toContain('SERVICE_ROLE')
+  })
+
+  it('does not add a second import system, a commission lifecycle migration, or other-service adapters', () => {
+    const numbered = readdirSync(migrationsDir).filter((name) => /^\d{3}_/.test(name))
+    expect(numbered).toHaveLength(39)
+    expect(numbered).toContain('039_commission_import_review_post_hardening.sql')
+    expect(existsSync(join(migrationsDir, '039_commission_lifecycle.sql'))).toBe(false)
+    const page = readFileSync(join(root, 'pages/crm/CrmCommissionsImportPage.tsx'), 'utf8')
+    const panel = source('CommissionImportReviewPanel.tsx')
+    expect(page).not.toMatch(/P&C|Student Loan|Credit Repair|Wills & Trusts|Tax Strategy/)
+    expect(panel).not.toContain('Edit Posted Event')
+    expect(source('commissionImportReview.ts')).toContain('existing Reverse workflow')
   })
 })

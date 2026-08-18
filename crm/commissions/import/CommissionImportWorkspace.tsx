@@ -9,6 +9,7 @@ import {
   COMMISSION_IMPORT_SOURCE_LABEL,
 } from './commissionImportConstants'
 import type { CsvCellError } from './commissionImportCsv'
+import { ImportRowActions, type ImportWorkflowState } from './CommissionImportReviewPanel'
 import {
   canStageIntoBatch,
   formatImportBatchSourceLabel,
@@ -90,6 +91,7 @@ type CommissionImportWorkspaceProps = {
   } | null
   tab: ImportWorkspaceTab
   onTabChange: (tab: ImportWorkspaceTab) => void
+  workflow: ImportWorkflowState
 }
 
 export default function CommissionImportWorkspace({
@@ -108,6 +110,7 @@ export default function CommissionImportWorkspace({
   duplicateNotice,
   tab,
   onTabChange,
+  workflow,
 }: CommissionImportWorkspaceProps) {
   return (
     <div className="crm-page crm-opportunities-page crm-commissions-page crm-commissions-import-page">
@@ -116,9 +119,10 @@ export default function CommissionImportWorkspace({
           <p className="crm-page-eyebrow">Commissions</p>
           <h1 className="crm-page-title">Commission import</h1>
           <p className="crm-page-subtitle">
-            Stage an Experior Paid Report from a prepared Valtoris CSV. File identity is based on
-            this prepared import file, not the original PDF. This phase classifies rows only —
-            nothing is posted to the commission ledger.
+            Stage an Experior Paid Report from a prepared Valtoris CSV, resolve supported review
+            rows, and post one writing-advisor event at a time. File identity is based on this
+            prepared import file, not the original PDF. Override and additional-commission rows stay
+            excluded from writing-advisor compensation.
           </p>
         </div>
         <div className="crm-production-header-actions">
@@ -216,6 +220,7 @@ export default function CommissionImportWorkspace({
           presentation={presentation}
           onTabChange={onTabChange}
           onClose={() => onSelectBatch(null)}
+          workflow={workflow}
         />
       ) : null}
     </div>
@@ -531,6 +536,7 @@ function BatchDetail({
   presentation,
   onTabChange,
   onClose,
+  workflow,
 }: {
   batch: CommissionImportBatchView
   rows: readonly CommissionImportRowView[]
@@ -540,6 +546,7 @@ function BatchDetail({
   presentation: 'table' | 'cards'
   onTabChange: (tab: ImportWorkspaceTab) => void
   onClose: () => void
+  workflow: ImportWorkflowState
 }) {
   const amounts = summarizeImportRowAmounts(rows)
   const visibleRows = tab === 'summary' ? [] : rowsForBucket(rows, tab)
@@ -579,9 +586,19 @@ function BatchDetail({
       ) : visibleRows.length === 0 ? (
         <p className="crm-muted">No rows in this view.</p>
       ) : presentation === 'table' ? (
-        <RowTable rows={visibleRows} resolvedContext={resolvedContext} />
+        <RowTable
+          rows={visibleRows}
+          resolvedContext={resolvedContext}
+          batch={batch}
+          workflow={workflow}
+        />
       ) : (
-        <RowCards rows={visibleRows} resolvedContext={resolvedContext} />
+        <RowCards
+          rows={visibleRows}
+          resolvedContext={resolvedContext}
+          batch={batch}
+          workflow={workflow}
+        />
       )}
     </section>
   )
@@ -637,7 +654,8 @@ function ImportSummary({
         </div>
       </dl>
       <p className="crm-banner" role="note">
-        Posting will be enabled in Commission Phase 3B after review workflow approval.
+        Ready rows post one at a time. There is no bulk post. Override and additional-commission
+        rows cannot be promoted or posted.
       </p>
     </div>
   )
@@ -646,9 +664,13 @@ function ImportSummary({
 function RowTable({
   rows,
   resolvedContext,
+  batch,
+  workflow,
 }: {
   rows: readonly CommissionImportRowView[]
   resolvedContext: Map<string, ResolvedImportContext>
+  batch: CommissionImportBatchView
+  workflow: ImportWorkflowState
 }) {
   return (
     <table className="crm-opportunities-table crm-commissions-import-row-table">
@@ -669,6 +691,12 @@ function RowTable({
           <tr key={row.id}>
             <td>
               <ImportStatusCell row={row} />
+              <ImportRowActions
+                row={row}
+                batch={batch}
+                resolved={row.resolved_application_id ? resolvedContext.get(row.resolved_application_id) : undefined}
+                workflow={workflow}
+              />
             </td>
             <td className="crm-production-money">{formatSignedCents(row.source_income_cents)}</td>
             <td>{formatProductionDate(row.transaction_date)}</td>
@@ -689,9 +717,13 @@ function RowTable({
 function RowCards({
   rows,
   resolvedContext,
+  batch,
+  workflow,
 }: {
   rows: readonly CommissionImportRowView[]
   resolvedContext: Map<string, ResolvedImportContext>
+  batch: CommissionImportBatchView
+  workflow: ImportWorkflowState
 }) {
   return (
     <div className="crm-commissions-import-row-cards">
@@ -702,6 +734,12 @@ function RowCards({
           <p>
             {row.source_company || '—'} · {row.source_policy_number || '—'}
           </p>
+          <ImportRowActions
+            row={row}
+            batch={batch}
+            resolved={row.resolved_application_id ? resolvedContext.get(row.resolved_application_id) : undefined}
+            workflow={workflow}
+          />
           <RowEvidence
             row={row}
             resolved={row.resolved_application_id ? resolvedContext.get(row.resolved_application_id) : undefined}
@@ -720,10 +758,8 @@ function ImportStatusCell({ row }: { row: CommissionImportRowView }) {
   return (
     <div>
       <div>{formatImportReviewStatus(row.review_status)}</div>
-      {importRowBucket(row) === 'ready' ? (
-        <p className="crm-muted">
-          Posting will be enabled in Commission Phase 3B after review workflow approval.
-        </p>
+      {importRowBucket(row) === 'ready' && !isOverrideSourceType(row.source_type) ? (
+        <p className="crm-muted">Ready rows post one at a time after confirmation.</p>
       ) : null}
       {overrideCopy ? <p className="crm-commissions-import-override">{overrideCopy}</p> : null}
       {ignoredCopy && ignoredCopy !== overrideCopy ? <p>{ignoredCopy}</p> : null}

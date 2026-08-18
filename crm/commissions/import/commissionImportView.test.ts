@@ -59,7 +59,7 @@ describe('commission import classification view', () => {
     expect(importRowBucket(row({ review_status: 'review_advisor_match' }))).toBe('review')
     expect(importRowBucket(row({ review_status: 'review_split_attribution' }))).toBe('review')
     expect(importRowBucket(row({ review_status: 'review_transaction_type' }))).toBe('review')
-    expect(importRowBucket(row({ review_status: 'review_duplicate_candidate' }))).toBe('review')
+    expect(importRowBucket(row({ review_status: 'review_duplicate_candidate' }))).toBe('duplicate')
     expect(importRowBucket(row({ review_status: 'invalid_amount' }))).toBe('review')
     expect(importRowBucket(row({ review_status: 'invalid_source_identity' }))).toBe('review')
     expect(importRowBucket(row({ review_status: 'ignored_nonwriting' }))).toBe('ignored')
@@ -75,7 +75,7 @@ describe('commission import classification view', () => {
       resolved_event_type: 'paid',
       posted_commission_event_id: null,
     })
-    expect(importRowBucket(candidate)).toBe('review')
+    expect(importRowBucket(candidate)).toBe('duplicate')
     expect(importRowBucket(candidate)).not.toBe('ready')
     expect(importRowBucket(candidate)).not.toBe('posted')
     expect(
@@ -111,7 +111,9 @@ describe('commission import classification view', () => {
       review_status: 'review_split_attribution',
     })
     expect(isOverrideSourceType(household.source_type)).toBe(true)
-    expect(overrideSafetyCopy(household)).toMatch(/not treated as writing-advisor compensation/)
+    expect(overrideSafetyCopy(household)).toBe(
+      'Excluded from Valtoris writing-advisor compensation — Override source row.',
+    )
     expect(ignoredSafetyCopy(row({ review_status: 'ignored_nonwriting' }))).toMatch(/Excluded from Valtoris/)
     expect(ignoredSafetyCopy(row({ review_status: 'ignored_nonpolicy' }))).toMatch(/non-policy/)
   })
@@ -144,11 +146,12 @@ describe('commission import classification view', () => {
       row({ id: 'r2', review_status: 'ignored_nonwriting', source_income_cents: 3893 }),
       row({ id: 'r3', review_status: 'duplicate', source_income_cents: 810 }),
       row({ id: 'r4', posted_commission_event_id: 'e1', source_income_cents: 100 }),
+      row({ id: 'r5', review_status: 'review_duplicate_candidate', source_income_cents: 50 }),
     ])
-    expect(summary.sourceIncomeCents).toBe(267 + 3893 + 810 + 100)
+    expect(summary.sourceIncomeCents).toBe(267 + 3893 + 810 + 100 + 50)
     expect(summary.readyIncomeCents).toBe(267)
     expect(summary.ignoredIncomeCents).toBe(3893)
-    expect(summary.duplicateIncomeCents).toBe(810)
+    expect(summary.duplicateIncomeCents).toBe(810 + 50)
     expect(summary.postedIncomeCents).toBe(100)
   })
 

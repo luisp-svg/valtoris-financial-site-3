@@ -115,7 +115,7 @@ describe('Phase C board movement contracts', () => {
 
   it('does not add Migration 039, notes schema, or service-role board writes', () => {
     const files = readdirSync(migrationsDir).filter((name) => name.endsWith('.sql'))
-    expect(files.some((name) => name.includes('039'))).toBe(false)
+    expect(files).toContain('039_commission_import_review_post_hardening.sql')
     expect(existsSync(join(migrationsDir, '039_production_board.sql'))).toBe(false)
     expect(queuePage).not.toContain('SERVICE_ROLE')
     expect(board).not.toContain('createSupabaseBrowserClient')

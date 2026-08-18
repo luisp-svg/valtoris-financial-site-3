@@ -1,8 +1,8 @@
 /**
- * Phase 3A commission import API.
- * Creates/stages 036 batches through existing owner RPCs.
- * Reads batches/rows with SELECT + RLS only.
- * Does not call review, post, alias, or 035 write RPCs.
+ * Phase 3A/3B commission import API.
+ * Creates/stages 036 batches and reviews/posts through existing owner RPCs.
+ * Reads batches/rows/candidates with SELECT + RLS only.
+ * Does not call 035 write RPCs, alias RPCs, or table DML.
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js'
@@ -10,9 +10,20 @@ import { EXPERIOR_PAID_REPORT_SOURCE_TYPE } from './commissionImportConstants'
 import type { CanonicalImportRow } from './commissionImportCsv'
 import {
   COMMISSION_IMPORT_LOAD_ERROR,
+  COMMISSION_IMPORT_POST_ERROR,
+  COMMISSION_IMPORT_REVIEW_ERROR,
   COMMISSION_IMPORT_STAGE_ERROR,
   formatCommissionImportUserError,
 } from './commissionImportErrors'
+import {
+  buildConfirmDuplicateRequest,
+  buildPostImportRowRequest,
+  buildReadyReviewRequest,
+  importApplicationCandidateFilter,
+  isLiveWritingAllocation,
+  type DuplicateReviewRequest,
+  type ReadyReviewRequest,
+} from './commissionImportReview'
 import type { CommissionImportBatchView, CommissionImportRowView, ResolvedImportContext } from './commissionImportView'
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -28,6 +39,14 @@ function asNumber(value: unknown): number | null {
   if (typeof value === 'number' && Number.isFinite(value)) return value
   if (typeof value === 'string' && value.trim() && Number.isFinite(Number(value))) return Number(value)
   return null
+}
+
+function embedOne(value: unknown): Record<string, unknown> | null {
+  if (Array.isArray(value)) {
+    const first = value[0]
+    return first && typeof first === 'object' ? (first as Record<string, unknown>) : null
+  }
+  return asRecord(value)
 }
 
 function mapBatch(row: Record<string, unknown>): CommissionImportBatchView {
@@ -250,22 +269,24 @@ export async function fetchResolvedImportContext(
   if (applicationIds.length > 0) {
     const { data } = await supabase
       .from('policy_applications')
-      .select('id, application_number, policy_number, household:households(display_name)')
+      .select(
+        'id, application_number, policy_number, production_stage, household:households(display_name), carrier:carriers(name), product:insurance_products(name)',
+      )
       .in('id', applicationIds)
     for (const row of data ?? []) {
-      const rec = row as {
-        id: string
-        application_number?: string | null
-        policy_number?: string | null
-        household?: { display_name?: string | null } | { display_name?: string | null }[] | null
-      }
-      const household = Array.isArray(rec.household) ? rec.household[0] : rec.household
-      result.set(rec.id, {
-        applicationId: rec.id,
-        applicationNumber: rec.application_number ?? null,
-        policyNumber: rec.policy_number ?? null,
-        clientName: household?.display_name ?? null,
+      const rec = row as Record<string, unknown>
+      const household = embedOne(rec.household)
+      const carrier = embedOne(rec.carrier)
+      const product = embedOne(rec.product)
+      result.set(String(rec.id), {
+        applicationId: String(rec.id),
+        applicationNumber: asString(rec.application_number),
+        policyNumber: asString(rec.policy_number),
+        clientName: asString(household?.display_name),
         advisorName: null,
+        carrierName: asString(carrier?.name),
+        productName: asString(product?.name),
+        productionStage: asString(rec.production_stage),
       })
     }
   }
@@ -278,6 +299,9 @@ export async function fetchResolvedImportContext(
       policyNumber: null,
       clientName: null,
       advisorName: null,
+      carrierName: null,
+      productName: null,
+      productionStage: null,
     }
     result.set(row.resolved_application_id, {
       ...current,
@@ -285,4 +309,261 @@ export async function fetchResolvedImportContext(
     })
   }
   return result
+}
+
+export type ImportApplicationCandidate = {
+  id: string
+  applicationNumber: string | null
+  policyNumber: string | null
+  clientName: string | null
+  carrierName: string | null
+  productName: string | null
+  productionStage: string | null
+}
+
+export type ImportAllocationCandidate = {
+  id: string
+  applicationId: string
+  advisorId: string
+  advisorName: string
+  commissionBps: number
+  writingContractLevel: string | null
+}
+
+export type PostedImportEventView = {
+  id: string
+  eventType: string
+  amountCents: number
+  transactionDate: string | null
+  createdAt: string | null
+  statementIdentifier: string | null
+  sourceFile: string | null
+  allocationId: string | null
+  advisorId: string | null
+  advisorName: string | null
+}
+
+export type DuplicatePeerView = CommissionImportRowView & {
+  statementIdentifier: string | null
+  sourceFile: string | null
+}
+
+const APPLICATION_CANDIDATE_SELECT =
+  'id, application_number, policy_number, production_stage, household:households(display_name), carrier:carriers(name), product:insurance_products(name)'
+
+const ALLOCATION_CANDIDATE_SELECT =
+  'id, application_id, advisor_id, allocation_role, recipient_type, commission_bps, writing_contract_level, effective_to, advisor:advisor_profiles!advisor_id(display_name)'
+
+const POSTED_EVENT_SELECT =
+  'id, event_type, amount_cents, transaction_date, created_at, statement_identifier, source_file, allocation_id, advisor_id, advisor:advisor_profiles!advisor_id(display_name)'
+
+function mapApplicationCandidate(row: Record<string, unknown>): ImportApplicationCandidate {
+  const household = embedOne(row.household)
+  const carrier = embedOne(row.carrier)
+  const product = embedOne(row.product)
+  return {
+    id: String(row.id),
+    applicationNumber: asString(row.application_number),
+    policyNumber: asString(row.policy_number),
+    clientName: asString(household?.display_name),
+    carrierName: asString(carrier?.name),
+    productName: asString(product?.name),
+    productionStage: asString(row.production_stage),
+  }
+}
+
+function mapAllocationCandidate(row: Record<string, unknown>): ImportAllocationCandidate | null {
+  if (!isLiveWritingAllocation(row)) return null
+  const advisor = embedOne(row.advisor)
+  return {
+    id: String(row.id),
+    applicationId: String(row.application_id),
+    advisorId: String(row.advisor_id),
+    advisorName: asString(advisor?.display_name) ?? 'Writing advisor',
+    commissionBps: asNumber(row.commission_bps) ?? 0,
+    writingContractLevel: asString(row.writing_contract_level),
+  }
+}
+
+export async function fetchImportApplicationCandidates(
+  supabase: SupabaseClient,
+  row: Pick<
+    CommissionImportRowView,
+    'source_policy_number' | 'resolved_carrier_id' | 'source_type' | 'source_section' | 'review_status'
+  >,
+): Promise<ImportApplicationCandidate[]> {
+  const filter = importApplicationCandidateFilter(row)
+  if (!filter.ok) return []
+  let query = supabase
+    .from('policy_applications')
+    .select(APPLICATION_CANDIDATE_SELECT)
+    .eq('policy_number_normalized', filter.policyNormalized)
+    .is('deleted_at', null)
+    .limit(20)
+  if (filter.carrierId) {
+    query = query.eq('carrier_id', filter.carrierId)
+  }
+  const { data, error } = await query
+  if (error) throw new Error(COMMISSION_IMPORT_LOAD_ERROR)
+  return (data ?? []).map((item) => mapApplicationCandidate(item as Record<string, unknown>))
+}
+
+export async function fetchLiveWritingAllocations(
+  supabase: SupabaseClient,
+  applicationId: string,
+): Promise<ImportAllocationCandidate[]> {
+  if (!applicationId) return []
+  const { data, error } = await supabase
+    .from('policy_agent_allocations')
+    .select(ALLOCATION_CANDIDATE_SELECT)
+    .eq('application_id', applicationId)
+    .eq('allocation_role', 'writing')
+    .eq('recipient_type', 'advisor')
+    .is('effective_to', null)
+  if (error) throw new Error(COMMISSION_IMPORT_LOAD_ERROR)
+  return (data ?? [])
+    .map((item) => mapAllocationCandidate(item as Record<string, unknown>))
+    .filter((item): item is ImportAllocationCandidate => Boolean(item))
+}
+
+export async function fetchFingerprintPeers(
+  supabase: SupabaseClient,
+  row: Pick<CommissionImportRowView, 'id' | 'transaction_fingerprint'>,
+): Promise<DuplicatePeerView[]> {
+  if (!row.transaction_fingerprint) return []
+  const { data, error } = await supabase
+    .from('commission_import_rows')
+    .select(`${ROW_COLUMNS}, batch:commission_import_batches(statement_identifier, source_file)`)
+    .eq('transaction_fingerprint', row.transaction_fingerprint)
+    .neq('id', row.id)
+    .limit(25)
+  if (error) throw new Error(COMMISSION_IMPORT_LOAD_ERROR)
+  return (data ?? []).map((item) => {
+    const rec = item as Record<string, unknown>
+    const batch = embedOne(rec.batch)
+    return {
+      ...mapRow(rec),
+      statementIdentifier: asString(batch?.statement_identifier),
+      sourceFile: asString(batch?.source_file),
+    }
+  })
+}
+
+export async function fetchPostedImportEvents(
+  supabase: SupabaseClient,
+  eventIds: readonly string[],
+): Promise<Map<string, PostedImportEventView>> {
+  const ids = [...new Set(eventIds.filter(Boolean))]
+  const result = new Map<string, PostedImportEventView>()
+  if (ids.length === 0) return result
+  const { data, error } = await supabase
+    .from('policy_writing_commission_events')
+    .select(POSTED_EVENT_SELECT)
+    .in('id', ids)
+  if (error) throw new Error(COMMISSION_IMPORT_LOAD_ERROR)
+  for (const item of data ?? []) {
+    const rec = item as Record<string, unknown>
+    const advisor = embedOne(rec.advisor)
+    result.set(String(rec.id), {
+      id: String(rec.id),
+      eventType: String(rec.event_type ?? ''),
+      amountCents: asNumber(rec.amount_cents) ?? 0,
+      transactionDate: asString(rec.transaction_date),
+      createdAt: asString(rec.created_at),
+      statementIdentifier: asString(rec.statement_identifier),
+      sourceFile: asString(rec.source_file),
+      allocationId: asString(rec.allocation_id),
+      advisorId: asString(rec.advisor_id),
+      advisorName: asString(advisor?.display_name),
+    })
+  }
+  return result
+}
+
+export type ReviewImportRowInput = {
+  row: CommissionImportRowView
+  applicationId?: string | null
+  allocationId?: string | null
+  allocationApplicationId?: string | null
+  eventType?: string | null
+  reason?: string | null
+  distinct?: boolean
+}
+
+export type ReviewImportRowResult =
+  | { ok: true; row: CommissionImportRowView }
+  | { ok: false; message: string }
+
+export function readyReviewRpcName(): 'review_commission_import_row' {
+  return 'review_commission_import_row'
+}
+
+export function postImportRpcName(): 'post_commission_import_row' {
+  return 'post_commission_import_row'
+}
+
+export async function reviewCommissionImportRow(
+  supabase: SupabaseClient,
+  input: ReviewImportRowInput,
+): Promise<ReviewImportRowResult> {
+  const built = buildReadyReviewRequest({
+    row: input.row,
+    applicationId: input.applicationId,
+    allocationId: input.allocationId,
+    allocationApplicationId: input.allocationApplicationId,
+    eventType: input.eventType,
+    reason: input.reason,
+    distinct: input.distinct,
+  })
+  if (!built.ok) return { ok: false, message: built.message }
+  return invokeReviewRpc(supabase, built.args)
+}
+
+export async function confirmDuplicateImportRow(
+  supabase: SupabaseClient,
+  input: { row: CommissionImportRowView; reason?: string | null },
+): Promise<ReviewImportRowResult> {
+  const built = buildConfirmDuplicateRequest(input)
+  if (!built.ok) return { ok: false, message: built.message }
+  return invokeReviewRpc(supabase, built.args)
+}
+
+async function invokeReviewRpc(
+  supabase: SupabaseClient,
+  args: ReadyReviewRequest | DuplicateReviewRequest,
+): Promise<ReviewImportRowResult> {
+  const { data, error } = await supabase.rpc('review_commission_import_row', args)
+  if (error) return { ok: false, message: formatCommissionImportUserError(error) }
+  const payload = asRecord(data)
+  const rowRaw = asRecord(payload?.row)
+  if (!payload || payload.ok !== true || !rowRaw) {
+    return { ok: false, message: COMMISSION_IMPORT_REVIEW_ERROR }
+  }
+  return { ok: true, row: mapRow(rowRaw) }
+}
+
+export type PostImportRowResult =
+  | { ok: true; duplicate: boolean; eventId: string | null; row: CommissionImportRowView }
+  | { ok: false; message: string }
+
+export async function postCommissionImportRow(
+  supabase: SupabaseClient,
+  input: { row: CommissionImportRowView; reason: string },
+): Promise<PostImportRowResult> {
+  const built = buildPostImportRowRequest(input)
+  if (!built.ok) return { ok: false, message: built.message }
+  const { data, error } = await supabase.rpc('post_commission_import_row', built.args)
+  if (error) return { ok: false, message: formatCommissionImportUserError(error) }
+  const payload = asRecord(data)
+  const rowRaw = asRecord(payload?.row)
+  const eventRaw = asRecord(payload?.event)
+  if (!payload || payload.ok !== true || !rowRaw) {
+    return { ok: false, message: COMMISSION_IMPORT_POST_ERROR }
+  }
+  return {
+    ok: true,
+    duplicate: payload.duplicate === true,
+    eventId: asString(eventRaw?.id) ?? asString(rowRaw.posted_commission_event_id),
+    row: mapRow(rowRaw),
+  }
 }

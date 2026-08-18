@@ -12,10 +12,10 @@ function read(name: string): string {
 }
 
 describe('commission Phase 2 contracts', () => {
-  it('does not add Migration 039 or change 001–038', () => {
+  it('does not add a commission lifecycle migration or change 001–038', () => {
     const numbered = readdirSync(migrationsDir).filter((name) => /^\d{3}_/.test(name))
-    expect(numbered).toHaveLength(38)
-    expect(numbered.some((name) => name.startsWith('039'))).toBe(false)
+    expect(numbered).toHaveLength(39)
+    expect(numbered).toContain('039_commission_import_review_post_hardening.sql')
     expect(existsSync(join(migrationsDir, '039_commission_lifecycle.sql'))).toBe(false)
   })
 
