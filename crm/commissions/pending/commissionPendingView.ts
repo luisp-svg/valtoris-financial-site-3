@@ -72,6 +72,8 @@ export type CommissionPendingRowView = {
   resolved_application_id: string | null
   resolved_allocation_id: string | null
   resolved_advisor_id: string | null
+  reviewed_by_user_id: string | null
+  reviewed_at: string | null
   created_at: string
 }
 

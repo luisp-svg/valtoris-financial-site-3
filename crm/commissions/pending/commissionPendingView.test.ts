@@ -45,6 +45,8 @@ function row(over: Partial<CommissionPendingRowView> = {}): CommissionPendingRow
     resolved_application_id: 'app1',
     resolved_allocation_id: 'alloc1',
     resolved_advisor_id: 'adv1',
+    reviewed_by_user_id: null,
+    reviewed_at: null,
     created_at: '2026-08-17T00:00:00Z',
     ...over,
   }

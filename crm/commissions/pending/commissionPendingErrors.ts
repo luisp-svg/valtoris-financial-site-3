@@ -7,6 +7,9 @@ export const COMMISSION_PENDING_IMPORT_LOAD_ERROR =
 export const COMMISSION_PENDING_IMPORT_STAGE_ERROR =
   'Unable to stage these pending commission rows. Nothing was posted to the ledger.'
 
+export const COMMISSION_PENDING_IMPORT_REVIEW_ERROR =
+  'Unable to save this pending commission resolution. Nothing was posted to the ledger.'
+
 export {
   formatCommissionImportUserError as formatCommissionPendingImportUserError,
 } from '../import/commissionImportErrors'

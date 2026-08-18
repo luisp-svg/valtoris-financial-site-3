@@ -2,6 +2,8 @@ import { describe, expect, it, vi } from 'vitest'
 import {
   createCommissionPendingImportBatch,
   createCommissionPendingImportBatchRpcArgs,
+  pendingReviewRpcName,
+  reviewCommissionPendingImportRow,
   stageCommissionPendingImportRows,
 } from './commissionPendingApi'
 import { EXPERIOR_PENDING_REPORT_SOURCE_TYPE } from './commissionPendingConstants'
@@ -110,5 +112,86 @@ describe('pending commission import API wrappers', () => {
     expect(staged).toEqual({ ok: true, created: 1, sameBatchExisting: 0, rowIds: ['r1'] })
     expect(rpc.mock.calls[0][0]).toBe('stage_commission_pending_import_rows')
     expect(rpc.mock.calls[0][1]).toEqual({ p_batch_id: 'b1', p_rows: [sampleRow] })
+  })
+
+  it('reviews only through the 041 RPC and never posts 035 or 036', async () => {
+    expect(pendingReviewRpcName()).toBe('review_commission_pending_import_row')
+    const rpc = vi.fn().mockResolvedValue({
+      data: {
+        ok: true,
+        row: {
+          id: 'r1',
+          batch_id: 'b1',
+          source_section: 'insurance',
+          source_row_ordinal: 1,
+          source_row_key: 'a'.repeat(64),
+          transaction_fingerprint: 'b'.repeat(64),
+          source_type: 'Commission',
+          source_income_cents: 335512,
+          pending_review_status: 'accepted_pending',
+          resolved_application_id: 'app-1',
+          resolved_allocation_id: 'alloc-jared',
+          resolved_advisor_id: 'adv-jared',
+          reviewed_by_user_id: 'owner-1',
+          reviewed_at: '2026-08-17T00:00:00Z',
+          created_at: '2026-08-17T00:00:00Z',
+        },
+      },
+      error: null,
+    })
+    const reviewed = await reviewCommissionPendingImportRow(
+      { rpc } as never,
+      {
+        row: {
+          id: 'r1',
+          batch_id: 'b1',
+          source_section: 'insurance',
+          source_page: 3,
+          source_row_ordinal: 1,
+          source_row_key: 'a'.repeat(64),
+          transaction_fingerprint: 'b'.repeat(64),
+          transaction_date: '2026-08-17',
+          payment_number: null,
+          source_company: 'Symetra',
+          source_product: 'Life',
+          source_policy_number: 'ST11314961',
+          source_writing_associate: 'Jared Writer',
+          source_client: 'Client',
+          source_agent_entered_premium_cents: null,
+          source_company_calculated_premium_cents: 10000,
+          source_gross_rate: 115,
+          source_factor_rate: 80,
+          source_net_rate: 92,
+          source_split_rate: 0.75,
+          source_type: 'Commission',
+          source_transaction_type: null,
+          source_income_cents: 335512,
+          source_is_negative: false,
+          source_is_chargeback_visual: false,
+          pending_review_status: 'review_split_attribution',
+          pending_review_reason: 'multiple_writing_allocations',
+          resolved_carrier_id: 'c1',
+          resolved_application_id: 'app-1',
+          resolved_allocation_id: null,
+          resolved_advisor_id: null,
+          reviewed_by_user_id: null,
+          reviewed_at: null,
+          created_at: '2026-08-17T00:00:00Z',
+        },
+        applicationId: 'app-1',
+        allocationId: 'alloc-jared',
+        allocationApplicationId: 'app-1',
+      },
+    )
+    expect(reviewed.ok).toBe(true)
+    expect(rpc.mock.calls[0][0]).toBe('review_commission_pending_import_row')
+    expect(rpc.mock.calls[0][1]).toMatchObject({
+      p_action: 'accept',
+      p_resolved_application_id: 'app-1',
+      p_resolved_allocation_id: 'alloc-jared',
+    })
+    expect(rpc.mock.calls[0][0]).not.toBe('review_commission_import_row')
+    expect(rpc.mock.calls[0][0]).not.toBe('post_commission_import_row')
+    expect(rpc.mock.calls[0][0]).not.toBe('record_policy_writing_commission_event')
   })
 })

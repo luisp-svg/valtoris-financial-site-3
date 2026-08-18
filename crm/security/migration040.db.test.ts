@@ -578,10 +578,15 @@ describe.skipIf(!localEnv)('migration 040 commission pending import (local DB)',
     expect(
       sqlQuery(
         `SELECT count(*) FROM pg_proc
+          WHERE proname = 'review_commission_pending_import_row'`,
+      ),
+    ).toBe('1')
+    expect(
+      sqlQuery(
+        `SELECT count(*) FROM pg_proc
           WHERE proname IN (
-            'review_commission_pending_import_row',
             'post_commission_pending_import_row',
-            'post_commission_pending_import_row'
+            'post_commission_pending'
           )`,
       ),
     ).toBe('0')

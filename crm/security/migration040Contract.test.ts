@@ -10,6 +10,7 @@ import {
   MIGRATION_040_FILENAME,
   MIGRATION_040_FORBIDDEN_MARKERS,
 } from './migration040Contract'
+import { MIGRATION_041_FILENAME } from './migration041Contract'
 
 const migrationsDir = resolve(process.cwd(), 'supabase/migrations')
 const sql = readFileSync(resolve(migrationsDir, MIGRATION_040_FILENAME), 'utf8')
@@ -29,7 +30,10 @@ describe('migration 040 commission pending import contract', () => {
       files.indexOf(MIGRATION_039_FILENAME),
     )
     expect(files.filter((f) => f.startsWith('040_'))).toEqual([MIGRATION_040_FILENAME])
-    expect(files.filter((f) => f.startsWith('041_'))).toEqual([])
+    expect(files.filter((f) => f.startsWith('041_'))).toEqual([MIGRATION_041_FILENAME])
+    expect(files.indexOf(MIGRATION_041_FILENAME)).toBeGreaterThan(
+      files.indexOf(MIGRATION_040_FILENAME),
+    )
   })
 
   it('includes required pending schema, RPC, RLS, and comment markers', () => {

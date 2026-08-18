@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import { ROUTES } from '../../constants/routes'
 import { useCrmAuth } from '../../crm/auth/CrmAuthContext'
@@ -6,11 +6,17 @@ import CommissionPendingImportWorkspace, {
   type PendingImportWorkspaceTab,
 } from '../../crm/commissions/pending/CommissionPendingImportWorkspace'
 import {
+  confirmDuplicatePendingImportRow,
   createCommissionPendingImportBatch,
   fetchCommissionPendingImportBatch,
   fetchCommissionPendingImportBatches,
   fetchCommissionPendingImportRows,
+  fetchPendingApplicationCandidates,
+  fetchPendingFingerprintPeers,
+  fetchPendingLiveWritingAllocations,
+  reviewCommissionPendingImportRow,
   stageCommissionPendingImportRows,
+  type PendingDuplicatePeerView,
 } from '../../crm/commissions/pending/commissionPendingApi'
 import {
   COMMISSION_PENDING_IMPORT_PASTED_FILENAME,
@@ -34,6 +40,15 @@ import {
   type CsvCellError,
 } from '../../crm/commissions/import/commissionImportCsv'
 import { sha256HexFromBytes } from '../../crm/commissions/import/commissionImportSha'
+import type {
+  ImportAllocationCandidate,
+  ImportApplicationCandidate,
+} from '../../crm/commissions/import/commissionImportApi'
+import { pendingPeersInCurrentBatch } from '../../crm/commissions/pending/commissionPendingReview'
+import type {
+  PendingReviewMode,
+  PendingWorkflowState,
+} from '../../crm/commissions/pending/CommissionPendingReviewPanel'
 import { getProductionListPresentation } from '../../crm/production/listLoadState'
 import { createSupabaseBrowserClient } from '../../lib/supabase/client'
 
@@ -91,6 +106,20 @@ export default function CrmCommissionsPendingImportPage() {
   } | null>(null)
   const [stageTargetBatchId, setStageTargetBatchId] = useState<string | null>(null)
   const [stageRetryNote, setStageRetryNote] = useState<string | null>(null)
+  const [applications, setApplications] = useState<ImportApplicationCandidate[]>([])
+  const [allocations, setAllocations] = useState<ImportAllocationCandidate[]>([])
+  const [applicationsLoading, setApplicationsLoading] = useState(false)
+  const [allocationsLoading, setAllocationsLoading] = useState(false)
+  const [peers, setPeers] = useState<PendingDuplicatePeerView[]>([])
+  const [peersLoading, setPeersLoading] = useState(false)
+  const [reviewRowId, setReviewRowId] = useState<string | null>(null)
+  const [reviewMode, setReviewMode] = useState<PendingReviewMode>(null)
+  const [applicationId, setApplicationId] = useState<string | null>(null)
+  const [allocationId, setAllocationId] = useState<string | null>(null)
+  const [reviewReason, setReviewReason] = useState('')
+  const [actionError, setActionError] = useState<string | null>(null)
+  const [actionSubmitting, setActionSubmitting] = useState(false)
+  const inFlightRef = useRef(false)
 
   useEffect(() => {
     if (!isOwner) return
@@ -148,6 +177,186 @@ export default function CrmCommissionsPendingImportPage() {
   }
 
   const selectedBatch = batches.find((batch) => batch.id === selectedBatchId) ?? null
+  const reviewRow = selectedRows.find((row) => row.id === reviewRowId) ?? null
+
+  function resetWorkflow() {
+    setReviewRowId(null)
+    setReviewMode(null)
+    setApplicationId(null)
+    setAllocationId(null)
+    setReviewReason('')
+    setActionError(null)
+    setApplications([])
+    setAllocations([])
+    setPeers([])
+  }
+
+  async function loadApplications(row: CommissionPendingRowView) {
+    setApplicationsLoading(true)
+    try {
+      const supabase = createSupabaseBrowserClient()
+      const rows = await fetchPendingApplicationCandidates(supabase, row)
+      setApplications(rows)
+    } catch {
+      setApplications([])
+      setActionError(COMMISSION_PENDING_IMPORT_LOAD_ERROR)
+    } finally {
+      setApplicationsLoading(false)
+    }
+  }
+
+  async function loadAllocations(nextApplicationId: string | null) {
+    if (!nextApplicationId) {
+      setAllocations([])
+      return
+    }
+    setAllocationsLoading(true)
+    try {
+      const supabase = createSupabaseBrowserClient()
+      const rows = await fetchPendingLiveWritingAllocations(supabase, nextApplicationId)
+      setAllocations(rows)
+    } catch {
+      setAllocations([])
+      setActionError(COMMISSION_PENDING_IMPORT_LOAD_ERROR)
+    } finally {
+      setAllocationsLoading(false)
+    }
+  }
+
+  async function loadPeers(row: CommissionPendingRowView) {
+    setPeersLoading(true)
+    try {
+      const inMemory = pendingPeersInCurrentBatch(selectedRows, row).map((peer) => ({
+        ...peer,
+        statementIdentifier: selectedBatch?.statement_identifier ?? null,
+        sourceFile: selectedBatch?.source_file ?? null,
+      }))
+      const supabase = createSupabaseBrowserClient()
+      const remote = await fetchPendingFingerprintPeers(supabase, row)
+      const seen = new Set(inMemory.map((peer) => peer.id))
+      setPeers([...inMemory, ...remote.filter((peer) => !seen.has(peer.id))])
+    } catch {
+      setPeers(
+        pendingPeersInCurrentBatch(selectedRows, row).map((peer) => ({
+          ...peer,
+          statementIdentifier: selectedBatch?.statement_identifier ?? null,
+          sourceFile: selectedBatch?.source_file ?? null,
+        })),
+      )
+      setActionError(COMMISSION_PENDING_IMPORT_LOAD_ERROR)
+    } finally {
+      setPeersLoading(false)
+    }
+  }
+
+  function openResolution(row: CommissionPendingRowView, mode: PendingReviewMode, copyAllocation: boolean) {
+    setActionError(null)
+    setReviewRowId(row.id)
+    setReviewMode(mode)
+    const nextApplicationId = row.resolved_application_id
+    setApplicationId(nextApplicationId)
+    setAllocationId(copyAllocation ? row.resolved_allocation_id : null)
+    setReviewReason('')
+    void loadApplications(row)
+    void loadAllocations(nextApplicationId)
+  }
+
+  async function handleSubmitAccept() {
+    if (!reviewRow || actionSubmitting || inFlightRef.current) return
+    inFlightRef.current = true
+    setActionSubmitting(true)
+    setActionError(null)
+    try {
+      const supabase = createSupabaseBrowserClient()
+      const selectedAllocation = allocations.find((item) => item.id === allocationId) ?? null
+      const result = await reviewCommissionPendingImportRow(supabase, {
+        row: reviewRow,
+        applicationId,
+        allocationId,
+        allocationApplicationId: selectedAllocation?.applicationId ?? null,
+        reason: reviewReason,
+        distinct: reviewMode === 'distinct',
+      })
+      if (!result.ok) {
+        setActionError(result.message)
+        return
+      }
+      resetWorkflow()
+      setRowsNonce((n) => n + 1)
+      setReloadKey((n) => n + 1)
+    } finally {
+      inFlightRef.current = false
+      setActionSubmitting(false)
+    }
+  }
+
+  async function handleConfirmDuplicate(row: CommissionPendingRowView) {
+    if (actionSubmitting || inFlightRef.current) return
+    inFlightRef.current = true
+    setActionSubmitting(true)
+    setActionError(null)
+    try {
+      const supabase = createSupabaseBrowserClient()
+      const result = await confirmDuplicatePendingImportRow(supabase, { row, reason: reviewReason })
+      if (!result.ok) {
+        setActionError(result.message)
+        return
+      }
+      resetWorkflow()
+      setRowsNonce((n) => n + 1)
+      setReloadKey((n) => n + 1)
+    } finally {
+      inFlightRef.current = false
+      setActionSubmitting(false)
+    }
+  }
+
+  const review: PendingWorkflowState = {
+    applications,
+    allocations,
+    applicationsLoading,
+    allocationsLoading,
+    peers,
+    peersLoading,
+    reviewRowId,
+    reviewMode,
+    applicationId,
+    allocationId,
+    reviewReason,
+    actionError,
+    submitting: actionSubmitting,
+    onStartReview: (row) => {
+      openResolution(row, 'review', true)
+    },
+    onStartDistinct: (row) => {
+      void loadPeers(row)
+      openResolution(row, 'distinct', false)
+    },
+    onOpenDuplicate: (row) => {
+      setActionError(null)
+      setReviewRowId(row.id)
+      setReviewMode(null)
+      setApplicationId(null)
+      setAllocationId(null)
+      void loadPeers(row)
+    },
+    onCancelReview: () => {
+      if (!actionSubmitting) resetWorkflow()
+    },
+    onApplicationChange: (id) => {
+      setApplicationId(id)
+      setAllocationId(null)
+      void loadAllocations(id)
+    },
+    onAllocationChange: (id) => setAllocationId(id),
+    onReviewReasonChange: setReviewReason,
+    onSubmitAccept: () => {
+      void handleSubmitAccept()
+    },
+    onConfirmDuplicate: (row) => {
+      void handleConfirmDuplicate(row)
+    },
+  }
 
   async function handlePreview() {
     setCreateError(null)
@@ -366,6 +575,7 @@ export default function CrmCommissionsPendingImportPage() {
       }
       tab={tab}
       onTabChange={setTab}
+      review={review}
     />
   )
 }

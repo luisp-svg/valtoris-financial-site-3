@@ -71,8 +71,9 @@ describe('commission Phase 3A contracts', () => {
     expect(blob).not.toMatch(/xlsx|exceljs|sheetjs/i)
     expect(blob).not.toMatch(/P&C Commission|Student Loan Commission|Credit Repair Commission/)
     const numbered = readdirSync(migrationsDir).filter((name) => /^\d{3}_/.test(name))
-    expect(numbered).toHaveLength(40)
+    expect(numbered).toHaveLength(41)
     expect(numbered).toContain('040_commission_pending_import.sql')
+    expect(numbered).toContain('041_commission_pending_review.sql')
     expect(existsSync(join(migrationsDir, '039_commission_lifecycle.sql'))).toBe(false)
   })
 
@@ -147,8 +148,9 @@ describe('commission Phase 3B contracts', () => {
 
   it('keeps paid import isolated from pending staging and does not add a commission lifecycle migration', () => {
     const numbered = readdirSync(migrationsDir).filter((name) => /^\d{3}_/.test(name))
-    expect(numbered).toHaveLength(40)
+    expect(numbered).toHaveLength(41)
     expect(numbered).toContain('040_commission_pending_import.sql')
+    expect(numbered).toContain('041_commission_pending_review.sql')
     expect(existsSync(join(migrationsDir, '039_commission_lifecycle.sql'))).toBe(false)
     const page = readFileSync(join(root, 'pages/crm/CrmCommissionsImportPage.tsx'), 'utf8')
     const panel = source('CommissionImportReviewPanel.tsx')

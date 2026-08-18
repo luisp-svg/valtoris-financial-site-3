@@ -20,6 +20,10 @@ import {
   type CommissionPendingRowBucket,
   type CommissionPendingRowView,
 } from './commissionPendingView'
+import {
+  PendingRowActions,
+  type PendingWorkflowState,
+} from './CommissionPendingReviewPanel'
 
 export type PendingImportWorkspaceTab = 'summary' | CommissionPendingRowBucket
 
@@ -86,6 +90,7 @@ type CommissionPendingImportWorkspaceProps = {
   } | null
   tab: PendingImportWorkspaceTab
   onTabChange: (tab: PendingImportWorkspaceTab) => void
+  review: PendingWorkflowState
 }
 
 export default function CommissionPendingImportWorkspace({
@@ -103,6 +108,7 @@ export default function CommissionPendingImportWorkspace({
   duplicateNotice,
   tab,
   onTabChange,
+  review,
 }: CommissionPendingImportWorkspaceProps) {
   return (
     <div className="crm-page crm-opportunities-page crm-commissions-page crm-commissions-import-page">
@@ -113,8 +119,7 @@ export default function CommissionPendingImportWorkspace({
           <p className="crm-page-subtitle">
             Stage an Experior Pending Report from a prepared Valtoris CSV. This classifies
             writing-advisor Pending source facts only. It does not post Paid events, change
-            Expected, or mix into paid-report batches. Review and accept controls are not in this
-            phase.
+            Expected, or mix into paid-report batches. Owner review can resolve attribution only.
           </p>
         </div>
         <div className="crm-production-header-actions">
@@ -213,6 +218,7 @@ export default function CommissionPendingImportWorkspace({
           presentation={presentation}
           onTabChange={onTabChange}
           onClose={() => onSelectBatch(null)}
+          review={review}
         />
       ) : null}
     </div>
@@ -561,6 +567,7 @@ function BatchDetail({
   presentation,
   onTabChange,
   onClose,
+  review,
 }: {
   batch: CommissionPendingBatchView
   rows: readonly CommissionPendingRowView[]
@@ -569,9 +576,11 @@ function BatchDetail({
   presentation: 'table' | 'cards'
   onTabChange: (tab: PendingImportWorkspaceTab) => void
   onClose: () => void
+  review: PendingWorkflowState
 }) {
   const amounts = summarizePendingRowAmounts(rows)
   const visibleRows = tab === 'summary' ? [] : rowsForPendingBucket(rows, tab)
+  const showActions = tab === 'review' || tab === 'duplicate'
   return (
     <section className="crm-panel" aria-labelledby="crm-commissions-pending-import-detail-heading">
       <div className="crm-panel-head">
@@ -608,9 +617,17 @@ function BatchDetail({
       ) : visibleRows.length === 0 ? (
         <p className="crm-muted">No rows in this view.</p>
       ) : presentation === 'table' ? (
-        <RowTable rows={visibleRows} />
+        <RowTable
+          rows={visibleRows}
+          batch={batch}
+          review={showActions ? review : null}
+        />
       ) : (
-        <RowCards rows={visibleRows} />
+        <RowCards
+          rows={visibleRows}
+          batch={batch}
+          review={showActions ? review : null}
+        />
       )}
     </section>
   )
@@ -674,14 +691,22 @@ function PendingImportSummary({
         </div>
       </dl>
       <p className="crm-banner" role="note">
-        Classification is read-only in this phase. Override, additional-commission, and duplicate
-        rows cannot become accepted Pending. There is no ledger post.
+        Owner review resolves attribution only. Override, additional-commission, invalid, and
+        confirmed-duplicate rows cannot become accepted Pending. There is no ledger post.
       </p>
     </div>
   )
 }
 
-function RowTable({ rows }: { rows: readonly CommissionPendingRowView[] }) {
+function RowTable({
+  rows,
+  batch,
+  review,
+}: {
+  rows: readonly CommissionPendingRowView[]
+  batch: CommissionPendingBatchView
+  review: PendingWorkflowState | null
+}) {
   return (
     <table className="crm-opportunities-table crm-commissions-import-row-table">
       <thead>
@@ -694,6 +719,7 @@ function RowTable({ rows }: { rows: readonly CommissionPendingRowView[] }) {
           <th scope="col">Writing Associate</th>
           <th scope="col">Type</th>
           <th scope="col">Income</th>
+          {review ? <th scope="col">Review</th> : null}
         </tr>
       </thead>
       <tbody>
@@ -707,6 +733,11 @@ function RowTable({ rows }: { rows: readonly CommissionPendingRowView[] }) {
             <td>{row.source_writing_associate || '—'}</td>
             <td>{row.source_type || '—'}</td>
             <td className="crm-production-money">{formatSignedCents(row.source_income_cents)}</td>
+            {review ? (
+              <td>
+                <PendingRowActions row={row} batch={batch} workflow={review} />
+              </td>
+            ) : null}
           </tr>
         ))}
       </tbody>
@@ -714,7 +745,15 @@ function RowTable({ rows }: { rows: readonly CommissionPendingRowView[] }) {
   )
 }
 
-function RowCards({ rows }: { rows: readonly CommissionPendingRowView[] }) {
+function RowCards({
+  rows,
+  batch,
+  review,
+}: {
+  rows: readonly CommissionPendingRowView[]
+  batch: CommissionPendingBatchView
+  review: PendingWorkflowState | null
+}) {
   return (
     <div className="crm-commissions-import-row-cards">
       {rows.map((row) => (
@@ -729,6 +768,7 @@ function RowCards({ rows }: { rows: readonly CommissionPendingRowView[] }) {
           {formatPendingReviewReason(row.pending_review_reason) ? (
             <p className="crm-muted">{formatPendingReviewReason(row.pending_review_reason)}</p>
           ) : null}
+          {review ? <PendingRowActions row={row} batch={batch} workflow={review} /> : null}
         </article>
       ))}
     </div>
