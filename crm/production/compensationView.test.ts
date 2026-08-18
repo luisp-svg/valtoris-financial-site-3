@@ -103,6 +103,17 @@ describe('expected list presentation', () => {
     }
   })
 
+  it('explains historical book with no current writing receivable', () => {
+    expect(
+      expectedEmptyMessage({
+        productionStage: 'in_force',
+        liveRows: [],
+        status: 'not_calculated',
+        writingReceivableExpected: false,
+      }),
+    ).toBe('Valtoris does not currently expect writing compensation on this application.')
+  })
+
   it('shows owner resolved case total and advisor own expected only', () => {
     const ownerRows = [
       expectedRow({ id: 'a', advisor_id: 'adv-a', expected_compensation_cents: 60000 }),

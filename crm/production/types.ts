@@ -270,6 +270,11 @@ export type ProductionApplicationListItem = {
   linked_policies: ProductionLinkedPolicy[]
   /** Live 034 rows visible under RLS. Never a second-writer leak for advisors. */
   expected_compensations: LiveExpectedCompensationRow[]
+  /**
+   * Whether Valtoris currently expects writing compensation.
+   * false = historical/servicing book; 034 writes no live Expected rows.
+   */
+  writing_receivable_expected: boolean
 }
 
 export type ProductionApplicationDetail = ProductionApplicationListItem & {

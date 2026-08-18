@@ -94,6 +94,7 @@ const APPLICATION_LIST_SELECT = `
   in_force_date,
   updated_at,
   deleted_at,
+  writing_receivable_expected,
   household:households!household_id ( id, display_name ),
   carrier:carriers!carrier_id ( id, name, code ),
   product:insurance_products!product_id ( id, name, product_line ),
@@ -298,6 +299,7 @@ type RawListRow = {
   in_force_date: string | null
   updated_at: string
   deleted_at: string | null
+  writing_receivable_expected?: boolean
   household?: EmbedOne<ProductionHouseholdSummary>
   carrier?: EmbedOne<ProductionCarrierSummary>
   product?: EmbedOne<ProductionProductSummary>
@@ -343,6 +345,7 @@ function mapListItem(row: RawListRow): ProductionApplicationListItem | null {
     stage_history: mapHistory(row.stage_history ?? null),
     linked_policies: mapLinkedPolicies(row.linked_policies ?? null),
     expected_compensations: [],
+    writing_receivable_expected: row.writing_receivable_expected !== false,
   }
 }
 

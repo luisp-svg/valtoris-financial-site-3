@@ -49,6 +49,7 @@ function item(
     stage_history: [],
     linked_policies: [],
     expected_compensations: [],
+    writing_receivable_expected: true,
     ...partial,
   }
 }

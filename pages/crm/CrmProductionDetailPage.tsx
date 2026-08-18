@@ -511,6 +511,7 @@ export default function CrmProductionDetailPage() {
         liveRows={expectedRows}
         loading={expectedLoading}
         error={expectedError}
+        writingReceivableExpected={application.writing_receivable_expected}
       />
 
       <ActualCommissionPanel

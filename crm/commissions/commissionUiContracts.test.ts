@@ -77,7 +77,7 @@ describe('commission Phase 2 owner write workspace', () => {
     }
     expect(existsSync(join(migrationsDir, '039_commission_lifecycle.sql'))).toBe(false)
     const numbered = readdirSync(migrationsDir).filter((name) => /^\d{3}_/.test(name))
-    expect(numbered).toHaveLength(41)
+    expect(numbered).toHaveLength(42)
     expect(numbered).toContain('040_commission_pending_import.sql')
   })
 

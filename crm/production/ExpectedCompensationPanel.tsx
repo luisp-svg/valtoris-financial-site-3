@@ -27,6 +27,7 @@ type ExpectedCompensationPanelProps = {
   liveRows: readonly LiveExpectedCompensationRow[]
   loading: boolean
   error: string | null
+  writingReceivableExpected?: boolean
 }
 
 export default function ExpectedCompensationPanel({
@@ -36,6 +37,7 @@ export default function ExpectedCompensationPanel({
   liveRows,
   loading,
   error,
+  writingReceivableExpected = true,
 }: ExpectedCompensationPanelProps) {
   const presentation = deriveExpectedListPresentation({
     viewer,
@@ -47,6 +49,7 @@ export default function ExpectedCompensationPanel({
     productionStage,
     liveRows,
     status: presentation.status,
+    writingReceivableExpected,
   })
 
   return (

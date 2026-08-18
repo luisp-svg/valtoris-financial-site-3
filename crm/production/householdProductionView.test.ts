@@ -58,6 +58,7 @@ function application(
     stage_history: [],
     linked_policies: [],
     expected_compensations: [],
+    writing_receivable_expected: true,
     opportunity_id: null,
     is_replacement: false,
     is_exchange_or_transfer: false,

@@ -12,13 +12,13 @@ function read(name: string): string {
 }
 
 describe('commission Phase C pending read contracts', () => {
-  it('does not add Migration 042 and keeps 001–041 intact', () => {
+  it('does not add a pending-dashboard migration and keeps 001–042 intact', () => {
     const numbered = readdirSync(migrationsDir).filter((name) => /^\d{3}_/.test(name))
-    expect(numbered).toHaveLength(41)
+    expect(numbered).toHaveLength(42)
     expect(numbered).toContain('040_commission_pending_import.sql')
     expect(numbered).toContain('041_commission_pending_review.sql')
+    expect(numbered).toContain('042_writing_receivable_eligibility.sql')
     expect(existsSync(join(migrationsDir, '042_commission_pending_dashboard.sql'))).toBe(false)
-    expect(numbered.some((name) => name.startsWith('042_'))).toBe(false)
   })
 
   it('reads accepted_pending only and never invokes pending or 035 write RPCs from the dashboard', () => {
@@ -75,6 +75,8 @@ describe('commission Phase C pending read contracts', () => {
     expect(sql).toContain('USING (public.crm_is_owner())')
     expect(sql).not.toContain('crm_is_advisor')
     const numbered = readdirSync(migrationsDir).filter((name) => /^\d{3}_/.test(name))
-    expect(numbered.some((name) => name.startsWith('042_'))).toBe(false)
+    expect(numbered).toHaveLength(42)
+    expect(numbered).toContain('042_writing_receivable_eligibility.sql')
+    expect(existsSync(join(migrationsDir, '042_commission_pending_dashboard.sql'))).toBe(false)
   })
 })

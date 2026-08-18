@@ -78,6 +78,11 @@ describe('UI-1 compensation read-view contracts', () => {
   it('adds expected and actual panels to the existing detail page without a new tab architecture', () => {
     expect(detailPage).toContain('ExpectedCompensationPanel')
     expect(detailPage).toContain('ActualCommissionPanel')
+    expect(detailPage).toContain('writingReceivableExpected={application.writing_receivable_expected}')
+    expect(expectedPanel).toContain('writingReceivableExpected')
+    expect(compensationView).toContain(
+      'Valtoris does not currently expect writing compensation on this application.',
+    )
     expect(detailPage).not.toMatch(/tab architecture|CompensationTabs|role="tablist"/i)
     expect(expectedPanel).toContain('Your expected compensation')
     expect(expectedPanel).toContain('OwnerExpectedTable')

@@ -30,7 +30,10 @@ describe('migration 041 commission pending review contract', () => {
       files.indexOf(MIGRATION_040_FILENAME),
     )
     expect(files.filter((f) => f.startsWith('041_'))).toEqual([MIGRATION_041_FILENAME])
-    expect(files.filter((f) => f.startsWith('042_'))).toEqual([])
+    expect(files.filter((f) => f.startsWith('042_'))).toEqual([
+      '042_writing_receivable_eligibility.sql',
+    ])
+    expect(files.filter((f) => f.startsWith('043_'))).toEqual([])
   })
 
   it('includes required review RPC, immutability context, and grant markers', () => {

@@ -201,7 +201,11 @@ export function expectedEmptyMessage(options: {
   productionStage: ProductionStage | string
   liveRows: readonly LiveExpectedCompensationRow[]
   status: DerivedExpectedStatus
+  writingReceivableExpected?: boolean
 }): string | null {
+  if (options.writingReceivableExpected === false) {
+    return 'Valtoris does not currently expect writing compensation on this application.'
+  }
   if (options.liveRows.length > 0 && options.status === 'expected') return null
   if (
     options.liveRows.length === 0 &&
