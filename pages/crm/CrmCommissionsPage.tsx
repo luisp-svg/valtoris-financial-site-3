@@ -14,6 +14,16 @@ import {
 import { commissionListCapWarning } from '../../crm/commissions/commissionPresentation'
 import { snapshotForCommissionWorkItem } from '../../crm/commissions/commissionSnapshotView'
 import {
+  applyCommissionPendingToWorkItems,
+  currentPendingFactsForPeriod,
+  formatPendingNeedsReviewCopy,
+  overlayPendingOnAdvisorBreakdown,
+  sumCurrentPendingCents,
+  type AcceptedPendingSourceFact,
+} from '../../crm/commissions/commissionPendingRead'
+import { fetchCommissionPendingDashboardSource } from '../../crm/commissions/commissionPendingReadApi'
+import { COMMISSION_PENDING_LIST_LOAD_ERROR } from '../../crm/commissions/pending/commissionPendingErrors'
+import {
   buildCommissionWorkItems,
   summarizeUnattributedCommission,
   type CommissionWorkItem,
@@ -101,10 +111,13 @@ export default function CrmCommissionsPage() {
   const [carriers, setCarriers] = useState<ProductionCarrierOption[]>([])
   const [advisors, setAdvisors] = useState<ProductionAdvisorOption[]>([])
   const [paidEvents, setPaidEvents] = useState<PaidCommissionListEvent[]>([])
+  const [pendingFacts, setPendingFacts] = useState<AcceptedPendingSourceFact[]>([])
+  const [pendingReviewCount, setPendingReviewCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [expectedError, setExpectedError] = useState<string | null>(null)
   const [paidError, setPaidError] = useState<string | null>(null)
+  const [pendingError, setPendingError] = useState<string | null>(null)
   const [reloadKey, setReloadKey] = useState(0)
   const [period, setPeriod] = useState<DashboardReportingPeriod>(
     DEFAULT_COMPENSATION_DASHBOARD_PERIOD,
@@ -129,6 +142,7 @@ export default function CrmCommissionsPage() {
       setError(null)
       setExpectedError(null)
       setPaidError(null)
+      setPendingError(null)
       try {
         const supabase = createSupabaseBrowserClient()
         const [rows, carrierRows] = await Promise.all([
@@ -139,10 +153,17 @@ export default function CrmCommissionsPage() {
         let expectedLoadError: string | null = null
         let paidRows: PaidCommissionListEvent[] = []
         let paidLoadError: string | null = null
+        let pendingRows: AcceptedPendingSourceFact[] = []
+        let pendingReviewRows = 0
+        let pendingLoadError: string | null = null
         const applicationIds = rows.map((row) => row.id)
-        const [expectedResult, paidResult] = await Promise.allSettled([
+        const pendingRequest = isOwner
+          ? fetchCommissionPendingDashboardSource(supabase, applicationIds)
+          : Promise.resolve({ facts: [] as AcceptedPendingSourceFact[], reviewCount: 0 })
+        const [expectedResult, paidResult, pendingResult] = await Promise.allSettled([
           fetchLiveExpectedCompensations(supabase, applicationIds),
           fetchPaidCommissionEvents(supabase, applicationIds),
+          pendingRequest,
         ])
         if (expectedResult.status === 'fulfilled') {
           expectedByApp = expectedResult.value
@@ -166,6 +187,18 @@ export default function CrmCommissionsPage() {
             )
           }
         }
+        if (pendingResult.status === 'fulfilled') {
+          pendingRows = pendingResult.value.facts
+          pendingReviewRows = pendingResult.value.reviewCount
+        } else {
+          pendingLoadError = COMMISSION_PENDING_LIST_LOAD_ERROR
+          if (import.meta.env.DEV) {
+            console.error(
+              '[crm/commissions/pending]',
+              formatCompensationDevError('commission-pending-list', pendingResult.reason),
+            )
+          }
+        }
         if (!cancelled) {
           setItems(
             rows.map((row) => ({
@@ -174,14 +207,19 @@ export default function CrmCommissionsPage() {
             })),
           )
           setPaidEvents(paidRows)
+          setPendingFacts(pendingRows)
+          setPendingReviewCount(pendingReviewRows)
           setCarriers(carrierRows)
           setExpectedError(expectedLoadError)
           setPaidError(paidLoadError)
+          setPendingError(pendingLoadError)
         }
       } catch (err) {
         if (!cancelled) {
           setItems([])
           setPaidEvents([])
+          setPendingFacts([])
+          setPendingReviewCount(0)
           setError('Unable to load commission records. Please try again.')
           if (import.meta.env.DEV) {
             console.error(
@@ -197,7 +235,7 @@ export default function CrmCommissionsPage() {
     return () => {
       cancelled = true
     }
-  }, [reloadKey])
+  }, [reloadKey, isOwner])
 
   useEffect(() => {
     if (!isOwner) {
@@ -220,9 +258,18 @@ export default function CrmCommissionsPage() {
   }, [isOwner])
 
   const today = localDateString()
+  const pendingCurrentFacts = useMemo(
+    () => currentPendingFactsForPeriod(pendingFacts, period, today),
+    [pendingFacts, period, today],
+  )
   const workItems = useMemo(
-    () => buildCommissionWorkItems({ items, events: paidEvents }),
-    [items, paidEvents],
+    () =>
+      applyCommissionPendingToWorkItems({
+        items,
+        workItems: buildCommissionWorkItems({ items, events: paidEvents }),
+        currentFacts: pendingCurrentFacts,
+      }),
+    [items, paidEvents, pendingCurrentFacts],
   )
   const selectedItem = workItems.find((item) => item.id === selectedItemId) ?? null
   const compensation = useMemo(
@@ -234,6 +281,18 @@ export default function CrmCommissionsPage() {
         today,
       }),
     [items, paidEvents, period, today],
+  )
+  const advisorRows = useMemo(
+    () => overlayPendingOnAdvisorBreakdown(compensation.rows, pendingCurrentFacts, items),
+    [compensation.rows, pendingCurrentFacts, items],
+  )
+  const pendingCents = useMemo(
+    () => sumCurrentPendingCents(pendingCurrentFacts),
+    [pendingCurrentFacts],
+  )
+  const pendingReviewCopy = useMemo(
+    () => formatPendingNeedsReviewCopy(pendingReviewCount),
+    [pendingReviewCount],
   )
   const filteredWorkItems = useMemo(
     () => filterCommissionWorkItems(workItems, filters, period, today),
@@ -292,7 +351,7 @@ export default function CrmCommissionsPage() {
   }
 
   function openRecord(item: CommissionWorkItem, preIssue: boolean) {
-    if (!isOwner) return
+    if (!isOwner || item.pendingOnlyStub) return
     setWriteError(null)
     setWriteFlow({
       kind: 'record',
@@ -303,13 +362,13 @@ export default function CrmCommissionsPage() {
   }
 
   function openReverse(item: CommissionWorkItem, event: WritingCommissionEvent) {
-    if (!isOwner) return
+    if (!isOwner || item.pendingOnlyStub) return
     setWriteError(null)
     setWriteFlow({ kind: 'reverse', item, event })
   }
 
   function openAttribute(item: CommissionWorkItem, event: WritingCommissionEvent) {
-    if (!isOwner) return
+    if (!isOwner || item.pendingOnlyStub) return
     setWriteError(null)
     setWriteFlow({
       kind: 'attribute',
@@ -326,6 +385,7 @@ export default function CrmCommissionsPage() {
 
   async function handleRecord(args: RecordCommissionEventArgs) {
     if (!isOwner || writeSubmitting) return
+    if (writeFlow?.kind === 'record' && writeFlow.item.pendingOnlyStub) return
     setWriteSubmitting(true)
     setWriteError(null)
     try {
@@ -344,6 +404,7 @@ export default function CrmCommissionsPage() {
 
   async function handleReverse(input: { eventId: string; reason: string }) {
     if (!isOwner || writeSubmitting) return
+    if (writeFlow?.kind === 'reverse' && writeFlow.item.pendingOnlyStub) return
     setWriteSubmitting(true)
     setWriteError(null)
     try {
@@ -367,6 +428,7 @@ export default function CrmCommissionsPage() {
     attributions: Array<{ allocationId: string; amountCents: number }>
   }) {
     if (!isOwner || writeSubmitting) return
+    if (writeFlow?.kind === 'attribute' && writeFlow.item.pendingOnlyStub) return
     setWriteSubmitting(true)
     setWriteError(null)
     try {
@@ -392,8 +454,12 @@ export default function CrmCommissionsPage() {
       error={error}
       expectedError={expectedError}
       paidError={paidError}
+      pendingError={isOwner ? pendingError : null}
       capWarning={commissionListCapWarning(items.length, PRODUCTION_LIST_DEFAULT_LIMIT)}
       compensation={compensation}
+      pendingCents={pendingCents}
+      pendingReviewCopy={isOwner ? pendingReviewCopy : null}
+      advisorRows={advisorRows}
       period={period}
       onPeriodChange={setPeriod}
       workItems={workItems}

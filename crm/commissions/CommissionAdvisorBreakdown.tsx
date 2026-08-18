@@ -1,9 +1,9 @@
-import type { AdvisorCompensationRow } from '../production/advisorCompensationView'
+import type { CommissionAdvisorPendingRow } from './commissionPendingRead'
 import { formatSignedCents } from '../production/compensationView'
 import { formatCents } from '../production/productionApi'
 
 type CommissionAdvisorBreakdownProps = {
-  rows: readonly AdvisorCompensationRow[]
+  rows: readonly CommissionAdvisorPendingRow[]
   isOwner: boolean
   selectedAdvisorId: 'all' | 'unattributed' | string
   onSelectAdvisor: (advisorId: 'all' | 'unattributed' | string) => void
@@ -46,13 +46,21 @@ export default function CommissionAdvisorBreakdown({
         role="table"
         aria-label="Advisor compensation by writing advisor"
       >
-        <div className="crm-commissions-advisor-row is-head" role="row">
+        <div
+          className={`crm-commissions-advisor-row is-head${isOwner ? ' has-pending' : ''}`}
+          role="row"
+        >
           <div className="is-name" role="columnheader">
             Advisor
           </div>
           <div className="is-money" role="columnheader">
             Expected
           </div>
+          {isOwner ? (
+            <div className="is-money" role="columnheader">
+              Pending
+            </div>
+          ) : null}
           <div className="is-money" role="columnheader">
             Outstanding
           </div>
@@ -75,7 +83,9 @@ export default function CommissionAdvisorBreakdown({
           return (
             <div
               key={row.advisorId ?? 'unattributed'}
-              className={`crm-commissions-advisor-row${selected ? ' is-selected' : ''}`}
+              className={`crm-commissions-advisor-row${selected ? ' is-selected' : ''}${
+                isOwner ? ' has-pending' : ''
+              }`}
               role="row"
             >
               <div className="is-name" role="cell">
@@ -95,6 +105,11 @@ export default function CommissionAdvisorBreakdown({
               <div className="is-money crm-production-money" role="cell" data-label="Expected">
                 {formatCents(row.expectedCents)}
               </div>
+              {isOwner ? (
+                <div className="is-money crm-production-money" role="cell" data-label="Pending">
+                  {formatCents(row.pendingCents)}
+                </div>
+              ) : null}
               <div className="is-money crm-production-money" role="cell" data-label="Outstanding">
                 {formatCents(row.outstandingCents)}
               </div>

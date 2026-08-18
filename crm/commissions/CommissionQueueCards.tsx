@@ -53,6 +53,12 @@ export default function CommissionQueueCards({
                   {item.expectedCents == null ? '—' : formatCents(item.expectedCents)}
                 </dd>
               </div>
+              {isOwner ? (
+                <div>
+                  <dt>Pending</dt>
+                  <dd className="crm-production-money">{formatCents(item.pendingCents)}</dd>
+                </div>
+              ) : null}
               <div>
                 <dt>Outstanding</dt>
                 <dd className="crm-production-money">{formatCents(item.outstandingCents)}</dd>

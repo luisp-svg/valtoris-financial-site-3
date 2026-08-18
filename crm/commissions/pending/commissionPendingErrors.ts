@@ -10,6 +10,9 @@ export const COMMISSION_PENDING_IMPORT_STAGE_ERROR =
 export const COMMISSION_PENDING_IMPORT_REVIEW_ERROR =
   'Unable to save this pending commission resolution. Nothing was posted to the ledger.'
 
+export const COMMISSION_PENDING_LIST_LOAD_ERROR =
+  'Unable to load pending commission totals. Production applications are still shown.'
+
 export {
   formatCommissionImportUserError as formatCommissionPendingImportUserError,
 } from '../import/commissionImportErrors'

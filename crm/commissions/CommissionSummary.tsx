@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+import { ROUTES } from '../../constants/routes'
 import { formatSignedCents } from '../production/compensationView'
 import type { DashboardReportingPeriod } from '../production/dashboardPeriod'
 import ProductionPeriodToggle from '../production/ProductionPeriodToggle'
@@ -6,6 +8,9 @@ import type { AdvisorCompensationDashboardModel } from '../production/advisorCom
 
 type CommissionSummaryProps = {
   compensation: AdvisorCompensationDashboardModel
+  pendingCents: number
+  pendingReviewCopy: string | null
+  isOwner: boolean
   period: DashboardReportingPeriod
   onPeriodChange: (next: DashboardReportingPeriod) => void
   loading: boolean
@@ -16,10 +21,12 @@ function MetricCard({
   label,
   cents,
   signed = false,
+  hint,
 }: {
   label: string
   cents: number
   signed?: boolean
+  hint?: string
 }) {
   const display = signed ? formatSignedCents(cents) : formatCents(cents)
   return (
@@ -32,12 +39,16 @@ function MetricCard({
       >
         {display}
       </p>
+      {hint ? <p className="crm-production-kpi-hint">{hint}</p> : null}
     </article>
   )
 }
 
 export default function CommissionSummary({
   compensation,
+  pendingCents,
+  pendingReviewCopy,
+  isOwner,
   period,
   onPeriodChange,
   loading,
@@ -60,13 +71,23 @@ export default function CommissionSummary({
       ) : (
         <div className="crm-production-dashboard-stack">
           <p className="crm-production-kpi-caption">
-            Writing-advisor compensation from expected compensation and the actual commission
-            ledger. Expected and Outstanding use application submission date, else issue date.
-            Paid, Chargebacks, and Net Paid use commission transaction date. Pending, Eligible,
-            and Released are not tracked yet.
+            {isOwner
+              ? 'Writing-advisor compensation from expected compensation, source-confirmed pending, and the actual commission ledger. Expected and Outstanding use application submission date, else issue date. Pending uses the pending statement date. Paid, Chargebacks, and Net Paid use commission transaction date. Eligible and Released are not tracked.'
+              : 'Writing-advisor compensation from expected compensation and the actual commission ledger. Expected and Outstanding use application submission date, else issue date. Paid, Chargebacks, and Net Paid use commission transaction date.'}
           </p>
-          <div className="crm-production-kpi-grid crm-commissions-kpi-grid">
+          <div
+            className={`crm-production-kpi-grid crm-commissions-kpi-grid${
+              isOwner ? ' has-pending' : ''
+            }`}
+          >
             <MetricCard label="Expected" cents={totals.expectedCents} />
+            {isOwner ? (
+              <MetricCard
+                label="Pending"
+                cents={pendingCents}
+                hint="Source-confirmed Experior pending writing compensation."
+              />
+            ) : null}
             <MetricCard label="Outstanding" cents={totals.outstandingCents} />
             <MetricCard label="Paid" cents={totals.paidCents} />
             <MetricCard label="Chargebacks" cents={totals.chargebackCents} signed />
@@ -78,6 +99,11 @@ export default function CommissionSummary({
                 ? '1 expected row needs review'
                 : `${totals.reviewCount} expected rows need review`}
             </button>
+          ) : null}
+          {isOwner && pendingReviewCopy ? (
+            <Link to={ROUTES.crmCommissionsPendingImport} className="crm-production-review-btn">
+              {pendingReviewCopy}
+            </Link>
           ) : null}
         </div>
       )}

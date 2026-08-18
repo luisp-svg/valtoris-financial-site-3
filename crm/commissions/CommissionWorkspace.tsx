@@ -24,6 +24,7 @@ import CommissionQueueCards from './CommissionQueueCards'
 import CommissionQueueTable from './CommissionQueueTable'
 import CommissionSummary from './CommissionSummary'
 import CommissionWorkItemDetail from './CommissionWorkItemDetail'
+import type { CommissionAdvisorPendingRow } from './commissionPendingRead'
 import {
   defaultCommissionQueueFilters,
   hasActiveCommissionFilters,
@@ -46,8 +47,12 @@ type CommissionWorkspaceProps = {
   error: string | null
   expectedError: string | null
   paidError: string | null
+  pendingError: string | null
   capWarning: string | null
   compensation: AdvisorCompensationDashboardModel
+  pendingCents: number
+  pendingReviewCopy: string | null
+  advisorRows: readonly CommissionAdvisorPendingRow[]
   period: DashboardReportingPeriod
   onPeriodChange: (next: DashboardReportingPeriod) => void
   workItems: readonly CommissionWorkItem[]
@@ -81,8 +86,12 @@ export default function CommissionWorkspace({
   error,
   expectedError,
   paidError,
+  pendingError,
   capWarning,
   compensation,
+  pendingCents,
+  pendingReviewCopy,
+  advisorRows,
   period,
   onPeriodChange,
   workItems,
@@ -176,6 +185,14 @@ export default function CommissionWorkspace({
           </button>
         </div>
       ) : null}
+      {isOwner && pendingError ? (
+        <div className="crm-banner crm-banner-warning" role="status">
+          {pendingError}{' '}
+          <button type="button" className="crm-text-btn" onClick={onRetry}>
+            Retry
+          </button>
+        </div>
+      ) : null}
       {capWarning ? (
         <div className="crm-banner crm-banner-warning" role="status">
           {capWarning}
@@ -184,6 +201,9 @@ export default function CommissionWorkspace({
 
       <CommissionSummary
         compensation={compensation}
+        pendingCents={pendingCents}
+        pendingReviewCopy={pendingReviewCopy}
+        isOwner={isOwner}
         period={period}
         onPeriodChange={onPeriodChange}
         loading={loading}
@@ -208,7 +228,7 @@ export default function CommissionWorkspace({
       ) : null}
 
       <CommissionAdvisorBreakdown
-        rows={compensation.rows}
+        rows={advisorRows}
         isOwner={isOwner}
         selectedAdvisorId={filters.advisorId}
         onSelectAdvisor={(advisorId) => updateFilter('advisorId', advisorId)}

@@ -7,7 +7,7 @@ import {
 } from './commissionMoney'
 import type { RecordCommissionEventArgs } from './commissionWriteApi'
 import { MANUAL_RECORD_EVENT_TYPES, type RecordCommissionDraft } from './commissionWriteView'
-import type { CommissionWorkItem } from './commissionWorkView'
+import { isPendingOnlyCommissionStub, type CommissionWorkItem } from './commissionWorkView'
 
 export type RecordCommissionFieldErrors = {
   eventType?: string
@@ -23,7 +23,7 @@ export type RecordCommissionDraftResult =
 export function validateRecordCommissionDraft(options: {
   item: Pick<
     CommissionWorkItem,
-    'applicationId' | 'allocationId' | 'expectedRow' | 'providerId'
+    'applicationId' | 'allocationId' | 'expectedRow' | 'providerId' | 'pendingOnlyStub'
   >
   draft: RecordCommissionDraft
   idempotencyKey: string
@@ -57,7 +57,15 @@ export function validateRecordCommissionDraft(options: {
   if (!options.item.allocationId) {
     errors.eventType = 'This row has no writing allocation to post against.'
   }
-  if (Object.keys(errors).length > 0 || !parsed.ok || !options.item.allocationId) {
+  if (isPendingOnlyCommissionStub(options.item)) {
+    errors.eventType = 'Pending-only rows cannot be posted to the commission ledger.'
+  }
+  if (
+    Object.keys(errors).length > 0 ||
+    !parsed.ok ||
+    !options.item.allocationId ||
+    isPendingOnlyCommissionStub(options.item)
+  ) {
     return { ok: false, errors }
   }
 

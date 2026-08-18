@@ -90,6 +90,7 @@ describe('commission Phase 2 owner write workspace', () => {
     expect(queueTable).toContain('scope="col">Product / Service</th>')
     expect(queueTable).toContain('Writing Advisor')
     expect(summary).toContain('Expected')
+    expect(summary).toContain('Pending')
     expect(summary).toContain('Outstanding')
     expect(summary).toContain('Paid')
     expect(summary).toContain('Chargebacks')

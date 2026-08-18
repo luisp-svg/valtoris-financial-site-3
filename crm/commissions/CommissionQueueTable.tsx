@@ -30,6 +30,7 @@ export default function CommissionQueueTable({
             <th scope="col">Product / Service</th>
             <th scope="col">Writing Advisor</th>
             <th scope="col">Expected</th>
+            {isOwner ? <th scope="col">Pending</th> : null}
             <th scope="col">Outstanding</th>
             <th scope="col">Paid</th>
             <th scope="col">Chargebacks</th>
@@ -59,6 +60,9 @@ export default function CommissionQueueTable({
               <td className="crm-production-money">
                 {item.expectedCents == null ? '—' : formatCents(item.expectedCents)}
               </td>
+              {isOwner ? (
+                <td className="crm-production-money">{formatCents(item.pendingCents)}</td>
+              ) : null}
               <td className="crm-production-money">{formatCents(item.outstandingCents)}</td>
               <td className="crm-production-money">{formatCents(item.paidCents)}</td>
               <td

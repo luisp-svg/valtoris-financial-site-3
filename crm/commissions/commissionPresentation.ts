@@ -45,5 +45,5 @@ export function commissionProductServiceLabel(
 
 export function commissionListCapWarning(loadedCount: number, limit: number): string | null {
   if (loadedCount !== limit) return null
-  return `Showing the first ${limit} production records. Commission totals may be incomplete.`
+  return `Showing the first ${limit} production records. Expected, Pending, Outstanding, and Paid totals may be incomplete.`
 }

@@ -1,7 +1,8 @@
 /**
  * Read-only Commission workspace view models.
  * Reuses 034 expected rows, 035 list events, and existing dashboard math.
- * Does not store Outstanding, Pending, Eligible, or Released.
+ * Pending dollars are attached separately from accepted 040 facts.
+ * Does not store Eligible or Released.
  */
 import {
   expectedCompensationPeriodDate,
@@ -52,6 +53,21 @@ export type CommissionWorkStatusPresentation = {
   needsReview: boolean
 }
 
+export type CommissionWorkPendingSource = {
+  rowId: string
+  batchId: string
+  amountCents: number
+  advisorName: string
+  client: string | null
+  policyNumber: string | null
+  company: string | null
+  product: string | null
+  statementIdentifier: string | null
+  statementDate: string | null
+  sourceFile: string | null
+  transactionDate: string | null
+}
+
 export type CommissionWorkItem = {
   id: string
   kind: CommissionWorkKind
@@ -69,6 +85,7 @@ export type CommissionWorkItem = {
   productionStageLabel: string
   expectedCents: number | null
   outstandingCents: number
+  pendingCents: number
   paidCents: number
   chargebackCents: number
   netPaidCents: number
@@ -77,9 +94,19 @@ export type CommissionWorkItem = {
   eventCount: number
   lastFinancialActivity: string | null
   expectedPeriodDate: string | null
+  pendingPeriodDate: string | null
+  pendingSource: CommissionWorkPendingSource | null
+  /** UI-only accepted Pending row with no existing 034/035 queue item. Not a ledger record. */
+  pendingOnlyStub: boolean
   derivedStatus: CommissionWorkStatusPresentation
   reviewReason: string | null
   expectedRow: LiveExpectedCompensationRow | null
+}
+
+export function isPendingOnlyCommissionStub(
+  item: Pick<CommissionWorkItem, 'pendingOnlyStub'>,
+): boolean {
+  return item.pendingOnlyStub === true
 }
 
 export function commissionWorkItemId(
@@ -282,6 +309,7 @@ function toWorkItem(options: {
     productionStageLabel: formatProductionStageLabel(options.item.production_stage),
     expectedCents,
     outstandingCents,
+    pendingCents: 0,
     paidCents: totals.gross_paid_cents,
     chargebackCents: totals.chargeback_cents,
     netPaidCents: totals.net_actual_cents,
@@ -290,6 +318,9 @@ function toWorkItem(options: {
     eventCount: options.pairEvents.length,
     lastFinancialActivity: lastActivityDate(options.pairEvents),
     expectedPeriodDate: expectedCompensationPeriodDate(options.item),
+    pendingPeriodDate: null,
+    pendingSource: null,
+    pendingOnlyStub: false,
     derivedStatus: deriveCommissionWorkStatus({
       expectedRow: options.expectedRow,
       totals,
@@ -404,6 +435,9 @@ export function workItemInReportingPeriod(
 ): boolean {
   if (calendarDateInPeriod(item.expectedPeriodDate, period, today)) return true
   if (item.lastFinancialActivity && calendarDateInPeriod(item.lastFinancialActivity, period, today)) {
+    return true
+  }
+  if (item.pendingPeriodDate && calendarDateInPeriod(item.pendingPeriodDate, period, today)) {
     return true
   }
   if (period === 'lifetime') return true

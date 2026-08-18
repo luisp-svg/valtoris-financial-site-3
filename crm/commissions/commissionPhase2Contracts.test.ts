@@ -52,7 +52,7 @@ describe('commission Phase 2 contracts', () => {
     expect(actions).toContain('Record actual')
     expect(actions).toContain('Record pre-issue actual')
     expect(table).toContain('{isOwner ? <th scope="col">Actions</th> : null}')
-    expect(detail).toContain('isOwner ? renderEventActions : undefined')
+    expect(detail).toContain('isOwner && !item.pendingOnlyStub ? renderEventActions : undefined')
     expect(detail).toContain('canReverseCommissionEvent')
     expect(detail).toContain('canAttributeCommissionEvent')
     expect(record).toContain('MANUAL_RECORD_EVENT_TYPES')

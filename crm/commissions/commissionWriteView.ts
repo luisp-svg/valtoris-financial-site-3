@@ -1,6 +1,9 @@
 import { presentEventReversal, type WritingCommissionEvent } from '../production/compensationView'
 import { formatCommissionBpsPercent } from '../production/compensationLabels'
-import type { CommissionWorkItem } from './commissionWorkView'
+import {
+  isPendingOnlyCommissionStub,
+  type CommissionWorkItem,
+} from './commissionWorkView'
 import type { AdjustmentDirection, ManualCommissionEventType } from './commissionMoney'
 
 export const MANUAL_RECORD_EVENT_TYPES = [
@@ -19,8 +22,9 @@ export type WritingAttributionTarget = {
 
 export function canRecordAttributedActual(
   isOwner: boolean,
-  item: Pick<CommissionWorkItem, 'kind' | 'allocationId'>,
+  item: Pick<CommissionWorkItem, 'kind' | 'allocationId' | 'pendingOnlyStub'>,
 ): boolean {
+  if (isPendingOnlyCommissionStub(item)) return false
   return isOwner && item.kind === 'writing_advisor' && Boolean(item.allocationId)
 }
 
@@ -28,7 +32,9 @@ export function canReverseCommissionEvent(options: {
   isOwner: boolean
   event: WritingCommissionEvent
   allEvents: readonly WritingCommissionEvent[]
+  pendingOnlyStub?: boolean
 }): boolean {
+  if (options.pendingOnlyStub) return false
   if (!options.isOwner) return false
   if (options.event.event_type === 'reversal') return false
   const reversal = presentEventReversal(options.event, options.allEvents)
@@ -40,7 +46,9 @@ export function canAttributeCommissionEvent(options: {
   unattributed: boolean
   event: WritingCommissionEvent
   allEvents: readonly WritingCommissionEvent[]
+  pendingOnlyStub?: boolean
 }): boolean {
+  if (options.pendingOnlyStub) return false
   if (!options.isOwner || !options.unattributed) return false
   if (options.event.event_type === 'reversal') return false
   if (options.event.attribution_status && options.event.attribution_status !== 'review_required') {
@@ -58,6 +66,7 @@ export function writingAttributionTargets(
   for (const item of workItems) {
     if (item.applicationId !== applicationId) continue
     if (item.kind !== 'writing_advisor' || !item.allocationId) continue
+    if (isPendingOnlyCommissionStub(item)) continue
     if (seen.has(item.allocationId)) continue
     seen.add(item.allocationId)
     targets.push({

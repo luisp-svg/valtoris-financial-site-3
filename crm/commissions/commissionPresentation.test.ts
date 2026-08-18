@@ -55,7 +55,9 @@ describe('commission presentation adapters', () => {
   })
 
   it('warns when the production list cap is hit', () => {
-    expect(commissionListCapWarning(200, 200)).toMatch(/Commission totals may be incomplete/)
+    expect(commissionListCapWarning(200, 200)).toMatch(
+      /Expected, Pending, Outstanding, and Paid totals may be incomplete/,
+    )
     expect(commissionListCapWarning(12, 200)).toBeNull()
   })
 })

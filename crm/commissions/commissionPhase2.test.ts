@@ -75,6 +75,10 @@ function item(
     eventCount: 0,
     lastFinancialActivity: null,
     expectedPeriodDate: '2026-08-01',
+    pendingCents: 0,
+    pendingPeriodDate: null,
+    pendingSource: null,
+    pendingOnlyStub: false,
     derivedStatus: { primary: 'outstanding', chargedBack: false, needsReview: false },
     reviewReason: null,
     expectedRow: {
@@ -297,6 +301,15 @@ describe('commission Phase 2 owner/advisor and split-writer isolation', () => {
     expect(canRecordAttributedActual(true, writing)).toBe(true)
     expect(canRecordAttributedActual(false, writing)).toBe(false)
     expect(canRecordAttributedActual(true, unattributed)).toBe(false)
+    expect(
+      canRecordAttributedActual(true, item({ id: 'app:stub', applicationId: 'app-1', pendingOnlyStub: true })),
+    ).toBe(false)
+    expect(
+      canRecordAttributedActual(
+        true,
+        item({ id: 'app:pending-overlay', applicationId: 'app-1', pendingCents: 335512 }),
+      ),
+    ).toBe(true)
   })
 
   it('posts writer A against allocation_id and does not auto-split to writer B', () => {

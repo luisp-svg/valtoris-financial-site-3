@@ -1,8 +1,9 @@
 import { useEffect, useId, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { crmProductionPath } from '../../constants/routes'
+import { ROUTES, crmProductionPath } from '../../constants/routes'
 import ActualCommissionPanel from '../production/ActualCommissionPanel'
 import type { WritingCommissionSnapshotView } from '../production/compensationApi'
+import { formatCents, formatProductionDate } from '../production/productionApi'
 import type { CompensationViewer } from '../production/types'
 import type { EventReversalPresentation, WritingCommissionEvent } from '../production/compensationView'
 import { formatCommissionEventSourceLabel } from './commissionEventSource'
@@ -68,7 +69,12 @@ export default function CommissionWorkItemDetail({
     unattributed: boolean,
   ) {
     const actions = []
-    if (canReverseCommissionEvent({ isOwner, event, allEvents })) {
+    if (canReverseCommissionEvent({
+      isOwner,
+      event,
+      allEvents,
+      pendingOnlyStub: item.pendingOnlyStub,
+    })) {
       actions.push(
         <button
           key="reverse"
@@ -86,6 +92,7 @@ export default function CommissionWorkItemDetail({
         unattributed,
         event,
         allEvents: snapshot?.unattributedEvents ?? [],
+        pendingOnlyStub: item.pendingOnlyStub,
       })
     ) {
       actions.push(
@@ -127,6 +134,60 @@ export default function CommissionWorkItemDetail({
         <p>
           <Link to={crmProductionPath(item.applicationId)}>Open production record</Link>
         </p>
+        {isOwner && item.pendingSource ? (
+          <section className="crm-commissions-pending-source" aria-label="Pending source">
+            <h3>Pending</h3>
+            <p className="crm-production-kpi-caption">
+              Source-confirmed Experior pending writing compensation. This is not Paid.
+            </p>
+            <dl className="crm-production-detail-grid">
+              <div>
+                <dt>Current Pending</dt>
+                <dd className="crm-production-money">{formatCents(item.pendingSource.amountCents)}</dd>
+              </div>
+              <div>
+                <dt>Advisor</dt>
+                <dd>{item.pendingSource.advisorName}</dd>
+              </div>
+              <div>
+                <dt>Client</dt>
+                <dd>{item.pendingSource.client || item.clientLabel}</dd>
+              </div>
+              <div>
+                <dt>Policy</dt>
+                <dd>{item.pendingSource.policyNumber || item.referenceLabel}</dd>
+              </div>
+              <div>
+                <dt>Carrier / product</dt>
+                <dd>
+                  {item.pendingSource.company || item.providerLabel}
+                  {item.pendingSource.product ? ` · ${item.pendingSource.product}` : ''}
+                </dd>
+              </div>
+              <div>
+                <dt>Statement</dt>
+                <dd>{item.pendingSource.statementIdentifier || '—'}</dd>
+              </div>
+              <div>
+                <dt>Statement date</dt>
+                <dd>{formatProductionDate(item.pendingSource.statementDate)}</dd>
+              </div>
+              <div>
+                <dt>Source file</dt>
+                <dd>{item.pendingSource.sourceFile || '—'}</dd>
+              </div>
+              <div>
+                <dt>Source transaction date</dt>
+                <dd>{formatProductionDate(item.pendingSource.transactionDate)}</dd>
+              </div>
+            </dl>
+            <p>
+              <Link to={ROUTES.crmCommissionsPendingImport}>Open Pending import</Link>
+            </p>
+          </section>
+        ) : isOwner && item.pendingCents === 0 ? (
+          <p className="crm-muted">No accepted Pending for this writing allocation.</p>
+        ) : null}
         <ActualCommissionPanel
           viewer={viewer}
           snapshot={snapshot}
@@ -141,7 +202,9 @@ export default function CommissionWorkItemDetail({
             />
           }
           formatEventSource={formatCommissionEventSourceLabel}
-          renderEventActions={isOwner ? renderEventActions : undefined}
+          renderEventActions={
+            isOwner && !item.pendingOnlyStub ? renderEventActions : undefined
+          }
         />
       </section>
     </div>
