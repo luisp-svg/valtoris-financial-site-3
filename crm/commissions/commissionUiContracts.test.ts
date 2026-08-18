@@ -69,14 +69,16 @@ describe('commission Phase 2 owner write workspace', () => {
     for (const source of sources) {
       expect(source).not.toContain('create_commission_import_batch')
       expect(source).not.toContain('post_commission_import_row')
+      expect(source).not.toContain('create_commission_pending_import_batch')
+      expect(source).not.toContain('stage_commission_pending_import_rows')
       expect(source).not.toMatch(/\.insert\s*\(/)
       expect(source).not.toMatch(/\.update\s*\(/)
       expect(source).not.toMatch(/\.delete\s*\(/)
     }
     expect(existsSync(join(migrationsDir, '039_commission_lifecycle.sql'))).toBe(false)
     const numbered = readdirSync(migrationsDir).filter((name) => /^\d{3}_/.test(name))
-    expect(numbered).toHaveLength(39)
-    expect(numbered).toContain('039_commission_import_review_post_hardening.sql')
+    expect(numbered).toHaveLength(40)
+    expect(numbered).toContain('040_commission_pending_import.sql')
   })
 
   it('uses generic workspace labels and does not name the shell Life Commissions', () => {

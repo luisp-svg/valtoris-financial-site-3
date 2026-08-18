@@ -53,7 +53,9 @@ describe('commission Phase 1 Experior / source contracts', () => {
     const workspace = readFileSync(join(here, 'CommissionWorkspace.tsx'), 'utf8')
     const summary = readFileSync(join(here, 'CommissionSummary.tsx'), 'utf8')
     const queue = readFileSync(join(here, 'CommissionQueueTable.tsx'), 'utf8')
-    expect(workspace).not.toMatch(/\bPending\b|\bEligible\b|\bReleased\b/)
+    expect(workspace).toContain('Import Pending Statement')
+    expect(workspace.replace(/Import Pending Statement/g, '')).not.toMatch(/\bPending\b/)
+    expect(workspace).not.toMatch(/\bEligible\b|\bReleased\b/)
     expect(queue).not.toMatch(/\bPending\b|\bEligible\b|\bReleased\b/)
     expect(summary).toMatch(/Pending, Eligible,\s+and Released are not tracked yet/)
   })
@@ -85,7 +87,7 @@ describe('commission Phase 1 multi-service guardrail', () => {
 
   it('does not add a generic compensation table or commission lifecycle migration', () => {
     const migrations = readdirSync(join(root, 'supabase/migrations'))
-    expect(migrations).toContain('039_commission_import_review_post_hardening.sql')
+    expect(migrations).toContain('040_commission_pending_import.sql')
     expect(migrations).not.toContain('039_commission_lifecycle.sql')
     const view = readFileSync(join(here, 'commissionWorkView.ts'), 'utf8')
     expect(view).not.toMatch(/from\('generic_compensation|create table.*commission_lifecycle/i)

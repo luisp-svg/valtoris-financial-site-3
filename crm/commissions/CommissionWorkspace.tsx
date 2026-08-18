@@ -145,6 +145,9 @@ export default function CommissionWorkspace({
             <Link to={ROUTES.crmCommissionsImport} className="crm-primary-btn">
               Import Statement
             </Link>
+            <Link to={ROUTES.crmCommissionsPendingImport} className="crm-secondary-btn">
+              Import Pending Statement
+            </Link>
           </div>
         ) : null}
       </header>

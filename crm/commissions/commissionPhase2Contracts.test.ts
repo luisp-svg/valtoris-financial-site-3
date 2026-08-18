@@ -14,8 +14,8 @@ function read(name: string): string {
 describe('commission Phase 2 contracts', () => {
   it('does not add a commission lifecycle migration or change 001–038', () => {
     const numbered = readdirSync(migrationsDir).filter((name) => /^\d{3}_/.test(name))
-    expect(numbered).toHaveLength(39)
-    expect(numbered).toContain('039_commission_import_review_post_hardening.sql')
+    expect(numbered).toHaveLength(40)
+    expect(numbered).toContain('040_commission_pending_import.sql')
     expect(existsSync(join(migrationsDir, '039_commission_lifecycle.sql'))).toBe(false)
   })
 
@@ -35,6 +35,8 @@ describe('commission Phase 2 contracts', () => {
     expect(api).not.toContain('stage_commission_import_rows')
     expect(api).not.toContain('review_commission_import_row')
     expect(api).not.toContain('post_commission_import_row')
+    expect(api).not.toContain('create_commission_pending_import_batch')
+    expect(api).not.toContain('stage_commission_pending_import_rows')
     expect(api).not.toContain('p_import_batch_identifier')
   })
 

@@ -52,10 +52,11 @@ const EXPECTED_MIGRATIONS = [
   '037_client_production_workflow_extensions.sql',
   '038_historical_import_support.sql',
   '039_commission_import_review_post_hardening.sql',
+  '040_commission_pending_import.sql',
 ]
 
 describe('Phase A production dashboard contracts', () => {
-  it('does not add a production dashboard migration and leaves 001–039 as the migration set', () => {
+  it('does not add a production dashboard migration and leaves 001–040 as the migration set', () => {
     const files = readdirSync(migrationsDir).filter((name) => name.endsWith('.sql')).sort()
     expect(files).toEqual(EXPECTED_MIGRATIONS)
     expect(existsSync(join(migrationsDir, '039_production_dashboard.sql'))).toBe(false)

@@ -39,6 +39,8 @@ export const ROUTES = {
   crmCommissions: '/crm/commissions',
   /** Owner-only Experior commission import intake (036 staging). */
   crmCommissionsImport: '/crm/commissions/import',
+  /** Owner-only Experior Pending Report intake (040 staging). */
+  crmCommissionsPendingImport: '/crm/commissions/pending-import',
   /** Owner-only carrier and product catalog (P1B-2A). */
   crmProductionCatalog: '/crm/production/catalog',
   /** New Life / IUL / FIA production application (P1B-2B). */
@@ -109,6 +111,10 @@ export function crmCommissionsPath(): string {
 
 export function crmCommissionsImportPath(): string {
   return ROUTES.crmCommissionsImport
+}
+
+export function crmCommissionsPendingImportPath(): string {
+  return ROUTES.crmCommissionsPendingImport
 }
 
 export function crmProductionCatalogPath(): string {

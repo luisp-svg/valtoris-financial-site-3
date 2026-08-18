@@ -7,6 +7,7 @@ import {
   MIGRATION_039_FILENAME,
   MIGRATION_039_FORBIDDEN_MARKERS,
 } from './migration039Contract'
+import { MIGRATION_040_FILENAME } from './migration040Contract'
 
 const migrationsDir = resolve(process.cwd(), 'supabase/migrations')
 const sql = readFileSync(resolve(migrationsDir, MIGRATION_039_FILENAME), 'utf8')
@@ -23,7 +24,10 @@ describe('migration 039 commission import review/post hardening contract', () =>
       files.indexOf(MIGRATION_038_FILENAME),
     )
     expect(files.filter((f) => f.startsWith('039_'))).toEqual([MIGRATION_039_FILENAME])
-    expect(files.filter((f) => f.startsWith('040_'))).toEqual([])
+    expect(files.filter((f) => f.startsWith('040_'))).toEqual([MIGRATION_040_FILENAME])
+    expect(files.indexOf(MIGRATION_040_FILENAME)).toBeGreaterThan(
+      files.indexOf(MIGRATION_039_FILENAME),
+    )
   })
 
   it('includes required review/post hardening markers', () => {
