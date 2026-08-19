@@ -124,4 +124,40 @@ describe('public card browser/server boundary', () => {
     expect(css).not.toMatch(/@media \(max-width: 430px\)[\s\S]*?\.public-card-hero-brand\s*\{[^}]*padding:/)
     expect(view).toMatch(/public-card-headshot-wrap/)
   })
+
+  it('keeps the Let’s Connect modal from overflowing on narrow viewports', async () => {
+    const { readFileSync } = await import('node:fs')
+    const { join } = await import('node:path')
+    const css = readFileSync(join(process.cwd(), 'src/styles.css'), 'utf8')
+    const modal = readFileSync(
+      join(process.cwd(), 'components/digitalIdentity/LetsConnectModal.tsx'),
+      'utf8',
+    )
+
+    expect(modal).toMatch(/<fieldset className="public-card-connect-fieldset"/)
+    expect(modal).toMatch(/<legend>\{copy\.reasonLabel\}<\/legend>/)
+    expect(modal).toMatch(/<legend>Consent<\/legend>/)
+    expect(modal).toMatch(/type="radio"/)
+    expect(modal).toMatch(/type="checkbox"/)
+    expect(modal).toMatch(/className="public-card-connect-reason"/)
+    expect(modal).toMatch(/className="public-card-connect-check"/)
+
+    expect(css).toMatch(/\.public-card-connect-sheet\s*\{[\s\S]*?overflow-x:\s*hidden/)
+    expect(css).toMatch(/\.public-card-connect-sheet\s*\{[\s\S]*?overflow-y:\s*auto/)
+    expect(css).toMatch(/\.public-card-connect-sheet\s*\{[\s\S]*?width:\s*min\(100%, 560px\)/)
+    expect(css).toMatch(/\.public-card-connect-form\s*\{[\s\S]*?padding:\s*0/)
+    expect(css).toMatch(/\.public-card-connect-fieldset\s*\{[\s\S]*?min-width:\s*0/)
+    expect(css).toMatch(/\.public-card-connect-fieldset\s*\{[\s\S]*?min-inline-size:\s*0/)
+    expect(css).toMatch(
+      /\.public-card-connect-reason input\[type='radio'\][\s\S]*?width:\s*auto/,
+    )
+    expect(css).toMatch(
+      /\.public-card-connect-check input\[type='checkbox'\][\s\S]*?width:\s*auto/,
+    )
+    expect(css).toMatch(/\.public-card-connect-reason span[\s\S]*?overflow-wrap:\s*break-word/)
+    expect(css).toMatch(
+      /\.public-card-connect-field-row\s*\{[\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\)/,
+    )
+    expect(css).not.toMatch(/\.public-card-connect-honeypot\s*\{[^}]*left:\s*-10000px/)
+  })
 })
