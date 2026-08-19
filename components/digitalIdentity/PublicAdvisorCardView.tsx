@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import BrandWordmark from '../BrandWordmark'
+import HomeCardIcon, { type HomeCardIconVariant } from '../home/HomeCardIcon'
 import { ROUTES } from '../../constants/routes'
 import type { IdentitySurfacePublicDto } from '../../modules/digital-identity'
 import type { PublicCardQrFormat } from '../../modules/digital-identity'
@@ -26,8 +27,61 @@ import {
   publicCardLayoutClasses,
   resolveContactVisibility,
   vCardDownloadErrorCopy,
+  type PublicCardHeroAction,
   type PublicCardPageStatus,
 } from './publicCardViewModel'
+
+const HELP_TILE_KEYS = [
+  'protect_family',
+  'protection_gap',
+  'grow_business',
+  'prepare_retirement',
+] as const
+
+const HELP_TILE_ICONS: Record<(typeof HELP_TILE_KEYS)[number], HomeCardIconVariant> = {
+  protect_family: 'protection',
+  protection_gap: 'emergency',
+  grow_business: 'strategy',
+  prepare_retirement: 'retirement',
+}
+
+function heroActionClassName(key: PublicCardHeroAction['key']): string {
+  switch (key) {
+    case 'call':
+      return 'platform-btn public-card-btn public-card-btn--call'
+    case 'text':
+      return 'platform-btn public-card-btn public-card-btn--text'
+    case 'email':
+    case 'save_contact':
+      return 'platform-btn public-card-btn public-card-btn--light'
+    case 'lets_connect':
+      return 'platform-btn public-card-btn public-card-btn--connect'
+    default:
+      return 'platform-btn public-card-btn public-card-btn--light'
+  }
+}
+
+function ContactGlyph({ kind }: { kind: 'phone' | 'email' | 'web' }) {
+  const d =
+    kind === 'phone'
+      ? 'M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z'
+      : kind === 'email'
+        ? 'M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75'
+        : 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0 0c2.5 0 4.5-4 4.5-9S14.5 3 12 3 7.5 7 7.5 12s2 9 4.5 9Zm-9-9h18'
+
+  return (
+    <svg className="public-card-contact-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+      <path
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d={d}
+      />
+    </svg>
+  )
+}
 
 type ReadyProps = {
   status: 'ready'
@@ -106,8 +160,11 @@ function ReadyCard({ card }: { card: IdentitySurfacePublicDto }) {
   const mailHref = buildPublicMailtoHref(contact.email)
   const heroActions = buildHeroActions(card)
   const diagnostics = buildDiagnosticActions(card)
-  const outcomes = buildOutcomeSections(card)
-  const metaLine = [card.approvedTitle, card.approvedCompany].filter(Boolean).join(' · ')
+  const outcomes = buildOutcomeSections(card).filter((outcome) =>
+    (HELP_TILE_KEYS as readonly string[]).includes(outcome.key),
+  )
+  const title = card.approvedTitle?.trim() || ''
+  const company = card.approvedCompany?.trim() || ''
   const [vcardStatus, setVcardStatus] = useState<'idle' | 'loading' | 'error'>('idle')
   const [vcardMessage, setVcardMessage] = useState<string | null>(null)
   const [qrStatus, setQrStatus] = useState<'idle' | 'loading' | 'error'>('idle')
@@ -168,30 +225,49 @@ function ReadyCard({ card }: { card: IdentitySurfacePublicDto }) {
   return (
     <>
       <section className={layout.hero} aria-labelledby="public-card-name">
-        <div className="public-card-hero-inner">
+        <div className="public-card-hero-brand">
           <BrandWordmark variant="assessment" className="public-card-brand public-card-brand--hero" />
+        </div>
+        <div className="public-card-hero-inner">
           <Headshot name={card.displayName} url={card.headshotUrl} />
           <h1 id="public-card-name" className="public-card-name">
             {card.displayName}
           </h1>
-          {metaLine ? <p className="public-card-meta">{metaLine}</p> : null}
+          {title || company ? (
+            <p className="public-card-meta">
+              {title ? <span className="public-card-meta-title">{title}</span> : null}
+              {title && company ? (
+                <span className="public-card-meta-sep" aria-hidden="true">
+                  {' · '}
+                </span>
+              ) : null}
+              {company ? <span className="public-card-meta-company">{company}</span> : null}
+            </p>
+          ) : null}
           {card.headline ? <p className="public-card-headline">{card.headline}</p> : null}
 
           {((contact.showPhone && telHref) || (contact.showEmail && mailHref) || contact.showWebsite) && (
             <ul className="public-card-contact-list">
               {contact.showPhone && telHref ? (
                 <li>
-                  <a href={telHref}>{contact.phone}</a>
+                  <a href={telHref}>
+                    <ContactGlyph kind="phone" />
+                    {contact.phone}
+                  </a>
                 </li>
               ) : null}
               {contact.showEmail && mailHref ? (
                 <li>
-                  <a href={mailHref}>{contact.email}</a>
+                  <a href={mailHref}>
+                    <ContactGlyph kind="email" />
+                    {contact.email}
+                  </a>
                 </li>
               ) : null}
               {contact.showWebsite ? (
                 <li>
                   <a href={contact.website!} target="_blank" rel="noopener noreferrer">
+                    <ContactGlyph kind="web" />
                     Website
                   </a>
                 </li>
@@ -199,15 +275,12 @@ function ReadyCard({ card }: { card: IdentitySurfacePublicDto }) {
             </ul>
           )}
 
-          <div className="public-card-hero-actions platform-btn-row platform-btn-row--center">
+          <div className="public-card-hero-actions">
             {heroActions.map((action) => {
+              const className = heroActionClassName(action.key)
               if (action.mode === 'contact_link' && action.href) {
                 return (
-                  <a
-                    key={action.key}
-                    className="platform-btn platform-btn-secondary public-card-btn"
-                    href={action.href}
-                  >
+                  <a key={action.key} className={className} href={action.href}>
                     {action.label}
                   </a>
                 )
@@ -217,7 +290,7 @@ function ReadyCard({ card }: { card: IdentitySurfacePublicDto }) {
                 return (
                   <a
                     key={action.key}
-                    className="platform-btn platform-btn-secondary public-card-btn"
+                    className={className}
                     href={action.href}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -232,7 +305,7 @@ function ReadyCard({ card }: { card: IdentitySurfacePublicDto }) {
                   <button
                     key={action.key}
                     type="button"
-                    className="platform-btn platform-btn-secondary public-card-btn"
+                    className={className}
                     onClick={() => {
                       void handleSaveContact()
                     }}
@@ -249,7 +322,7 @@ function ReadyCard({ card }: { card: IdentitySurfacePublicDto }) {
                   <button
                     key={action.key}
                     type="button"
-                    className="platform-btn platform-btn-primary public-card-btn public-card-btn--connect"
+                    className={className}
                     onClick={() => setConnectOpen(true)}
                   >
                     {action.label}
@@ -267,7 +340,7 @@ function ReadyCard({ card }: { card: IdentitySurfacePublicDto }) {
           ) : null}
 
           <details className="public-card-qr-menu">
-            <summary className="platform-btn platform-btn-outline public-card-btn">
+            <summary className="platform-btn platform-btn-outline public-card-btn public-card-btn--qr">
               {qrStatus === 'loading' ? 'Preparing QR…' : 'Download QR'}
             </summary>
             <div className="public-card-qr-options" role="menu" aria-label="QR download formats">
@@ -303,8 +376,16 @@ function ReadyCard({ card }: { card: IdentitySurfacePublicDto }) {
         </div>
         <div className={layout.outcomeGrid}>
           {outcomes.map((outcome) => {
+            const iconKey = (HELP_TILE_KEYS as readonly string[]).includes(outcome.key)
+              ? (outcome.key as (typeof HELP_TILE_KEYS)[number])
+              : null
             const body = (
               <>
+                {iconKey ? (
+                  <span className="public-card-outcome-icon">
+                    <HomeCardIcon variant={HELP_TILE_ICONS[iconKey]} />
+                  </span>
+                ) : null}
                 <div className="public-card-outcome-top">
                   <h3>{outcome.title}</h3>
                   {outcome.comingSoon ? (
