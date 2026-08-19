@@ -149,23 +149,23 @@ function Headshot({
   name: string
   url: string | null
 }) {
-  if (url) {
-    return (
-      <img
-        className="public-card-headshot"
-        src={url}
-        alt={`${name} headshot`}
-        width={168}
-        height={168}
-        loading="eager"
-        decoding="async"
-      />
-    )
-  }
-
   return (
-    <div className="public-card-headshot public-card-headshot--fallback" aria-hidden="true">
-      <span>{getInitials(name)}</span>
+    <div className="public-card-headshot-wrap">
+      {url ? (
+        <img
+          className="public-card-headshot"
+          src={url}
+          alt={`${name} headshot`}
+          width={168}
+          height={168}
+          loading="eager"
+          decoding="async"
+        />
+      ) : (
+        <div className="public-card-headshot public-card-headshot--fallback" aria-hidden="true">
+          <span>{getInitials(name)}</span>
+        </div>
+      )}
     </div>
   )
 }
