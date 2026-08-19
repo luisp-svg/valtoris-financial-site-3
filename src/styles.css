@@ -9745,10 +9745,13 @@ p { color: var(--muted); line-height: 1.7; }
 .public-card-hero-brand {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
-  gap: 10px;
-  padding: 22px 20px 28px;
+  gap: 12px;
+  padding-top: 22px;
+  padding-inline: 20px;
+  /* Empty navy below the tagline must exceed the 40% headshot overlap + ring. */
+  padding-bottom: calc(var(--public-card-headshot) * 0.4 + 32px);
   border-radius: 24px 24px 0 0;
   background-image:
     linear-gradient(90deg, transparent, var(--gold), transparent),
@@ -10386,7 +10389,8 @@ button.public-card-diagnostic:disabled {
   }
 
   .public-card-hero-brand {
-    padding: 26px 28px 32px;
+    padding-top: 26px;
+    padding-inline: 28px;
   }
 
   .public-card-hero-inner {
@@ -10424,7 +10428,8 @@ button.public-card-diagnostic:disabled {
   }
 
   .public-card-hero-brand {
-    padding: 18px 16px 24px;
+    padding-top: 18px;
+    padding-inline: 16px;
   }
 
   .public-card-hero-inner {

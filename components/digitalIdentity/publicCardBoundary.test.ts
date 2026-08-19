@@ -116,6 +116,12 @@ describe('public card browser/server boundary', () => {
     expect(css).not.toMatch(/\.public-card-hero-brand\s*\{[^}]*position:\s*relative/)
     expect(css).toMatch(/\.public-card-headshot-wrap\s*\{/)
     expect(css).toMatch(/margin-top:\s*calc\(var\(--public-card-headshot\) \* -0\.4\)/)
+    expect(css).toMatch(
+      /padding-bottom:\s*calc\(var\(--public-card-headshot\) \* 0\.4 \+ 32px\)/,
+    )
+    expect(css).toMatch(/\.public-card-hero-brand\s*\{[\s\S]*?justify-content:\s*flex-start/)
+    expect(css).not.toMatch(/@media \(min-width: 720px\)[\s\S]*?\.public-card-hero-brand\s*\{[^}]*padding:/)
+    expect(css).not.toMatch(/@media \(max-width: 430px\)[\s\S]*?\.public-card-hero-brand\s*\{[^}]*padding:/)
     expect(view).toMatch(/public-card-headshot-wrap/)
   })
 })
