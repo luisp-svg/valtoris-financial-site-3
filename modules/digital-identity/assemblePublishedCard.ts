@@ -5,6 +5,7 @@
 
 import { LETS_CONNECT_CTA_LABEL, V1_IDENTITY_SURFACE_KIND } from './constants.js'
 import { createDefaultAdvisorCardCtas } from './cta.js'
+import { resolvePublicCompany, resolvePublicDesignation } from './publicDesignation.js'
 import type {
   IdentityCtaConfigItem,
   IdentityCtaKey,
@@ -212,9 +213,10 @@ export function assemblePublishedCardDto(input: {
   const calendlyUrl = normalizePublicHref(
     overrideString(overrides.calendlyUrl, advisor.calendlyUrl, MAX_SAFE_TEXT),
   )
-  const headshotUrl = normalizePublicHref(
-    overrideString(overrides.headshotUrl, advisor.photoUrl, MAX_SAFE_TEXT),
-  )
+  const headshotUrl =
+    normalizePublicHref(
+      overrideString(overrides.headshotUrl, advisor.photoUrl, MAX_SAFE_TEXT),
+    ) ?? normalizePublicHref(advisor.photoUrl)
   const website = normalizePublicHref(overrides.website)
   const themeKey =
     readTrimmedString(overrides.themeKey, 64) ??
@@ -228,8 +230,8 @@ export function assemblePublishedCardDto(input: {
     slug: card.slug,
     kind: V1_IDENTITY_SURFACE_KIND,
     displayName,
-    approvedTitle: readTrimmedString(overrides.approvedTitle, 120),
-    approvedCompany: readTrimmedString(overrides.approvedCompany, 120),
+    approvedTitle: resolvePublicDesignation(overrides.approvedTitle),
+    approvedCompany: resolvePublicCompany(overrides.approvedCompany),
     headline: readTrimmedString(overrides.headline, 200),
     bio: overrideString(overrides.bio, advisor.bio, 2000),
     headshotUrl,

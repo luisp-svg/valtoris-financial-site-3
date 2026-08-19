@@ -6253,6 +6253,21 @@ p { color: var(--muted); line-height: 1.7; }
   margin: 0;
 }
 
+.crm-digital-card-profile-title {
+  margin: 0;
+  color: var(--crm-navy);
+  font-size: 1rem;
+}
+
+.crm-digital-card-photo-preview {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--crm-border);
+  background: #fff;
+}
+
 @media (min-width: 720px) {
   .crm-digital-card {
     grid-template-columns: 220px minmax(0, 1fr);
@@ -9731,7 +9746,7 @@ p { color: var(--muted); line-height: 1.7; }
 .public-card-headshot {
   width: 112px;
   height: 112px;
-  border-radius: 28px;
+  border-radius: 50%;
   object-fit: cover;
   background: #e8eef7;
   border: 1px solid rgba(7, 20, 77, 0.08);

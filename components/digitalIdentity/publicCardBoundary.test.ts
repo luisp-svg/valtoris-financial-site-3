@@ -60,11 +60,17 @@ describe('public card browser/server boundary', () => {
       'pages/PublicAdvisorCardPage.tsx',
       'crm/digital-identity/cardsApi.ts',
       'crm/digital-identity/AdvisorDigitalCardPanel.tsx',
+      'modules/digital-identity/publicDesignation.ts',
       'pages/crm/CrmCampaignsPage.tsx',
     ]
     for (const file of files) {
       const src = readFileSync(join(process.cwd(), file), 'utf8')
       expect(src).not.toMatch(/createSupabaseAdminClient|SUPABASE_SERVICE_ROLE|service_role/)
     }
+    const view = readFileSync(
+      join(process.cwd(), 'components/digitalIdentity/PublicAdvisorCardView.tsx'),
+      'utf8',
+    )
+    expect(view).not.toMatch(/luis-perez\.png|\/images\/advisors\//)
   })
 })

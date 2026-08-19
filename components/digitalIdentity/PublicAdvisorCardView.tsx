@@ -19,6 +19,8 @@ import {
   buildDiagnosticActions,
   buildHeroActions,
   buildOutcomeSections,
+  buildPublicMailtoHref,
+  buildPublicTelHref,
   errorCopyForStatus,
   getInitials,
   publicCardLayoutClasses,
@@ -100,6 +102,8 @@ function ErrorState({ status }: { status: Exclude<PublicCardPageStatus, 'loading
 function ReadyCard({ card }: { card: IdentitySurfacePublicDto }) {
   const layout = publicCardLayoutClasses()
   const contact = resolveContactVisibility(card)
+  const telHref = buildPublicTelHref(contact.phone)
+  const mailHref = buildPublicMailtoHref(contact.email)
   const heroActions = buildHeroActions(card)
   const diagnostics = buildDiagnosticActions(card)
   const outcomes = buildOutcomeSections(card)
@@ -173,16 +177,16 @@ function ReadyCard({ card }: { card: IdentitySurfacePublicDto }) {
           {metaLine ? <p className="public-card-meta">{metaLine}</p> : null}
           {card.headline ? <p className="public-card-headline">{card.headline}</p> : null}
 
-          {(contact.showPhone || contact.showEmail || contact.showWebsite) && (
+          {((contact.showPhone && telHref) || (contact.showEmail && mailHref) || contact.showWebsite) && (
             <ul className="public-card-contact-list">
-              {contact.showPhone ? (
+              {contact.showPhone && telHref ? (
                 <li>
-                  <a href={`tel:${contact.phone}`}>{contact.phone}</a>
+                  <a href={telHref}>{contact.phone}</a>
                 </li>
               ) : null}
-              {contact.showEmail ? (
+              {contact.showEmail && mailHref ? (
                 <li>
-                  <a href={`mailto:${contact.email}`}>{contact.email}</a>
+                  <a href={mailHref}>{contact.email}</a>
                 </li>
               ) : null}
               {contact.showWebsite ? (

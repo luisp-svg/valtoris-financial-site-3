@@ -7,8 +7,13 @@ import {
   digitalCardApiSideEffects,
   loadOwnDigitalCard,
   publishOwnDigitalCard,
+  updateOwnAdvisorPublicProfile,
 } from './cardsApi'
-import { buildPublicCardPath, isValidIdentityPublicKey } from '../../modules/digital-identity'
+import {
+  buildPublicCardPath,
+  isValidIdentityPublicKey,
+  VALTORIS_PUBLIC_DESIGNATION,
+} from '../../modules/digital-identity'
 
 const ROOT = join(import.meta.dirname, '../..')
 
@@ -275,6 +280,178 @@ describe('cardsApi', () => {
     expect(updates[0]).not.toHaveProperty('public_key')
     expect(result.card.publicKey).toBe('pk_live_abcdefghijklmnop')
     expect(result.card.cardPath).toBe('/c/k/pk_live_abcdefghijklmnop')
+  })
+
+  it('uses Financial Strategist as the default public designation', () => {
+    expect(defaultCardPublishProfile().approvedTitle).toBe(VALTORIS_PUBLIC_DESIGNATION)
+    expect(defaultCardPublishProfile().approvedTitle).toBe('Financial Strategist')
+    expect(defaultCardPublishProfile().approvedTitle).not.toBe('Financial Advisor')
+  })
+
+  it('updates phone and photo on advisor_profiles without touching digital_cards or public_key', async () => {
+    const captured: Record<string, unknown>[] = []
+    const from = vi.fn((table: string) => {
+      if (table === 'advisor_profiles') {
+        return {
+          select: () => ({
+            eq: () => ({
+              eq: () => ({
+                is: () => ({
+                  maybeSingle: async () => ({
+                    data: {
+                      id: 'adv-1',
+                      display_name: 'Luis Perez',
+                      slug: 'luis-dev',
+                      email: 'luis@example.com',
+                      phone: null,
+                      photo_url: null,
+                      calendly_url: null,
+                      user_id: 'user-1',
+                    },
+                    error: null,
+                  }),
+                }),
+              }),
+            }),
+          }),
+          update: (row: Record<string, unknown>) => {
+            captured.push(row)
+            return {
+              eq: () => ({
+                eq: () => ({
+                  is: () => ({
+                    select: () => ({
+                      single: async () => ({
+                        data: {
+                          id: 'adv-1',
+                          display_name: 'Luis Perez',
+                          slug: 'luis-dev',
+                          email: 'luis@example.com',
+                          phone: row.phone,
+                          photo_url: row.photo_url,
+                          calendly_url: null,
+                          user_id: 'user-1',
+                        },
+                        error: null,
+                      }),
+                    }),
+                  }),
+                }),
+              }),
+            }
+          },
+        }
+      }
+      if (table === 'digital_cards') {
+        return {
+          select: () => ({
+            eq: () => ({
+              is: () => ({
+                maybeSingle: async () => ({
+                  data: {
+                    id: 'card-1',
+                    public_key: 'pk_live_abcdefghijklmnop',
+                    slug: 'luis-dev',
+                    status: 'published',
+                    deleted_at: null,
+                  },
+                  error: null,
+                }),
+              }),
+            }),
+          }),
+        }
+      }
+      return undefined
+    })
+    const supabase = { from } as unknown as SupabaseClient
+
+    const result = await updateOwnAdvisorPublicProfile(supabase, 'user-1', {
+      phone: '512-555-0100',
+      photoUrl: 'https://cdn.example.com/luis.jpg',
+    })
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(captured).toEqual([
+      { phone: '512-555-0100', photo_url: 'https://cdn.example.com/luis.jpg' },
+    ])
+    expect(captured[0]).not.toHaveProperty('public_key')
+    expect(from.mock.calls.some((call) => call[0] === 'digital_cards' && true)).toBe(true)
+    const digitalCardCalls = from.mock.calls.filter((call) => call[0] === 'digital_cards')
+    expect(digitalCardCalls.length).toBe(1)
+    expect(result.identity.phone).toBe('512-555-0100')
+    expect(result.identity.photoUrl).toBe('https://cdn.example.com/luis.jpg')
+
+    const relative = await updateOwnAdvisorPublicProfile(supabase, 'user-1', {
+      phone: '512-555-0100',
+      photoUrl: '/images/advisors/luis-perez.png',
+    })
+    expect(relative.ok).toBe(true)
+    if (!relative.ok) return
+    expect(captured[1]).toEqual({
+      phone: '512-555-0100',
+      photo_url: '/images/advisors/luis-perez.png',
+    })
+    expect(relative.identity.photoUrl).toBe('/images/advisors/luis-perez.png')
+    expect(from.mock.calls.filter((call) => call[0] === 'digital_cards').length).toBe(2)
+    expect(captured.every((row) => !Object.prototype.hasOwnProperty.call(row, 'public_key'))).toBe(true)
+  })
+
+  it('rejects javascript photo URLs before writing', async () => {
+    const from = vi.fn((table: string) => {
+      if (table === 'advisor_profiles') {
+        return {
+          select: () => ({
+            eq: () => ({
+              eq: () => ({
+                is: () => ({
+                  maybeSingle: async () => ({
+                    data: {
+                      id: 'adv-1',
+                      display_name: 'Luis Perez',
+                      slug: 'luis-dev',
+                      email: 'luis@example.com',
+                      phone: null,
+                      photo_url: null,
+                      calendly_url: null,
+                      user_id: 'user-1',
+                    },
+                    error: null,
+                  }),
+                }),
+              }),
+            }),
+          }),
+          update: () => {
+            throw new Error('update should not run')
+          },
+        }
+      }
+      return {
+        select: () => ({
+          eq: () => ({
+            is: () => ({
+              maybeSingle: async () => ({
+                data: {
+                  id: 'card-1',
+                  public_key: 'pk_live_abcdefghijklmnop',
+                  slug: 'luis-dev',
+                  status: 'published',
+                  deleted_at: null,
+                },
+                error: null,
+              }),
+            }),
+          }),
+        }),
+      }
+    })
+    const supabase = { from } as unknown as SupabaseClient
+    const result = await updateOwnAdvisorPublicProfile(supabase, 'user-1', {
+      phone: '',
+      photoUrl: 'javascript:alert(1)',
+    })
+    expect(result.ok).toBe(false)
   })
 
   it('does not import a service-role browser client', () => {

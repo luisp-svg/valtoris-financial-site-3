@@ -109,7 +109,7 @@ export function buildPublicTelHref(phone: string | null | undefined): string | n
   const trimmed = phone.trim()
   if (!trimmed) return null
   const digits = trimmed.replace(/\D/g, '')
-  if (!digits) return null
+  if (digits.length < 10) return null
   if (digits.length === 10) return `tel:+1${digits}`
   if (digits.length === 11 && digits.startsWith('1')) return `tel:+${digits}`
   if (trimmed.startsWith('+')) return `tel:+${digits}`

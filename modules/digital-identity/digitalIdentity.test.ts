@@ -150,6 +150,8 @@ describe('public DTO allowlisting', () => {
     expect(dto?.primaryConnectLabel).toBe("Let's Connect")
     expect(dto?.publicKey).toBe('pk_test_public_key_01')
     expect(dto?.phone).toBe('555-0100')
+    expect(dto?.approvedTitle).toBe('Financial Strategist')
+    expect(dto?.approvedTitle).not.toBe('Financial Advisor')
     expect('advisorProfileId' in (dto as object)).toBe(false)
     expect('id' in (dto as object)).toBe(false)
   })

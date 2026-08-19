@@ -23,7 +23,7 @@ function sampleCard(overrides: Partial<IdentitySurfacePublicDto> = {}): Identity
     slug: 'jane-advisor',
     kind: 'advisor_card',
     displayName: 'Jane Advisor',
-    approvedTitle: 'Financial Advisor',
+    approvedTitle: 'Financial Strategist',
     approvedCompany: 'Valtoris Financial',
     headline: 'Clarity first.',
     bio: 'About Jane',
@@ -101,6 +101,15 @@ describe('publicCardViewModel', () => {
     expect(save?.label).toBe('Save Contact')
   })
 
+  it('shows Financial Strategist on the public card meta contract', () => {
+    const card = sampleCard()
+    expect(card.approvedTitle).toBe('Financial Strategist')
+    expect(card.approvedTitle).not.toBe('Financial Advisor')
+    expect([card.approvedTitle, card.approvedCompany].filter(Boolean).join(' · ')).toBe(
+      'Financial Strategist · Valtoris Financial',
+    )
+  })
+
   it('adds Call, Text, and Email contact links from public phone/email', () => {
     const actions = buildHeroActions(sampleCard({ phone: '512-555-0100', email: 'jane@example.com' }))
     const call = actions.find((a) => a.key === 'call')
@@ -132,6 +141,8 @@ describe('publicCardViewModel', () => {
     expect(buildPublicMailtoHref(' jane@example.com ')).toBe('mailto:jane@example.com')
     expect(buildPublicMailtoHref('not-an-email')).toBeNull()
     expect(buildPublicTelHref('')).toBeNull()
+    expect(buildPublicTelHref('javascript:alert(1)')).toBeNull()
+    expect(buildPublicSmsHref('javascript:alert(1)')).toBeNull()
   })
 
   it('shows appointment only when Calendly exists', () => {

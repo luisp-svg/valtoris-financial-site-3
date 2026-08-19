@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, type FormEvent } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import {
   downloadPublicCardQr,
@@ -6,8 +6,17 @@ import {
   qrDownloadMenuItems,
   triggerQrBrowserDownload,
 } from '../../components/digitalIdentity/downloadPublicCardQr'
-import type { PublicCardQrFormat } from '../../modules/digital-identity'
-import { loadOwnDigitalCard, publishOwnDigitalCard, type OwnDigitalCard } from './cardsApi'
+import {
+  normalizePublicHref,
+  type PublicCardQrFormat,
+} from '../../modules/digital-identity'
+import {
+  loadOwnDigitalCard,
+  publishOwnDigitalCard,
+  updateOwnAdvisorPublicProfile,
+  type OwnAdvisorIdentity,
+  type OwnDigitalCard,
+} from './cardsApi'
 
 type AdvisorDigitalCardPanelProps = {
   supabase: SupabaseClient
@@ -25,9 +34,13 @@ export default function AdvisorDigitalCardPanel({
   const [error, setError] = useState<string | null>(null)
   const [message, setMessage] = useState<string | null>(null)
   const [missingIdentity, setMissingIdentity] = useState(false)
+  const [identity, setIdentity] = useState<OwnAdvisorIdentity | null>(null)
   const [card, setCard] = useState<OwnDigitalCard | null>(null)
   const [qrObjectUrl, setQrObjectUrl] = useState<string | null>(null)
   const [qrLoading, setQrLoading] = useState(false)
+  const [phoneDraft, setPhoneDraft] = useState('')
+  const [photoDraft, setPhotoDraft] = useState('')
+  const [savingProfile, setSavingProfile] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -36,11 +49,15 @@ export default function AdvisorDigitalCardPanel({
     if (!result.ok) {
       setError(result.message)
       setMissingIdentity(false)
+      setIdentity(null)
       setCard(null)
       setLoading(false)
       return
     }
     setMissingIdentity(result.identity === null)
+    setIdentity(result.identity)
+    setPhoneDraft(result.identity?.phone ?? '')
+    setPhotoDraft(result.identity?.photoUrl ?? '')
     setCard(result.card)
     setLoading(false)
   }, [supabase, userId])
@@ -113,6 +130,27 @@ export default function AdvisorDigitalCardPanel({
     setCard(result.card)
     setMessage('Digital card published. The QR URL stays the same if contact details change.')
     onPublished?.()
+    await load()
+  }
+
+  async function handleSaveProfile(event: FormEvent) {
+    event.preventDefault()
+    setSavingProfile(true)
+    setError(null)
+    setMessage(null)
+    const result = await updateOwnAdvisorPublicProfile(supabase, userId, {
+      phone: phoneDraft,
+      photoUrl: photoDraft,
+    })
+    setSavingProfile(false)
+    if (!result.ok) {
+      setError(result.message)
+      return
+    }
+    setIdentity(result.identity)
+    setPhoneDraft(result.identity.phone ?? '')
+    setPhotoDraft(result.identity.photoUrl ?? '')
+    setMessage('Public photo and phone saved. The permanent QR did not change.')
   }
 
   async function copyCardUrl() {
@@ -246,6 +284,54 @@ export default function AdvisorDigitalCardPanel({
             </div>
           </div>
         </div>
+      ) : null}
+
+      {!loading && identity ? (
+        <form className="crm-form" onSubmit={(event) => void handleSaveProfile(event)}>
+          <h3 className="crm-digital-card-profile-title">Public phone and photo</h3>
+          <p className="crm-muted">
+            These fields live on your advisor profile. Saving them does not change the permanent QR.
+            Call and Text appear on the public card only when a phone number is present. Photo must
+            be a durable https URL; leave blank to use initials.
+          </p>
+          <label>
+            Public phone
+            <input
+              type="tel"
+              autoComplete="tel"
+              value={phoneDraft}
+              onChange={(event) => setPhoneDraft(event.target.value)}
+              placeholder="Include area code"
+            />
+          </label>
+          <label>
+            Public photo URL
+            <input
+              type="url"
+              value={photoDraft}
+              onChange={(event) => setPhotoDraft(event.target.value)}
+              placeholder="https://"
+            />
+          </label>
+          {normalizePublicHref(photoDraft) ? (
+            <img
+              className="crm-digital-card-photo-preview"
+              src={normalizePublicHref(photoDraft) ?? undefined}
+              alt=""
+              width={96}
+              height={96}
+            />
+          ) : null}
+          <div className="platform-btn-row">
+            <button
+              type="submit"
+              className="platform-btn platform-btn-primary"
+              disabled={savingProfile}
+            >
+              {savingProfile ? 'Saving…' : 'Save phone and photo'}
+            </button>
+          </div>
+        </form>
       ) : null}
     </section>
   )

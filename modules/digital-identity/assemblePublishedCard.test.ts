@@ -44,7 +44,63 @@ describe('assemblePublishedCardDto', () => {
     expect(dto?.cardUrl).toBe('/c/k/pk_test_public_key01')
     expect(dto?.ctas.some((item) => item.key === 'lets_connect')).toBe(true)
     expect(dto?.ctas.some((item) => item.key === 'credit_assessment')).toBe(false)
+    expect(dto?.approvedTitle).toBe('Financial Strategist')
+    expect(dto?.approvedCompany).toBe('Valtoris Financial')
+    expect(dto?.headshotUrl).toBe('https://cdn.example.com/jane.jpg')
     expect(responseContainsInternalIds(dto)).toBe(false)
+  })
+
+  it('remaps stored Financial Advisor to Financial Strategist without changing the public key path', () => {
+    const dto = assemblePublishedCardDto({
+      card: card({
+        publicKey: 'pk_live_abcdefghijklmnop',
+        publishProfile: { approvedTitle: 'Financial Advisor', approvedCompany: 'Valtoris Financial' },
+      }),
+      advisor,
+      advisorIsActive: true,
+    })
+    expect(dto?.approvedTitle).toBe('Financial Strategist')
+    expect(dto?.approvedTitle).not.toBe('Financial Advisor')
+    expect(dto?.cardUrl).toBe('/c/k/pk_live_abcdefghijklmnop')
+    expect(dto?.publicKey).toBe('pk_live_abcdefghijklmnop')
+  })
+
+  it('uses initials-ready empty headshot when advisor photo is missing and rejects unsafe photo URLs', () => {
+    const withoutPhoto = assemblePublishedCardDto({
+      card: card(),
+      advisor: { ...advisor, photoUrl: null },
+      advisorIsActive: true,
+    })
+    expect(withoutPhoto?.headshotUrl).toBeNull()
+
+    const unsafe = assemblePublishedCardDto({
+      card: card({ publishProfile: { headshotUrl: 'javascript:alert(1)' } }),
+      advisor,
+      advisorIsActive: true,
+    })
+    expect(unsafe?.headshotUrl).toBe('https://cdn.example.com/jane.jpg')
+  })
+
+  it('passes a site-relative advisor photo_url through as headshotUrl without changing public-key routing', () => {
+    const dto = assemblePublishedCardDto({
+      card: card({ publicKey: 'pk_live_abcdefghijklmnop' }),
+      advisor: { ...advisor, photoUrl: '/images/advisors/luis-perez.png' },
+      advisorIsActive: true,
+    })
+    expect(dto?.headshotUrl).toBe('/images/advisors/luis-perez.png')
+    expect(dto?.publicKey).toBe('pk_live_abcdefghijklmnop')
+    expect(dto?.cardUrl).toBe('/c/k/pk_live_abcdefghijklmnop')
+  })
+
+  it('omits phone from the public DTO when the advisor profile has none', () => {
+    const dto = assemblePublishedCardDto({
+      card: card(),
+      advisor: { ...advisor, phone: null },
+      advisorIsActive: true,
+    })
+    expect(dto?.phone).toBeNull()
+    expect(dto?.email).toBe('jane@example.com')
+    expect(JSON.stringify(dto)).not.toMatch(/advisorProfileId|userId|role|commission/)
   })
 
   it('excludes draft, disabled, soft-deleted, and inactive advisors', () => {

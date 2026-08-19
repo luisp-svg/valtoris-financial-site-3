@@ -10,6 +10,9 @@ import {
   generateIdentityPublicKey,
   isValidIdentityPublicKey,
   isValidIdentitySlug,
+  normalizePublicHref,
+  VALTORIS_PUBLIC_COMPANY,
+  VALTORIS_PUBLIC_DESIGNATION,
 } from '../../modules/digital-identity'
 
 export type OwnAdvisorIdentity = {
@@ -83,14 +86,73 @@ function mapCard(
   }
 }
 
-/** Approved public overrides only — live name/phone/email still resolve from advisor_profiles. */
+/** Approved public overrides only — live name/phone/email/photo still resolve from advisor_profiles. */
 export function defaultCardPublishProfile(): Record<string, unknown> {
   return {
-    approvedTitle: 'Financial Advisor',
-    approvedCompany: 'Valtoris Financial',
+    approvedTitle: VALTORIS_PUBLIC_DESIGNATION,
+    approvedCompany: VALTORIS_PUBLIC_COMPANY,
     phoneVisible: true,
     emailVisible: true,
   }
+}
+
+function isUsablePublicPhone(phone: string): boolean {
+  const digits = phone.replace(/\D/g, '')
+  return digits.length >= 10
+}
+
+export type UpdateOwnAdvisorPublicProfileInput = {
+  phone: string
+  photoUrl: string
+}
+
+/**
+ * Updates live advisor_profiles phone/photo only.
+ * Never writes digital_cards — public_key and QR stay unchanged.
+ */
+export async function updateOwnAdvisorPublicProfile(
+  supabase: SupabaseClient,
+  userId: string,
+  input: UpdateOwnAdvisorPublicProfileInput,
+): Promise<{ ok: true; identity: OwnAdvisorIdentity } | { ok: false; message: string }> {
+  const loaded = await loadOwnDigitalCard(supabase, userId)
+  if (!loaded.ok) return loaded
+  if (!loaded.identity) {
+    return {
+      ok: false,
+      message: 'An advisor identity is required before public profile fields can be updated.',
+    }
+  }
+
+  const phoneRaw = typeof input.phone === 'string' ? input.phone.trim() : ''
+  const photoRaw = typeof input.photoUrl === 'string' ? input.photoUrl.trim() : ''
+
+  if (phoneRaw && !isUsablePublicPhone(phoneRaw)) {
+    return { ok: false, message: 'Enter a valid phone number including area code, or leave it blank.' }
+  }
+  if (photoRaw && !normalizePublicHref(photoRaw)) {
+    return {
+      ok: false,
+      message: 'Photo must be an https URL or a site-relative path. javascript: and other schemes are not allowed.',
+    }
+  }
+
+  const { data, error } = await supabase
+    .from('advisor_profiles')
+    .update({
+      phone: phoneRaw || null,
+      photo_url: photoRaw ? normalizePublicHref(photoRaw) : null,
+    })
+    .eq('id', loaded.identity.id)
+    .eq('user_id', userId)
+    .is('deleted_at', null)
+    .select('id, display_name, slug, email, phone, photo_url, calendly_url, user_id')
+    .single()
+
+  if (error || !data) return { ok: false, message: 'Unable to update public profile.' }
+  const identity = mapIdentity(asRecord(data))
+  if (!identity) return { ok: false, message: 'Unable to update public profile.' }
+  return { ok: true, identity }
 }
 
 export async function loadOwnDigitalCard(

@@ -15,6 +15,18 @@ export const DIGITAL_IDENTITY_CONSENT_VERSION = 'digital-identity-consent-v1' as
  */
 export const LETS_CONNECT_CTA_LABEL = "Let's Connect" as const
 
+/**
+ * Public-facing Valtoris professional designation on digital cards.
+ * Not an internal CRM role, compensation level, or table name.
+ */
+export const VALTORIS_PUBLIC_DESIGNATION = 'Financial Strategist' as const
+
+/** Public company line shown next to the designation. */
+export const VALTORIS_PUBLIC_COMPANY = 'Valtoris Financial' as const
+
+/** Retired generic public title — remapped at read time so existing cards need no republish. */
+export const LEGACY_GENERIC_PUBLIC_DESIGNATIONS = ['Financial Advisor'] as const
+
 /** v1 surface kind — only advisor cards are enabled at runtime. */
 export const V1_IDENTITY_SURFACE_KIND = 'advisor_card' as const
 

@@ -4,6 +4,7 @@
 
 import { LETS_CONNECT_CTA_LABEL, V1_IDENTITY_SURFACE_KIND } from './constants.js'
 import { getEnabledPublicCtas } from './cta.js'
+import { resolvePublicCompany, resolvePublicDesignation } from './publicDesignation.js'
 import type {
   IdentitySurface,
   IdentitySurfacePublicDto,
@@ -48,8 +49,8 @@ export function toIdentitySurfacePublicDto(input: {
     slug: surface.slug,
     kind: V1_IDENTITY_SURFACE_KIND,
     displayName: profile.displayName,
-    approvedTitle: profile.approvedTitle,
-    approvedCompany: profile.approvedCompany,
+    approvedTitle: resolvePublicDesignation(profile.approvedTitle),
+    approvedCompany: resolvePublicCompany(profile.approvedCompany),
     headline: profile.headline,
     bio: profile.bio,
     headshotUrl: profile.headshotUrl,
