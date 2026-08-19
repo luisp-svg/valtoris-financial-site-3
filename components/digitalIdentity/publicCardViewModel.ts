@@ -315,6 +315,32 @@ export function buildOutcomeSections(card: IdentitySurfacePublicDto): PublicCard
   return outcomes
 }
 
+/** Primary How I Can Help tiles on the public Digital Card. Shared catalog may include more. */
+export const PUBLIC_CARD_HELP_TILE_KEYS = [
+  'protect_family',
+  'protection_gap',
+  'grow_business',
+  'prepare_retirement',
+] as const
+
+export type PublicCardHelpTileKey = (typeof PUBLIC_CARD_HELP_TILE_KEYS)[number]
+
+/**
+ * Presentation filter for the public card How I Can Help section.
+ * Does not mutate or remove shared outcome definitions.
+ */
+export function selectPublicCardHelpTiles(
+  outcomes: readonly PublicCardOutcome[],
+): PublicCardOutcome[] {
+  const byKey = new Map(outcomes.map((outcome) => [outcome.key, outcome]))
+  const selected: PublicCardOutcome[] = []
+  for (const key of PUBLIC_CARD_HELP_TILE_KEYS) {
+    const row = byKey.get(key)
+    if (row) selected.push(row)
+  }
+  return selected
+}
+
 export function errorCopyForStatus(
   status: Exclude<PublicCardPageStatus, 'loading' | 'ready'>,
 ): PublicCardErrorCopy {

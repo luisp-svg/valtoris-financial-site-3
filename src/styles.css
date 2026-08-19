@@ -10248,13 +10248,13 @@ button.public-card-diagnostic:disabled {
   margin: 0;
 }
 
-.public-card-hero-brand .brand-wordmark-valtoris {
+.public-card-hero-brand .brand-wordmark--assessment .brand-wordmark-valtoris {
   color: #ffffff;
   font-size: 13px;
   letter-spacing: 0.22em;
 }
 
-.public-card-hero-brand .brand-wordmark-financial {
+.public-card-hero-brand .brand-wordmark--assessment .brand-wordmark-financial {
   color: var(--gold);
   font-size: 8px;
 }

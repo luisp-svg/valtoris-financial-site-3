@@ -26,19 +26,14 @@ import {
   getInitials,
   publicCardLayoutClasses,
   resolveContactVisibility,
+  selectPublicCardHelpTiles,
   vCardDownloadErrorCopy,
+  type PublicCardHelpTileKey,
   type PublicCardHeroAction,
   type PublicCardPageStatus,
 } from './publicCardViewModel'
 
-const HELP_TILE_KEYS = [
-  'protect_family',
-  'protection_gap',
-  'grow_business',
-  'prepare_retirement',
-] as const
-
-const HELP_TILE_ICONS: Record<(typeof HELP_TILE_KEYS)[number], HomeCardIconVariant> = {
+const HELP_TILE_ICONS: Record<PublicCardHelpTileKey, HomeCardIconVariant> = {
   protect_family: 'protection',
   protection_gap: 'emergency',
   grow_business: 'strategy',
@@ -160,9 +155,7 @@ function ReadyCard({ card }: { card: IdentitySurfacePublicDto }) {
   const mailHref = buildPublicMailtoHref(contact.email)
   const heroActions = buildHeroActions(card)
   const diagnostics = buildDiagnosticActions(card)
-  const outcomes = buildOutcomeSections(card).filter((outcome) =>
-    (HELP_TILE_KEYS as readonly string[]).includes(outcome.key),
-  )
+  const outcomes = selectPublicCardHelpTiles(buildOutcomeSections(card))
   const title = card.approvedTitle?.trim() || ''
   const company = card.approvedCompany?.trim() || ''
   const [vcardStatus, setVcardStatus] = useState<'idle' | 'loading' | 'error'>('idle')
@@ -376,14 +369,12 @@ function ReadyCard({ card }: { card: IdentitySurfacePublicDto }) {
         </div>
         <div className={layout.outcomeGrid}>
           {outcomes.map((outcome) => {
-            const iconKey = (HELP_TILE_KEYS as readonly string[]).includes(outcome.key)
-              ? (outcome.key as (typeof HELP_TILE_KEYS)[number])
-              : null
+            const iconVariant = HELP_TILE_ICONS[outcome.key as PublicCardHelpTileKey]
             const body = (
               <>
-                {iconKey ? (
+                {iconVariant ? (
                   <span className="public-card-outcome-icon">
-                    <HomeCardIcon variant={HELP_TILE_ICONS[iconKey]} />
+                    <HomeCardIcon variant={iconVariant} />
                   </span>
                 ) : null}
                 <div className="public-card-outcome-top">

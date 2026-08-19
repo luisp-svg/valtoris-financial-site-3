@@ -73,4 +73,32 @@ describe('public card browser/server boundary', () => {
     )
     expect(view).not.toMatch(/luis-perez\.png|\/images\/advisors\//)
   })
+
+  it('locks branded public-card classes and the four-tile How I Can Help presentation', async () => {
+    const { readFileSync } = await import('node:fs')
+    const { join } = await import('node:path')
+    const view = readFileSync(
+      join(process.cwd(), 'components/digitalIdentity/PublicAdvisorCardView.tsx'),
+      'utf8',
+    )
+    const css = readFileSync(join(process.cwd(), 'src/styles.css'), 'utf8')
+    const page = readFileSync(join(process.cwd(), 'pages/PublicAdvisorCardPage.tsx'), 'utf8')
+    const app = readFileSync(join(process.cwd(), 'src/App.tsx'), 'utf8')
+
+    expect(app).toMatch(/path=\{ROUTES\.publicCardByKey\} element=\{<PublicAdvisorCardPage/)
+    expect(page).toMatch(/from '\.\.\/components\/digitalIdentity\/PublicAdvisorCardView'/)
+    expect(view).toMatch(/public-card-hero-brand/)
+    expect(view).toMatch(/public-card-btn--call/)
+    expect(view).toMatch(/public-card-btn--text/)
+    expect(view).toMatch(/public-card-btn--light/)
+    expect(view).toMatch(/public-card-btn--connect/)
+    expect(view).toMatch(/selectPublicCardHelpTiles/)
+    expect(view).not.toMatch(/Build Business Wealth|Improve Credit|Build Business Credit/)
+
+    expect(css).toMatch(/\.public-card-hero-brand\s*\{/)
+    expect(css).toMatch(/\.public-card-btn--call\s*\{/)
+    expect(css).toMatch(/\.public-card-btn--text\s*\{/)
+    expect(css).toMatch(/\.public-card-btn--connect\s*\{/)
+    expect(css).toMatch(/\.public-card-headshot\s*\{[\s\S]*?border:\s*3px solid var\(--gold\)/)
+  })
 })

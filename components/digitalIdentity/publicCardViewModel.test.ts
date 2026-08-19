@@ -15,6 +15,7 @@ import {
   publicCardLayoutClasses,
   publicCardPageSideEffects,
   resolveContactVisibility,
+  selectPublicCardHelpTiles,
 } from './publicCardViewModel'
 
 function sampleCard(overrides: Partial<IdentitySurfacePublicDto> = {}): IdentitySurfacePublicDto {
@@ -189,6 +190,28 @@ describe('publicCardViewModel', () => {
     const credit = outcomes.filter((o) => o.comingSoon)
     expect(credit.map((o) => o.title)).toEqual(['Improve Credit', 'Build Business Credit'])
     expect(credit.every((o) => o.href === null)).toBe(true)
+  })
+
+  it('selects only the four primary How I Can Help tiles for the public card', () => {
+    const catalog = buildOutcomeSections(sampleCard())
+    expect(catalog.map((o) => o.title)).toEqual([
+      'Protect Your Family',
+      'Close Protection Gaps',
+      'Grow Your Business',
+      'Prepare for Retirement',
+      'Build Business Wealth',
+      'Improve Credit',
+      'Build Business Credit',
+    ])
+    const help = selectPublicCardHelpTiles(catalog)
+    expect(help.map((o) => o.title)).toEqual([
+      'Protect Your Family',
+      'Close Protection Gaps',
+      'Grow Your Business',
+      'Prepare for Retirement',
+    ])
+    expect(help.some((o) => o.title === 'Build Business Wealth')).toBe(false)
+    expect(help.every((o) => o.href)).toBe(true)
   })
 
   it('maps error states to consistent user copy', () => {
