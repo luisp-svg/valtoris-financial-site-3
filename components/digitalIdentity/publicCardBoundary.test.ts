@@ -32,7 +32,7 @@ describe('public card browser/server boundary', () => {
       createsLead: false,
       createsHousehold: false,
       downloadsVCard: true,
-      downloadsQr: true,
+      downloadsQr: false,
       opensConnectForm: true,
     })
   })
@@ -82,6 +82,10 @@ describe('public card browser/server boundary', () => {
       'utf8',
     )
     const css = readFileSync(join(process.cwd(), 'src/styles.css'), 'utf8')
+    const constants = readFileSync(
+      join(process.cwd(), 'modules/digital-identity/constants.ts'),
+      'utf8',
+    )
     const page = readFileSync(join(process.cwd(), 'pages/PublicAdvisorCardPage.tsx'), 'utf8')
     const app = readFileSync(join(process.cwd(), 'src/App.tsx'), 'utf8')
 
@@ -93,12 +97,19 @@ describe('public card browser/server boundary', () => {
     expect(view).toMatch(/public-card-btn--light/)
     expect(view).toMatch(/public-card-btn--connect/)
     expect(view).toMatch(/selectPublicCardHelpTiles/)
+    expect(view).toMatch(/public-card-btn--book/)
+    expect(view).toMatch(/Connect With Me/)
+    expect(view).toMatch(/VALTORIS_PUBLIC_TAGLINE/)
+    expect(constants).toMatch(/Strategy Today\. Security Tomorrow/)
+    expect(css).toMatch(/\.public-card-tagline\s*\{/)
+    expect(view).not.toMatch(/Download QR/)
+    expect(view).not.toMatch(/Tools & Diagnostics/)
     expect(view).not.toMatch(/Build Business Wealth|Improve Credit|Build Business Credit/)
 
     expect(css).toMatch(/\.public-card-hero-brand\s*\{/)
     expect(css).toMatch(/\.public-card-btn--call\s*\{/)
     expect(css).toMatch(/\.public-card-btn--text\s*\{/)
     expect(css).toMatch(/\.public-card-btn--connect\s*\{/)
-    expect(css).toMatch(/\.public-card-headshot\s*\{[\s\S]*?border:\s*3px solid var\(--gold\)/)
+    expect(css).toMatch(/\.public-card-headshot\s*\{[\s\S]*?border:\s*4px solid var\(--gold\)/)
   })
 })

@@ -9,12 +9,14 @@ import {
   buildPublicTelHref,
   documentTitleForCard,
   errorCopyForStatus,
+  formatPublicPhoneDisplay,
   getInitials,
   mapFetchFailureToStatus,
   PUBLIC_CARD_A11Y_CONTRACT,
   publicCardLayoutClasses,
   publicCardPageSideEffects,
   resolveContactVisibility,
+  selectConfiguredSocialLinks,
   selectPublicCardHelpTiles,
 } from './publicCardViewModel'
 
@@ -146,9 +148,19 @@ describe('publicCardViewModel', () => {
     expect(buildPublicSmsHref('javascript:alert(1)')).toBeNull()
   })
 
+  it('formats US phone numbers for display without changing tel hrefs', () => {
+    expect(formatPublicPhoneDisplay('3104046109')).toBe('(310) 404-6109')
+    expect(formatPublicPhoneDisplay('13104046109')).toBe('(310) 404-6109')
+    expect(formatPublicPhoneDisplay('(310) 404-6109')).toBe('(310) 404-6109')
+    expect(buildPublicTelHref('3104046109')).toBe('tel:+13104046109')
+  })
+
   it('shows appointment only when Calendly exists', () => {
     const withCalendly = buildHeroActions(sampleCard())
-    expect(withCalendly.some((a) => a.key === 'book_appointment')).toBe(true)
+    const book = withCalendly.find((a) => a.key === 'book_appointment')
+    expect(book?.label).toBe('Book a Meeting')
+    expect(book?.href).toBe('https://calendly.com/jane')
+    expect(book?.href?.startsWith('https:')).toBe(true)
 
     const without = buildHeroActions(
       sampleCard({
@@ -166,6 +178,30 @@ describe('publicCardViewModel', () => {
       }),
     )
     expect(without.some((a) => a.key === 'book_appointment')).toBe(false)
+  })
+
+  it('omits Book a Meeting when the calendly URL is not a public https href', () => {
+    const actions = buildHeroActions(
+      sampleCard({
+        calendlyUrl: 'javascript:alert(1)',
+        ctas: [{ key: 'lets_connect', label: "Let's Connect", enabled: true }],
+      }),
+    )
+    expect(actions.some((a) => a.key === 'book_appointment')).toBe(false)
+  })
+
+  it('selects only configured https social links', () => {
+    const links = selectConfiguredSocialLinks(
+      sampleCard({
+        socialLinks: [
+          { key: 'linkedin', label: 'LinkedIn', url: 'https://linkedin.com/in/jane' },
+          { key: 'bad', label: 'Bad', url: 'javascript:alert(1)' },
+        ],
+      }),
+    )
+    expect(links).toEqual([
+      { key: 'linkedin', label: 'LinkedIn', url: 'https://linkedin.com/in/jane' },
+    ])
   })
 
   it('includes API diagnostic CTAs and Credit Assessment coming soon', () => {
@@ -247,7 +283,7 @@ describe('publicCardViewModel', () => {
       createsLead: false,
       createsHousehold: false,
       downloadsVCard: true,
-      downloadsQr: true,
+      downloadsQr: false,
       opensConnectForm: true,
       importsAdminClient: false,
     })

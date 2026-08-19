@@ -3,10 +3,11 @@
  * No I/O, no admin client, no analytics/CRM side effects.
  */
 
-import { LETS_CONNECT_CTA_LABEL } from '../../modules/digital-identity'
+import { LETS_CONNECT_CTA_LABEL, normalizePublicHref } from '../../modules/digital-identity'
 import type {
   IdentityCtaConfigItem,
   IdentityCtaKey,
+  IdentitySocialLink,
   IdentitySurfacePublicDto,
 } from '../../modules/digital-identity'
 import { ROUTES } from '../../constants/routes'
@@ -131,6 +132,34 @@ export function buildPublicMailtoHref(email: string | null | undefined): string 
 }
 
 /**
+ * Display-only US phone formatting. Does not change tel:/sms: hrefs.
+ */
+export function formatPublicPhoneDisplay(phone: string | null | undefined): string | null {
+  if (typeof phone !== 'string') return null
+  const trimmed = phone.trim()
+  if (!trimmed) return null
+  const digits = trimmed.replace(/\D/g, '')
+  const national = digits.length === 11 && digits.startsWith('1') ? digits.slice(1) : digits
+  if (national.length !== 10) return trimmed
+  return `(${national.slice(0, 3)}) ${national.slice(3, 6)}-${national.slice(6)}`
+}
+
+/** Safe https/site-relative social links already present on the public DTO. */
+export function selectConfiguredSocialLinks(
+  card: IdentitySurfacePublicDto,
+): IdentitySocialLink[] {
+  const out: IdentitySocialLink[] = []
+  for (const link of card.socialLinks) {
+    const url = normalizePublicHref(link.url)
+    const key = link.key.trim()
+    const label = link.label.trim()
+    if (!url || !key || !label) continue
+    out.push({ key, label, url })
+  }
+  return out
+}
+
+/**
  * Hero actions (mobile-first):
  * - Call / Text / Email → tel/sms/mailto when public contact exists
  * - Save Contact → Smart vCard download (server-generated)
@@ -188,11 +217,12 @@ export function buildHeroActions(card: IdentitySurfacePublicDto): PublicCardHero
   )
 
   const book = ctaByKey(card.ctas, 'book_appointment')
-  const calendly = card.calendlyUrl?.trim() || book?.href?.trim() || null
+  const calendly =
+    normalizePublicHref(card.calendlyUrl) || normalizePublicHref(book?.href ?? null)
   if (calendly) {
     actions.push({
       key: 'book_appointment',
-      label: book?.label?.trim() || 'Book Appointment',
+      label: 'Book a Meeting',
       mode: 'external_link',
       href: calendly,
       comingSoonBadge: false,
@@ -416,8 +446,8 @@ export function publicCardPageSideEffects(): {
   createsHousehold: false
   /** Smart vCard download via public API — never a CRM write. */
   downloadsVCard: true
-  /** QR download via public API — key route only; never analytics. */
-  downloadsQr: true
+  /** Prospect public card does not download QR; CRM Campaigns still does. */
+  downloadsQr: false
   /** Let's Connect modal submits via public ingest API (server creates CRM records). */
   opensConnectForm: true
   importsAdminClient: false
@@ -427,7 +457,7 @@ export function publicCardPageSideEffects(): {
     createsLead: false,
     createsHousehold: false,
     downloadsVCard: true,
-    downloadsQr: true,
+    downloadsQr: false,
     opensConnectForm: true,
     importsAdminClient: false,
   }

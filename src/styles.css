@@ -9714,18 +9714,21 @@ p { color: var(--muted); line-height: 1.7; }
 .public-card-page {
   --public-card-blue: #1d4ed8;
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
   background:
-    radial-gradient(900px 420px at 50% -8%, rgba(29, 78, 216, 0.07), transparent 58%),
-    linear-gradient(180deg, #eef3f9 0%, #f5f7fb 38%, #eef2f7 100%);
+    radial-gradient(900px 420px at 50% -8%, rgba(29, 78, 216, 0.08), transparent 58%),
+    linear-gradient(180deg, #e8eef7 0%, #f4f7fb 42%, #eef2f7 100%);
   color: var(--text);
 }
 
 .public-card-shell {
   width: min(920px, calc(100% - 32px));
   margin: 0 auto;
-  padding: 28px 0 48px;
+  padding: 20px 0 36px;
   display: grid;
   gap: 28px;
+  flex: 1 0 auto;
 }
 
 .public-card-hero {
@@ -9739,21 +9742,36 @@ p { color: var(--muted); line-height: 1.7; }
 
 .public-card-hero-brand {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 14px 20px 38px;
-  background: var(--brand);
+  gap: 10px;
+  padding: 22px 20px 64px;
+  background:
+    radial-gradient(90% 140% at 50% -30%, rgba(29, 78, 216, 0.42), transparent 58%),
+    linear-gradient(180deg, #0a1a63 0%, var(--brand) 72%);
   position: relative;
 }
 
 .public-card-hero-brand::after {
   content: '';
   position: absolute;
-  left: 0;
-  right: 0;
+  left: 12%;
+  right: 12%;
   bottom: 0;
   height: 2px;
-  background: var(--gold);
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+
+.public-card-tagline {
+  margin: 0;
+  color: var(--gold);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-align: center;
+  line-height: 1.35;
 }
 
 .public-card-hero-inner {
@@ -9761,19 +9779,19 @@ p { color: var(--muted); line-height: 1.7; }
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 10px;
-  padding: 0 20px 24px;
-  margin-top: -36px;
+  gap: 8px;
+  padding: 0 20px 28px;
+  margin-top: -58px;
 }
 
 .public-card-headshot {
-  width: 96px;
-  height: 96px;
+  width: 132px;
+  height: 132px;
   border-radius: 50%;
   object-fit: cover;
   background: #e8eef7;
-  border: 3px solid var(--gold);
-  box-shadow: 0 0 0 3px #fff, 0 10px 24px rgba(7, 20, 77, 0.18);
+  border: 4px solid var(--gold);
+  box-shadow: 0 0 0 4px #fff, 0 14px 28px rgba(7, 20, 77, 0.22);
 }
 
 .public-card-headshot--fallback {
@@ -9781,38 +9799,31 @@ p { color: var(--muted); line-height: 1.7; }
   place-items: center;
   background: linear-gradient(160deg, var(--brand) 0%, #132a72 100%);
   color: #fff;
-  font-size: 1.6rem;
+  font-size: 2.1rem;
   font-weight: 700;
   letter-spacing: 0.02em;
 }
 
 .public-card-name {
-  margin: 10px 0 0;
-  font-size: clamp(1.7rem, 5vw, 2.15rem);
-  line-height: 1.15;
+  margin: 14px 0 0;
+  font-size: clamp(2rem, 6vw, 2.55rem);
+  line-height: 1.12;
   letter-spacing: -0.03em;
   color: var(--brand);
   font-weight: 800;
 }
 
-.public-card-meta {
-  margin: 0;
-  font-size: 1rem;
-  line-height: 1.4;
-}
-
 .public-card-meta-title {
+  margin: 2px 0 0;
   color: var(--public-card-blue);
-  font-weight: 700;
-}
-
-.public-card-meta-sep {
-  color: var(--gold);
+  font-size: 1.05rem;
   font-weight: 700;
 }
 
 .public-card-meta-company {
+  margin: 0;
   color: #5b6b86;
+  font-size: 0.95rem;
   font-weight: 500;
 }
 
@@ -9826,14 +9837,14 @@ p { color: var(--muted); line-height: 1.7; }
 
 .public-card-contact-list {
   list-style: none;
-  margin: 6px 0 0;
+  margin: 10px 0 0;
   padding: 0;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 8px 16px;
+  gap: 10px 20px;
   color: var(--muted);
-  font-size: 0.9375rem;
+  font-size: 1rem;
 }
 
 .public-card-contact-list a {
@@ -9858,7 +9869,7 @@ p { color: var(--muted); line-height: 1.7; }
 }
 
 .public-card-hero-actions {
-  margin-top: 12px;
+  margin-top: 16px;
   width: 100%;
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -9868,6 +9879,7 @@ p { color: var(--muted); line-height: 1.7; }
 .public-card-btn {
   min-width: 0;
   width: 100%;
+  gap: 8px;
 }
 
 .public-card-btn--call {
@@ -9922,6 +9934,23 @@ p { color: var(--muted); line-height: 1.7; }
 
 .public-card-btn--connect:focus-visible {
   outline-color: var(--brand);
+}
+
+.public-card-btn--book {
+  grid-column: 1 / -1;
+  background: var(--brand);
+  color: #ffffff;
+  border-color: var(--brand);
+  box-shadow: 0 8px 20px rgba(7, 20, 77, 0.16);
+}
+
+.public-card-btn--book:hover:not(:disabled) {
+  background: var(--brand-dark);
+  border-color: var(--brand-dark);
+}
+
+.public-card-action-icon {
+  flex: 0 0 auto;
 }
 
 .public-card-btn--qr {
@@ -9994,7 +10023,8 @@ p { color: var(--muted); line-height: 1.7; }
 .public-card-section-heading {
   display: grid;
   gap: 6px;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
+  text-align: center;
 }
 
 .public-card-section-heading h2 {
@@ -10013,20 +10043,21 @@ p { color: var(--muted); line-height: 1.7; }
 .public-card-outcome-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 14px;
 }
 
 .public-card-outcome {
   display: grid;
-  gap: 8px;
-  padding: 16px 14px 18px;
-  border-radius: 18px;
+  justify-items: center;
+  gap: 10px;
+  padding: 22px 16px 20px;
+  border-radius: 20px;
   background: var(--surface);
   border: 1px solid rgba(7, 20, 77, 0.08);
-  box-shadow: 0 6px 18px rgba(7, 20, 77, 0.05);
+  box-shadow: 0 8px 22px rgba(7, 20, 77, 0.06);
   transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
   color: inherit;
-  text-align: left;
+  text-align: center;
 }
 
 a.public-card-outcome:hover {
@@ -10047,32 +10078,25 @@ a.public-card-outcome:focus-visible {
 .public-card-outcome-icon {
   display: grid;
   place-items: center;
-  width: 42px;
-  height: 42px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
-  background: var(--brand);
+  background: linear-gradient(160deg, #132a72 0%, var(--brand) 55%, var(--public-card-blue) 100%);
 }
 
 .public-card-outcome-icon .home-card-icon {
-  width: 42px;
-  height: 42px;
+  width: 56px;
+  height: 56px;
   margin: 0;
   border: 0;
   border-radius: 50%;
   background-color: transparent;
-  background-size: 22px 22px;
-}
-
-.public-card-outcome-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 8px;
+  background-size: 26px 26px;
 }
 
 .public-card-outcome h3 {
   margin: 0;
-  font-size: 0.98rem;
+  font-size: 1.08rem;
   letter-spacing: -0.015em;
   color: var(--brand);
 }
@@ -10080,13 +10104,13 @@ a.public-card-outcome:focus-visible {
 .public-card-outcome p {
   margin: 0;
   color: #475569;
-  font-size: 0.875rem;
+  font-size: 0.9rem;
   line-height: 1.45;
 }
 
 .public-card-outcome-link {
   margin-top: 2px;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 700;
   color: var(--public-card-blue);
 }
@@ -10160,8 +10184,7 @@ button.public-card-diagnostic:disabled {
   white-space: pre-wrap;
 }
 
-.public-card-specialty-list,
-.public-card-social-list {
+.public-card-specialty-list {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -10179,53 +10202,73 @@ button.public-card-diagnostic:disabled {
   font-weight: 600;
 }
 
+.public-card-social-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
 .public-card-social-list a {
   display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
   padding: 10px 16px;
   border-radius: 999px;
-  border: 1px solid var(--platform-border);
+  border: 1px solid rgba(7, 20, 77, 0.12);
   background: var(--surface);
   color: var(--brand);
   font-weight: 600;
   font-size: 0.875rem;
 }
 
-.public-card-social-list a:hover {
-  border-color: rgba(7, 20, 77, 0.25);
-}
-
-.public-card-social-list a:focus-visible {
-  outline: 2px solid var(--gold);
-  outline-offset: 3px;
+.public-card-footer .public-card-social-list a {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #fff;
 }
 
 .public-card-footer {
   display: flex;
+  flex-direction: column;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  padding-top: 8px;
-  color: var(--muted);
-  font-size: 0.875rem;
+  gap: 12px;
+  padding: 28px 20px 32px;
+  background:
+    radial-gradient(80% 120% at 50% -20%, rgba(29, 78, 216, 0.28), transparent 55%),
+    var(--brand);
+  color: #fff;
 }
 
-.public-card-footer a {
-  color: var(--brand);
+.public-card-footer-privacy {
+  color: #fff;
   font-weight: 600;
   text-decoration: underline;
   text-underline-offset: 3px;
 }
 
-.public-card-footer a:focus-visible {
+.public-card-footer-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.public-card-social-list a:hover {
+  border-color: rgba(7, 20, 77, 0.25);
+}
+
+.public-card-social-list a:focus-visible,
+.public-card-footer-privacy:focus-visible {
   outline: 2px solid var(--gold);
   outline-offset: 3px;
   border-radius: 4px;
-}
-
-.public-card-powered strong {
-  color: var(--brand);
-  font-weight: 700;
 }
 
 .public-card-state {
@@ -10248,15 +10291,17 @@ button.public-card-diagnostic:disabled {
   margin: 0;
 }
 
-.public-card-hero-brand .brand-wordmark--assessment .brand-wordmark-valtoris {
+.public-card-hero-brand .brand-wordmark--assessment .brand-wordmark-valtoris,
+.public-card-footer-brand .brand-wordmark--assessment .brand-wordmark-valtoris {
   color: #ffffff;
-  font-size: 13px;
+  font-size: 22px;
   letter-spacing: 0.22em;
 }
 
-.public-card-hero-brand .brand-wordmark--assessment .brand-wordmark-financial {
+.public-card-hero-brand .brand-wordmark--assessment .brand-wordmark-financial,
+.public-card-footer-brand .brand-wordmark--assessment .brand-wordmark-financial {
   color: var(--gold);
-  font-size: 8px;
+  font-size: 11px;
 }
 
 .public-card-state-title {
@@ -10280,11 +10325,11 @@ button.public-card-diagnostic:disabled {
   border-radius: 12px;
 }
 
-.public-card-skeleton--avatar {
-  width: 96px;
-  height: 96px;
-  border-radius: 50%;
-}
+  .public-card-skeleton--avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+  }
 
 .public-card-skeleton--line {
   width: min(240px, 70%);
@@ -10308,17 +10353,17 @@ button.public-card-diagnostic:disabled {
   }
 
   .public-card-hero-brand {
-    padding: 16px 28px 44px;
+    padding: 28px 28px 72px;
   }
 
   .public-card-hero-inner {
-    padding: 0 32px 28px;
-    margin-top: -42px;
+    padding: 0 32px 32px;
+    margin-top: -68px;
   }
 
   .public-card-headshot {
-    width: 116px;
-    height: 116px;
+    width: 152px;
+    height: 152px;
   }
 
   .public-card-outcome {
@@ -10343,22 +10388,23 @@ button.public-card-diagnostic:disabled {
 @media (max-width: 430px) {
   .public-card-shell {
     width: min(100% - 20px, 720px);
-    padding: 18px 0 40px;
+    padding: 12px 0 28px;
     gap: 22px;
   }
 
   .public-card-hero-brand {
-    padding: 12px 16px 36px;
+    padding: 18px 16px 56px;
   }
 
   .public-card-hero-inner {
-    padding: 0 16px 20px;
+    padding: 0 16px 22px;
+    margin-top: -52px;
     gap: 8px;
   }
 
   .public-card-headshot {
-    width: 92px;
-    height: 92px;
+    width: 120px;
+    height: 120px;
   }
 
   .public-card-name {

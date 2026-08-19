@@ -24,6 +24,9 @@ export const VALTORIS_PUBLIC_DESIGNATION = 'Financial Strategist' as const
 /** Public company line shown next to the designation. */
 export const VALTORIS_PUBLIC_COMPANY = 'Valtoris Financial' as const
 
+/** Public brand tagline on Digital Identity cards and footer. */
+export const VALTORIS_PUBLIC_TAGLINE = 'Strategy Today. Security Tomorrow.' as const
+
 /** Retired generic public title — remapped at read time so existing cards need no republish. */
 export const LEGACY_GENERIC_PUBLIC_DESIGNATIONS = ['Financial Advisor'] as const
 
