@@ -27,6 +27,16 @@ export function normalizePublicHref(value: unknown): string | null {
   }
 }
 
+/**
+ * Booking and social links must be absolute https.
+ * Rejects site-relative paths plus javascript:, data:, http:, and //.
+ */
+export function normalizePublicHttpsUrl(value: unknown): string | null {
+  const href = normalizePublicHref(value)
+  if (!href || !href.startsWith('https://')) return null
+  return href
+}
+
 /** Durable public card path (canonical address for QR/NFC). */
 export function buildPublicCardPath(publicKey: string): string {
   return `/c/k/${publicKey}`

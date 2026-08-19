@@ -75,7 +75,21 @@ export {
   normalizeIdentitySlug,
 } from './slug.js'
 
-export { buildPublicCardPath, buildPublicCardSlugPath, normalizePublicHref } from './urls.js'
+export {
+  buildPublicCardPath,
+  buildPublicCardSlugPath,
+  normalizePublicHref,
+  normalizePublicHttpsUrl,
+} from './urls.js'
+
+export {
+  PUBLIC_SOCIAL_NETWORKS,
+  buildConfiguredSocialLinks,
+  emptyPublicSocialDrafts,
+  mergePublishProfileSocialLinks,
+  socialDraftsFromPublishProfile,
+} from './socialLinks.js'
+export type { PublicSocialDrafts, PublicSocialNetworkKey } from './socialLinks.js'
 
 export {
   contactExchangeCreatesCase,

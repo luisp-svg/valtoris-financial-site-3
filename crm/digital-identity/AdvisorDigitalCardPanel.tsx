@@ -7,12 +7,17 @@ import {
   triggerQrBrowserDownload,
 } from '../../components/digitalIdentity/downloadPublicCardQr'
 import {
+  PUBLIC_SOCIAL_NETWORKS,
+  emptyPublicSocialDrafts,
   normalizePublicHref,
   type PublicCardQrFormat,
+  type PublicSocialDrafts,
+  type PublicSocialNetworkKey,
 } from '../../modules/digital-identity'
 import {
   loadOwnDigitalCard,
   publishOwnDigitalCard,
+  updateOwnAdvisorPublicLinks,
   updateOwnAdvisorPublicProfile,
   type OwnAdvisorIdentity,
   type OwnDigitalCard,
@@ -40,7 +45,10 @@ export default function AdvisorDigitalCardPanel({
   const [qrLoading, setQrLoading] = useState(false)
   const [phoneDraft, setPhoneDraft] = useState('')
   const [photoDraft, setPhotoDraft] = useState('')
+  const [calendlyDraft, setCalendlyDraft] = useState('')
+  const [socialDrafts, setSocialDrafts] = useState<PublicSocialDrafts>(() => emptyPublicSocialDrafts())
   const [savingProfile, setSavingProfile] = useState(false)
+  const [savingLinks, setSavingLinks] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -58,6 +66,8 @@ export default function AdvisorDigitalCardPanel({
     setIdentity(result.identity)
     setPhoneDraft(result.identity?.phone ?? '')
     setPhotoDraft(result.identity?.photoUrl ?? '')
+    setCalendlyDraft(result.identity?.calendlyUrl ?? '')
+    setSocialDrafts(result.card?.socialDrafts ?? emptyPublicSocialDrafts())
     setCard(result.card)
     setLoading(false)
   }, [supabase, userId])
@@ -151,6 +161,33 @@ export default function AdvisorDigitalCardPanel({
     setPhoneDraft(result.identity.phone ?? '')
     setPhotoDraft(result.identity.photoUrl ?? '')
     setMessage('Public photo and phone saved. The permanent QR did not change.')
+  }
+
+  async function handleSavePublicLinks(event: FormEvent) {
+    event.preventDefault()
+    setSavingLinks(true)
+    setError(null)
+    setMessage(null)
+    const result = await updateOwnAdvisorPublicLinks(supabase, userId, {
+      calendlyUrl: calendlyDraft,
+      socialDrafts,
+    })
+    setSavingLinks(false)
+    if (!result.ok) {
+      setError(result.message)
+      return
+    }
+    setIdentity(result.identity)
+    setCalendlyDraft(result.identity.calendlyUrl ?? '')
+    if (result.card) {
+      setCard(result.card)
+      setSocialDrafts(result.card.socialDrafts)
+    }
+    setMessage('Public links saved. The permanent QR did not change.')
+  }
+
+  function updateSocialDraft(key: PublicSocialNetworkKey, value: string) {
+    setSocialDrafts((prev) => ({ ...prev, [key]: value }))
   }
 
   async function copyCardUrl() {
@@ -329,6 +366,54 @@ export default function AdvisorDigitalCardPanel({
               disabled={savingProfile}
             >
               {savingProfile ? 'Saving…' : 'Save phone and photo'}
+            </button>
+          </div>
+        </form>
+      ) : null}
+
+      {!loading && identity ? (
+        <form className="crm-form" onSubmit={(event) => void handleSavePublicLinks(event)}>
+          <h3 className="crm-digital-card-profile-title">Public links</h3>
+          <p className="crm-muted">
+            Book a Meeting uses your Calendly URL on the advisor profile. Social links are stored on
+            the digital card publish profile. Saving does not change the permanent QR.
+          </p>
+          <label>
+            Public booking / Calendly URL
+            <input
+              type="url"
+              value={calendlyDraft}
+              onChange={(event) => setCalendlyDraft(event.target.value)}
+              placeholder="https://"
+              autoComplete="url"
+            />
+          </label>
+          {PUBLIC_SOCIAL_NETWORKS.map((network) => (
+            <label key={network.key}>
+              {network.label}
+              <input
+                type="url"
+                value={socialDrafts[network.key]}
+                onChange={(event) => updateSocialDraft(network.key, event.target.value)}
+                placeholder="https://"
+                autoComplete="url"
+                disabled={!card}
+              />
+            </label>
+          ))}
+          {!card ? (
+            <p className="crm-muted">
+              Create and publish your digital card before saving social links. Booking can still be
+              saved.
+            </p>
+          ) : null}
+          <div className="platform-btn-row">
+            <button
+              type="submit"
+              className="platform-btn platform-btn-primary"
+              disabled={savingLinks}
+            >
+              {savingLinks ? 'Saving…' : 'Save public links'}
             </button>
           </div>
         </form>

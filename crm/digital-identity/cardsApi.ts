@@ -5,14 +5,19 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import {
+  buildConfiguredSocialLinks,
   buildPublicCardPath,
   createDefaultAdvisorCardCtas,
   generateIdentityPublicKey,
   isValidIdentityPublicKey,
   isValidIdentitySlug,
+  mergePublishProfileSocialLinks,
   normalizePublicHref,
+  normalizePublicHttpsUrl,
+  socialDraftsFromPublishProfile,
   VALTORIS_PUBLIC_COMPANY,
   VALTORIS_PUBLIC_DESIGNATION,
+  type PublicSocialDrafts,
 } from '../../modules/digital-identity'
 
 export type OwnAdvisorIdentity = {
@@ -32,6 +37,7 @@ export type OwnDigitalCard = {
   status: 'draft' | 'published' | 'disabled'
   displayName: string
   cardPath: string
+  socialDrafts: PublicSocialDrafts
 }
 
 export type LoadOwnDigitalCardResult =
@@ -39,7 +45,8 @@ export type LoadOwnDigitalCardResult =
   | { ok: true; identity: null; card: null }
   | { ok: false; message: string }
 
-const CARD_SELECT = 'id, public_key, slug, status, deleted_at'
+const CARD_SELECT = 'id, public_key, slug, status, deleted_at, publish_profile'
+const IDENTITY_SELECT = 'id, display_name, slug, email, phone, photo_url, calendly_url, user_id'
 
 function asRecord(value: unknown): Record<string, unknown> {
   if (value && typeof value === 'object' && !Array.isArray(value)) {
@@ -83,6 +90,7 @@ function mapCard(
     status,
     displayName,
     cardPath: buildPublicCardPath(row.public_key),
+    socialDrafts: socialDraftsFromPublishProfile(row.publish_profile),
   }
 }
 
@@ -146,13 +154,110 @@ export async function updateOwnAdvisorPublicProfile(
     .eq('id', loaded.identity.id)
     .eq('user_id', userId)
     .is('deleted_at', null)
-    .select('id, display_name, slug, email, phone, photo_url, calendly_url, user_id')
+    .select(IDENTITY_SELECT)
     .single()
 
   if (error || !data) return { ok: false, message: 'Unable to update public profile.' }
   const identity = mapIdentity(asRecord(data))
   if (!identity) return { ok: false, message: 'Unable to update public profile.' }
   return { ok: true, identity }
+}
+
+export type UpdateOwnAdvisorPublicLinksInput = {
+  calendlyUrl: string
+  socialDrafts: PublicSocialDrafts
+}
+
+/**
+ * Updates advisor_profiles.calendly_url and digital_cards.publish_profile.socialLinks.
+ * Merges socialLinks only — never rotates public_key or rewrites cta_config / unrelated profile keys.
+ */
+export async function updateOwnAdvisorPublicLinks(
+  supabase: SupabaseClient,
+  userId: string,
+  input: UpdateOwnAdvisorPublicLinksInput,
+): Promise<
+  | { ok: true; identity: OwnAdvisorIdentity; card: OwnDigitalCard | null }
+  | { ok: false; message: string }
+> {
+  const loaded = await loadOwnDigitalCard(supabase, userId)
+  if (!loaded.ok) return loaded
+  if (!loaded.identity) {
+    return {
+      ok: false,
+      message: 'An advisor identity is required before public links can be updated.',
+    }
+  }
+
+  const calendlyRaw = typeof input.calendlyUrl === 'string' ? input.calendlyUrl.trim() : ''
+  let calendlyUrl: string | null = null
+  if (calendlyRaw) {
+    calendlyUrl = normalizePublicHttpsUrl(calendlyRaw)
+    if (!calendlyUrl) {
+      return {
+        ok: false,
+        message:
+          'Booking URL must be https. javascript:, data:, http:, and other schemes are not allowed.',
+      }
+    }
+  }
+
+  const socials = buildConfiguredSocialLinks(input.socialDrafts)
+  if (!socials.ok) return socials
+  if (!loaded.card && socials.links.length > 0) {
+    return {
+      ok: false,
+      message: 'Create and publish your digital card before saving social links.',
+    }
+  }
+
+  const { data: identityRow, error: identityError } = await supabase
+    .from('advisor_profiles')
+    .update({ calendly_url: calendlyUrl })
+    .eq('id', loaded.identity.id)
+    .eq('user_id', userId)
+    .is('deleted_at', null)
+    .select(IDENTITY_SELECT)
+    .single()
+
+  if (identityError || !identityRow) {
+    return { ok: false, message: 'Unable to update public booking URL.' }
+  }
+  const identity = mapIdentity(asRecord(identityRow))
+  if (!identity) return { ok: false, message: 'Unable to update public booking URL.' }
+
+  if (!loaded.card) return { ok: true, identity, card: null }
+
+  const { data: currentRow, error: currentError } = await supabase
+    .from('digital_cards')
+    .select(CARD_SELECT)
+    .eq('id', loaded.card.id)
+    .eq('advisor_profile_id', identity.id)
+    .is('deleted_at', null)
+    .maybeSingle()
+
+  if (currentError || !currentRow) return { ok: false, message: 'Unable to update social links.' }
+  const current = asRecord(currentRow)
+  if (current.public_key !== loaded.card.publicKey) {
+    return { ok: false, message: 'Unable to update social links.' }
+  }
+
+  const publishProfile = mergePublishProfileSocialLinks(current.publish_profile, socials.links)
+  const { data: cardRow, error: cardError } = await supabase
+    .from('digital_cards')
+    .update({ publish_profile: publishProfile })
+    .eq('id', loaded.card.id)
+    .eq('advisor_profile_id', identity.id)
+    .select(CARD_SELECT)
+    .single()
+
+  if (cardError || !cardRow) return { ok: false, message: 'Unable to update social links.' }
+  const card = mapCard(asRecord(cardRow), identity.displayName)
+  if (!card) return { ok: false, message: 'Unable to update social links.' }
+  if (card.publicKey !== loaded.card.publicKey) {
+    return { ok: false, message: 'Unable to update social links.' }
+  }
+  return { ok: true, identity, card }
 }
 
 export async function loadOwnDigitalCard(
@@ -163,7 +268,7 @@ export async function loadOwnDigitalCard(
 
   const { data: identityRow, error: identityError } = await supabase
     .from('advisor_profiles')
-    .select('id, display_name, slug, email, phone, photo_url, calendly_url, user_id')
+    .select(IDENTITY_SELECT)
     .eq('user_id', userId)
     .eq('is_active', true)
     .is('deleted_at', null)

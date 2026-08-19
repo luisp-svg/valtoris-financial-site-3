@@ -7,15 +7,80 @@ import {
   digitalCardApiSideEffects,
   loadOwnDigitalCard,
   publishOwnDigitalCard,
+  updateOwnAdvisorPublicLinks,
   updateOwnAdvisorPublicProfile,
 } from './cardsApi'
 import {
   buildPublicCardPath,
+  emptyPublicSocialDrafts,
   isValidIdentityPublicKey,
   VALTORIS_PUBLIC_DESIGNATION,
 } from '../../modules/digital-identity'
 
 const ROOT = join(import.meta.dirname, '../..')
+const FIXED_PUBLIC_KEY = 'pk_live_abcdefghijklmnop'
+
+function identityRow(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 'adv-1',
+    display_name: 'Luis Perez',
+    slug: 'luis-dev',
+    email: 'luis@example.com',
+    phone: null,
+    photo_url: null,
+    calendly_url: null,
+    user_id: 'user-1',
+    ...overrides,
+  }
+}
+
+function cardRow(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 'card-1',
+    public_key: FIXED_PUBLIC_KEY,
+    slug: 'luis-dev',
+    status: 'published',
+    deleted_at: null,
+    publish_profile: {
+      approvedTitle: 'Financial Strategist',
+      approvedCompany: 'Valtoris Financial',
+      phoneVisible: true,
+      emailVisible: true,
+      headline: 'Keep me',
+      contactVisibility: { phone: true },
+    },
+    ...overrides,
+  }
+}
+
+function chainableTable(options: {
+  loadData: () => unknown
+  onUpdate?: (row: Record<string, unknown>) => void
+  eqCalls?: unknown[][]
+}) {
+  const api: {
+    select: () => typeof api
+    eq: (...args: unknown[]) => typeof api
+    is: () => typeof api
+    maybeSingle: () => Promise<{ data: unknown; error: null }>
+    single: () => Promise<{ data: unknown; error: null }>
+    update: (row: Record<string, unknown>) => typeof api
+  } = {
+    select: () => api,
+    eq: (...args: unknown[]) => {
+      options.eqCalls?.push(args)
+      return api
+    },
+    is: () => api,
+    maybeSingle: async () => ({ data: options.loadData(), error: null }),
+    single: async () => ({ data: options.loadData(), error: null }),
+    update: (row: Record<string, unknown>) => {
+      options.onUpdate?.(row)
+      return api
+    },
+  }
+  return api
+}
 
 function mockFrom(handlers: Record<string, (table: string) => unknown>) {
   return {
@@ -119,6 +184,8 @@ describe('cardsApi', () => {
     expect(result.card.cardPath).toBe('/c/k/pk_live_abcdefghijklmnop')
     expect(result.card.cardPath).not.toContain('luis-dev')
     expect(result.card).not.toHaveProperty('advisorProfileId')
+    expect(result.card).not.toHaveProperty('publish_profile')
+    expect(result.card.socialDrafts).toEqual(emptyPublicSocialDrafts())
   })
 
   it('returns no identity when the user has no advisor_profiles row', async () => {
@@ -395,6 +462,9 @@ describe('cardsApi', () => {
     expect(relative.identity.photoUrl).toBe('/images/advisors/luis-perez.png')
     expect(from.mock.calls.filter((call) => call[0] === 'digital_cards').length).toBe(2)
     expect(captured.every((row) => !Object.prototype.hasOwnProperty.call(row, 'public_key'))).toBe(true)
+    expect(captured.every((row) => !Object.prototype.hasOwnProperty.call(row, 'calendly_url'))).toBe(
+      true,
+    )
   })
 
   it('rejects javascript photo URLs before writing', async () => {
@@ -454,6 +524,245 @@ describe('cardsApi', () => {
     expect(result.ok).toBe(false)
   })
 
+  it('saves and clears Calendly on advisor_profiles without rotating public_key', async () => {
+    const identityUpdates: Record<string, unknown>[] = []
+    const cardUpdates: Record<string, unknown>[] = []
+    const identityEq: unknown[][] = []
+    const cardEq: unknown[][] = []
+    let identity = identityRow()
+    let card: Record<string, unknown> | null = cardRow()
+
+    const supabase = {
+      from: vi.fn((table: string) => {
+        if (table === 'advisor_profiles') {
+          return chainableTable({
+            loadData: () => identity,
+            eqCalls: identityEq,
+            onUpdate: (row) => {
+              identityUpdates.push(row)
+              identity = { ...identity, ...row }
+            },
+          })
+        }
+        return chainableTable({
+          loadData: () => card,
+          eqCalls: cardEq,
+          onUpdate: (row) => {
+            cardUpdates.push(row)
+            card = { ...(card ?? {}), ...row }
+          },
+        })
+      }),
+    } as unknown as SupabaseClient
+
+    const saved = await updateOwnAdvisorPublicLinks(supabase, 'user-1', {
+      calendlyUrl: 'https://calendly.com/jane',
+      socialDrafts: emptyPublicSocialDrafts(),
+    })
+    expect(saved.ok).toBe(true)
+    if (!saved.ok) return
+    expect(identityUpdates).toEqual([{ calendly_url: 'https://calendly.com/jane' }])
+    expect(saved.identity.calendlyUrl).toBe('https://calendly.com/jane')
+    expect(saved.card?.publicKey).toBe(FIXED_PUBLIC_KEY)
+    expect(identityEq).toContainEqual(['user_id', 'user-1'])
+    expect(identityEq).toContainEqual(['id', 'adv-1'])
+    expect(cardEq).toContainEqual(['advisor_profile_id', 'adv-1'])
+    expect(cardEq).not.toContainEqual(['public_key', FIXED_PUBLIC_KEY])
+    expect(cardUpdates.every((row) => !Object.prototype.hasOwnProperty.call(row, 'public_key'))).toBe(
+      true,
+    )
+    expect(cardUpdates.every((row) => !Object.prototype.hasOwnProperty.call(row, 'cta_config'))).toBe(
+      true,
+    )
+
+    const cleared = await updateOwnAdvisorPublicLinks(supabase, 'user-1', {
+      calendlyUrl: '   ',
+      socialDrafts: emptyPublicSocialDrafts(),
+    })
+    expect(cleared.ok).toBe(true)
+    if (!cleared.ok) return
+    expect(identityUpdates[1]).toEqual({ calendly_url: null })
+    expect(cleared.identity.calendlyUrl).toBeNull()
+    expect(cleared.card?.publicKey).toBe(FIXED_PUBLIC_KEY)
+  })
+
+  it('accepts safe https booking URLs and rejects unsafe schemes before writing', async () => {
+    const identityUpdates: Record<string, unknown>[] = []
+    const supabase = {
+      from: vi.fn((table: string) => {
+        if (table === 'advisor_profiles') {
+          return chainableTable({
+            loadData: () => identityRow(),
+            onUpdate: (row) => {
+              identityUpdates.push(row)
+              throw new Error('update should not run for unsafe URLs')
+            },
+          })
+        }
+        return chainableTable({
+          loadData: () => cardRow(),
+          onUpdate: () => {
+            throw new Error('card update should not run for unsafe URLs')
+          },
+        })
+      }),
+    } as unknown as SupabaseClient
+
+    for (const url of [
+      'javascript:alert(1)',
+      'data:text/html,hi',
+      'http://calendly.com/jane',
+      '//calendly.com/jane',
+      '/relative',
+    ]) {
+      const result = await updateOwnAdvisorPublicLinks(supabase, 'user-1', {
+        calendlyUrl: url,
+        socialDrafts: emptyPublicSocialDrafts(),
+      })
+      expect(result.ok).toBe(false)
+    }
+    const unsafeSocial = await updateOwnAdvisorPublicLinks(supabase, 'user-1', {
+      calendlyUrl: 'https://calendly.com/jane',
+      socialDrafts: { ...emptyPublicSocialDrafts(), tiktok: 'javascript:alert(1)' },
+    })
+    expect(unsafeSocial.ok).toBe(false)
+    expect(identityUpdates).toEqual([])
+
+    const safeClient = {
+      from: vi.fn((table: string) => {
+        if (table === 'advisor_profiles') {
+          let identity = identityRow()
+          return chainableTable({
+            loadData: () => identity,
+            onUpdate: (row) => {
+              identityUpdates.push(row)
+              identity = { ...identity, ...row }
+            },
+          })
+        }
+        let card: Record<string, unknown> | null = cardRow()
+        return chainableTable({
+          loadData: () => card,
+          onUpdate: (row) => {
+            card = { ...(card ?? {}), ...row }
+          },
+        })
+      }),
+    } as unknown as SupabaseClient
+
+    const accepted = await updateOwnAdvisorPublicLinks(safeClient, 'user-1', {
+      calendlyUrl: 'https://calendly.com/jane',
+      socialDrafts: emptyPublicSocialDrafts(),
+    })
+    expect(accepted.ok).toBe(true)
+    expect(identityUpdates).toEqual([{ calendly_url: 'https://calendly.com/jane' }])
+  })
+
+  it('saves social links without overwriting unrelated publish_profile fields or public_key', async () => {
+    const cardUpdates: Record<string, unknown>[] = []
+    let identity = identityRow({ calendly_url: 'https://calendly.com/jane' })
+    let card: Record<string, unknown> | null = cardRow({
+      publish_profile: {
+        approvedTitle: 'Financial Strategist',
+        approvedCompany: 'Valtoris Financial',
+        phoneVisible: true,
+        emailVisible: false,
+        headline: 'Keep me',
+        contactVisibility: { phone: true },
+        socialLinks: [{ key: 'linkedin', label: 'LinkedIn', url: 'https://linkedin.com/in/old' }],
+      },
+    })
+    const supabase = {
+      from: vi.fn((table: string) => {
+        if (table === 'advisor_profiles') {
+          return chainableTable({
+            loadData: () => identity,
+            onUpdate: (row) => {
+              identity = { ...identity, ...row }
+            },
+          })
+        }
+        return chainableTable({
+          loadData: () => card,
+          onUpdate: (row) => {
+            cardUpdates.push(row)
+            card = { ...(card ?? {}), ...row }
+          },
+        })
+      }),
+    } as unknown as SupabaseClient
+
+    const result = await updateOwnAdvisorPublicLinks(supabase, 'user-1', {
+      calendlyUrl: 'https://calendly.com/jane',
+      socialDrafts: {
+        ...emptyPublicSocialDrafts(),
+        facebook: 'https://facebook.com/valtoris',
+        linkedin: 'https://linkedin.com/in/jane',
+        instagram: '  ',
+      },
+    })
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(cardUpdates).toHaveLength(1)
+    expect(Object.keys(cardUpdates[0] ?? {})).toEqual(['publish_profile'])
+    const profile = cardUpdates[0]?.publish_profile as Record<string, unknown>
+    expect(profile.approvedTitle).toBe('Financial Strategist')
+    expect(profile.approvedCompany).toBe('Valtoris Financial')
+    expect(profile.phoneVisible).toBe(true)
+    expect(profile.emailVisible).toBe(false)
+    expect(profile.headline).toBe('Keep me')
+    expect(profile.contactVisibility).toEqual({ phone: true })
+    expect(profile.socialLinks).toEqual([
+      { key: 'facebook', label: 'Facebook', url: 'https://facebook.com/valtoris' },
+      { key: 'linkedin', label: 'LinkedIn', url: 'https://linkedin.com/in/jane' },
+    ])
+    expect(result.card?.publicKey).toBe(FIXED_PUBLIC_KEY)
+    expect(result.card?.socialDrafts.facebook).toBe('https://facebook.com/valtoris')
+    expect(result.card?.socialDrafts.instagram).toBe('')
+  })
+
+  it('removes blank social networks from publish_profile.socialLinks', async () => {
+    let identity = identityRow()
+    let card: Record<string, unknown> | null = cardRow({
+      publish_profile: {
+        approvedTitle: 'Financial Strategist',
+        socialLinks: [{ key: 'youtube', label: 'YouTube', url: 'https://youtube.com/@valtoris' }],
+      },
+    })
+    const cardUpdates: Record<string, unknown>[] = []
+    const supabase = {
+      from: vi.fn((table: string) => {
+        if (table === 'advisor_profiles') {
+          return chainableTable({
+            loadData: () => identity,
+            onUpdate: (row) => {
+              identity = { ...identity, ...row }
+            },
+          })
+        }
+        return chainableTable({
+          loadData: () => card,
+          onUpdate: (row) => {
+            cardUpdates.push(row)
+            card = { ...(card ?? {}), ...row }
+          },
+        })
+      }),
+    } as unknown as SupabaseClient
+
+    const result = await updateOwnAdvisorPublicLinks(supabase, 'user-1', {
+      calendlyUrl: '',
+      socialDrafts: emptyPublicSocialDrafts(),
+    })
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    const profile = cardUpdates[0]?.publish_profile as Record<string, unknown>
+    expect(profile.approvedTitle).toBe('Financial Strategist')
+    expect(profile.socialLinks).toEqual([])
+    expect(result.card?.socialDrafts.youtube).toBe('')
+    expect(result.card?.publicKey).toBe(FIXED_PUBLIC_KEY)
+  })
+
   it('does not import a service-role browser client', () => {
     const source = readFileSync(join(ROOT, 'crm/digital-identity/cardsApi.ts'), 'utf8')
     const panel = readFileSync(
@@ -469,5 +778,10 @@ describe('cardsApi', () => {
       writesActivities: false,
       usesServiceRole: false,
     })
+    expect(panel).toMatch(/Public links/)
+    expect(panel).toMatch(/Public booking \/ Calendly URL/)
+    expect(panel).toMatch(/updateOwnAdvisorPublicLinks/)
+    expect(panel).not.toMatch(/calendly\.com\/luis/)
+    expect(panel).not.toMatch(/facebook\.com\//)
   })
 })
