@@ -19,8 +19,9 @@ type PageState =
     }
 
 /**
- * Public Digital Advisor Card — presentation only.
- * Consumes GET /api/digital-identity/card. No CRM, analytics, vCard, or Let’s Connect form.
+ * Public Digital Advisor Card.
+ * Consumes GET /api/digital-identity/card. Attribution is session-only on view.
+ * vCard, QR, and Let’s Connect live in PublicAdvisorCardView.
  */
 export default function PublicAdvisorCardPage() {
   const params = useParams<{ key?: string; slug?: string }>()

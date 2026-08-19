@@ -4,6 +4,9 @@ import {
   buildDiagnosticActions,
   buildHeroActions,
   buildOutcomeSections,
+  buildPublicMailtoHref,
+  buildPublicSmsHref,
+  buildPublicTelHref,
   documentTitleForCard,
   errorCopyForStatus,
   getInitials,
@@ -96,6 +99,39 @@ describe('publicCardViewModel', () => {
     expect(connect?.mode).toBe('opens_connect_form')
     expect(save?.mode).toBe('vcard_download')
     expect(save?.label).toBe('Save Contact')
+  })
+
+  it('adds Call, Text, and Email contact links from public phone/email', () => {
+    const actions = buildHeroActions(sampleCard({ phone: '512-555-0100', email: 'jane@example.com' }))
+    const call = actions.find((a) => a.key === 'call')
+    const text = actions.find((a) => a.key === 'text')
+    const email = actions.find((a) => a.key === 'email')
+    expect(call?.mode).toBe('contact_link')
+    expect(call?.href).toBe('tel:+15125550100')
+    expect(text?.href).toBe('sms:+15125550100')
+    expect(email?.href).toBe('mailto:jane@example.com')
+    expect(actions.map((a) => a.key).slice(0, 5)).toEqual([
+      'call',
+      'text',
+      'email',
+      'save_contact',
+      'lets_connect',
+    ])
+  })
+
+  it('omits Call/Text/Email when public contact fields are hidden', () => {
+    const actions = buildHeroActions(sampleCard({ phone: null, email: null }))
+    expect(actions.some((a) => a.key === 'call' || a.key === 'text' || a.key === 'email')).toBe(
+      false,
+    )
+  })
+
+  it('builds tel/sms/mailto hrefs without encoding private CRM fields', () => {
+    expect(buildPublicTelHref('512-555-0100')).toBe('tel:+15125550100')
+    expect(buildPublicSmsHref('+1 (512) 555-0100')).toBe('sms:+15125550100')
+    expect(buildPublicMailtoHref(' jane@example.com ')).toBe('mailto:jane@example.com')
+    expect(buildPublicMailtoHref('not-an-email')).toBeNull()
+    expect(buildPublicTelHref('')).toBeNull()
   })
 
   it('shows appointment only when Calendly exists', () => {

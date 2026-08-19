@@ -20,13 +20,14 @@ export type PublicCardPageStatus =
   | 'server_error'
 
 export type PublicCardHeroAction = {
-  key: 'lets_connect' | 'save_contact' | 'book_appointment'
+  key: 'call' | 'text' | 'email' | 'lets_connect' | 'save_contact' | 'book_appointment'
   label: string
   /**
    * Let's Connect opens the relationship capture modal/sheet.
    * Save Contact triggers Smart vCard download via the public API.
+   * Call / Text / Email use tel:, sms:, mailto: (same-window contact links).
    */
-  mode: 'opens_connect_form' | 'external_link' | 'vcard_download'
+  mode: 'opens_connect_form' | 'external_link' | 'vcard_download' | 'contact_link'
   href: string | null
   comingSoonBadge: boolean
 }
@@ -101,20 +102,75 @@ export function resolveContactVisibility(
 }
 
 /**
- * Hero actions:
- * - Let's Connect → opens the Let's Connect modal/sheet
+ * Build tel: href from public phone display text. Returns null when empty.
+ */
+export function buildPublicTelHref(phone: string | null | undefined): string | null {
+  if (typeof phone !== 'string') return null
+  const trimmed = phone.trim()
+  if (!trimmed) return null
+  const digits = trimmed.replace(/\D/g, '')
+  if (!digits) return null
+  if (digits.length === 10) return `tel:+1${digits}`
+  if (digits.length === 11 && digits.startsWith('1')) return `tel:+${digits}`
+  if (trimmed.startsWith('+')) return `tel:+${digits}`
+  return `tel:${digits}`
+}
+
+/** sms: href sharing the same E.164-style number as Call. */
+export function buildPublicSmsHref(phone: string | null | undefined): string | null {
+  const tel = buildPublicTelHref(phone)
+  if (!tel) return null
+  return `sms:${tel.slice('tel:'.length)}`
+}
+
+export function buildPublicMailtoHref(email: string | null | undefined): string | null {
+  if (typeof email !== 'string') return null
+  const trimmed = email.trim()
+  if (!trimmed || !trimmed.includes('@') || trimmed.includes(' ')) return null
+  return `mailto:${trimmed}`
+}
+
+/**
+ * Hero actions (mobile-first):
+ * - Call / Text / Email → tel/sms/mailto when public contact exists
  * - Save Contact → Smart vCard download (server-generated)
+ * - Let's Connect → opens the Let's Connect modal/sheet
  * - Book Appointment → only when Calendly URL exists
  */
 export function buildHeroActions(card: IdentitySurfacePublicDto): PublicCardHeroAction[] {
-  const actions: PublicCardHeroAction[] = [
-    {
-      key: 'lets_connect',
-      label: card.primaryConnectLabel || LETS_CONNECT_CTA_LABEL,
-      mode: 'opens_connect_form',
-      href: null,
+  const contact = resolveContactVisibility(card)
+  const actions: PublicCardHeroAction[] = []
+
+  const telHref = contact.showPhone ? buildPublicTelHref(contact.phone) : null
+  if (telHref) {
+    actions.push({
+      key: 'call',
+      label: 'Call',
+      mode: 'contact_link',
+      href: telHref,
       comingSoonBadge: false,
-    },
+    })
+    actions.push({
+      key: 'text',
+      label: 'Text',
+      mode: 'contact_link',
+      href: buildPublicSmsHref(contact.phone)!,
+      comingSoonBadge: false,
+    })
+  }
+
+  const mailHref = contact.showEmail ? buildPublicMailtoHref(contact.email) : null
+  if (mailHref) {
+    actions.push({
+      key: 'email',
+      label: 'Email',
+      mode: 'contact_link',
+      href: mailHref,
+      comingSoonBadge: false,
+    })
+  }
+
+  actions.push(
     {
       key: 'save_contact',
       label: 'Save Contact',
@@ -122,7 +178,14 @@ export function buildHeroActions(card: IdentitySurfacePublicDto): PublicCardHero
       href: null,
       comingSoonBadge: false,
     },
-  ]
+    {
+      key: 'lets_connect',
+      label: card.primaryConnectLabel || LETS_CONNECT_CTA_LABEL,
+      mode: 'opens_connect_form',
+      href: null,
+      comingSoonBadge: false,
+    },
+  )
 
   const book = ctaByKey(card.ctas, 'book_appointment')
   const calendly = card.calendlyUrl?.trim() || book?.href?.trim() || null

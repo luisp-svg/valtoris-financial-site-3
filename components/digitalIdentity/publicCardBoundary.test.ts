@@ -51,4 +51,20 @@ describe('public card browser/server boundary', () => {
       '/c/jane-advisor',
     )
   })
+
+  it('does not import service-role helpers in public card or CRM card modules', async () => {
+    const { readFileSync } = await import('node:fs')
+    const { join } = await import('node:path')
+    const files = [
+      'components/digitalIdentity/PublicAdvisorCardView.tsx',
+      'pages/PublicAdvisorCardPage.tsx',
+      'crm/digital-identity/cardsApi.ts',
+      'crm/digital-identity/AdvisorDigitalCardPanel.tsx',
+      'pages/crm/CrmCampaignsPage.tsx',
+    ]
+    for (const file of files) {
+      const src = readFileSync(join(process.cwd(), file), 'utf8')
+      expect(src).not.toMatch(/createSupabaseAdminClient|SUPABASE_SERVICE_ROLE|service_role/)
+    }
+  })
 })

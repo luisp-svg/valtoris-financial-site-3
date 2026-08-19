@@ -19,6 +19,7 @@ import {
   updateCrmCampaign,
   type CrmCampaignRow,
 } from '../../crm/campaigns/campaignsApi'
+import AdvisorDigitalCardPanel from '../../crm/digital-identity/AdvisorDigitalCardPanel'
 import { createSupabaseBrowserClient } from '../../lib/supabase/client'
 import type { PublicCardQrFormat } from '../../modules/digital-identity'
 
@@ -227,6 +228,10 @@ export default function CrmCampaignsPage() {
           authorization.
         </p>
       </header>
+
+      {user ? (
+        <AdvisorDigitalCardPanel supabase={supabase} userId={user.id} onPublished={() => void reload()} />
+      ) : null}
 
       {error ? (
         <p className="crm-error" role="alert">

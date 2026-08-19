@@ -17,6 +17,8 @@ import {
   anonymousEventCreatesCrmRecord,
   contactExchangeCreatesCase,
   createDefaultAdvisorCardCtas,
+  generateIdentityPublicKey,
+  isValidIdentityPublicKey,
   normalizeIdentitySlug,
   rejectsTrustedAdvisorIds,
   toIdentitySurfacePublicDto,
@@ -172,6 +174,20 @@ describe('slug normalization', () => {
   it('normalizes and rejects invalid slugs', () => {
     expect(normalizeIdentitySlug(' Jane Advisor ')).toBe('jane-advisor')
     expect(normalizeIdentitySlug('!!!')).toBeNull()
+  })
+})
+
+describe('identity public key generation', () => {
+  it('generates durable keys that match the stored format without using slugs', () => {
+    const keys = new Set<string>()
+    for (let i = 0; i < 20; i += 1) {
+      const key = generateIdentityPublicKey()
+      expect(isValidIdentityPublicKey(key)).toBe(true)
+      expect(key.startsWith('pk_')).toBe(true)
+      expect(key).not.toMatch(/[/:?]/)
+      keys.add(key)
+    }
+    expect(keys.size).toBe(20)
   })
 })
 

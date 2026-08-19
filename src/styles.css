@@ -6224,6 +6224,42 @@ p { color: var(--muted); line-height: 1.7; }
   font-size: 1.1rem;
 }
 
+.crm-digital-card {
+  display: grid;
+  gap: 16px;
+  align-items: start;
+}
+
+.crm-digital-card-qr-wrap {
+  width: min(100%, 220px);
+}
+
+.crm-digital-card-qr {
+  display: block;
+  width: 200px;
+  height: 200px;
+  padding: 10px;
+  background: #fff;
+  border: 1px solid var(--crm-border);
+  border-radius: 16px;
+}
+
+.crm-digital-card-meta {
+  display: grid;
+  gap: 8px;
+}
+
+.crm-digital-card-meta p {
+  margin: 0;
+}
+
+@media (min-width: 720px) {
+  .crm-digital-card {
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 24px;
+  }
+}
+
 .crm-count-pill {
   min-width: 28px;
   padding: 4px 10px;
@@ -10057,6 +10093,10 @@ button.public-card-diagnostic:disabled {
   margin-bottom: 4px;
 }
 
+.public-card-brand--hero {
+  margin: 0 0 12px;
+}
+
 .public-card-state-title {
   margin: 0;
   font-size: clamp(1.4rem, 4vw, 1.9rem);
@@ -10138,6 +10178,10 @@ button.public-card-diagnostic:disabled {
   .public-card-btn {
     width: 100%;
     min-width: 0;
+  }
+
+  .public-card-btn--connect {
+    width: 100%;
   }
 
   .public-card-diagnostic {

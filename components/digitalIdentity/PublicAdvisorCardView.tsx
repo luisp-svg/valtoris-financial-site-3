@@ -165,6 +165,7 @@ function ReadyCard({ card }: { card: IdentitySurfacePublicDto }) {
     <>
       <section className={layout.hero} aria-labelledby="public-card-name">
         <div className="public-card-hero-inner">
+          <BrandWordmark variant="assessment" className="public-card-brand public-card-brand--hero" />
           <Headshot name={card.displayName} url={card.headshotUrl} />
           <h1 id="public-card-name" className="public-card-name">
             {card.displayName}
@@ -196,6 +197,18 @@ function ReadyCard({ card }: { card: IdentitySurfacePublicDto }) {
 
           <div className="public-card-hero-actions platform-btn-row platform-btn-row--center">
             {heroActions.map((action) => {
+              if (action.mode === 'contact_link' && action.href) {
+                return (
+                  <a
+                    key={action.key}
+                    className="platform-btn platform-btn-secondary public-card-btn"
+                    href={action.href}
+                  >
+                    {action.label}
+                  </a>
+                )
+              }
+
               if (action.mode === 'external_link' && action.href) {
                 return (
                   <a
@@ -232,7 +245,7 @@ function ReadyCard({ card }: { card: IdentitySurfacePublicDto }) {
                   <button
                     key={action.key}
                     type="button"
-                    className="platform-btn platform-btn-primary public-card-btn"
+                    className="platform-btn platform-btn-primary public-card-btn public-card-btn--connect"
                     onClick={() => setConnectOpen(true)}
                   >
                     {action.label}

@@ -62,7 +62,12 @@ export type {
   DigitalCardPublicSource,
 } from './assemblePublishedCard.js'
 
-export { isValidIdentityPublicKey, isValidIdentitySlug, normalizeIdentitySlug } from './slug.js'
+export {
+  generateIdentityPublicKey,
+  isValidIdentityPublicKey,
+  isValidIdentitySlug,
+  normalizeIdentitySlug,
+} from './slug.js'
 
 export { buildPublicCardPath, buildPublicCardSlugPath, normalizePublicHref } from './urls.js'
 
