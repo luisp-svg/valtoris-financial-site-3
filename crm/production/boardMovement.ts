@@ -18,7 +18,7 @@ import type { ProductionApplicationListItem, ProductionStage } from './types'
 export const STALE_BOARD_REFRESH_MESSAGE =
   'This case changed since the board was loaded. Production has been refreshed.'
 
-export function boardDroppableId(stage: ProductionStage): string {
+export function boardDroppableId(stage: string): string {
   return `stage:${stage}`
 }
 

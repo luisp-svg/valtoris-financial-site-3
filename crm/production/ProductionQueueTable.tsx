@@ -26,6 +26,8 @@ import {
   formatProductionDispositionLabel,
 } from './labels'
 import { formatProductionDate, formatProductionDateTime } from './productionApi'
+import PolicyLifecycleBadge from './PolicyLifecycleBadge'
+import { policyLifecycleDisplayForApplication } from './policyLifecycle'
 import StageBadge from './StageBadge'
 import type { CrmSupportedRole } from '../types'
 import type { CompensationViewer, ProductionApplicationListItem } from './types'
@@ -62,6 +64,7 @@ export default function ProductionQueueTable({
             <th scope="col">Writing advisor</th>
             <th scope="col">Split</th>
             <th scope="col">Stage</th>
+            <th scope="col">Policy status</th>
             <th scope="col">Days in stage</th>
             <th scope="col">App / policy #</th>
             <th scope="col">Submitted</th>
@@ -134,6 +137,13 @@ export default function ProductionQueueTable({
                 <td>{expected.split ? 'Split' : '—'}</td>
                 <td>
                   <StageBadge stage={item.production_stage} />
+                </td>
+                <td>
+                  {policyLifecycleDisplayForApplication(item) ? (
+                    <PolicyLifecycleBadge status={getActiveLinkedPolicy(item)?.status} />
+                  ) : (
+                    '—'
+                  )}
                 </td>
                 <td>
                   {days}

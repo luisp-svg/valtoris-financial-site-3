@@ -105,6 +105,38 @@ describe('production board grouping', () => {
     ])
   })
 
+  it('moves canceled and surrendered placed policies off the active In Force column', () => {
+    const model = groupProductionBoardItems([
+      item({
+        id: 'active',
+        production_stage: 'in_force',
+        linked_policies: [{ id: 'p1', policy_number: 'A', status: 'in_force', deleted_at: null }],
+      }),
+      item({
+        id: 'canceled',
+        production_stage: 'in_force',
+        linked_policies: [{ id: 'p2', policy_number: 'B', status: 'canceled', deleted_at: null }],
+      }),
+      item({
+        id: 'surrendered',
+        production_stage: 'in_force',
+        linked_policies: [{ id: 'p3', policy_number: 'C', status: 'surrendered', deleted_at: null }],
+      }),
+      item({
+        id: 'issued-book',
+        production_stage: 'in_force',
+        linked_policies: [{ id: 'p4', policy_number: 'D', status: 'issued', deleted_at: null }],
+      }),
+    ])
+    expect(model.pipeline.find((column) => column.stage === 'in_force')?.items.map((row) => row.id).sort()).toEqual(
+      ['active', 'issued-book'],
+    )
+    const terminated = model.exceptions.find((column) => column.stage === 'terminated_placed')
+    expect(terminated?.items.map((row) => row.id).sort()).toEqual(['canceled', 'surrendered'])
+    expect(terminated?.items.every((row) => row.production_stage === 'in_force')).toBe(true)
+    expect(flattenBoardItems(model)).toHaveLength(4)
+  })
+
   it('places declined and postponed in Exceptions', () => {
     const model = groupProductionBoardItems([
       item({ id: 'dec', production_stage: 'declined' }),

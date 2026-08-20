@@ -317,6 +317,8 @@ export type HouseholdPolicySummary = {
   renewal_or_review_date: string | null
   /** Named beneficiary text from `policies.beneficiary` when present. */
   beneficiary: string | null
+  /** Present when the row is linked to Policy Production. */
+  source_application_id?: string | null
 }
 
 export type HouseholdDocumentSummary = {

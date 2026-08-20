@@ -115,4 +115,21 @@ describe('CRM mobile responsive cleanup contracts', () => {
     expect(styles).toContain('.crm-case-operations-actions .crm-primary-btn')
     expect(styles).toContain('.crm-case-operations .crm-checkbox-field')
   })
+
+  it('stacks protection cards and lifecycle chips at 393px without page overflow', () => {
+    expect(dashboard).toContain('Current Active Life Protection')
+    expect(dashboard).toContain('Total Protection Placed')
+    expect(dashboard).toContain('crm-production-protection-split')
+    expect(styles).toContain('@media (max-width: 393px)')
+    expect(styles).toContain('.crm-policy-lifecycle-badge')
+    expect(styles).toContain('.crm-production-kpi-grid-summary')
+    expect(queueCards).toContain('PolicyLifecycleBadge')
+    expect(boardCard).toContain('PolicyLifecycleBadge')
+    expect(casesTab).toContain('lifecycleBadge')
+    expect(readFileSync(join(here, '../households/ClientWorkspace/tabs/PoliciesTab.tsx'), 'utf8')).toContain(
+      'policyLifecycleLabel',
+    )
+    expect(queuePage).toContain('Policy status')
+    expect(styles).toContain('overflow-x: clip')
+  })
 })

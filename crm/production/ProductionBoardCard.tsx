@@ -20,6 +20,8 @@ import {
   isFollowUpOverdue,
 } from './daysInStage'
 import StageBadge from './StageBadge'
+import PolicyLifecycleBadge from './PolicyLifecycleBadge'
+import { policyLifecycleDisplayForApplication } from './policyLifecycle'
 import { formatCents, formatProductionDate } from './productionApi'
 import type { ProductionApplicationListItem, ProductionStage } from './types'
 import { PRODUCTION_STALE_DAYS_IN_STAGE } from './types'
@@ -107,6 +109,11 @@ export default function ProductionBoardCard({
           <div className="crm-production-board-card-stage">
             <StageBadge stage={item.production_stage} />
           </div>
+        ) : null}
+        {policyLifecycleDisplayForApplication(item) ? (
+          <p className="crm-production-board-card-lifecycle">
+            <PolicyLifecycleBadge status={linked?.status} />
+          </p>
         ) : null}
         <CaseAttentionFlagList labels={attention} />
         <p className="crm-production-board-card-money">

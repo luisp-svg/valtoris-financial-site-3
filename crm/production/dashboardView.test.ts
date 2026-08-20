@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 import {
   buildProductionDashboard,
   computeActiveLifeProtection,
+  computeCurrentActiveLifeProtection,
+  computePlacedLifeProtection,
   summarizeLifeAndAnnuity,
 } from './dashboardView'
 import { defaultProductionQueueFilters, filterProductionQueueItems } from './queueView'
@@ -200,7 +202,7 @@ describe('production dashboard aggregation', () => {
     expect(model.pipeline.submitted.lifePremiumCents).toBe(1000)
   })
 
-  it('computes Lifetime Active Life Protection from in-force life only', () => {
+  it('computes Lifetime Total Protection Placed from placed life only', () => {
     const rows = [
       item({
         id: 'in-force-known',
@@ -229,14 +231,14 @@ describe('production dashboard aggregation', () => {
         annuity_deposit_cents: 100,
       }),
     ]
-    const protection = computeActiveLifeProtection(rows)
+    const protection = computePlacedLifeProtection(rows)
     expect(protection.knownFaceCents).toBe(1247609400)
     expect(protection.unknownFaceCount).toBe(1)
     expect(protection.inForceLifeCount).toBe(2)
     expect(protection.missingInForceDateCount).toBe(1)
   })
 
-  it('scopes Active Life Protection YTD and This Month by in-force date, not submission date', () => {
+  it('scopes Total Protection Placed YTD and This Month by in-force date, not submission date', () => {
     const rows = [
       item({
         id: 'placed-jan',
@@ -261,11 +263,46 @@ describe('production dashboard aggregation', () => {
       }),
     ]
     const today = '2026-08-16'
-    expect(computeActiveLifeProtection(rows, { period: 'lifetime', today }).knownFaceCents).toBe(600000)
+    expect(computePlacedLifeProtection(rows, { period: 'lifetime', today }).knownFaceCents).toBe(600000)
+    expect(computePlacedLifeProtection(rows, { period: 'ytd', today }).knownFaceCents).toBe(300000)
+    expect(computePlacedLifeProtection(rows, { period: 'this_month', today }).knownFaceCents).toBe(200000)
+    expect(computePlacedLifeProtection(rows, { period: 'ytd', today }).inForceLifeCount).toBe(2)
+    expect(computePlacedLifeProtection(rows, { period: 'ytd', today }).missingInForceDateCount).toBe(1)
     expect(computeActiveLifeProtection(rows, { period: 'ytd', today }).knownFaceCents).toBe(300000)
-    expect(computeActiveLifeProtection(rows, { period: 'this_month', today }).knownFaceCents).toBe(200000)
-    expect(computeActiveLifeProtection(rows, { period: 'ytd', today }).inForceLifeCount).toBe(2)
-    expect(computeActiveLifeProtection(rows, { period: 'ytd', today }).missingInForceDateCount).toBe(1)
+  })
+
+  it('keeps Current Active Life Protection on the current book, ignoring the period toggle', () => {
+    const rows = [
+      item({
+        id: 'active-old',
+        production_stage: 'in_force',
+        in_force_date: '2025-01-20',
+        face_amount_cents: 100000,
+        linked_policies: [
+          { id: 'p1', policy_number: 'A', status: 'in_force', deleted_at: null },
+        ],
+      }),
+      item({
+        id: 'canceled-ytd',
+        production_stage: 'in_force',
+        in_force_date: '2026-02-01',
+        face_amount_cents: 200000,
+        linked_policies: [
+          { id: 'p2', policy_number: 'B', status: 'canceled', deleted_at: null },
+        ],
+      }),
+    ]
+    const today = '2026-08-16'
+    const ytdPlaced = computePlacedLifeProtection(rows, { period: 'ytd', today })
+    const active = computeCurrentActiveLifeProtection(rows)
+    const ytdDashboard = buildProductionDashboard(rows, { period: 'ytd', today })
+    const lifetimeDashboard = buildProductionDashboard(rows, { period: 'lifetime', today })
+    expect(ytdPlaced.knownFaceCents).toBe(200000)
+    expect(active.knownFaceCents).toBe(100000)
+    expect(active.inForceLifeCount).toBe(1)
+    expect(ytdDashboard.activeProtection.knownFaceCents).toBe(
+      lifetimeDashboard.activeProtection.knownFaceCents,
+    )
   })
 
   it('scopes pipeline snapshots by submission date for YTD and This Month', () => {
@@ -366,6 +403,7 @@ describe('production dashboard aggregation', () => {
     expect(model.funnel.all.applied).toBe(2)
     expect(model.funnel.all.placed).toBe(1)
     expect(model.funnel.all.pending).toBe(1)
-    expect(model.protection.inForceLifeCount).toBe(1)
+    expect(model.placedProtection.inForceLifeCount).toBe(1)
+    expect(model.activeProtection.inForceLifeCount).toBe(0)
   })
 })

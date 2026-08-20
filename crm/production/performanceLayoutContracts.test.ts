@@ -50,7 +50,8 @@ describe('Production Performance layout contracts', () => {
 
   it('keeps existing metric labels and funnel formulas', () => {
     expect(dashboardUi).toContain('label="Applied"')
-    expect(dashboardUi).toContain('label="Placed / In Force"')
+    expect(dashboardUi).toContain('label="Placed"')
+    expect(dashboardUi).not.toContain('label="Placed / In Force"')
     expect(dashboardUi).toContain('label="Declined"')
     expect(dashboardUi).toContain('label="Not Taken"')
     expect(dashboardUi).toContain('label="Withdrawn"')

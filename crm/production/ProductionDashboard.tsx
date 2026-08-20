@@ -35,14 +35,14 @@ function reviewCountLabel(count: number): string {
   return count === 1 ? '1 needs review' : `${count} need review`
 }
 
-function protectionPeriodCaption(period: DashboardReportingPeriod): string {
+function placedProtectionPeriodCaption(period: DashboardReportingPeriod): string {
   if (period === 'ytd') {
-    return 'YTD = policies entering in-force this year. Lifetime is the entire current in-force book.'
+    return 'YTD = applications that entered in force this year. Later cancellation or surrender does not remove placement.'
   }
   if (period === 'this_month') {
-    return 'This Month = policies entering in-force this month. Lifetime is the entire current in-force book.'
+    return 'This Month = applications that entered in force this month. Later cancellation or surrender does not remove placement.'
   }
-  return 'Lifetime = entire current in-force book. YTD / This Month = policies entering in-force during that period.'
+  return 'Lifetime = every life application that reached in force. Later cancellation or surrender does not remove placement.'
 }
 
 function missingInForceDateNote(
@@ -50,7 +50,7 @@ function missingInForceDateNote(
   missingCount: number,
 ): string | null {
   if (missingCount <= 0) return null
-  const noun = missingCount === 1 ? 'in-force life policy has' : 'in-force life policies have'
+  const noun = missingCount === 1 ? 'placed life policy has' : 'placed life policies have'
   if (period === 'lifetime') {
     return `${missingCount} ${noun} no in-force date. They are included in Lifetime and omitted from YTD / This Month.`
   }
@@ -163,7 +163,7 @@ function ProductionFunnelTable({ funnel }: { funnel: ProductionFunnelMetrics }) 
         <div className="is-num" role="columnheader">Total</div>
       </div>
       <FunnelRow label="Applied" kind="applied" life={life} fia={fia} all={all} />
-      <FunnelRow label="Placed / In Force" kind="placed" life={life} fia={fia} all={all} />
+      <FunnelRow label="Placed" kind="placed" life={life} fia={fia} all={all} />
       <FunnelRow label="Declined" kind="declined" life={life} fia={fia} all={all} />
       <FunnelRow label="Not Taken" kind="notTaken" life={life} fia={fia} all={all} />
       <FunnelRow label="Withdrawn" kind="withdrawn" life={life} fia={fia} all={all} />
@@ -198,9 +198,9 @@ export default function ProductionDashboard({
   onCompensationPeriodChange,
   loading,
 }: ProductionDashboardProps) {
-  const { summary, protection, pipeline, funnel } = model
+  const { summary, placedProtection, activeProtection, pipeline, funnel } = model
   const [reviewScope, setReviewScope] = useState<ReviewScope | null>(null)
-  const dateNote = missingInForceDateNote(productionPeriod, protection.missingInForceDateCount)
+  const dateNote = missingInForceDateNote(productionPeriod, placedProtection.missingInForceDateCount)
 
   const reviewItems = useMemo(() => {
     if (reviewScope == null) return []
@@ -230,30 +230,59 @@ export default function ProductionDashboard({
         <div className="crm-production-dashboard-stack">
           <p className="crm-production-kpi-caption">
             Production Performance uses application submission date. Current Case Pipeline is the
-            current stage of that submitted cohort. Active Life Protection uses in-force date.
+            current stage of that submitted cohort. Total Protection Placed uses in-force date.
+            Current Active Life Protection is the current book today and ignores the period toggle.
             Queue filters still apply; this control does not change the applications list.
           </p>
           <div className="crm-production-kpi-grid crm-production-kpi-grid-summary">
             <article className="crm-production-kpi-card crm-production-kpi-card-hero">
-              <h3 className="crm-production-kpi-label">Active Life Protection</h3>
-              <p className="crm-production-kpi-value">{formatCents(protection.knownFaceCents)}</p>
-              <p className="crm-production-kpi-caption">
-                In-force life face amount
-                {protection.inForceLifeCount === 1
-                  ? ' · 1 in-force life policy'
-                  : ` · ${protection.inForceLifeCount} in-force life policies`}
-              </p>
-              <p className="crm-production-kpi-caption">
-                {protectionPeriodCaption(productionPeriod)}
-              </p>
-              {protection.unknownFaceCount > 0 ? (
-                <p className="crm-production-kpi-caption">
-                  {protection.unknownFaceCount === 1
-                    ? '1 in-force life policy with unknown face amount'
-                    : `${protection.unknownFaceCount} in-force life policies with unknown face amount`}
-                </p>
-              ) : null}
-              {dateNote ? <p className="crm-production-kpi-caption">{dateNote}</p> : null}
+              <div className="crm-production-protection-split">
+                <div>
+                  <h3 className="crm-production-kpi-label">Current Active Life Protection</h3>
+                  <p className="crm-production-kpi-value">
+                    {formatCents(activeProtection.knownFaceCents)}
+                  </p>
+                  <p className="crm-production-kpi-caption">
+                    {activeProtection.inForceLifeCount === 1
+                      ? '1 currently active policy'
+                      : `${activeProtection.inForceLifeCount} currently active policies`}
+                  </p>
+                  <p className="crm-production-kpi-caption">
+                    Current book today. The period toggle does not change this figure. Canceled and
+                    surrendered policies are excluded.
+                  </p>
+                  {activeProtection.unknownFaceCount > 0 ? (
+                    <p className="crm-production-kpi-caption">
+                      {activeProtection.unknownFaceCount === 1
+                        ? '1 currently active life policy with unknown face amount'
+                        : `${activeProtection.unknownFaceCount} currently active life policies with unknown face amount`}
+                    </p>
+                  ) : null}
+                </div>
+                <div>
+                  <h3 className="crm-production-kpi-label">Total Protection Placed</h3>
+                  <p className="crm-production-kpi-value">
+                    {formatCents(placedProtection.knownFaceCents)}
+                  </p>
+                  <p className="crm-production-kpi-caption">
+                    {placedProtection.inForceLifeCount === 1
+                      ? '1 policy ever placed'
+                      : `${placedProtection.inForceLifeCount} policies ever placed`}
+                    {productionPeriod !== 'lifetime' ? ' in this period' : ''}
+                  </p>
+                  <p className="crm-production-kpi-caption">
+                    {placedProtectionPeriodCaption(productionPeriod)}
+                  </p>
+                  {placedProtection.unknownFaceCount > 0 ? (
+                    <p className="crm-production-kpi-caption">
+                      {placedProtection.unknownFaceCount === 1
+                        ? '1 placed life policy with unknown face amount'
+                        : `${placedProtection.unknownFaceCount} placed life policies with unknown face amount`}
+                    </p>
+                  ) : null}
+                  {dateNote ? <p className="crm-production-kpi-caption">{dateNote}</p> : null}
+                </div>
+              </div>
             </article>
             <article className="crm-production-kpi-card">
               <h3 className="crm-production-kpi-label">Annual Life Premium</h3>
@@ -282,8 +311,9 @@ export default function ProductionDashboard({
             <h3>Production Performance</h3>
             <p className="crm-production-kpi-caption">
               How much we wrote and placed. Applied is cumulative submitted applications for this
-              period, including later stages. Placement rates are case counts, not dollars.
-              Postponed stays pending.
+              period, including later stages. Placed is historical in-force success — later
+              cancellation or surrender does not unplace. Placement rates are case counts, not
+              dollars. Postponed stays pending.
             </p>
             <ProductionFunnelTable funnel={funnel} />
           </section>

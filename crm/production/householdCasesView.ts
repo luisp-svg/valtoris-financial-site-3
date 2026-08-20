@@ -13,6 +13,7 @@ import {
   getWritingAdvisorLabel,
 } from './daysInStage'
 import { formatProductionDate } from './productionApi'
+import { formatPlacedCaseLifecycleBadge } from './policyLifecycle'
 import type { ProductionApplicationDetail, ProductionApplicationListItem } from './types'
 
 export type HouseholdCaseRow = {
@@ -26,6 +27,7 @@ export type HouseholdCaseRow = {
   applicationNumber: string | null
   policyNumber: string | null
   stage: string
+  lifecycleBadge: string | null
   followUp: string
   writingAdvisors: string
   amount: string
@@ -66,6 +68,7 @@ export function mapHouseholdCaseRow(
     applicationNumber: application.application_number,
     policyNumber: application.policy_number,
     stage: formatCaseStageLabel(application.production_stage),
+    lifecycleBadge: formatPlacedCaseLifecycleBadge(application),
     followUp: formatProductionDate(application.next_follow_up_date),
     writingAdvisors: getWritingAdvisorLabel(application),
     amount: formatCaseAmount(application),

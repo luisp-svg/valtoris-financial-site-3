@@ -107,4 +107,17 @@ describe('household production policy view', () => {
     expect(row.premiumDisplay).toMatch(/Premium/)
     expect(JSON.stringify(row)).not.toMatch(/expected_compensation|commission_bps/)
   })
+
+  it('shows linked policy lifecycle instead of only application stage after placement', () => {
+    const row = mapHouseholdProductionPolicy(
+      application({
+        production_stage: 'in_force',
+        linked_policies: [
+          { id: 'lp-1', policy_number: 'LINK-9', status: 'surrendered', deleted_at: null },
+        ],
+      }),
+    )
+    expect(row.stage).toBe('In force')
+    expect(row.policyLifecycleLabel).toBe('Surrendered')
+  })
 })

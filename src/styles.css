@@ -7793,6 +7793,53 @@ p { color: var(--muted); line-height: 1.7; }
   line-height: 1.35;
 }
 
+.crm-production-protection-split {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+
+.crm-production-protection-split > div {
+  min-width: 0;
+}
+
+.crm-policy-lifecycle-badge {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--crm-border, #d5dbe7);
+  background: #f8fafc;
+  color: var(--crm-navy);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.crm-policy-lifecycle-badge.is-active {
+  background: #ecfdf3;
+  border-color: #abefc6;
+  color: #067647;
+}
+
+.crm-policy-lifecycle-badge.is-terminated {
+  background: #fef3f2;
+  border-color: #fecdca;
+  color: #b42318;
+}
+
+.crm-policy-lifecycle-section .crm-production-detail-grid {
+  margin-bottom: 10px;
+}
+
+.crm-production-queue-card-lifecycle,
+.crm-production-board-card-lifecycle {
+  margin: 0;
+  min-width: 0;
+}
+
 .crm-production-kpi-hint {
   margin: 6px 0 0;
   color: var(--crm-muted);
@@ -7885,6 +7932,20 @@ p { color: var(--muted); line-height: 1.7; }
     padding-bottom: 4px;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
+  }
+}
+
+@media (max-width: 393px) {
+  .crm-production-protection-split,
+  .crm-policy-lifecycle-section .crm-production-detail-grid,
+  .crm-household-policy-card,
+  .crm-household-case-card {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .crm-policy-lifecycle-badge {
+    white-space: normal;
   }
 }
 

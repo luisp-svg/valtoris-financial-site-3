@@ -20,6 +20,7 @@ import {
 } from './boardMovement'
 import {
   BOARD_PIPELINE_COLUMNS,
+  BOARD_TERMINATED_COLUMN,
   defaultMobileBoardFocus,
   groupProductionBoardItems,
   isBoardPipelineStage,
@@ -29,6 +30,7 @@ import {
   type ProductionBoardColumn,
   type ProductionBoardLayout,
 } from './boardView'
+import { isProductionStage } from './stageTransitionView'
 import type { ProductionApplicationListItem, ProductionStage } from './types'
 
 type ProductionBoardProps = {
@@ -64,14 +66,17 @@ function BoardColumn({
   onOpenNotes?: (target: ProductionBoardNotesTarget) => void
   onRequestMove?: (item: ProductionApplicationListItem, toStage: ProductionStage) => void
 }) {
+  const droppable = isProductionStage(column.stage)
   const legal =
-    activeItem != null && isLegalBoardMove(activeItem, column.stage, role ?? null)
-  const isOrigin = activeItem?.production_stage === column.stage
-  const unavailable = activeItem != null && !isOrigin && !legal
+    droppable &&
+    activeItem != null &&
+    isLegalBoardMove(activeItem, column.stage, role ?? null)
+  const isOrigin = droppable && activeItem?.production_stage === column.stage
+  const unavailable = droppable && activeItem != null && !isOrigin && !legal
   const { setNodeRef, isOver } = useDroppable({
     id: boardDroppableId(column.stage),
     data: { stage: column.stage },
-    disabled: !enableDrag || movementBusy || (activeItem != null && !legal),
+    disabled: !droppable || !enableDrag || movementBusy || (activeItem != null && !legal),
   })
   const className = [
     'crm-production-board-column',
@@ -93,6 +98,12 @@ function BoardColumn({
         <h3 id={`pp-board-${column.stage}`}>{column.label}</h3>
         <span className="crm-production-board-count">{column.items.length}</span>
       </header>
+      {column.stage === BOARD_TERMINATED_COLUMN.stage ? (
+        <p className="crm-muted crm-production-board-empty">
+          Placed applications whose policy is canceled or surrendered. Application stage stays In
+          Force.
+        </p>
+      ) : null}
       {legal ? (
         <p className="crm-production-board-drop-hint">
           {isOver ? `Drop to move to ${column.label}` : `Can move to ${column.label}`}

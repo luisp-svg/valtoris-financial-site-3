@@ -4,10 +4,15 @@
  *
  * Production Performance (Applied, placement) uses the submission-date cohort.
  * Current Case Pipeline is current-stage within that same cohort.
- * Active Life Protection period uses in_force_date and is unchanged.
+ * Total Protection Placed period uses in_force_date.
+ * Current Active Life Protection is the current book and is not period-filtered.
  */
 import { calendarDateInPeriod, calendarDateOnly, type DashboardReportingPeriod } from './dashboardPeriod'
 import { annualizeProductionPremium } from './premiumAnnualize'
+import {
+  isCurrentlyActiveLinkedPolicy,
+  isPlacedApplication,
+} from './policyLifecycle'
 import {
   applicationsInSubmittedCohort,
   computeProductionFunnel,
@@ -68,7 +73,10 @@ export type ProductionDashboardModel = {
     annuityDepositCents: number
     unannualizableLifeCount: number
   }
-  protection: ProtectionMetric
+  /** Historical life face that reached in force. Period uses in_force_date. */
+  placedProtection: ProtectionMetric
+  /** Current book: placed life whose linked policy is still in_force. Not period-filtered. */
+  activeProtection: ProtectionMetric
   funnel: ProductionFunnelMetrics
 }
 
@@ -79,6 +87,15 @@ export function emptyStageTotals(): StageMoneyTotals {
 function emptyFunnel(): ProductionFunnelMetrics {
   const empty = placementRatesFromCounts(emptyLineFunnelCounts())
   return { life: empty, fia: empty, all: empty }
+}
+
+function emptyProtection(): ProtectionMetric {
+  return {
+    knownFaceCents: 0,
+    unknownFaceCount: 0,
+    inForceLifeCount: 0,
+    missingInForceDateCount: 0,
+  }
 }
 
 export function emptyDashboardModel(
@@ -96,12 +113,8 @@ export function emptyDashboardModel(
       issued: emptyStageTotals(),
     },
     summary: { lifePremiumCents: 0, annuityDepositCents: 0, unannualizableLifeCount: 0 },
-    protection: {
-      knownFaceCents: 0,
-      unknownFaceCount: 0,
-      inForceLifeCount: 0,
-      missingInForceDateCount: 0,
-    },
+    placedProtection: emptyProtection(),
+    activeProtection: emptyProtection(),
     funnel: emptyFunnel(),
   }
 }
@@ -165,7 +178,21 @@ export function summarizeLifeAndAnnuity(
   return { lifePremiumCents, annuityDepositCents, unannualizableLifeCount }
 }
 
-export function computeActiveLifeProtection(
+function addLifeFace(metric: ProtectionMetric, faceAmountCents: number | null | undefined): void {
+  metric.inForceLifeCount += 1
+  if (faceAmountCents == null || Number.isNaN(faceAmountCents)) {
+    metric.unknownFaceCount += 1
+  } else {
+    metric.knownFaceCents += faceAmountCents
+  }
+}
+
+/**
+ * Historical life face successfully placed by Valtoris.
+ * Source: production_stage === in_force. Later canceled/surrendered remain included.
+ * Period uses application in_force_date.
+ */
+export function computePlacedLifeProtection(
   items: readonly Pick<
     ProductionApplicationListItem,
     'product_line' | 'production_stage' | 'deleted_at' | 'face_amount_cents' | 'in_force_date'
@@ -174,28 +201,56 @@ export function computeActiveLifeProtection(
 ): ProtectionMetric {
   const period = options.period ?? 'lifetime'
   const today = options.today ?? '9999-12-31'
-  let knownFaceCents = 0
-  let unknownFaceCount = 0
-  let inForceLifeCount = 0
-  let missingInForceDateCount = 0
+  const metric = emptyProtection()
   for (const item of items) {
     if (item.deleted_at != null) continue
     if (!isLifeProductionLine(item.product_line)) continue
     if (item.production_stage !== 'in_force') continue
     if (!calendarDateOnly(item.in_force_date)) {
-      missingInForceDateCount += 1
+      metric.missingInForceDateCount += 1
     }
     if (period !== 'lifetime' && !calendarDateInPeriod(item.in_force_date, period, today)) {
       continue
     }
-    inForceLifeCount += 1
-    if (item.face_amount_cents == null || Number.isNaN(item.face_amount_cents)) {
-      unknownFaceCount += 1
-    } else {
-      knownFaceCents += item.face_amount_cents
-    }
+    addLifeFace(metric, item.face_amount_cents)
   }
-  return { knownFaceCents, unknownFaceCount, inForceLifeCount, missingInForceDateCount }
+  return metric
+}
+
+/** @deprecated Use computePlacedLifeProtection. Kept for call-site clarity during the split. */
+export function computeActiveLifeProtection(
+  items: readonly Pick<
+    ProductionApplicationListItem,
+    'product_line' | 'production_stage' | 'deleted_at' | 'face_amount_cents' | 'in_force_date'
+  >[],
+  options: { period?: DashboardReportingPeriod; today?: string } = {},
+): ProtectionMetric {
+  return computePlacedLifeProtection(items, options)
+}
+
+/**
+ * Face amount currently protecting clients.
+ * Source: placed life application AND linked policy status === in_force.
+ * Current book today — not period-filtered.
+ */
+export function computeCurrentActiveLifeProtection(
+  items: readonly Pick<
+    ProductionApplicationListItem,
+    | 'product_line'
+    | 'production_stage'
+    | 'deleted_at'
+    | 'face_amount_cents'
+    | 'linked_policies'
+  >[],
+): ProtectionMetric {
+  const metric = emptyProtection()
+  for (const item of items) {
+    if (!isLifeProductionLine(item.product_line)) continue
+    if (!isPlacedApplication(item)) continue
+    if (!isCurrentlyActiveLinkedPolicy(item)) continue
+    addLifeFace(metric, item.face_amount_cents)
+  }
+  return metric
 }
 
 export function buildProductionDashboard(
@@ -212,7 +267,8 @@ export function buildProductionDashboard(
     }
   }
   model.summary = summarizeLifeAndAnnuity(cohort)
-  model.protection = computeActiveLifeProtection(items, { period, today })
+  model.placedProtection = computePlacedLifeProtection(items, { period, today })
+  model.activeProtection = computeCurrentActiveLifeProtection(items)
   model.funnel = computeProductionFunnel(cohort)
   return model
 }

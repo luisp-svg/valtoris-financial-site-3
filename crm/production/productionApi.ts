@@ -69,6 +69,8 @@ const LINKED_POLICY_EMBED = `
   id,
   policy_number,
   status,
+  terminated_on,
+  termination_reason,
   deleted_at
 `
 
@@ -264,6 +266,8 @@ type RawLinkedPolicy = {
   policy_number: string | null
   status: string | null
   deleted_at: string | null
+  terminated_on?: string | null
+  termination_reason?: string | null
 }
 
 function mapLinkedPolicies(value: EmbedOne<RawLinkedPolicy>): ProductionLinkedPolicy[] {
@@ -274,6 +278,8 @@ function mapLinkedPolicies(value: EmbedOne<RawLinkedPolicy>): ProductionLinkedPo
       policy_number: row.policy_number ?? null,
       status: row.status ?? null,
       deleted_at: row.deleted_at ?? null,
+      terminated_on: row.terminated_on ?? null,
+      termination_reason: row.termination_reason ?? null,
     }))
 }
 

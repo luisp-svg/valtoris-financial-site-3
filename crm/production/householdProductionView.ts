@@ -3,6 +3,7 @@ import {
   formatProductionProductLineLabel,
   formatProductionStageLabel,
 } from './labels'
+import { policyLifecycleDisplayForApplication } from './policyLifecycle'
 import {
   getActiveLinkedPolicy,
   getCurrentAllocations,
@@ -22,6 +23,7 @@ export type HouseholdProductionPolicyRow = {
   applicationNumber: string | null
   roles: string
   stage: string
+  policyLifecycleLabel: string | null
   premiumDisplay: string
   writingAdvisors: string
   dates: string
@@ -96,6 +98,7 @@ export function mapHouseholdProductionPolicy(
     applicationNumber: application.application_number,
     roles: householdProductionRoles(application),
     stage: formatProductionStageLabel(application.production_stage),
+    policyLifecycleLabel: policyLifecycleDisplayForApplication(application),
     premiumDisplay: householdProductionPremium(application),
     writingAdvisors: householdProductionWriters(application),
     dates: householdProductionDates(application),

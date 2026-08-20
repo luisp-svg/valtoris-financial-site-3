@@ -75,7 +75,10 @@ export default function PoliciesTab({ workspace, householdId }: ClientWorkspaceT
                   {policy.carrier} · {policy.product}
                 </h3>
                 <p className="crm-household-case-stage">
-                  {policy.productLine} · {policy.stage}
+                  {policy.productLine}
+                  {policy.policyLifecycleLabel
+                    ? ` · ${policy.policyLifecycleLabel}`
+                    : ` · ${policy.stage}`}
                 </p>
                 <p className="crm-household-case-amount">{policy.premiumDisplay}</p>
                 <p className="crm-task-meta">

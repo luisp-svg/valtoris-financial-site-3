@@ -243,4 +243,51 @@ describe('production queue view', () => {
       }).map((r) => r.id),
     ).toEqual(['tx-in'])
   })
+
+  it('filters post-placement policy lifecycle independently of application stage', () => {
+    const rows = [
+      item({
+        id: 'active',
+        production_stage: 'in_force',
+        updated_at: '2026-08-01T00:00:00.000Z',
+        linked_policies: [{ id: 'p1', policy_number: 'A', status: 'in_force', deleted_at: null }],
+      }),
+      item({
+        id: 'canceled',
+        production_stage: 'in_force',
+        updated_at: '2026-08-01T00:00:00.000Z',
+        linked_policies: [{ id: 'p2', policy_number: 'B', status: 'canceled', deleted_at: null }],
+      }),
+      item({
+        id: 'surrendered',
+        production_stage: 'in_force',
+        updated_at: '2026-08-01T00:00:00.000Z',
+        linked_policies: [{ id: 'p3', policy_number: 'C', status: 'surrendered', deleted_at: null }],
+      }),
+      item({
+        id: 'submitted',
+        production_stage: 'submitted',
+        updated_at: '2026-08-01T00:00:00.000Z',
+      }),
+    ]
+    expect(defaultProductionQueueFilters().policyLifecycle).toBe('all')
+    expect(
+      filterProductionQueueItems(rows, {
+        ...defaultProductionQueueFilters(),
+        policyLifecycle: 'current_in_force',
+      }).map((r) => r.id),
+    ).toEqual(['active'])
+    expect(
+      filterProductionQueueItems(rows, {
+        ...defaultProductionQueueFilters(),
+        policyLifecycle: 'canceled',
+      }).map((r) => r.id),
+    ).toEqual(['canceled'])
+    expect(
+      filterProductionQueueItems(rows, {
+        ...defaultProductionQueueFilters(),
+        policyLifecycle: 'surrendered',
+      }).map((r) => r.id),
+    ).toEqual(['surrendered'])
+  })
 })

@@ -78,6 +78,11 @@ import {
   type ProductionStage,
 } from '../../crm/production/types'
 import { formatProductionProductLineLabel, formatProductionStageLabel } from '../../crm/production/labels'
+import {
+  POLICY_LIFECYCLE_FILTERS,
+  policyLifecycleFilterLabel,
+  type PolicyLifecycleFilter,
+} from '../../crm/production/policyLifecycle'
 import { type StageTransitionAction } from '../../crm/production/stageTransitionView'
 import { createSupabaseBrowserClient } from '../../lib/supabase/client'
 
@@ -294,7 +299,8 @@ export default function CrmProductionPage() {
     filters.submissionDateFrom.trim() !== '' ||
     filters.submissionDateTo.trim() !== '' ||
     filters.followUpOverdueOnly ||
-    filters.staleOnly
+    filters.staleOnly ||
+    filters.policyLifecycle !== 'all'
 
   function resetFilters() {
     setFilters(defaultProductionQueueFilters())
@@ -551,6 +557,23 @@ export default function CrmProductionPage() {
             onChange={(e) => updateFilter('submissionDateTo', e.target.value)}
             disabled={loading}
           />
+        </label>
+
+        <label className="crm-field">
+          <span>Policy status</span>
+          <select
+            value={filters.policyLifecycle}
+            onChange={(e) =>
+              updateFilter('policyLifecycle', e.target.value as PolicyLifecycleFilter)
+            }
+            disabled={loading}
+          >
+            {POLICY_LIFECYCLE_FILTERS.map((value) => (
+              <option key={value} value={value}>
+                {policyLifecycleFilterLabel(value)}
+              </option>
+            ))}
+          </select>
         </label>
 
         <label className="crm-field crm-production-check-field">

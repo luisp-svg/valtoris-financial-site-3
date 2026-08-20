@@ -25,6 +25,12 @@ import {
 } from '../../crm/production/labels'
 import { getProductionDetailViewState } from '../../crm/production/listLoadState'
 import StageBadge from '../../crm/production/StageBadge'
+import PolicyLifecycleBadge from '../../crm/production/PolicyLifecycleBadge'
+import {
+  POLICY_LIFECYCLE_CHARGEBACK_NOTE,
+  isPlacedApplication,
+  policyLifecycleDetailModel,
+} from '../../crm/production/policyLifecycle'
 import {
   fetchProductionApplicationById,
   formatCents,
@@ -232,6 +238,7 @@ export default function CrmProductionDetailPage() {
   const overdue = isFollowUpOverdue(application.next_follow_up_date, now)
   const attention = formatCaseAttentionLabels(caseAttentionFlags(application, now), application.product_line)
   const linked = getActiveLinkedPolicy(application)
+  const lifecycle = policyLifecycleDetailModel(application)
   const participants = getCurrentParticipants(application.participants)
   const allocations = getCurrentAllocations(application.allocations)
   const isFia = application.product_line === 'fia'
@@ -293,6 +300,7 @@ export default function CrmProductionDetailPage() {
         </div>
         <div className="crm-production-header-actions">
           <StageBadge stage={application.production_stage} />
+          {lifecycle.statusLabel ? <PolicyLifecycleBadge status={linked?.status} /> : null}
           {showEdit ? (
             <Link to={crmProductionEditPath(application.id)} className="crm-primary-btn">
               Edit Application
@@ -553,6 +561,39 @@ export default function CrmProductionDetailPage() {
         error={actualError}
       />
 
+      {lifecycle.visible ? (
+        <section className="crm-panel crm-policy-lifecycle-section" aria-labelledby="pp-lifecycle-heading">
+          <div className="crm-panel-head">
+            <h2 id="pp-lifecycle-heading">Policy Lifecycle</h2>
+          </div>
+          <dl className="crm-production-detail-grid">
+            <div>
+              <dt>Current policy status</dt>
+              <dd>
+                {lifecycle.statusLabel ? (
+                  <PolicyLifecycleBadge status={linked?.status} />
+                ) : (
+                  '—'
+                )}
+              </dd>
+            </div>
+            {lifecycle.showTerminationFacts ? (
+              <>
+                <div>
+                  <dt>Terminated on</dt>
+                  <dd>{formatProductionDate(lifecycle.terminatedOn)}</dd>
+                </div>
+                <div>
+                  <dt>Termination reason</dt>
+                  <dd>{lifecycle.terminationReason || '—'}</dd>
+                </div>
+              </>
+            ) : null}
+          </dl>
+          <p className="crm-production-kpi-caption">{POLICY_LIFECYCLE_CHARGEBACK_NOTE}</p>
+        </section>
+      ) : null}
+
       <section className="crm-panel" aria-labelledby="pp-ids-heading">
         <div className="crm-panel-head">
           <h2 id="pp-ids-heading">Identifiers</h2>
@@ -576,7 +617,11 @@ export default function CrmProductionDetailPage() {
           </div>
           <div>
             <dt>Linked policy status</dt>
-            <dd>{linked?.status ?? '—'}</dd>
+            <dd>
+              {isPlacedApplication(application) && lifecycle.statusLabel
+                ? lifecycle.statusLabel
+                : (linked?.status ?? '—')}
+            </dd>
           </div>
         </dl>
       </section>

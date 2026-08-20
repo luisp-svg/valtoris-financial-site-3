@@ -5,6 +5,7 @@ import {
   isProductionTerminalStage,
   isStaleDaysInStage,
 } from './daysInStage'
+import { matchesPolicyLifecycleFilter } from './policyLifecycle'
 import type {
   ProductionApplicationListItem,
   ProductionQueueFilters,
@@ -100,6 +101,8 @@ export function filterProductionQueueItems(
       if (!isStaleDaysInStage(days)) return false
     }
 
+    if (!matchesPolicyLifecycleFilter(item, filters.policyLifecycle)) return false
+
     if (!needle) return true
 
     const linkedPolicyNumber =
@@ -139,6 +142,7 @@ export function defaultProductionQueueFilters(): ProductionQueueFilters {
     submissionDateTo: '',
     followUpOverdueOnly: false,
     staleOnly: false,
+    policyLifecycle: 'all',
     includeDeleted: false,
   }
 }

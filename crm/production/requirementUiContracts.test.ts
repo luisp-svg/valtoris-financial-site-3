@@ -46,7 +46,10 @@ describe('Case Management Phase 2B requirement UI contracts', () => {
 
   it('does not add a cases table, sibling FKs, notes, PHI, or commission writes', () => {
     const files = readdirSync(migrationsDir).filter((name) => name.endsWith('.sql')).sort()
-    expect(files.filter((name) => name.startsWith('045_'))).toEqual([])
+    expect(files.filter((name) => name.startsWith('045_'))).toEqual([
+      '045_policy_post_placement_lifecycle.sql',
+    ])
+    expect(files.filter((name) => name.startsWith('046_'))).toEqual([])
     expect(existsSync(join(migrationsDir, '044_case_management.sql'))).toBe(false)
     expect(section).not.toMatch(/from\('cases'\)/)
     expect(section).not.toMatch(/<textarea[^>]*(notes|diagnosis|medication|lab)/i)

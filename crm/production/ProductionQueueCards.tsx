@@ -27,6 +27,8 @@ import {
   formatProductionStageLabel,
 } from './labels'
 import { formatProductionDate } from './productionApi'
+import PolicyLifecycleBadge from './PolicyLifecycleBadge'
+import { policyLifecycleDisplayForApplication } from './policyLifecycle'
 import type { CompensationViewer, ProductionApplicationListItem } from './types'
 import { PRODUCTION_STALE_DAYS_IN_STAGE } from './types'
 import { crmProductionEditPath, crmProductionPath } from '../../constants/routes'
@@ -90,6 +92,11 @@ export default function ProductionQueueCards({
                 <p className="crm-production-queue-card-stage">
                   {formatProductionStageLabel(item.production_stage)}
                 </p>
+                {policyLifecycleDisplayForApplication(item) ? (
+                  <p className="crm-production-queue-card-lifecycle">
+                    <PolicyLifecycleBadge status={linked?.status} />
+                  </p>
+                ) : null}
                 <CaseAttentionFlagList labels={attention} />
                 <dl className="crm-opportunities-card-meta">
                   {hideCompensation ? (

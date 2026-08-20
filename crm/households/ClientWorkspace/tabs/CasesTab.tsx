@@ -19,7 +19,7 @@ function CaseRow({ row }: { row: HouseholdCaseRow }) {
         {row.carrier} · {row.product}
       </h3>
       <p className="crm-household-case-stage">
-        {row.productLine} · {row.stage}
+        {row.productLine} · {row.lifecycleBadge ?? row.stage}
       </p>
       <CaseAttentionFlagList labels={row.attentionLabels} />
       <p className="crm-household-case-amount">{row.amount}</p>

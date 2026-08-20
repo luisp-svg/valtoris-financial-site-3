@@ -9,6 +9,7 @@ import {
 } from './notesApi'
 import { normalizeEmail, normalizePhone } from './normalizeContact'
 import { buildHouseholdTimeline } from './timeline'
+import { isActiveHouseholdPolicy } from './activePolicyStatus'
 import type {
   AssessmentCaptureChannel,
   CreateHouseholdMemberInput,
@@ -92,9 +93,6 @@ const HOUSEHOLD_DETAIL_SELECT = `
     ${MEMBER_EMBED_SELECT}
   )
 `
-
-/** Policies treated as active for workspace KPI (excludes terminal statuses). */
-const INACTIVE_POLICY_STATUSES = new Set(['cancelled', 'canceled', 'lapsed', 'expired', 'replaced'])
 
 /**
  * Intentional bounds for one-shot workspace preview collections.
@@ -1057,7 +1055,7 @@ async function fetchActivePoliciesForHousehold(
   const { data, error } = await supabase
     .from('policies')
     .select(
-      'id, carrier, policy_type, status, coverage_amount, renewal_or_review_date, beneficiary',
+      'id, carrier, policy_type, status, coverage_amount, renewal_or_review_date, beneficiary, source_application_id',
     )
     .eq('household_id', householdId)
     .is('deleted_at', null)
@@ -1082,8 +1080,11 @@ async function fetchActivePoliciesForHousehold(
         typeof row.beneficiary === 'string' && row.beneficiary.trim() !== ''
           ? row.beneficiary.trim()
           : null,
+      source_application_id: row.source_application_id
+        ? String(row.source_application_id)
+        : null,
     }))
-    .filter((policy) => !INACTIVE_POLICY_STATUSES.has(policy.status.toLowerCase()))
+    .filter(isActiveHouseholdPolicy)
 }
 
 async function fetchRecentDocumentsForHousehold(

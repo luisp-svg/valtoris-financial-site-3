@@ -2,6 +2,7 @@
  * Phase B Production board — pure grouping of the already-filtered working set.
  * Does not fetch, mutate stages, or read compensation.
  */
+import { isPostPlacementTerminated } from './policyLifecycle'
 import type { ProductionApplicationListItem, ProductionStage } from './types'
 import { PRODUCTION_STAGES } from './types'
 
@@ -29,10 +30,16 @@ export const BOARD_EXCEPTION_COLUMNS = [
   { stage: 'not_taken', label: 'Not Taken' },
 ] as const satisfies ReadonlyArray<{ stage: ProductionStage; label: string }>
 
+export const BOARD_TERMINATED_COLUMN = {
+  stage: 'terminated_placed',
+  label: 'Terminated',
+} as const
+
 export type BoardPipelineStage = (typeof BOARD_PIPELINE_COLUMNS)[number]['stage']
+export type ProductionBoardColumnId = ProductionStage | typeof BOARD_TERMINATED_COLUMN.stage
 
 export type ProductionBoardColumn = {
-  stage: ProductionStage
+  stage: ProductionBoardColumnId
   label: string
   items: ProductionApplicationListItem[]
 }
@@ -71,7 +78,8 @@ export function boardLaneForStage(stage: string): 'pipeline' | 'intake' | 'excep
   return 'exceptions'
 }
 
-export function boardColumnLabel(stage: ProductionStage | string): string {
+export function boardColumnLabel(stage: ProductionBoardColumnId | string): string {
+  if (stage === BOARD_TERMINATED_COLUMN.stage) return BOARD_TERMINATED_COLUMN.label
   const match = [...BOARD_PIPELINE_COLUMNS, ...BOARD_INTAKE_COLUMNS, ...BOARD_EXCEPTION_COLUMNS].find(
     (column) => column.stage === stage,
   )
@@ -92,6 +100,8 @@ function columnIndex(columns: ProductionBoardColumn[], stage: string): number {
  * Groups the filtered working set into board columns.
  * Application draft (`draft`) is never placed under premium Drafted.
  * Every input row appears in exactly one column.
+ * Placed applications whose linked policy is canceled or surrendered leave the
+ * operational In Force column and appear under Terminated.
  */
 export function groupProductionBoardItems(
   items: readonly ProductionApplicationListItem[],
@@ -99,8 +109,17 @@ export function groupProductionBoardItems(
   const pipeline = emptyColumns(BOARD_PIPELINE_COLUMNS)
   const intake = emptyColumns(BOARD_INTAKE_COLUMNS)
   const exceptions = emptyColumns(BOARD_EXCEPTION_COLUMNS)
+  const terminated: ProductionBoardColumn = {
+    stage: BOARD_TERMINATED_COLUMN.stage,
+    label: BOARD_TERMINATED_COLUMN.label,
+    items: [],
+  }
 
   for (const item of items) {
+    if (isPostPlacementTerminated(item)) {
+      terminated.items.push(item)
+      continue
+    }
     const lane = boardLaneForStage(item.production_stage)
     const target = lane === 'pipeline' ? pipeline : lane === 'intake' ? intake : exceptions
     const index = columnIndex(target, item.production_stage)
@@ -110,6 +129,8 @@ export function groupProductionBoardItems(
       exceptions[0]?.items.push(item)
     }
   }
+
+  exceptions.push(terminated)
 
   return {
     pipeline,

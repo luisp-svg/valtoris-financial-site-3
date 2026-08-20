@@ -96,4 +96,23 @@ describe('household Cases tab mapping', () => {
     expect(closed.find((row) => row.id === 'closed-overdue')?.attentionLabels).toEqual([])
     expect(JSON.stringify(open)).not.toMatch(/custom_label|paramed_exam|aps|diagnosis/i)
   })
+
+  it('keeps a placed then surrendered application closed with a lifecycle badge', () => {
+    const { open, closed } = partitionHouseholdCases(
+      [
+        item({
+          id: 'surrendered',
+          production_stage: 'in_force',
+          submission_date: '2026-01-15',
+          linked_policies: [
+            { id: 'p1', policy_number: 'P-1', status: 'surrendered', deleted_at: null },
+          ],
+        }),
+      ],
+      now,
+    )
+    expect(open).toEqual([])
+    expect(closed).toHaveLength(1)
+    expect(closed[0]?.lifecycleBadge).toBe('Placed · Surrendered')
+  })
 })

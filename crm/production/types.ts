@@ -197,6 +197,8 @@ export type ProductionLinkedPolicy = {
   policy_number: string | null
   status: string | null
   deleted_at: string | null
+  terminated_on?: string | null
+  termination_reason?: string | null
 }
 
 export const EXPECTED_CALCULATION_STATUSES = [
@@ -309,6 +311,8 @@ export type ProductionQueueFilters = {
   submissionDateTo: string
   followUpOverdueOnly: boolean
   staleOnly: boolean
+  /** Post-placement policy lifecycle. Independent of application stage. */
+  policyLifecycle: 'all' | 'current_in_force' | 'canceled' | 'surrendered'
   /** When false (default), soft-deleted rows are excluded from the queue. */
   includeDeleted: boolean
 }
