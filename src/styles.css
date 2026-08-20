@@ -7444,6 +7444,11 @@ p { color: var(--muted); line-height: 1.7; }
 .crm-production-page {
   display: grid;
   gap: 14px;
+  min-width: 0;
+}
+
+.crm-opportunities-page {
+  overflow-x: clip;
 }
 
 .crm-production-dashboard-stack {
@@ -7859,7 +7864,8 @@ p { color: var(--muted); line-height: 1.7; }
     grid-column: 1 / -1;
   }
 
-  .crm-case-view-bar {
+  .crm-case-view-bar,
+  .crm-pipeline-view-bar {
     flex-wrap: nowrap;
     overflow-x: auto;
     max-width: 100%;
@@ -8476,6 +8482,42 @@ p { color: var(--muted); line-height: 1.7; }
   text-decoration: none;
 }
 
+.crm-pipeline-card-name,
+.crm-pipeline-card-product,
+.crm-pipeline-card-stage,
+.crm-pipeline-card .crm-opportunities-card-meta dd {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  min-width: 0;
+}
+
+.crm-pipeline-card-product {
+  margin: 0;
+  color: var(--crm-muted);
+  font-size: 0.88rem;
+  line-height: 1.35;
+}
+
+.crm-pipeline-card-stage {
+  margin: 0;
+  color: var(--crm-navy);
+  font-weight: 700;
+}
+
+.crm-pipeline-overdue {
+  color: #8a3b12;
+  font-weight: 650;
+}
+
+.crm-pipeline-card .crm-opportunities-card-link {
+  display: grid;
+  gap: 6px;
+}
+
+.crm-opportunities-filters .crm-pipeline-view-bar {
+  margin-bottom: 12px;
+}
+
 .crm-production-queue-card-product {
   margin: 0;
   color: var(--crm-muted);
@@ -8902,6 +8944,16 @@ p { color: var(--muted); line-height: 1.7; }
 
   .crm-opportunities-filters-grid {
     grid-template-columns: 1fr;
+  }
+
+  .crm-opportunities-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .crm-opportunities-header .crm-primary-btn {
+    width: 100%;
+    min-height: 44px;
   }
 
   .crm-opportunity-overview-grid {
@@ -11219,7 +11271,8 @@ button.public-card-diagnostic:disabled {
   font-weight: 600;
 }
 
-.crm-case-view-bar {
+.crm-case-view-bar,
+.crm-pipeline-view-bar {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -11232,7 +11285,8 @@ button.public-card-diagnostic:disabled {
   font-size: 1rem;
 }
 
-.crm-case-view-btn {
+.crm-case-view-btn,
+.crm-pipeline-view-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -11247,18 +11301,21 @@ button.public-card-diagnostic:disabled {
   flex: 0 0 auto;
 }
 
-.crm-case-view-btn.is-active {
+.crm-case-view-btn.is-active,
+.crm-pipeline-view-btn.is-active {
   border-color: var(--crm-navy);
   background: var(--crm-navy);
   color: #fff;
 }
 
-.crm-case-view-btn.is-active .crm-count-pill {
+.crm-case-view-btn.is-active .crm-count-pill,
+.crm-pipeline-view-btn.is-active .crm-count-pill {
   background: rgba(255, 255, 255, 0.18);
   color: inherit;
 }
 
-.crm-case-attention-flags {
+.crm-case-attention-flags,
+.crm-opportunity-attention-flags {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
@@ -11267,7 +11324,8 @@ button.public-card-diagnostic:disabled {
   list-style: none;
 }
 
-.crm-case-flag {
+.crm-case-flag,
+.crm-opportunity-attention-flag {
   display: inline-block;
   border: 1px solid #e4c3a8;
   background: #fbf4ee;

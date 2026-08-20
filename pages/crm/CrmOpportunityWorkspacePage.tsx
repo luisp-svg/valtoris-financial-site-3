@@ -11,6 +11,7 @@ import {
   buildLifecycleReloadFailureUi,
   buildLifecycleReloadRetryUi,
 } from '../../crm/opportunities/lifecyclePartialSuccess'
+import OpportunityAttentionFlagList from '../../crm/opportunities/OpportunityAttentionFlagList'
 import {
   fetchOpportunityStageOptions,
   fetchOpportunityWorkspace,
@@ -22,8 +23,13 @@ import {
   getOpportunityOwnerLabel,
   getOpportunityPipelineLabel,
   getOpportunityStageLabel,
-  getOpportunityVerticalLabel,
 } from '../../crm/opportunities/opportunitiesApi'
+import {
+  formatOpportunityAttentionLabels,
+  formatOpportunityNextActionDueLabel,
+  getOpportunityPrimaryProductLabel,
+  opportunityAttentionFlags,
+} from '../../crm/opportunities/pipelineView'
 import {
   getOpportunityActivityViewState,
   getOpportunityWorkspaceViewState,
@@ -53,17 +59,6 @@ function formatDateTime(value: string | null | undefined): string {
     year: 'numeric',
     hour: 'numeric',
     minute: '2-digit',
-  })
-}
-
-function formatDate(value: string | null | undefined): string {
-  if (!value) return '—'
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return '—'
-  return date.toLocaleDateString(undefined, {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
   })
 }
 
@@ -243,7 +238,7 @@ export default function CrmOpportunityWorkspacePage() {
       <header className="crm-page-header crm-opportunity-workspace-header">
         <div className="crm-opportunity-workspace-nav">
           <Link to={ROUTES.crmPipeline} className="crm-text-btn">
-            ← Opportunities
+            ← Pipeline
           </Link>
           {workspace ? (
             <Link
@@ -287,7 +282,7 @@ export default function CrmOpportunityWorkspacePage() {
               This opportunity may not exist, may have been removed, or you may not have access.
             </p>
             <Link to={ROUTES.crmPipeline} className="crm-text-btn">
-              Back to opportunities
+              Back to pipeline
             </Link>
           </>
         ) : null}
@@ -301,7 +296,7 @@ export default function CrmOpportunityWorkspacePage() {
                 <p className="crm-page-subtitle">
                   {getOpportunityHouseholdLabel(workspace.opportunity)}
                   {' · '}
-                  {getOpportunityVerticalLabel(workspace.opportunity)}
+                  {getOpportunityPrimaryProductLabel(workspace.opportunity)}
                 </p>
               </div>
               <button
@@ -326,6 +321,11 @@ export default function CrmOpportunityWorkspacePage() {
               <span className="crm-status-chip">
                 {getOpportunityOwnerLabel(workspace.opportunity)}
               </span>
+              <OpportunityAttentionFlagList
+                labels={formatOpportunityAttentionLabels(
+                  opportunityAttentionFlags(workspace.opportunity),
+                )}
+              />
             </div>
           </>
         ) : null}
@@ -491,12 +491,12 @@ export default function CrmOpportunityWorkspacePage() {
                     </dd>
                   </div>
                   <div>
-                    <dt>Owner</dt>
+                    <dt>Advisor</dt>
                     <dd>{getOpportunityOwnerLabel(workspace.opportunity)}</dd>
                   </div>
                   <div>
-                    <dt>Service</dt>
-                    <dd>{getOpportunityVerticalLabel(workspace.opportunity)}</dd>
+                    <dt>Primary Product / Service</dt>
+                    <dd>{getOpportunityPrimaryProductLabel(workspace.opportunity)}</dd>
                   </div>
                   <div>
                     <dt>Need identified</dt>
@@ -507,8 +507,8 @@ export default function CrmOpportunityWorkspacePage() {
                     <dd>{workspace.opportunity.next_action ?? '—'}</dd>
                   </div>
                   <div>
-                    <dt>Next action due</dt>
-                    <dd>{formatDate(workspace.opportunity.next_action_due_at)}</dd>
+                    <dt>Next-action due</dt>
+                    <dd>{formatOpportunityNextActionDueLabel(workspace.opportunity.next_action_due_at)}</dd>
                   </div>
                   <div>
                     <dt>Stage entered</dt>

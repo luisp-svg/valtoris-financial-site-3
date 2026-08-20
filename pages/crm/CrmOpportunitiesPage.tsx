@@ -1,58 +1,42 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import OpportunityFormDialog from '../../crm/opportunities/OpportunityFormDialog'
+import OpportunityPipelineCard from '../../crm/opportunities/OpportunityPipelineCard'
+import PipelineViewBar from '../../crm/opportunities/PipelineViewBar'
+import OpportunityAttentionFlagList from '../../crm/opportunities/OpportunityAttentionFlagList'
 import {
+  fetchCurrentAdvisorProfileId,
   fetchOpportunities,
-  filterOpportunityListItems,
-  formatOpportunityStatusLabel,
   formatSupabaseError,
   getOpportunityHouseholdLabel,
   getOpportunityOwnerLabel,
-  getOpportunityPipelineLabel,
   getOpportunityStageLabel,
-  getOpportunityVerticalLabel,
 } from '../../crm/opportunities/opportunitiesApi'
 import { getOpportunityListViewState } from '../../crm/opportunities/listLoadState'
-import type {
-  OpportunityDetail,
-  OpportunityListItem,
-  OpportunityStatus,
-  OpportunityStatusGroup,
-} from '../../crm/opportunities/types'
-import { crmHouseholdPath, crmOpportunityPath } from '../../constants/routes'
+import {
+  applyPipelineView,
+  countPipelineViews,
+  formatOpportunityNextActionDueLabel,
+  pipelineEmptyCopy,
+  pipelineViewFromSearchParams,
+  pipelineViewLabel,
+  pipelineCardCopy,
+  writePipelineViewSearchParams,
+  type PipelineView,
+} from '../../crm/opportunities/pipelineView'
+import type { OpportunityDetail, OpportunityListItem } from '../../crm/opportunities/types'
+import { crmOpportunityPath } from '../../constants/routes'
 import { createSupabaseBrowserClient } from '../../lib/supabase/client'
-
-/** Combined status control: group filters plus exact won/lost for dashboard deep-links. */
-type StatusFilterValue = OpportunityStatusGroup | 'won' | 'lost'
-
-function formatUpdatedAt(value: string): string {
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return '—'
-  return date.toLocaleDateString(undefined, {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  })
-}
-
-function statusFilterFromSearchParams(params: URLSearchParams): StatusFilterValue {
-  const exact = params.get('status')
-  if (exact === 'won' || exact === 'lost') return exact
-  const group = params.get('statusGroup')
-  if (group === 'open' || group === 'closed' || group === 'all') return group
-  return 'open'
-}
 
 export default function CrmOpportunitiesPage() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const [opportunities, setOpportunities] = useState<OpportunityListItem[]>([])
+  const [assignedAdvisorId, setAssignedAdvisorId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState<StatusFilterValue>(() =>
-    statusFilterFromSearchParams(searchParams),
-  )
+  const [view, setView] = useState<PipelineView>(() => pipelineViewFromSearchParams(searchParams))
   const [reloadKey, setReloadKey] = useState(0)
   const [showCreate, setShowCreate] = useState(false)
   const [success, setSuccess] = useState<string | null>(null)
@@ -68,7 +52,7 @@ export default function CrmOpportunitiesPage() {
   }
 
   useEffect(() => {
-    setStatusFilter(statusFilterFromSearchParams(searchParams))
+    setView(pipelineViewFromSearchParams(searchParams))
   }, [searchParams])
 
   useEffect(() => {
@@ -78,18 +62,21 @@ export default function CrmOpportunitiesPage() {
       setError(null)
       try {
         const supabase = createSupabaseBrowserClient()
-        const rows =
-          statusFilter === 'won' || statusFilter === 'lost'
-            ? await fetchOpportunities(supabase, {
-                status: statusFilter as OpportunityStatus,
-              })
-            : await fetchOpportunities(supabase, {
-                statusGroup: statusFilter as OpportunityStatusGroup,
-              })
-        if (!cancelled) setOpportunities(rows)
+        const {
+          data: { user },
+        } = await supabase.auth.getUser()
+        const [rows, advisorId] = await Promise.all([
+          fetchOpportunities(supabase),
+          user?.id ? fetchCurrentAdvisorProfileId(supabase, user.id) : Promise.resolve(null),
+        ])
+        if (!cancelled) {
+          setOpportunities(rows)
+          setAssignedAdvisorId(advisorId)
+        }
       } catch (err) {
         if (!cancelled) {
           setOpportunities([])
+          setAssignedAdvisorId(null)
           setError('Unable to load opportunities. Please try again.')
           if (import.meta.env.DEV) {
             console.error('[crm/opportunities]', formatSupabaseError('opportunities', err))
@@ -102,51 +89,52 @@ export default function CrmOpportunitiesPage() {
     return () => {
       cancelled = true
     }
-  }, [statusFilter, reloadKey])
+  }, [reloadKey])
+
+  const viewCounts = useMemo(
+    () => countPipelineViews(opportunities, assignedAdvisorId),
+    [opportunities, assignedAdvisorId],
+  )
+
+  const viewItems = useMemo(
+    () => applyPipelineView(opportunities, { view, assignedAdvisorId }),
+    [opportunities, view, assignedAdvisorId],
+  )
 
   const filteredOpportunities = useMemo(
-    () => filterOpportunityListItems(opportunities, { search }),
-    [opportunities, search],
+    () => applyPipelineView(opportunities, { view, search, assignedAdvisorId }),
+    [opportunities, view, search, assignedAdvisorId],
   )
 
   const viewState = getOpportunityListViewState({
     loading,
     error,
-    totalCount: opportunities.length,
+    totalCount: viewItems.length,
     filteredCount: filteredOpportunities.length,
   })
 
-  const hasActiveFilters = search.trim() !== '' || statusFilter !== 'open'
+  const hasActiveFilters = search.trim() !== '' || view !== 'active'
+  const emptyCopy = pipelineEmptyCopy(view)
 
-  function applyStatusFilter(next: StatusFilterValue) {
-    setStatusFilter(next)
-    const nextParams = new URLSearchParams(searchParams)
-    nextParams.delete('status')
-    nextParams.delete('statusGroup')
-    if (next === 'won' || next === 'lost') {
-      nextParams.set('status', next)
-    } else if (next !== 'open') {
-      nextParams.set('statusGroup', next)
-    } else {
-      nextParams.set('statusGroup', 'open')
-    }
-    setSearchParams(nextParams, { replace: true })
+  function applyView(next: PipelineView) {
+    setView(next)
+    setSearchParams(writePipelineViewSearchParams(searchParams, next), { replace: true })
   }
 
   function resetFilters() {
     setSearch('')
-    applyStatusFilter('open')
+    applyView('active')
   }
 
   return (
     <div className="crm-opportunities-page">
       <header className="crm-page-header crm-opportunities-header">
         <div>
-          <p className="crm-page-eyebrow">Service pipeline</p>
-          <h1 className="crm-page-title">Opportunities</h1>
+          <p className="crm-page-eyebrow">Sales pipeline</p>
+          <h1 className="crm-page-title">Pipeline</h1>
           <p className="crm-page-subtitle">
-            Service opportunities linked to households you can access. Stages come from each
-            opportunity&apos;s pipeline — they are not hard-coded in the UI.
+            Who you are selling to, what you are presenting, and what needs a next action.
+            Sales stages stay on the opportunity — they are separate from Case / Production.
           </p>
         </div>
         <button
@@ -184,7 +172,14 @@ export default function CrmOpportunitiesPage() {
         </div>
       ) : null}
 
-      <section className="crm-panel crm-opportunities-filters" aria-label="Opportunity filters">
+      <section className="crm-panel crm-opportunities-filters" aria-label="Pipeline filters">
+        <PipelineViewBar
+          value={view}
+          onChange={applyView}
+          counts={viewCounts}
+          disabled={loading}
+        />
+
         <div className="crm-opportunities-filters-grid">
           <label className="crm-field">
             Search
@@ -217,7 +212,7 @@ export default function CrmOpportunitiesPage() {
                 type="search"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Title, household, stage, or owner"
+                placeholder="Household, product, stage, or advisor"
                 disabled={loading || Boolean(error)}
                 autoComplete="off"
               />
@@ -241,21 +236,6 @@ export default function CrmOpportunitiesPage() {
               ) : null}
             </span>
           </label>
-
-          <label className="crm-field">
-            Status
-            <select
-              value={statusFilter}
-              onChange={(e) => applyStatusFilter(e.target.value as StatusFilterValue)}
-              disabled={loading}
-            >
-              <option value="open">Open</option>
-              <option value="won">Won</option>
-              <option value="lost">Lost</option>
-              <option value="closed">Closed</option>
-              <option value="all">All statuses</option>
-            </select>
-          </label>
         </div>
 
         {hasActiveFilters ? (
@@ -270,7 +250,7 @@ export default function CrmOpportunitiesPage() {
       <section className="crm-panel" aria-labelledby="crm-opportunities-list-heading">
         <div className="crm-panel-head">
           <h2 id="crm-opportunities-list-heading">
-            Opportunities ({loading ? '…' : filteredOpportunities.length})
+            {pipelineViewLabel(view)} ({loading ? '…' : filteredOpportunities.length})
           </h2>
         </div>
 
@@ -280,21 +260,24 @@ export default function CrmOpportunitiesPage() {
 
         {viewState.kind === 'empty' ? (
           <div className="crm-empty-state">
-            <p className="crm-empty-state-title">No opportunities available</p>
-            <p>
-              No opportunities are available for your account with the selected status. If you are
-              an advisor, this usually means none are currently assigned to you or your households.
-            </p>
-            <button
-              type="button"
-              className="crm-secondary-btn"
-              onClick={() => {
-                setSuccess(null)
-                setShowCreate(true)
-              }}
-            >
-              New Opportunity
-            </button>
+            <p className="crm-empty-state-title">{emptyCopy.title}</p>
+            <p>{emptyCopy.body}</p>
+            {view === 'active' ? (
+              <button
+                type="button"
+                className="crm-secondary-btn"
+                onClick={() => {
+                  setSuccess(null)
+                  setShowCreate(true)
+                }}
+              >
+                New Opportunity
+              </button>
+            ) : (
+              <button type="button" className="crm-text-btn" onClick={resetFilters}>
+                View Active
+              </button>
+            )}
           </div>
         ) : null}
 
@@ -303,7 +286,7 @@ export default function CrmOpportunitiesPage() {
             <p className="crm-empty-state-title">No matching opportunities</p>
             <p>
               {search.trim()
-                ? `No opportunities match “${search.trim()}” with the current filters.`
+                ? `No opportunities match “${search.trim()}” in ${pipelineViewLabel(view)}.`
                 : 'No opportunities match the selected filters.'}
             </p>
             <button type="button" className="crm-text-btn" onClick={resetFilters}>
@@ -317,115 +300,80 @@ export default function CrmOpportunitiesPage() {
             <div
               className="crm-opportunities-table-wrap"
               role="region"
-              aria-label="Opportunities table"
+              aria-label="Pipeline table"
             >
               <table className="crm-opportunities-table">
                 <thead>
                   <tr>
-                    <th scope="col">Opportunity</th>
                     <th scope="col">Household</th>
-                    <th scope="col">Pipeline</th>
+                    <th scope="col">Primary Product / Service</th>
                     <th scope="col">Stage</th>
-                    <th scope="col">Service</th>
-                    <th scope="col">Owner</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Updated</th>
+                    <th scope="col">Advisor</th>
+                    <th scope="col">Next action</th>
+                    <th scope="col">Due</th>
+                    <th scope="col">Attention</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredOpportunities.map((opportunity) => (
-                    <tr
-                      key={opportunity.id}
-                      className="crm-opportunities-row"
-                      tabIndex={0}
-                      aria-label={`Open ${opportunity.title}`}
-                      onClick={() => openOpportunity(opportunity.id)}
-                      onKeyDown={(event) => {
-                        if (event.key === 'Enter' || event.key === ' ') {
-                          event.preventDefault()
-                          openOpportunity(opportunity.id)
-                        }
-                      }}
-                    >
-                      <td>
-                        <Link
-                          to={crmOpportunityPath(opportunity.id)}
-                          className="crm-opportunities-name-link"
-                          onClick={(event) => event.stopPropagation()}
-                        >
-                          {opportunity.title}
-                        </Link>
-                      </td>
-                      <td>
-                        <Link
-                          to={crmHouseholdPath(opportunity.household_id)}
-                          className="crm-opportunities-secondary-link"
-                          onClick={(event) => event.stopPropagation()}
-                        >
-                          {getOpportunityHouseholdLabel(opportunity)}
-                        </Link>
-                      </td>
-                      <td>{getOpportunityPipelineLabel(opportunity)}</td>
-                      <td>
-                        <span className="crm-status-chip">
-                          {getOpportunityStageLabel(opportunity)}
-                        </span>
-                      </td>
-                      <td>{getOpportunityVerticalLabel(opportunity)}</td>
-                      <td>{getOpportunityOwnerLabel(opportunity)}</td>
-                      <td>{formatOpportunityStatusLabel(opportunity.status)}</td>
-                      <td>{formatUpdatedAt(opportunity.updated_at)}</td>
-                    </tr>
-                  ))}
+                  {filteredOpportunities.map((opportunity) => {
+                    const copy = pipelineCardCopy(opportunity)
+                    return (
+                      <tr
+                        key={opportunity.id}
+                        className="crm-opportunities-row"
+                        tabIndex={0}
+                        aria-label={`Open ${copy.householdName}`}
+                        onClick={() => openOpportunity(opportunity.id)}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault()
+                            openOpportunity(opportunity.id)
+                          }
+                        }}
+                      >
+                        <td>
+                          <Link
+                            to={crmOpportunityPath(opportunity.id)}
+                            className="crm-opportunities-name-link"
+                            onClick={(event) => event.stopPropagation()}
+                          >
+                            {getOpportunityHouseholdLabel(opportunity)}
+                          </Link>
+                        </td>
+                        <td>{copy.primaryProduct}</td>
+                        <td>
+                          <span className="crm-status-chip">
+                            {getOpportunityStageLabel(opportunity)}
+                          </span>
+                        </td>
+                        <td>{getOpportunityOwnerLabel(opportunity)}</td>
+                        <td>{copy.nextAction}</td>
+                        <td>
+                          <span
+                            className={
+                              copy.attention.includes('Overdue next action')
+                                ? 'crm-pipeline-overdue'
+                                : undefined
+                            }
+                          >
+                            {formatOpportunityNextActionDueLabel(opportunity.next_action_due_at)}
+                          </span>
+                        </td>
+                        <td>
+                          <OpportunityAttentionFlagList labels={copy.attention} />
+                          {copy.attention.length === 0 ? '—' : null}
+                        </td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
 
-            <ul className="crm-opportunities-card-list">
+            <ul className="crm-opportunities-card-list" aria-label="Pipeline cards">
               {filteredOpportunities.map((opportunity) => (
                 <li key={opportunity.id}>
-                  <article className="crm-opportunities-card">
-                    <Link
-                      to={crmOpportunityPath(opportunity.id)}
-                      className="crm-opportunities-card-link"
-                    >
-                      <p className="crm-opportunities-name">{opportunity.title}</p>
-                      <dl className="crm-opportunities-card-meta">
-                        <div>
-                          <dt>Household</dt>
-                          <dd>{getOpportunityHouseholdLabel(opportunity)}</dd>
-                        </div>
-                        <div>
-                          <dt>Stage</dt>
-                          <dd>{getOpportunityStageLabel(opportunity)}</dd>
-                        </div>
-                        <div>
-                          <dt>Service</dt>
-                          <dd>{getOpportunityVerticalLabel(opportunity)}</dd>
-                        </div>
-                        <div>
-                          <dt>Owner</dt>
-                          <dd>{getOpportunityOwnerLabel(opportunity)}</dd>
-                        </div>
-                        <div>
-                          <dt>Status</dt>
-                          <dd>{formatOpportunityStatusLabel(opportunity.status)}</dd>
-                        </div>
-                        <div>
-                          <dt>Updated</dt>
-                          <dd>{formatUpdatedAt(opportunity.updated_at)}</dd>
-                        </div>
-                      </dl>
-                    </Link>
-                    <p className="crm-opportunities-card-footer">
-                      <Link
-                        to={crmHouseholdPath(opportunity.household_id)}
-                        className="crm-opportunities-secondary-link"
-                      >
-                        Open household
-                      </Link>
-                    </p>
-                  </article>
+                  <OpportunityPipelineCard opportunity={opportunity} />
                 </li>
               ))}
             </ul>

@@ -116,6 +116,7 @@ describe('opportunity route helpers and presentation', () => {
 
   it('uses cards on mobile-width viewports and table on desktop', () => {
     expect(getOpportunityListPresentation(375)).toBe('cards')
+    expect(getOpportunityListPresentation(393)).toBe('cards')
     expect(getOpportunityListPresentation(899)).toBe('cards')
     expect(getOpportunityListPresentation(900)).toBe('table')
     expect(getOpportunityListPresentation(1280)).toBe('table')
