@@ -1,4 +1,5 @@
 import { DIGITAL_IDENTITY_LEAD_TYPE } from '../../modules/digital-identity'
+import { crmProductLabelForLeadType } from '../../modules/reportCard/publicIngestCatalog'
 import type {
   DuplicateReviewStatus,
   IngestMatchStatus,
@@ -217,6 +218,7 @@ export function buildDiagnosticFromAssessmentRow(
   leadScore: number | null,
   leadGrade: string | null,
   leadPriorities: unknown,
+  leadType?: string,
 ): IntakeDiagnosticSummary | null {
   if (!row || typeof row.id !== 'string') return null
 
@@ -262,11 +264,38 @@ export function buildDiagnosticFromAssessmentRow(
         ? leadScore
         : Number(row.overall_score)
 
+  const overallGradeRaw =
+    typeof row.overall_grade === 'string' ? row.overall_grade : leadGrade
+  const overallGrade = overallGradeRaw && overallGradeRaw.trim() ? overallGradeRaw : null
+  const productLabel = crmProductLabelForLeadType(leadType ?? '')
+  const typedLabel =
+    productLabel === 'Business Report Card' ||
+    productLabel === 'Retirement Report Card' ||
+    productLabel === 'Protection Gap'
+      ? productLabel
+      : 'Initial Financial Diagnostic'
+
+  const netProtectionGap =
+    typeof derived.netProtectionGap === 'number' && Number.isFinite(derived.netProtectionGap)
+      ? derived.netProtectionGap
+      : null
+  const totalNeed =
+    typeof derived.totalNeed === 'number' && Number.isFinite(derived.totalNeed)
+      ? derived.totalNeed
+      : null
+  const currentProtection =
+    typeof derived.currentProtection === 'number' && Number.isFinite(derived.currentProtection)
+      ? derived.currentProtection
+      : null
+  const protectionGapFormatted =
+    typeof derived.protectionGapFormatted === 'string' && derived.protectionGapFormatted.trim()
+      ? derived.protectionGapFormatted
+      : null
+
   return {
     assessmentId: row.id,
     overallScore: Number.isFinite(overallScore as number) ? (overallScore as number) : null,
-    overallGrade:
-      typeof row.overall_grade === 'string' ? row.overall_grade : leadGrade,
+    overallGrade,
     categories,
     topPriorities,
     captureChannel:
@@ -274,7 +303,12 @@ export function buildDiagnosticFromAssessmentRow(
     scoringVersion:
       typeof row.scoring_version === 'number' ? row.scoring_version : null,
     completedAt: typeof row.completed_at === 'string' ? row.completed_at : null,
-    productLabel: 'Initial Financial Diagnostic',
+    productLabel: typedLabel,
+    assessmentType: typeof row.assessment_type === 'string' ? row.assessment_type : null,
+    protectionGapFormatted,
+    netProtectionGap,
+    totalNeed,
+    currentProtection,
   }
 }
 

@@ -2,10 +2,10 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { SheetsSyncStatus } from './types.js'
 
 /**
- * Shape expected by `public.ingest_public_family_report_card(p_payload jsonb)`
- * (supabase/migrations/020_public_family_diagnostic_ingest.sql). Kept as a
- * loosely-typed record here since the RPC boundary is JSON — callers should
- * build this via `ingestFamilyReportCard.ts`.
+ * Shape expected by `public.ingest_public_report_card(p_payload jsonb)`
+ * (supabase/migrations/043_public_report_card_ingest.sql). The Family wrapper
+ * `ingest_public_family_report_card` remains for compatibility. Kept as a
+ * loosely-typed record here since the RPC boundary is JSON.
  */
 export type FamilyReportCardRpcPayload = Record<string, unknown>
 
@@ -41,6 +41,9 @@ function mapRpcErrorCode(error: { message?: string } | null | undefined): string
     'matched_household_required',
     'matched_household_not_found',
     'invalid_name',
+    'invalid_assessment_type',
+    'invalid_lead_type',
+    'invalid_advisor',
   ]
 
   for (const code of knownCodes) {
@@ -54,7 +57,7 @@ export async function persistFamilyReportCardIngest(
   admin: SupabaseClient,
   rpcPayload: FamilyReportCardRpcPayload,
 ): Promise<PersistIngestResult> {
-  const { data, error } = await admin.rpc('ingest_public_family_report_card', { p_payload: rpcPayload })
+  const { data, error } = await admin.rpc('ingest_public_report_card', { p_payload: rpcPayload })
 
   if (error) {
     return { ok: false, code: mapRpcErrorCode(error), error: SAFE_ERROR_MESSAGE }

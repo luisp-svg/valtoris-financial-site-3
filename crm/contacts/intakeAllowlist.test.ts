@@ -20,7 +20,7 @@ function createQuery(result: { data: unknown; error: null | object }) {
 }
 
 describe('Intake lead_type allowlist', () => {
-  it('queries only Family Report Card and Digital Identity', async () => {
+  it('queries Family, Business, Retirement, Protection Gap, and Digital Identity', async () => {
     const leadsQuery = createQuery({ data: [], error: null })
     const from = vi.fn((table: string) => {
       if (table === 'leads') return leadsQuery
@@ -29,6 +29,9 @@ describe('Intake lead_type allowlist', () => {
     await fetchIntakeQueue({ from } as unknown as SupabaseClient)
     expect(leadsQuery.in).toHaveBeenCalledWith('lead_type', [
       'Family Report Card',
+      'Business Report Card',
+      'Retirement Report Card',
+      'Protection Gap',
       DIGITAL_IDENTITY_LEAD_TYPE,
     ])
     expect(leadsQuery.or).not.toHaveBeenCalled()
@@ -36,7 +39,13 @@ describe('Intake lead_type allowlist', () => {
   })
 
   it('documents that NULL / future / Manual Contact types are excluded by allowlist', () => {
-    const allowed = new Set(['Family Report Card', DIGITAL_IDENTITY_LEAD_TYPE])
+    const allowed = new Set([
+      'Family Report Card',
+      'Business Report Card',
+      'Retirement Report Card',
+      'Protection Gap',
+      DIGITAL_IDENTITY_LEAD_TYPE,
+    ])
     for (const type of [null, undefined, 'Manual Contact', 'Future Widget', '']) {
       expect(allowed.has(type as string)).toBe(false)
     }

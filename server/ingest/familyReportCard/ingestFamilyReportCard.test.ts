@@ -37,7 +37,7 @@ describe('ingestFamilyReportCard', () => {
 
   it('creates a new prospect end-to-end when there are no matching candidates', async () => {
     const admin = makeAdminStub(async (fn) => {
-      if (fn === 'ingest_public_family_report_card') {
+      if (fn === 'ingest_public_report_card') {
         return { data: newProspectRpcResponse(), error: null }
       }
       if (fn === 'update_lead_sheets_sync') {
@@ -83,7 +83,7 @@ describe('ingestFamilyReportCard', () => {
     )
     expect(sheetsWriter).toHaveBeenCalledTimes(1)
     const rpcCall = (admin.rpc as ReturnType<typeof vi.fn>).mock.calls.find(
-      (call) => call[0] === 'ingest_public_family_report_card',
+      (call) => call[0] === 'ingest_public_report_card',
     )
     expect(rpcCall).toBeDefined()
     const rpcPayload = rpcCall?.[1]?.p_payload as Record<string, unknown>
@@ -93,7 +93,7 @@ describe('ingestFamilyReportCard', () => {
 
   it('still returns ok:true when follow-up task automation fails', async () => {
     const admin = makeAdminStub(async (fn) => {
-      if (fn === 'ingest_public_family_report_card') {
+      if (fn === 'ingest_public_report_card') {
         return { data: newProspectRpcResponse(), error: null }
       }
       return { data: null, error: null }
@@ -116,7 +116,7 @@ describe('ingestFamilyReportCard', () => {
   it('classifies an exact_trusted_match and forwards the matched household to the RPC payload', async () => {
     let capturedPayload: Record<string, unknown> | undefined
     const admin = makeAdminStub(async (fn, args) => {
-      if (fn === 'ingest_public_family_report_card') {
+      if (fn === 'ingest_public_report_card') {
         capturedPayload = args.p_payload as Record<string, unknown>
         return {
           data: newProspectRpcResponse({ match_status: 'exact_trusted_match', household_id: 'hh-existing-1' }),
@@ -139,7 +139,7 @@ describe('ingestFamilyReportCard', () => {
 
   it('still returns ok:true with a failed sheetsSync when the CRM write succeeds but Sheets fails', async () => {
     const admin = makeAdminStub(async (fn) => {
-      if (fn === 'ingest_public_family_report_card') {
+      if (fn === 'ingest_public_report_card') {
         return { data: newProspectRpcResponse(), error: null }
       }
       return { data: null, error: null }
@@ -162,7 +162,7 @@ describe('ingestFamilyReportCard', () => {
 
   it('handles idempotent replay without re-running the Sheets write', async () => {
     const admin = makeAdminStub(async (fn) => {
-      if (fn === 'ingest_public_family_report_card') {
+      if (fn === 'ingest_public_report_card') {
         return {
           data: newProspectRpcResponse({
             created: false,
@@ -193,7 +193,7 @@ describe('ingestFamilyReportCard', () => {
 
   it('returns a safe error when the RPC fails', async () => {
     const admin = makeAdminStub(async (fn) => {
-      if (fn === 'ingest_public_family_report_card') {
+      if (fn === 'ingest_public_report_card') {
         return { data: null, error: { message: 'invalid_match_status' } }
       }
       return { data: null, error: null }

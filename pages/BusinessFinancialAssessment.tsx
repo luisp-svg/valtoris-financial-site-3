@@ -1,16 +1,28 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ROUTES } from '../constants/routes'
-import { CALCULATOR_SUBMISSION_WARNING } from '../constants/urls'
 import AssessmentLayout from '../components/assessment/AssessmentLayout'
 import NavigationButtons from '../components/assessment/NavigationButtons'
+import FamilyConsentSection from '../components/assessment/steps/FamilyConsentSection'
 import { BUSINESS_ASSESSMENT_STEPS } from '../components/assessment/business/constants'
 import {
   BusinessAssessmentAnswers,
   INITIAL_BUSINESS_ANSWERS,
   isBusinessStepComplete,
 } from '../components/assessment/business/types'
-import { submitBusinessReportCardLead } from '../components/reportCard/submitReportCardLead'
+import { completePublicReportCardCrmSubmission } from '../components/reportCard/familyIngest/completeFamilyReportCardSubmission'
+import {
+  applyPhoneChangeToConsent,
+  INITIAL_FAMILY_CONSENT_STATE,
+  type FamilyConsentField,
+  type FamilyConsentState,
+} from '../components/reportCard/familyIngest/familyConsent'
+import {
+  beginNewFamilyAssessmentSession,
+  BUSINESS_INGEST_SESSION_KEY,
+  ensureFamilyIngestSession,
+  type FamilyIngestSession,
+} from '../components/reportCard/familyIngest/submissionSession'
 import StepBusinessWelcome from '../components/assessment/steps/business/StepBusinessWelcome'
 import StepBusinessInformation from '../components/assessment/steps/business/StepBusinessInformation'
 import StepBusinessFoundation from '../components/assessment/steps/business/StepBusinessFoundation'
@@ -22,16 +34,56 @@ import {
   BUSINESS_REPORT_STORAGE_KEY,
 } from '../components/business/constants'
 
+function readBrowserSearch(): string {
+  if (typeof window === 'undefined') return ''
+  return window.location.search
+}
+
+function readBrowserReferrer(): string | null {
+  if (typeof document === 'undefined') return null
+  return document.referrer || null
+}
+
 export default function BusinessFinancialAssessment() {
   const navigate = useNavigate()
   const [currentStep, setCurrentStep] = useState(1)
   const [answers, setAnswers] = useState<BusinessAssessmentAnswers>(INITIAL_BUSINESS_ANSWERS)
+  const [consent, setConsent] = useState<FamilyConsentState>(INITIAL_FAMILY_CONSENT_STATE)
+  const [honeypotWebsite, setHoneypotWebsite] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [consentMissing, setConsentMissing] = useState<
+    Array<'assessmentStorageAcknowledged' | 'privacyAcknowledged'>
+  >([])
+  const [showConsentErrors, setShowConsentErrors] = useState(false)
+  const [ingestSession, setIngestSession] = useState<FamilyIngestSession>(() =>
+    ensureFamilyIngestSession({
+      search: readBrowserSearch(),
+      referrer: readBrowserReferrer(),
+      storageKey: BUSINESS_INGEST_SESSION_KEY,
+    }),
+  )
   const answersRef = useRef(answers)
+  const consentRef = useRef(consent)
+  const sessionRef = useRef(ingestSession)
+  const honeypotRef = useRef(honeypotWebsite)
+  const statusRegionRef = useRef<HTMLParagraphElement | null>(null)
 
   useEffect(() => {
     answersRef.current = answers
   }, [answers])
+
+  useEffect(() => {
+    consentRef.current = consent
+  }, [consent])
+
+  useEffect(() => {
+    sessionRef.current = ingestSession
+  }, [ingestSession])
+
+  useEffect(() => {
+    honeypotRef.current = honeypotWebsite
+  }, [honeypotWebsite])
 
   const canContinue = useMemo(
     () => isBusinessStepComplete(currentStep, answers),
@@ -43,6 +95,9 @@ export default function BusinessFinancialAssessment() {
       ...current,
       owner: { ...current.owner, [field]: value },
     }))
+    if (field === 'phone') {
+      setConsent((prev) => applyPhoneChangeToConsent(prev, value))
+    }
   }
 
   function updateBusiness(field: keyof BusinessAssessmentAnswers['business'], value: string) {
@@ -106,29 +161,70 @@ export default function BusinessFinancialAssessment() {
     setCurrentStep((step) => step - 1)
   }
 
-  async function completeBusinessAssessment(finalAnswers: BusinessAssessmentAnswers) {
-    let submissionWarning: string | undefined
+  function updateConsent(field: FamilyConsentField, value: boolean) {
+    setConsent((current) => {
+      if (field === 'smsMarketingConsent' && value && answersRef.current.owner.phone.trim() === '') {
+        return current
+      }
+      return { ...current, [field]: value }
+    })
+    setShowConsentErrors(false)
+    setConsentMissing([])
+    setSubmitError(null)
+  }
 
+  function handleBegin() {
+    const session = beginNewFamilyAssessmentSession({
+      search: readBrowserSearch(),
+      referrer: readBrowserReferrer(),
+      storageKey: BUSINESS_INGEST_SESSION_KEY,
+    })
+    setIngestSession(session)
+    setConsent(INITIAL_FAMILY_CONSENT_STATE)
+    setHoneypotWebsite('')
+    setSubmitError(null)
+    setShowConsentErrors(false)
+    setConsentMissing([])
+    setIsSubmitting(false)
+    setCurrentStep(2)
+  }
+
+  async function completeBusinessAssessment(finalAnswers: BusinessAssessmentAnswers) {
+    setSubmitError(null)
     try {
       sessionStorage.setItem(BUSINESS_ANSWERS_STORAGE_KEY, JSON.stringify(finalAnswers))
       sessionStorage.setItem(
         BUSINESS_REPORT_STORAGE_KEY,
         JSON.stringify({ businessName: finalAnswers.business.name.trim() }),
       )
-
-      const submission = await submitBusinessReportCardLead(finalAnswers)
-      if (!submission.ok) {
-        console.error('Google Sheets submission failed:', submission.error)
-        submissionWarning = CALCULATOR_SUBMISSION_WARNING
-      }
-    } catch (error) {
-      console.error('Google Sheets submission failed:', error)
-      submissionWarning = CALCULATOR_SUBMISSION_WARNING
-    } finally {
-      navigate(ROUTES.businessReportCardResults, {
-        state: { answers: finalAnswers, submissionWarning },
-      })
+    } catch {
+      // Non-fatal — navigation state still carries answers on success.
     }
+
+    const { result, session } = await completePublicReportCardCrmSubmission({
+      assessmentType: 'business',
+      answers: finalAnswers,
+      consent: consentRef.current,
+      session: sessionRef.current,
+      honeypotWebsite: honeypotRef.current,
+      storageKey: BUSINESS_INGEST_SESSION_KEY,
+      phone: finalAnswers.owner.phone,
+    })
+    setIngestSession(session)
+
+    if (!result.ok) {
+      if (result.code === 'consent_required') {
+        setShowConsentErrors(true)
+        setConsentMissing(result.consentMissing ?? [])
+      }
+      setSubmitError(result.error)
+      setIsSubmitting(false)
+      return
+    }
+
+    navigate(ROUTES.businessReportCardResults, {
+      state: { answers: finalAnswers, submissionSaved: true, submissionId: result.submissionId },
+    })
   }
 
   async function handleContinue() {
@@ -155,7 +251,7 @@ export default function BusinessFinancialAssessment() {
             continueDisabled={!canContinue || isSubmitting}
             continueLabel={
               isSubmitting
-                ? 'Saving...'
+                ? 'Saving your Business Report Card…'
                 : currentStep === BUSINESS_ASSESSMENT_STEPS
                   ? 'View My Report Card'
                   : 'Continue'
@@ -166,7 +262,7 @@ export default function BusinessFinancialAssessment() {
     >
       {currentStep === 1 && (
         <StepBusinessWelcome
-          onBegin={() => setCurrentStep(2)}
+          onBegin={handleBegin}
           onBack={() => navigate(ROUTES.businessReportCard)}
         />
       )}
@@ -188,12 +284,36 @@ export default function BusinessFinancialAssessment() {
         <StepProtectionRisk answers={answers.protectionRisk} onChange={updateProtectionRisk} />
       )}
       {currentStep === 6 && (
-        <StepRetirementFundingExit
-          answers={answers.retirementFundingExit}
-          goals={answers.goals}
-          onChange={updateRetirementFundingExit}
-          onGoalsChange={updateGoals}
-        />
+        <>
+          <StepRetirementFundingExit
+            answers={answers.retirementFundingExit}
+            goals={answers.goals}
+            onChange={updateRetirementFundingExit}
+            onGoalsChange={updateGoals}
+          />
+          <FamilyConsentSection
+            consent={consent}
+            phone={answers.owner.phone}
+            showErrors={showConsentErrors}
+            missing={consentMissing}
+            onChange={updateConsent}
+            honeypotValue={honeypotWebsite}
+            onHoneypotChange={setHoneypotWebsite}
+            productTitle="Business Report Card™"
+            storageResultName="Business Report Card"
+            intro="Your Business Report Card™ is based on the information you shared. Required acknowledgments are marked with an asterisk."
+          />
+          {isSubmitting ? (
+            <p className="family-submit-status" role="status" aria-live="polite">
+              Saving your Business Report Card…
+            </p>
+          ) : null}
+          {submitError ? (
+            <p ref={statusRegionRef} className="family-submit-error" role="alert" tabIndex={-1}>
+              {submitError}
+            </p>
+          ) : null}
+        </>
       )}
     </AssessmentLayout>
   )

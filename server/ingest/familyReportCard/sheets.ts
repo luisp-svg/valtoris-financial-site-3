@@ -1,9 +1,12 @@
 import { parseAmount } from '../../../components/calculator/calculations.js'
+import type { BusinessAssessmentAnswers } from '../../../components/assessment/business/types.js'
+import type { RetirementAssessmentAnswers } from '../../../components/assessment/retirement/types.js'
 import type { DemoAssessmentAnswers } from '../../../components/assessment/types.js'
+import type { CalculatorAnswers } from '../../../components/calculator/types.js'
 import { GOOGLE_SHEETS_CALCULATOR_WEBHOOK_URL } from '../../../constants/urls.js'
 import { buildMasterLeadPayload } from '../../../utils/masterLeadPayload.js'
 import type { LeadSubmissionPayload } from '../../../utils/submitLeadToGoogleSheets.js'
-import type { FamilyReportCardServerScore } from './score.js'
+import type { FamilyReportCardServerScore, GradedReportCardServerScore, ProtectionGapServerResult } from './score.js'
 import type { SheetsErrorCategory, SheetsSyncStatus } from './types.js'
 
 export type SheetsWriteResult = {
@@ -62,6 +65,125 @@ export function buildFamilyReportCardSheetsPayload(input: {
   })
 }
 
+function revenueBandMidpoint(revenue: string): number | '' {
+  switch (revenue) {
+    case 'pre-revenue':
+      return 0
+    case 'under-100k':
+      return 50000
+    case '100k-249k':
+      return 175000
+    case '250k-499k':
+      return 375000
+    case '500k-999k':
+      return 750000
+    case '1m-2.49m':
+      return 1750000
+    case '2.5m-4.99m':
+      return 3750000
+    case '5m-plus':
+      return 7500000
+    default:
+      return ''
+  }
+}
+
+export function buildBusinessReportCardSheetsPayload(input: {
+  answers: BusinessAssessmentAnswers
+  score: GradedReportCardServerScore
+  sourcePage?: string | null
+  submittedAt?: string | null
+}): LeadSubmissionPayload {
+  const { answers, score } = input
+  const firstName = answers.owner.firstName.trim()
+  const lastName = answers.owner.lastName.trim()
+  return buildMasterLeadPayload({
+    firstName,
+    lastName,
+    fullName: [firstName, lastName].filter(Boolean).join(' '),
+    email: answers.owner.email.trim(),
+    phone: answers.owner.phone.trim(),
+    businessName: answers.business.name.trim(),
+    businessType: answers.business.industry.trim(),
+    businessIndustry: answers.business.industry.trim(),
+    entityStructure: answers.foundation.entityStructure.trim(),
+    grossAnnualRevenue: answers.business.grossAnnualRevenue.trim(),
+    ownerCompensationMethod: answers.business.ownerCompensationMethod.trim(),
+    ownerPersonalIncome: answers.business.ownerPersonalIncome.trim(),
+    annualIncome: revenueBandMidpoint(answers.business.grossAnnualRevenue),
+    overallScore: score.overallScore,
+    overallGrade: score.overallGrade,
+    protectionGap: score.protectionGapFormatted,
+    topPriority1: score.priorities[0]?.title ?? '',
+    topPriority2: score.priorities[1]?.title ?? '',
+    topPriority3: score.priorities[2]?.title ?? '',
+    sourcePage: input.sourcePage ?? '',
+    rawAnswers: JSON.stringify(answers),
+    submittedAt: input.submittedAt ?? undefined,
+  })
+}
+
+export function buildRetirementReportCardSheetsPayload(input: {
+  answers: RetirementAssessmentAnswers
+  score: GradedReportCardServerScore
+  sourcePage?: string | null
+  submittedAt?: string | null
+}): LeadSubmissionPayload {
+  const { answers, score } = input
+  const firstName = answers.household.firstName.trim()
+  const lastName = answers.household.lastName.trim()
+  return buildMasterLeadPayload({
+    firstName,
+    lastName,
+    fullName: [firstName, lastName].filter(Boolean).join(' '),
+    email: answers.household.email.trim(),
+    phone: answers.household.phone.trim(),
+    age: answers.household.currentAge.trim(),
+    state: answers.household.state.trim(),
+    maritalStatus: answers.household.maritalStatus.trim(),
+    overallScore: score.overallScore,
+    overallGrade: score.overallGrade,
+    protectionGap: score.protectionGapFormatted,
+    topPriority1: score.priorities[0]?.title ?? '',
+    topPriority2: score.priorities[1]?.title ?? '',
+    topPriority3: score.priorities[2]?.title ?? '',
+    sourcePage: input.sourcePage ?? '',
+    rawAnswers: JSON.stringify(answers),
+    submittedAt: input.submittedAt ?? undefined,
+  })
+}
+
+export function buildProtectionGapSheetsPayload(input: {
+  answers: CalculatorAnswers
+  result: ProtectionGapServerResult
+  sourcePage?: string | null
+  submittedAt?: string | null
+}): LeadSubmissionPayload {
+  const { answers, result } = input
+  const firstName = answers.family.firstName.trim()
+  const lastName = answers.family.lastName.trim()
+  return buildMasterLeadPayload({
+    firstName,
+    lastName,
+    fullName: [firstName, lastName].filter(Boolean).join(' '),
+    email: answers.family.email.trim(),
+    phone: answers.family.phone.trim(),
+    age: answers.family.age.trim(),
+    state: answers.family.state.trim(),
+    maritalStatus: answers.family.maritalStatus.trim(),
+    children: answers.family.numberOfChildren.trim(),
+    annualIncome: parseAmount(answers.income.annualHouseholdIncome),
+    existingCoverage: result.currentProtection,
+    totalNeed: result.totalNeed,
+    overallScore: '',
+    overallGrade: '',
+    protectionGap: result.netProtectionGap,
+    sourcePage: input.sourcePage ?? '',
+    rawAnswers: JSON.stringify(answers),
+    submittedAt: input.submittedAt ?? undefined,
+  })
+}
+
 /** Extracts a small, non-secret external reference from a JSON response body, if present. */
 function extractExternalRef(responseText: string): string | undefined {
   const trimmed = responseText.trim()
@@ -93,8 +215,9 @@ const DEFAULT_TIMEOUT_MS = 8000
  * `process.env.GOOGLE_SHEETS_CALCULATOR_WEBHOOK_URL` → the hardcoded
  * `constants/urls.ts` fallback used by the existing client flow.
  */
-export async function writeFamilyReportCardToSheets(
+export async function writePublicReportCardToSheets(
   payload: LeadSubmissionPayload,
+  leadType: string = 'Family Report Card',
   options: WriteFamilyReportCardToSheetsOptions = {},
 ): Promise<SheetsWriteResult> {
   const envWebhookUrl =
@@ -112,7 +235,7 @@ export async function writeFamilyReportCardToSheets(
   const timeoutHandle = setTimeout(() => controller.abort(), timeoutMs)
 
   const body: LeadSubmissionPayload = {
-    leadType: 'Family Report Card',
+    leadType,
     timestamp: new Date().toISOString(),
     ...payload,
   }
@@ -145,4 +268,11 @@ export async function writeFamilyReportCardToSheets(
   } finally {
     clearTimeout(timeoutHandle)
   }
+}
+
+export async function writeFamilyReportCardToSheets(
+  payload: LeadSubmissionPayload,
+  options: WriteFamilyReportCardToSheetsOptions = {},
+): Promise<SheetsWriteResult> {
+  return writePublicReportCardToSheets(payload, 'Family Report Card', options)
 }

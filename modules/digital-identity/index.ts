@@ -110,6 +110,7 @@ export {
 } from './vcard.js'
 
 export {
+  appendCardAttributionToPath,
   buildCampaignAttributionSearchParams,
   buildCampaignLink,
   buildCampaignQrDestinationPath,

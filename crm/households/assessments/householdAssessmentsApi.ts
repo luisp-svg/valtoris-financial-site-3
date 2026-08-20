@@ -1,6 +1,6 @@
 import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js'
 import {
-  isPublicFamilyDiagnostic,
+  isPublicSelfReportAssessment,
   normalizeWorkspaceAssessment,
   selectLatestPublicFamilyDiagnostic,
 } from '../householdsApi'
@@ -39,6 +39,7 @@ const LEAD_SELECT = `
   submitted_at,
   source_page,
   original_campaign,
+  original_advisor_slug,
   original_source_metadata,
   ingest_match_status,
   duplicate_review_status,
@@ -89,7 +90,7 @@ async function fetchLeadsByIds(
 }
 
 /**
- * Newest-first public Family Initial Financial Diagnostics for a household.
+ * Newest-first public Report Card and Protection Gap history for a household.
  * Soft-deleted and non-public rows are excluded by query + mapper.
  */
 export async function fetchPublicFamilyDiagnosticHistory(
@@ -104,7 +105,7 @@ export async function fetchPublicFamilyDiagnosticHistory(
     .from('assessments')
     .select(PUBLIC_FAMILY_SELECT)
     .eq('household_id', householdId)
-    .eq('assessment_type', 'family')
+    .in('assessment_type', ['family', 'business', 'retirement', 'protection'])
     .eq('capture_channel', 'public_self_report')
     .eq('status', 'completed')
     .not('completed_at', 'is', null)
@@ -152,7 +153,7 @@ export async function fetchPublicFamilyDiagnosticHistorySafe(
         formatHouseholdAssessmentError('public family history', error),
       )
     }
-    return { ok: false, error: 'Unable to load Initial Financial Diagnostic history.' }
+    return { ok: false, error: 'Unable to load public assessment history.' }
   }
 }
 
@@ -174,7 +175,7 @@ export async function fetchLatestPublicFamilyDiagnosticSummary(
 
 /**
  * Household-scoped detail. Returns null when missing, deleted, wrong household,
- * or not a public Family diagnostic.
+ * or not a public Report Card / Protection Gap.
  */
 export async function fetchPublicFamilyDiagnosticDetail(
   supabase: SupabaseClient,
@@ -188,7 +189,7 @@ export async function fetchPublicFamilyDiagnosticDetail(
     .select(PUBLIC_FAMILY_SELECT)
     .eq('id', assessmentId)
     .eq('household_id', householdId)
-    .eq('assessment_type', 'family')
+    .in('assessment_type', ['family', 'business', 'retirement', 'protection'])
     .eq('capture_channel', 'public_self_report')
     .eq('status', 'completed')
     .is('deleted_at', null)
@@ -222,7 +223,7 @@ export async function fetchPublicFamilyDiagnosticDetailSafe(
         formatHouseholdAssessmentError('public family detail', error),
       )
     }
-    return { ok: false, error: 'Unable to load this Initial Financial Diagnostic.' }
+    return { ok: false, error: 'Unable to load this public assessment.' }
   }
 }
 
@@ -233,7 +234,7 @@ export function countPublicFamilyDiagnostics(
   let count = 0
   for (const row of rows) {
     const assessment = normalizeWorkspaceAssessment(row)
-    if (assessment && isPublicFamilyDiagnostic(assessment)) count += 1
+    if (assessment && isPublicSelfReportAssessment(assessment)) count += 1
   }
   return count
 }

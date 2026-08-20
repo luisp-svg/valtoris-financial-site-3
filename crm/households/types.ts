@@ -346,6 +346,10 @@ export type CrmHouseholdWorkspace = {
   publicFamilyDiagnostic: HouseholdAssessmentSummary | null
   /** Count of completed public Family diagnostics (for history CTA). */
   publicFamilyDiagnosticCount: number
+  /** Latest completed public self-report of any of the four assessment types. */
+  publicLatestAssessment: HouseholdAssessmentSummary | null
+  /** Count of completed public self-report assessments (all four types). */
+  publicAssessmentCount: number
   annualReview: HouseholdAnnualReviewSummary | null
   /** Overview preview (activities only, limited). */
   recentActivities: HouseholdActivitySummary[]

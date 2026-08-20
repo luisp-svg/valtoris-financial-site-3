@@ -18,6 +18,7 @@ import {
   isEligibleForFinancialProgressEvidence,
   isPublicFamilyDiagnostic,
   selectLatestPublicFamilyDiagnostic,
+  selectLatestPublicSelfReportAssessment,
   selectLatestWorkspaceAssessments,
 } from '../householdsApi'
 import type { SupabaseClient } from '@supabase/supabase-js'
@@ -269,5 +270,65 @@ describe('householdAssessmentsApi', () => {
     expect(formatHouseholdAssessmentError('history', { message: 'JWT expired', code: 'PGRST301' })).toContain(
       'history failed',
     )
+  })
+})
+
+describe('public report-card history mapping for all four types', () => {
+  it('distinguishes Business, Retirement, and Protection Gap snapshots', () => {
+    const business = mapPublicFamilyDiagnosticListItem(
+      { ...publicRow, id: 'biz-1', assessment_type: 'business', overall_score: 81, overall_grade: 'B' },
+      { householdId: 'hh-1', isLatest: true },
+    )
+    const retirement = mapPublicFamilyDiagnosticListItem(
+      { ...publicRow, id: 'ret-1', assessment_type: 'retirement', overall_score: 74, overall_grade: 'C' },
+      { householdId: 'hh-1', isLatest: false },
+    )
+    const protection = mapPublicFamilyDiagnosticListItem(
+      {
+        ...publicRow,
+        id: 'prot-1',
+        assessment_type: 'protection',
+        overall_score: null,
+        overall_grade: null,
+        derived_metrics: {
+          protectionGapFormatted: '$1,200,000',
+          netProtectionGap: 1200000,
+        },
+      },
+      { householdId: 'hh-1', isLatest: false },
+    )
+
+    expect(business?.productLabel).toBe('Business Report Card')
+    expect(business?.assessmentType).toBe('business')
+    expect(retirement?.productLabel).toBe('Retirement Report Card')
+    expect(protection?.productLabel).toBe('Protection Gap')
+    expect(protection?.overallScore).toBeNull()
+    expect(protection?.overallGrade).toBeNull()
+    expect(protection?.protectionGapFormatted).toBe('$1,200,000')
+  })
+
+  it('selects the latest public self-report of any type and still excludes it from Financial Progress', () => {
+    const rows = [
+      {
+        ...publicRow,
+        id: 'prot-newer',
+        assessment_type: 'protection',
+        overall_score: null,
+        overall_grade: null,
+        completed_at: '2026-08-01T00:00:00.000Z',
+        derived_metrics: { protectionGapFormatted: '$900,000', netProtectionGap: 900000 },
+      },
+      { ...publicRow, id: 'family-older', completed_at: '2026-07-01T00:00:00.000Z' },
+      {
+        ...publicRow,
+        id: 'trusted-family',
+        capture_channel: 'advisor_reviewed',
+        completed_at: '2026-08-15T00:00:00.000Z',
+      },
+    ]
+    const latestPublic = selectLatestPublicSelfReportAssessment(rows)
+    expect(latestPublic?.id).toBe('prot-newer')
+    expect(isEligibleForFinancialProgressEvidence(latestPublic!)).toBe(false)
+    expect(selectLatestWorkspaceAssessments(rows).familyAssessment?.id).toBe('trusted-family')
   })
 })

@@ -9,8 +9,11 @@ import {
 import { extractTopPriorityTitles } from '../../assessments/diagnosticFormatters'
 import {
   PUBLIC_FAMILY_DIAGNOSTIC_DISCLAIMER,
-  PUBLIC_FAMILY_DIAGNOSTIC_PRODUCT_LABEL,
 } from '../../assessments/types'
+import {
+  CRM_PRODUCT_LABEL_BY_ASSESSMENT,
+  type PublicReportCardAssessmentType,
+} from '../../../../modules/reportCard/publicIngestCatalog'
 import { formatTaskDueDate, mapTaskStatusLabel } from '../../../intake/intakeTaskAutomation'
 import type { TaskStatus } from '../../../tasks/types'
 import type { ClientWorkspaceModel } from '../financialProgress/attachFinancialProgress'
@@ -30,9 +33,26 @@ function formatSubmittedAt(value: string): string {
   })
 }
 
+function formatProtectionGap(assessment: NonNullable<ClientWorkspaceModel['publicLatestAssessment']>): string {
+  const derived = assessment.derived_metrics ?? {}
+  if (typeof derived.protectionGapFormatted === 'string' && derived.protectionGapFormatted.trim()) {
+    return derived.protectionGapFormatted
+  }
+  if (typeof derived.netProtectionGap === 'number' && Number.isFinite(derived.netProtectionGap)) {
+    return derived.netProtectionGap.toLocaleString()
+  }
+  return '—'
+}
+
 export default function InitialFinancialDiagnosticWidget({ workspace, householdId }: Props) {
-  const diagnostic = workspace.publicFamilyDiagnostic
-  const count = workspace.publicFamilyDiagnosticCount
+  const diagnostic = workspace.publicLatestAssessment ?? workspace.publicFamilyDiagnostic
+  const count = workspace.publicAssessmentCount || workspace.publicFamilyDiagnosticCount
+  const assessmentType = diagnostic?.assessment_type as PublicReportCardAssessmentType | undefined
+  const productLabel =
+    assessmentType && assessmentType in CRM_PRODUCT_LABEL_BY_ASSESSMENT
+      ? CRM_PRODUCT_LABEL_BY_ASSESSMENT[assessmentType]
+      : 'Public assessment'
+  const isProtection = assessmentType === 'protection'
   const displayPriorities = diagnostic
     ? extractTopPriorityTitles(diagnostic.priorities, diagnostic.answers, 3)
     : []
@@ -52,7 +72,7 @@ export default function InitialFinancialDiagnosticWidget({ workspace, householdI
 
   return (
     <Widget
-      title={PUBLIC_FAMILY_DIAGNOSTIC_PRODUCT_LABEL}
+      title={diagnostic ? productLabel : 'Public assessments'}
       titleId="crm-widget-initial-financial-diagnostic"
       meta={<span className="crm-intake-chip">Self-reported</span>}
       actions={
@@ -73,28 +93,30 @@ export default function InitialFinancialDiagnosticWidget({ workspace, householdI
     >
       {!diagnostic ? (
         <EmptyState
-          title="No public diagnostic yet"
-          description="No public Family Financial Report Card has been submitted for this household."
+          title="No public assessment yet"
+          description="No public Report Card or Protection Gap has been submitted for this household."
         />
       ) : (
         <>
           <p className="crm-muted crm-ifd-widget-disclaimer">{PUBLIC_FAMILY_DIAGNOSTIC_DISCLAIMER}</p>
           <dl className="crm-client-workspace-info-list">
             <div>
-              <dt>Diagnostic score</dt>
+              <dt>{isProtection ? 'Protection gap' : 'Diagnostic score'}</dt>
               <dd
                 className="crm-financial-progress-score-emphasis"
-                aria-label="Initial Financial Diagnostic score"
+                aria-label={isProtection ? 'Protection gap' : 'Public assessment score'}
               >
-                {diagnostic.overall_score ?? '—'}
+                {isProtection ? formatProtectionGap(diagnostic) : (diagnostic.overall_score ?? '—')}
               </dd>
             </div>
-            <div>
-              <dt>Grade</dt>
-              <dd aria-label="Initial Financial Diagnostic grade">
-                {diagnostic.overall_grade ?? '—'}
-              </dd>
-            </div>
+            {isProtection ? null : (
+              <div>
+                <dt>Grade</dt>
+                <dd aria-label="Public assessment grade">
+                  {diagnostic.overall_grade ?? '—'}
+                </dd>
+              </div>
+            )}
             <div>
               <dt>Submitted</dt>
               <dd>{formatSubmittedAt(diagnostic.completed_at)}</dd>

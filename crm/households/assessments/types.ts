@@ -13,10 +13,10 @@ import type {
 export const PUBLIC_FAMILY_DIAGNOSTIC_PRODUCT_LABEL = 'Initial Financial Diagnostic' as const
 
 export const PUBLIC_FAMILY_DIAGNOSTIC_DISCLAIMER =
-  'Based on information submitted through the public Family Financial Report Card. This diagnostic is self-reported and does not determine the household’s Financial Progress score.'
+  'Based on information submitted through a public Report Card or Protection Gap. This result is self-reported and does not determine the household’s Financial Progress score.'
 
 export const PUBLIC_FAMILY_DIAGNOSTIC_DETAIL_DISCLAIMER =
-  'This result is based on self-reported information from the public Family Financial Report Card. It is separate from the advisor-reviewed Household Financial Progress framework.'
+  'This result is based on self-reported information from a public Report Card or Protection Gap. It is separate from the advisor-reviewed Household Financial Progress framework.'
 
 export type DiagnosticCategoryResult = {
   id: string
@@ -71,6 +71,7 @@ export type DiagnosticSourceAttribution = {
   utmCampaign: string | null
   referrerHost: string | null
   originalCampaign: string | null
+  originalAdvisorSlug: string | null
 }
 
 export type DiagnosticLeadSummary = {
@@ -89,9 +90,11 @@ export type DiagnosticLeadSummary = {
 export type PublicFamilyDiagnosticListItem = {
   assessmentId: string
   householdId: string
-  productLabel: typeof PUBLIC_FAMILY_DIAGNOSTIC_PRODUCT_LABEL
+  productLabel: string
+  assessmentType: string
   overallScore: number | null
   overallGrade: string | null
+  protectionGapFormatted: string | null
   completedAt: string
   scoringVersion: number | null
   topPriorities: string[]
@@ -106,9 +109,11 @@ export type PublicFamilyDiagnosticListItem = {
 export type PublicFamilyDiagnosticDetail = {
   assessmentId: string
   householdId: string
-  productLabel: typeof PUBLIC_FAMILY_DIAGNOSTIC_PRODUCT_LABEL
+  productLabel: string
+  assessmentType: string
   overallScore: number | null
   overallGrade: string | null
+  protectionGapFormatted: string | null
   completedAt: string
   scoringVersion: number | null
   currentLevel: string | null
@@ -118,7 +123,6 @@ export type PublicFamilyDiagnosticDetail = {
   submittedSnapshot: SubmittedDiagnosticSnapshot
   consent: IntakeConsentSummary | null
   lead: DiagnosticLeadSummary | null
-  protectionGapFormatted: string | null
 }
 
 export type HouseholdAssessmentsLoadResult<T> =

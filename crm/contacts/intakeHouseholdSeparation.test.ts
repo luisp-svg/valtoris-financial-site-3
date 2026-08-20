@@ -33,6 +33,9 @@ describe('Intake / Households / dashboard Manual Contact separation', () => {
     await fetchIntakeQueue({ from } as unknown as SupabaseClient)
     expect(leadsQuery.in).toHaveBeenCalledWith('lead_type', [
       'Family Report Card',
+      'Business Report Card',
+      'Retirement Report Card',
+      'Protection Gap',
       'Digital Identity',
     ])
     expect(leadsQuery.or).not.toHaveBeenCalled()

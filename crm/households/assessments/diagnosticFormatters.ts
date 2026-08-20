@@ -15,7 +15,7 @@ import type {
   PublicFamilyDiagnosticListItem,
   SubmittedDiagnosticSnapshot,
 } from './types'
-import { PUBLIC_FAMILY_DIAGNOSTIC_PRODUCT_LABEL } from './types'
+import { crmProductLabelForAssessment, isPublicReportCardAssessmentType } from '../../../modules/reportCard/publicIngestCatalog'
 
 function asRecord(value: unknown): Record<string, unknown> {
   if (value && typeof value === 'object' && !Array.isArray(value)) {
@@ -156,29 +156,40 @@ export function extractDiagnosticFlags(derivedMetrics: unknown): DiagnosticFlagI
 export function extractSubmittedDiagnosticSnapshot(answers: unknown): SubmittedDiagnosticSnapshot {
   const root = asRecord(answers)
   const family = asRecord(root.family)
+  const owner = asRecord(root.owner)
+  const household = asRecord(root.household)
+  const contact =
+    asTrimmedString(family.firstName) || asTrimmedString(family.email)
+      ? family
+      : asTrimmedString(owner.firstName) || asTrimmedString(owner.email)
+        ? owner
+        : household
   const financial = asRecord(root.financial)
   const protection = asRecord(root.protection)
+  const coverage = asRecord(root.coverage)
   const goals = asRecord(root.goals)
   const selected = Array.isArray(goals.selected)
     ? goals.selected.map(asTrimmedString).filter((v): v is string => Boolean(v))
     : []
 
   return {
-    firstName: asTrimmedString(family.firstName),
-    lastName: asTrimmedString(family.lastName),
-    email: asTrimmedString(family.email),
-    phone: asTrimmedString(family.phone),
-    age: asTrimmedString(family.age),
-    state: asTrimmedString(family.state),
-    maritalStatus: asTrimmedString(family.maritalStatus),
-    numberOfChildren: asTrimmedString(family.numberOfChildren),
+    firstName: asTrimmedString(contact.firstName),
+    lastName: asTrimmedString(contact.lastName),
+    email: asTrimmedString(contact.email),
+    phone: asTrimmedString(contact.phone),
+    age: asTrimmedString(contact.age ?? contact.currentAge),
+    state: asTrimmedString(contact.state),
+    maritalStatus: asTrimmedString(contact.maritalStatus),
+    numberOfChildren: asTrimmedString(family.numberOfChildren ?? contact.numberOfChildren),
     householdIncome: asTrimmedString(financial.householdIncome),
     monthlyHousingPayment: asTrimmedString(financial.monthlyHousingPayment),
     totalDebt: asTrimmedString(financial.totalDebt),
     emergencyFundMonths: asTrimmedString(financial.emergencyFundMonths),
     monthlyCashFlow: asTrimmedString(financial.monthlyCashFlow),
     retirementContribution: asTrimmedString(financial.retirementContribution),
-    currentLifeInsurance: asTrimmedString(protection.currentLifeInsurance),
+    currentLifeInsurance: asTrimmedString(
+      coverage.currentLifeInsurance ?? protection.currentLifeInsurance,
+    ),
     hasDisabilityProtection: asTrimmedString(protection.hasDisabilityProtection),
     hasWill: asTrimmedString(protection.hasWill),
     hasTrust: asTrimmedString(protection.hasTrust),
@@ -206,6 +217,7 @@ export function extractSourceAttribution(
   sourcePage: unknown,
   originalCampaign: unknown,
   sourceMetadata: unknown,
+  originalAdvisorSlug?: unknown,
 ): DiagnosticSourceAttribution {
   const meta = asRecord(sourceMetadata)
   return {
@@ -215,6 +227,7 @@ export function extractSourceAttribution(
     utmCampaign: asTrimmedString(meta.utmCampaign ?? meta.utm_campaign),
     referrerHost: safeHostFromReferrer(meta.referrer ?? meta.referrerUrl ?? meta.referrer_url),
     originalCampaign: asTrimmedString(originalCampaign),
+    originalAdvisorSlug: asTrimmedString(originalAdvisorSlug),
   }
 }
 
@@ -241,6 +254,7 @@ export function mapLeadSummary(leadRow: Record<string, unknown> | null): Diagnos
       leadRow.source_page,
       leadRow.original_campaign,
       leadRow.original_source_metadata,
+      leadRow.original_advisor_slug,
     ),
   }
 }
@@ -251,7 +265,7 @@ export function mapPublicFamilyDiagnosticListItem(
 ): PublicFamilyDiagnosticListItem | null {
   if (typeof row.id !== 'string') return null
   if (row.deleted_at != null && row.deleted_at !== '') return null
-  if (row.assessment_type !== 'family') return null
+  if (!isPublicReportCardAssessmentType(row.assessment_type)) return null
   if (row.capture_channel !== 'public_self_report') return null
   if (row.status != null && row.status !== 'completed') return null
   const completedAt = asTrimmedString(row.completed_at)
@@ -260,12 +274,15 @@ export function mapPublicFamilyDiagnosticListItem(
   const lead = options.lead ?? null
   const consent = lead ? parseConsentSnapshot(lead.consent_snapshot) : null
 
+  const derived = asRecord(row.derived_metrics)
   return {
     assessmentId: row.id,
     householdId: options.householdId,
-    productLabel: PUBLIC_FAMILY_DIAGNOSTIC_PRODUCT_LABEL,
+    productLabel: crmProductLabelForAssessment(row.assessment_type),
+    assessmentType: row.assessment_type,
     overallScore: scoreNumber(row.overall_score),
     overallGrade: asTrimmedString(row.overall_grade),
+    protectionGapFormatted: asTrimmedString(derived.protectionGapFormatted),
     completedAt,
     scoringVersion: scoreNumber(row.scoring_version),
     topPriorities: extractTopPriorityTitles(row.priorities, row.answers, 3),
@@ -291,9 +308,11 @@ export function mapPublicFamilyDiagnosticDetail(
   return {
     assessmentId: list.assessmentId,
     householdId,
-    productLabel: PUBLIC_FAMILY_DIAGNOSTIC_PRODUCT_LABEL,
+    productLabel: list.productLabel,
+    assessmentType: list.assessmentType,
     overallScore: list.overallScore,
     overallGrade: list.overallGrade,
+    protectionGapFormatted: list.protectionGapFormatted,
     completedAt: list.completedAt,
     scoringVersion: list.scoringVersion,
     currentLevel: asTrimmedString(derived.currentLevel),
@@ -303,7 +322,6 @@ export function mapPublicFamilyDiagnosticDetail(
     submittedSnapshot: extractSubmittedDiagnosticSnapshot(row.answers),
     consent: leadSummary?.consent ?? null,
     lead: leadSummary,
-    protectionGapFormatted: asTrimmedString(derived.protectionGapFormatted),
   }
 }
 

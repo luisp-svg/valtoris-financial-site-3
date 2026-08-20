@@ -227,6 +227,18 @@ export function isPublicFamilyDiagnostic(
   )
 }
 
+export function isPublicSelfReportAssessment(
+  assessment: Pick<HouseholdAssessmentSummary, 'assessment_type' | 'capture_channel'>,
+): boolean {
+  return (
+    assessment.capture_channel === 'public_self_report' &&
+    (assessment.assessment_type === 'family' ||
+      assessment.assessment_type === 'business' ||
+      assessment.assessment_type === 'retirement' ||
+      assessment.assessment_type === 'protection')
+  )
+}
+
 export function formatSupabaseError(source: string, error: unknown): string {
   if (error instanceof Error && error.name === 'PrimarySwitchMutationError') {
     return error.message
@@ -926,6 +938,17 @@ export function selectLatestPublicFamilyDiagnostic(
   return null
 }
 
+export function selectLatestPublicSelfReportAssessment(
+  rows: readonly Record<string, unknown>[],
+): HouseholdAssessmentSummary | null {
+  for (const row of rows) {
+    const assessment = normalizeWorkspaceAssessment(row)
+    if (!assessment) continue
+    if (isPublicSelfReportAssessment(assessment)) return assessment
+  }
+  return null
+}
+
 async function fetchAssessmentsForHousehold(
   supabase: SupabaseClient,
   householdId: string,
@@ -936,6 +959,8 @@ async function fetchAssessmentsForHousehold(
   retirementAssessment: HouseholdAssessmentSummary | null
   publicFamilyDiagnostic: HouseholdAssessmentSummary | null
   publicFamilyDiagnosticCount: number
+  publicLatestAssessment: HouseholdAssessmentSummary | null
+  publicAssessmentCount: number
 }> {
   const { data, error } = await supabase
     .from('assessments')
@@ -955,17 +980,20 @@ async function fetchAssessmentsForHousehold(
   const rows = (data ?? []) as Record<string, unknown>[]
   const selected = selectLatestWorkspaceAssessments(rows)
   let publicFamilyDiagnosticCount = 0
+  let publicAssessmentCount = 0
   for (const row of rows) {
     const assessment = normalizeWorkspaceAssessment(row)
-    if (assessment && isPublicFamilyDiagnostic(assessment)) {
-      publicFamilyDiagnosticCount += 1
-    }
+    if (!assessment) continue
+    if (isPublicFamilyDiagnostic(assessment)) publicFamilyDiagnosticCount += 1
+    if (isPublicSelfReportAssessment(assessment)) publicAssessmentCount += 1
   }
 
   return {
     ...selected,
     publicFamilyDiagnostic: selectLatestPublicFamilyDiagnostic(rows),
     publicFamilyDiagnosticCount,
+    publicLatestAssessment: selectLatestPublicSelfReportAssessment(rows),
+    publicAssessmentCount,
   }
 }
 
@@ -1164,6 +1192,8 @@ export async function fetchHouseholdWorkspace(
         retirementAssessment: null,
         publicFamilyDiagnostic: null,
         publicFamilyDiagnosticCount: 0,
+        publicLatestAssessment: null,
+        publicAssessmentCount: 0,
       },
       'assessments',
     ),
@@ -1215,6 +1245,8 @@ export async function fetchHouseholdWorkspace(
     retirementAssessment: assessments.retirementAssessment,
     publicFamilyDiagnostic: assessments.publicFamilyDiagnostic,
     publicFamilyDiagnosticCount: assessments.publicFamilyDiagnosticCount,
+    publicLatestAssessment: assessments.publicLatestAssessment,
+    publicAssessmentCount: assessments.publicAssessmentCount,
     annualReview,
     recentActivities,
     notes,

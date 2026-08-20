@@ -129,7 +129,7 @@ export default function IntakeDetailPanel({
           <p className="crm-muted">
             {isDi
               ? 'Information provided on Let’s Connect. This is not automatically applied to the canonical household record.'
-              : 'Information provided on the public Family Report Card. This is not automatically applied to the canonical household record.'}
+              : 'Information provided on a public Report Card or Protection Gap. This is not automatically applied to the canonical household record.'}
           </p>
           <dl className="crm-intake-dl">
             <div>
@@ -211,6 +211,10 @@ export default function IntakeDetailPanel({
             <div>
               <dt>Assigned advisor</dt>
               <dd>{item.assignedAdvisor?.displayName ?? 'Unassigned'}</dd>
+            </div>
+            <div>
+              <dt>Originating advisor</dt>
+              <dd>{item.originalAdvisorSlug ?? '—'}</dd>
             </div>
             <div>
               <dt>Linked household</dt>
@@ -375,7 +379,7 @@ export default function IntakeDetailPanel({
 
         {!isDi ? (
           <section className="crm-intake-detail-section" aria-labelledby="crm-intake-diagnostic-heading">
-            <h3 id="crm-intake-diagnostic-heading">Initial Financial Diagnostic</h3>
+            <h3 id="crm-intake-diagnostic-heading">{productLabel}</h3>
             <p className="crm-muted">
               Public self-reported diagnostic. This is not the household Financial Progress Score and
               does not feed Financial Progress evidence.
@@ -384,8 +388,14 @@ export default function IntakeDetailPanel({
               <>
                 <p className="crm-intake-score-line">
                   <strong>
-                    {diagnostic.overallScore ?? '—'}
-                    {diagnostic.overallGrade ? ` · ${diagnostic.overallGrade}` : ''}
+                    {diagnostic.productLabel === 'Protection Gap'
+                      ? diagnostic.protectionGapFormatted ||
+                        (diagnostic.netProtectionGap != null
+                          ? diagnostic.netProtectionGap.toLocaleString()
+                          : '—')
+                      : `${diagnostic.overallScore ?? '—'}${
+                          diagnostic.overallGrade ? ` · ${diagnostic.overallGrade}` : ''
+                        }`}
                   </strong>
                   <span className="crm-intake-chip">{diagnostic.productLabel}</span>
                 </p>

@@ -9,7 +9,6 @@ import { formatDiagnosticSubmittedAt } from './diagnosticFormatters'
 import type { PublicFamilyDiagnosticDetail } from './types'
 import {
   PUBLIC_FAMILY_DIAGNOSTIC_DETAIL_DISCLAIMER,
-  PUBLIC_FAMILY_DIAGNOSTIC_PRODUCT_LABEL,
 } from './types'
 
 type Props = {
@@ -51,7 +50,7 @@ export default function PublicFamilyDiagnosticDetailView({ detail }: Props) {
             {' · '}
             <Link to={crmHouseholdAssessmentsPath(detail.householdId)}>Assessment history</Link>
           </p>
-          <h1>{PUBLIC_FAMILY_DIAGNOSTIC_PRODUCT_LABEL}</h1>
+          <h1>{detail.productLabel}</h1>
           <p className="crm-page-subtitle">{PUBLIC_FAMILY_DIAGNOSTIC_DETAIL_DISCLAIMER}</p>
         </div>
         <span className="crm-intake-chip">Self-reported · Educational</span>
@@ -61,15 +60,19 @@ export default function PublicFamilyDiagnosticDetailView({ detail }: Props) {
         <h2 id="crm-ifd-score-heading">Result summary</h2>
         <dl className="crm-client-workspace-info-list">
           <div>
-            <dt>Score</dt>
+            <dt>{detail.assessmentType === 'protection' ? 'Protection gap' : 'Score'}</dt>
             <dd className="crm-financial-progress-score-emphasis" aria-label="Diagnostic score">
-              {detail.overallScore ?? '—'}
+              {detail.assessmentType === 'protection'
+                ? detail.protectionGapFormatted ?? '—'
+                : detail.overallScore ?? '—'}
             </dd>
           </div>
-          <div>
-            <dt>Grade</dt>
-            <dd aria-label="Diagnostic grade">{detail.overallGrade ?? '—'}</dd>
-          </div>
+          {detail.assessmentType === 'protection' ? null : (
+            <div>
+              <dt>Grade</dt>
+              <dd aria-label="Diagnostic grade">{detail.overallGrade ?? '—'}</dd>
+            </div>
+          )}
           <div>
             <dt>Submitted</dt>
             <dd>{formatDiagnosticSubmittedAt(detail.completedAt)}</dd>
@@ -231,6 +234,7 @@ export default function PublicFamilyDiagnosticDetailView({ detail }: Props) {
             <SnapshotRow label="UTM medium" value={lead.source.utmMedium} />
             <SnapshotRow label="UTM campaign" value={lead.source.utmCampaign} />
             <SnapshotRow label="Campaign" value={lead.source.originalCampaign} />
+            <SnapshotRow label="Originating advisor" value={lead.source.originalAdvisorSlug} />
             <SnapshotRow label="Referrer host" value={lead.source.referrerHost} />
             <SnapshotRow
               label="Lead submitted"
@@ -257,6 +261,10 @@ export default function PublicFamilyDiagnosticDetailView({ detail }: Props) {
             <div>
               <dt>Assigned advisor</dt>
               <dd>{lead.assignedAdvisorName ?? 'Unassigned'}</dd>
+            </div>
+            <div>
+              <dt>Originating advisor</dt>
+              <dd>{lead.source.originalAdvisorSlug ?? '—'}</dd>
             </div>
             <div>
               <dt>Duplicate review</dt>

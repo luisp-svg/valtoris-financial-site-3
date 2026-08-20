@@ -66,7 +66,16 @@ export type IntakeDiagnosticSummary = {
   scoringVersion: number | null
   completedAt: string | null
   /** UI label — never "Financial Progress". */
-  productLabel: 'Initial Financial Diagnostic'
+  productLabel:
+    | 'Initial Financial Diagnostic'
+    | 'Business Report Card'
+    | 'Retirement Report Card'
+    | 'Protection Gap'
+  assessmentType: string | null
+  protectionGapFormatted: string | null
+  netProtectionGap: number | null
+  totalNeed: number | null
+  currentProtection: number | null
 }
 
 /** Digital Identity / Let's Connect snapshot (no assessment). */

@@ -1,5 +1,6 @@
 import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js'
 import { DIGITAL_IDENTITY_LEAD_TYPE } from '../../modules/digital-identity'
+import { PUBLIC_REPORT_CARD_LEAD_TYPES } from '../../modules/reportCard/publicIngestCatalog'
 import {
   buildDiagnosticFromAssessmentRow,
   extractDigitalIdentitySnapshot,
@@ -170,7 +171,7 @@ function mapHousehold(value: unknown): IntakeHouseholdSummary | null {
 
 /**
  * Loads public intake leads visible under RLS via an explicit allowlist:
- * Family Report Card (Initial Financial Diagnostic) and Digital Identity (Let's Connect).
+ * Family / Business / Retirement Report Cards, Protection Gap, and Digital Identity.
  * Soft-deleted leads are excluded. Onboarding assessments are never selected.
  * Manual Contact and any future/unrelated lead_type cannot enter Intake via
  * ingest_match_status alone. NULL lead_type is excluded by the allowlist.
@@ -185,7 +186,7 @@ export async function fetchIntakeQueue(
     .from('leads')
     .select(LEAD_SELECT)
     .is('deleted_at', null)
-    .in('lead_type', ['Family Report Card', DIGITAL_IDENTITY_LEAD_TYPE])
+    .in('lead_type', [...PUBLIC_REPORT_CARD_LEAD_TYPES, DIGITAL_IDENTITY_LEAD_TYPE])
     .order('submitted_at', { ascending: false })
     .limit(limit)
 
@@ -450,6 +451,7 @@ export async function fetchIntakeQueue(
         Number.isFinite(leadScore as number) ? (leadScore as number) : null,
         leadGrade,
         row.top_priorities,
+        leadType,
       ),
       digitalIdentity: extractDigitalIdentitySnapshot({
         leadType,

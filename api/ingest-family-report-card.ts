@@ -1,15 +1,14 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { checkRateLimit } from '../server/ingest/familyReportCard/abuse.js'
-import { ingestFamilyReportCard } from '../server/ingest/familyReportCard/ingestFamilyReportCard.js'
+import { ingestPublicReportCard } from '../server/ingest/familyReportCard/ingestFamilyReportCard.js'
 
 /**
  * POST /api/ingest-family-report-card
  *
- * Public Family Report Card → CRM ingest endpoint used by the Family assessment
- * UI (`completeFamilyReportCardCrmSubmission`). Validates, scores, and persists
- * the submission via the service-role-only Supabase RPC, then attempts secondary
- * Google Sheets sync and follow-up task automation (both best-effort; neither
- * blocks a successful CRM response).
+ * Unified public Report Card → CRM ingest endpoint (Family URL preserved).
+ * Accepts assessmentType family | business | retirement | protection.
+ * Family submissions remain compatible. Validates, scores/derives results
+ * server-side, and persists via the service-role-only Supabase RPC.
  */
 
 const MAX_BODY_BYTES = 100_000
@@ -43,6 +42,12 @@ const VALIDATION_ERROR_CODES = new Set([
   'invalid_consent',
   'invalid_submitted_at',
   'unserializable_body',
+  'invalid_card_reference',
+  'trusted_advisor_id_forbidden',
+  'invalid_answers_owner',
+  'invalid_answers_business',
+  'incomplete_business_answers',
+  'incomplete_retirement_answers',
 ])
 
 function extractClientIp(req: VercelRequest): string {
@@ -137,7 +142,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const result = await ingestFamilyReportCard(body)
+    const result = await ingestPublicReportCard(body)
 
     if (!result.ok) {
       console.error('family-report-card ingest failed', {

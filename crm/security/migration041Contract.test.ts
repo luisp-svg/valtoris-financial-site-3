@@ -33,7 +33,9 @@ describe('migration 041 commission pending review contract', () => {
     expect(files.filter((f) => f.startsWith('042_'))).toEqual([
       '042_writing_receivable_eligibility.sql',
     ])
-    expect(files.filter((f) => f.startsWith('043_'))).toEqual([])
+    expect(files.filter((f) => f.startsWith('043_'))).toEqual([
+      '043_public_report_card_ingest.sql',
+    ])
   })
 
   it('includes required review RPC, immutability context, and grant markers', () => {

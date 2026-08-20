@@ -72,6 +72,11 @@ function makeItem(overrides: Partial<IntakeQueueItem> = {}): IntakeQueueItem {
       scoringVersion: 1,
       completedAt: '2026-07-28T18:00:00.000Z',
       productLabel: 'Initial Financial Diagnostic',
+      assessmentType: 'family',
+      protectionGapFormatted: null,
+      netProtectionGap: null,
+      totalNeed: null,
+      currentProtection: null,
     },
     digitalIdentity: null,
     duplicateReview: null,
@@ -155,6 +160,35 @@ describe('intake formatters', () => {
     expect(diagnostic?.captureChannel).toBe('public_self_report')
     expect(diagnostic?.topPriorities).toEqual(['Protect income'])
     expect(diagnostic?.categories[0]?.title).toBe('Debt')
+  })
+
+  it('shows Protection Gap metrics instead of a fake grade', () => {
+    const diagnostic = buildDiagnosticFromAssessmentRow(
+      {
+        id: 'assess-p',
+        overall_score: null,
+        overall_grade: null,
+        capture_channel: 'public_self_report',
+        scoring_version: 1,
+        completed_at: '2026-08-01T00:00:00.000Z',
+        priorities: [{ title: 'Close the protection gap' }],
+        derived_metrics: {
+          protectionGapFormatted: '$1,200,000',
+          netProtectionGap: 1200000,
+          totalNeed: 1450000,
+          currentProtection: 250000,
+        },
+      },
+      null,
+      null,
+      [],
+      'Protection Gap',
+    )
+    expect(diagnostic?.productLabel).toBe('Protection Gap')
+    expect(diagnostic?.overallScore).toBeNull()
+    expect(diagnostic?.overallGrade).toBeNull()
+    expect(diagnostic?.protectionGapFormatted).toBe('$1,200,000')
+    expect(diagnostic?.netProtectionGap).toBe(1200000)
   })
 
   it('extracts submitted identity from raw payload snapshots', () => {

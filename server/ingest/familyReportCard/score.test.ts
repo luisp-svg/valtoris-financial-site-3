@@ -1,8 +1,18 @@
 import { describe, expect, it } from 'vitest'
+import { scoreBusinessAssessment } from '../../../components/assessment/scoring/scoreBusinessAssessment'
 import { scoreFamilyAssessment } from '../../../components/assessment/scoring/scoreFamilyAssessment'
-import { compareClientScore, recalculateFamilyReportCardScore } from './score'
+import { scoreRetirementAssessment } from '../../../components/assessment/scoring/scoreRetirementAssessment'
+import { DEMO_BUSINESS_ANSWERS } from '../../../components/reportCard/businessReportCardData'
+import { DEMO_RETIREMENT_ANSWERS } from '../../../components/reportCard/retirementReportCardData'
+import {
+  compareClientScore,
+  recalculateBusinessReportCardScore,
+  recalculateFamilyReportCardScore,
+  recalculateProtectionGapResult,
+  recalculateRetirementReportCardScore,
+} from './score'
 import { FAMILY_REPORT_CARD_SCORING_VERSION } from './types'
-import { validFamilyAnswersFixture } from './testFixtures'
+import { validFamilyAnswersFixture, validProtectionAnswersFixture } from './testFixtures'
 
 describe('recalculateFamilyReportCardScore', () => {
   it('matches the browser scoring path exactly (same pure engine, same inputs)', () => {
@@ -70,5 +80,34 @@ describe('compareClientScore', () => {
     expect(result.scoreMismatch).toBe(false)
     expect(result.clientReportedScore).toBeNull()
     expect(result.clientReportedGrade).toBeNull()
+  })
+})
+
+describe('recalculateBusinessReportCardScore', () => {
+  it('matches the browser scoring path', () => {
+    const browser = scoreBusinessAssessment(DEMO_BUSINESS_ANSWERS)
+    const server = recalculateBusinessReportCardScore(DEMO_BUSINESS_ANSWERS)
+    expect(server.overallScore).toBe(browser.overallScore)
+    expect(server.overallGrade).toBe(browser.overallGrade)
+  })
+})
+
+describe('recalculateRetirementReportCardScore', () => {
+  it('matches the browser scoring path', () => {
+    const browser = scoreRetirementAssessment(DEMO_RETIREMENT_ANSWERS)
+    const server = recalculateRetirementReportCardScore(DEMO_RETIREMENT_ANSWERS)
+    expect(server.overallScore).toBe(browser.overallScore)
+    expect(server.overallGrade).toBe(browser.overallGrade)
+  })
+})
+
+describe('recalculateProtectionGapResult', () => {
+  it('never invents a score or grade', () => {
+    const result = recalculateProtectionGapResult(validProtectionAnswersFixture())
+    expect(result.overallScore).toBeNull()
+    expect(result.overallGrade).toBeNull()
+    expect(typeof result.netProtectionGap).toBe('number')
+    expect(result.currentProtection).toBe(250000)
+    expect(result.totalNeed).toBeGreaterThan(0)
   })
 })

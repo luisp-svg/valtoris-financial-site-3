@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  appendCardAttributionToPath,
   buildCampaignLink,
   buildCampaignQrDestinationPath,
   buildCampaignQrDestinationUrl,
@@ -79,5 +80,24 @@ describe('campaign URL helpers', () => {
   it('extracts referrer host only', () => {
     expect(extractReferrerHost('https://news.example/path?q=1')).toBe('news.example')
     expect(extractReferrerHost('news.example/path')).toBe('news.example')
+  })
+
+  it('appends opaque card + first-touch attribution onto internal Report Card paths', () => {
+    expect(
+      appendCardAttributionToPath('/family-report-card', KEY, {
+        campaignCode: 'summit',
+        eventCode: 'day1',
+        sourceChannel: 'link',
+        utmSource: 'flyer',
+      }),
+    ).toBe(`/family-report-card?c=summit&e=day1&src=link&utm_source=flyer&card=${KEY}`)
+  })
+
+  it('does not attach attribution to external, mailto, or tel hrefs', () => {
+    expect(appendCardAttributionToPath('https://calendly.com/luis', KEY, { campaignCode: 'x' })).toBe(
+      'https://calendly.com/luis',
+    )
+    expect(appendCardAttributionToPath('mailto:hello@example.com', KEY)).toBe('mailto:hello@example.com')
+    expect(appendCardAttributionToPath('tel:+15551212', KEY)).toBe('tel:+15551212')
   })
 })

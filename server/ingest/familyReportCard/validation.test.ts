@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { validFamilyAnswersFixture, validIngestRequestBodyFixture } from './testFixtures'
+import { validFamilyAnswersFixture, validIngestRequestBodyFixture, validBusinessIngestRequestBodyFixture, validRetirementIngestRequestBodyFixture, validProtectionIngestRequestBodyFixture } from './testFixtures'
 import { validateFamilyReportCardIngestRequest } from './validation'
 
 describe('validateFamilyReportCardIngestRequest', () => {
@@ -8,7 +8,10 @@ describe('validateFamilyReportCardIngestRequest', () => {
     expect(result.ok).toBe(true)
     if (result.ok) {
       expect(result.value.submissionId).toBe('f47ac10b-58cc-4372-a567-0e02b2c3d479')
-      expect(result.value.answers.family.firstName).toBe('Jamie')
+      expect(result.value.assessmentType).toBe('family')
+      if ('family' in result.value.answers) {
+        expect(result.value.answers.family.firstName).toBe('Jamie')
+      }
       expect(result.value.consent.assessmentStorageAcknowledged).toBe(true)
     }
   })
@@ -41,12 +44,20 @@ describe('validateFamilyReportCardIngestRequest', () => {
     if (!result.ok) expect(result.code).toBe('invalid_submission_id')
   })
 
-  it('rejects assessmentType values other than "family"', () => {
+  it('rejects assessmentType values outside the public report-card allowlist', () => {
     const result = validateFamilyReportCardIngestRequest(
-      validIngestRequestBodyFixture({ assessmentType: 'business' }),
+      validIngestRequestBodyFixture({ assessmentType: 'household_onboarding' }),
     )
     expect(result.ok).toBe(false)
     if (!result.ok) expect(result.code).toBe('invalid_assessment_type')
+  })
+
+  it('rejects browser-supplied advisor UUIDs', () => {
+    const result = validateFamilyReportCardIngestRequest(
+      validIngestRequestBodyFixture({ originalAdvisorId: '11111111-1111-4111-8111-111111111111' }),
+    )
+    expect(result.ok).toBe(false)
+    if (!result.ok) expect(result.code).toBe('trusted_advisor_id_forbidden')
   })
 
   it('rejects a non-numeric assessmentVersion', () => {
@@ -215,5 +226,30 @@ describe('validateFamilyReportCardIngestRequest', () => {
       expect(result.value.consent.privacyAcknowledged).toBe(true)
       expect(result.value.consent.contactPermission).toBe(false)
     }
+  })
+
+  it('accepts business, retirement, and protection assessment types with matching answers', () => {
+    expect(validateFamilyReportCardIngestRequest(validBusinessIngestRequestBodyFixture()).ok).toBe(true)
+    expect(validateFamilyReportCardIngestRequest(validRetirementIngestRequestBodyFixture()).ok).toBe(true)
+    expect(validateFamilyReportCardIngestRequest(validProtectionIngestRequestBodyFixture()).ok).toBe(true)
+  })
+
+  it('rejects a lead-type spoof field and advisorProfileId as unknown', () => {
+    expect(
+      validateFamilyReportCardIngestRequest(validIngestRequestBodyFixture({ leadType: 'Family Report Card' })).ok,
+    ).toBe(false)
+    expect(
+      validateFamilyReportCardIngestRequest(
+        validIngestRequestBodyFixture({ advisorProfileId: '11111111-1111-4111-8111-111111111111' }),
+      ).ok,
+    ).toBe(false)
+  })
+
+  it('accepts an opaque card public key without trusting an advisor UUID', () => {
+    const result = validateFamilyReportCardIngestRequest(
+      validIngestRequestBodyFixture({ cardPublicKey: 'pk_live_abcdefghijklmnop' }),
+    )
+    expect(result.ok).toBe(true)
+    if (result.ok) expect(result.value.cardPublicKey).toBe('pk_live_abcdefghijklmnop')
   })
 })

@@ -281,7 +281,7 @@ export default function CrmIntakePage() {
           <p className="crm-muted">CRM intake</p>
           <h1>Incoming Leads</h1>
           <p className="crm-page-subtitle">
-            Public Family Report Card diagnostics and Digital Identity / Let’s Connect leads. These
+            Public Report Card, Protection Gap, and Digital Identity / Let’s Connect leads. These
             are not Household Financial Progress scores.
           </p>
         </div>

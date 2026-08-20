@@ -3,7 +3,6 @@ import { crmHouseholdAssessmentDetailPath } from '../../../constants/routes'
 import { mapMatchStatusLabel, mapSheetsSyncLabel } from '../../intake/intakeFormatters'
 import { formatDiagnosticSubmittedAt } from './diagnosticFormatters'
 import type { PublicFamilyDiagnosticListItem } from './types'
-import { PUBLIC_FAMILY_DIAGNOSTIC_PRODUCT_LABEL } from './types'
 
 type Props = {
   householdId: string
@@ -14,8 +13,8 @@ export default function PublicFamilyDiagnosticHistoryList({ householdId, items }
   if (items.length === 0) {
     return (
       <div className="crm-empty-state">
-        <h2 className="crm-empty-state-title">No Initial Financial Diagnostics</h2>
-        <p>No public Family Financial Report Card has been submitted for this household.</p>
+        <h2 className="crm-empty-state-title">No public assessments</h2>
+        <p>No public Report Card or Protection Gap has been submitted for this household.</p>
       </div>
     )
   }
@@ -41,7 +40,7 @@ export default function PublicFamilyDiagnosticHistoryList({ householdId, items }
             {items.map((item) => (
               <tr key={item.assessmentId}>
                 <td>
-                  <strong>{PUBLIC_FAMILY_DIAGNOSTIC_PRODUCT_LABEL}</strong>
+                  <strong>{item.productLabel}</strong>
                   {item.isLatest ? (
                     <div>
                       <span className="crm-intake-chip is-positive">Latest</span>
@@ -53,8 +52,9 @@ export default function PublicFamilyDiagnosticHistoryList({ householdId, items }
                 </td>
                 <td>{formatDiagnosticSubmittedAt(item.completedAt)}</td>
                 <td>
-                  {item.overallScore ?? '—'}
-                  {item.overallGrade ? ` · ${item.overallGrade}` : ''}
+                  {item.assessmentType === 'protection'
+                    ? item.protectionGapFormatted ?? '—'
+                    : `${item.overallScore ?? '—'}${item.overallGrade ? ` · ${item.overallGrade}` : ''}`}
                 </td>
                 <td>
                   {item.topPriorities.length > 0 ? item.topPriorities.join('; ') : '—'}
@@ -82,17 +82,18 @@ export default function PublicFamilyDiagnosticHistoryList({ householdId, items }
         {items.map((item) => (
           <article key={item.assessmentId} className="crm-panel crm-ifd-history-card">
             <h2>
-              {PUBLIC_FAMILY_DIAGNOSTIC_PRODUCT_LABEL}
+              {item.productLabel}
               {item.isLatest ? (
                 <span className="crm-intake-chip is-positive">Latest</span>
               ) : null}
             </h2>
             <p className="crm-muted">{formatDiagnosticSubmittedAt(item.completedAt)}</p>
             <p>
-              Score:{' '}
+              {item.assessmentType === 'protection' ? 'Gap' : 'Score'}:{' '}
               <strong>
-                {item.overallScore ?? '—'}
-                {item.overallGrade ? ` · ${item.overallGrade}` : ''}
+                {item.assessmentType === 'protection'
+                  ? item.protectionGapFormatted ?? '—'
+                  : `${item.overallScore ?? '—'}${item.overallGrade ? ` · ${item.overallGrade}` : ''}`}
               </strong>
             </p>
             <p>

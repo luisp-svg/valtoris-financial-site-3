@@ -1,5 +1,13 @@
 import { isValidEmailFormat, normalizePhone } from '../../../crm/households/normalizeContact.js'
 import {
+  isBusinessStepComplete,
+  type BusinessAssessmentAnswers,
+} from '../../../components/assessment/business/types.js'
+import {
+  isRetirementStepComplete,
+  type RetirementAssessmentAnswers,
+} from '../../../components/assessment/retirement/types.js'
+import {
   isFamilyComplete,
   isFinancialComplete,
   isGoalsComplete,
@@ -10,8 +18,18 @@ import {
   type GoalsAnswers,
   type ProtectionAnswers,
 } from '../../../components/assessment/types.js'
+import {
+  isCalculatorStepComplete,
+  type CalculatorAnswers,
+} from '../../../components/calculator/types.js'
+import { isValidIdentityPublicKey, normalizeIdentitySlug } from '../../../modules/digital-identity/index.js'
+import { rejectsTrustedAdvisorIds } from '../../../modules/digital-identity/submission.js'
+import {
+  isPublicReportCardAssessmentType,
+  type PublicReportCardAssessmentType,
+} from '../../../modules/reportCard/publicIngestCatalog.js'
 import { normalizeConsentSnapshot } from './consent.js'
-import type { ConsentSnapshot, FamilyReportCardIngestRequest } from './types.js'
+import type { ConsentSnapshot, FamilyReportCardIngestRequest, PublicReportCardAnswers } from './types.js'
 
 export type ValidationOk<T> = { ok: true; value: T }
 export type ValidationErr = { ok: false; error: string; code: string }
@@ -48,6 +66,11 @@ const ALLOWED_TOP_LEVEL_KEYS = new Set<string>([
   'companyUrl',
   'formStartedAt',
   'honeypot',
+  'cardPublicKey',
+  'cardSlug',
+  'campaignCode',
+  'eventCode',
+  'sourceChannel',
 ])
 
 function fail(code: string, error: string): ValidationErr {
@@ -181,6 +204,102 @@ function validateAnswers(value: unknown): ValidationResult<DemoAssessmentAnswers
   }
 }
 
+function isRecordOfStrings(value: unknown, keys: readonly string[]): value is Record<string, string> {
+  if (!isPlainObject(value)) return false
+  return keys.every((key) => typeof value[key] === 'string')
+}
+
+function validateBusinessAnswers(value: unknown): ValidationResult<BusinessAssessmentAnswers> {
+  if (!isPlainObject(value)) return fail('invalid_answers', 'answers must be an object.')
+  const { owner, business, foundation, cashFlowTax, protectionRisk, retirementFundingExit, goals } =
+    value
+  if (!isRecordOfStrings(owner, ['firstName', 'lastName', 'email', 'phone'])) {
+    return fail('invalid_answers_owner', 'answers.owner is missing required fields.')
+  }
+  if (!isPlainObject(business) || !isPlainObject(foundation) || !isPlainObject(cashFlowTax)) {
+    return fail('invalid_answers_business', 'answers.business is missing required fields.')
+  }
+  if (!isPlainObject(protectionRisk) || !isPlainObject(retirementFundingExit)) {
+    return fail('invalid_answers_business', 'answers.business is missing required fields.')
+  }
+  if (!isPlainObject(goals) || !Array.isArray(goals.selected) || !goals.selected.every((item) => typeof item === 'string')) {
+    return fail('invalid_answers_goals', 'answers.goals is missing required fields.')
+  }
+  const answers = value as unknown as BusinessAssessmentAnswers
+  for (const step of [2, 3, 4, 5, 6] as const) {
+    if (!isBusinessStepComplete(step, answers)) {
+      return fail('incomplete_business_answers', 'All business questions must be answered.')
+    }
+  }
+  if (answers.owner.firstName.trim().length > MAX_NAME_LENGTH || answers.owner.lastName.trim().length > MAX_NAME_LENGTH) {
+    return fail('invalid_name', 'First/last name exceeds the maximum allowed length.')
+  }
+  if (!isValidEmailFormat(answers.owner.email) || answers.owner.email.trim() === '') {
+    return fail('invalid_email', 'A valid email address is required.')
+  }
+  if (normalizePhone(answers.owner.phone) === null) {
+    return fail('invalid_phone', 'A valid phone number is required.')
+  }
+  return { ok: true, value: answers }
+}
+
+function validateRetirementAnswers(value: unknown): ValidationResult<RetirementAssessmentAnswers> {
+  if (!isPlainObject(value) || !isPlainObject(value.household) || !isPlainObject(value.leadDetails)) {
+    return fail('invalid_answers', 'answers must be an object.')
+  }
+  const answers = value as unknown as RetirementAssessmentAnswers
+  for (const step of [2, 3, 4, 5, 6, 7, 8, 9] as const) {
+    if (!isRetirementStepComplete(step, answers)) {
+      return fail('incomplete_retirement_answers', 'All retirement questions must be answered.')
+    }
+  }
+  if (
+    answers.household.firstName.trim().length > MAX_NAME_LENGTH ||
+    answers.household.lastName.trim().length > MAX_NAME_LENGTH
+  ) {
+    return fail('invalid_name', 'First/last name exceeds the maximum allowed length.')
+  }
+  if (!isValidEmailFormat(answers.household.email) || answers.household.email.trim() === '') {
+    return fail('invalid_email', 'A valid email address is required.')
+  }
+  if (normalizePhone(answers.household.phone) === null) {
+    return fail('invalid_phone', 'A valid phone number is required.')
+  }
+  return { ok: true, value: answers }
+}
+
+function validateProtectionAnswers(value: unknown): ValidationResult<CalculatorAnswers> {
+  if (!isPlainObject(value) || !isPlainObject(value.family)) {
+    return fail('invalid_answers', 'answers must be an object.')
+  }
+  const answers = value as unknown as CalculatorAnswers
+  for (const step of [1, 2, 3, 4, 5, 6, 7] as const) {
+    if (!isCalculatorStepComplete(step, answers)) {
+      return fail('incomplete_protection_answers', 'All protection questions must be answered.')
+    }
+  }
+  if (answers.family.firstName.trim().length > MAX_NAME_LENGTH || answers.family.lastName.trim().length > MAX_NAME_LENGTH) {
+    return fail('invalid_name', 'First/last name exceeds the maximum allowed length.')
+  }
+  if (!isValidEmailFormat(answers.family.email) || answers.family.email.trim() === '') {
+    return fail('invalid_email', 'A valid email address is required.')
+  }
+  if (normalizePhone(answers.family.phone) === null) {
+    return fail('invalid_phone', 'A valid phone number is required.')
+  }
+  return { ok: true, value: answers }
+}
+
+function validateAnswersForType(
+  assessmentType: PublicReportCardAssessmentType,
+  value: unknown,
+): ValidationResult<PublicReportCardAnswers> {
+  if (assessmentType === 'family') return validateAnswers(value)
+  if (assessmentType === 'business') return validateBusinessAnswers(value)
+  if (assessmentType === 'retirement') return validateRetirementAnswers(value)
+  return validateProtectionAnswers(value)
+}
+
 function validateConsent(value: unknown): ValidationResult<ConsentSnapshot> {
   // Missing/partial consent normalizes to all-false / null — never inferred true
   // from contact fields. The public Family UI requires storage + privacy acknowledgments
@@ -200,9 +319,10 @@ export type ValidationOptions = {
 }
 
 /**
- * Strict, allow-listed validation for the public Family Report Card ingest
+ * Strict, allow-listed validation for the public Report Card ingest
  * request body. No schema library is used (matches the rest of the project) —
  * every field is checked explicitly and unknown top-level keys are rejected.
+ * assessmentType is allowlisted to family | business | retirement | protection.
  */
 export function validateFamilyReportCardIngestRequest(
   rawBody: unknown,
@@ -222,6 +342,10 @@ export function validateFamilyReportCardIngestRequest(
 
   if (!isPlainObject(rawBody)) {
     return fail('invalid_body', 'Request body must be a JSON object.')
+  }
+
+  if (rejectsTrustedAdvisorIds(rawBody)) {
+    return fail('trusted_advisor_id_forbidden', 'Unrecognized field.')
   }
 
   for (const key of Object.keys(rawBody)) {
@@ -258,15 +382,22 @@ export function validateFamilyReportCardIngestRequest(
     return fail('invalid_submission_id', 'submissionId must be a valid UUID.')
   }
 
-  if (rawBody.assessmentType !== undefined && rawBody.assessmentType !== 'family') {
-    return fail('invalid_assessment_type', 'assessmentType must be "family" when provided.')
+  let assessmentType: PublicReportCardAssessmentType = 'family'
+  if (rawBody.assessmentType !== undefined) {
+    if (!isPublicReportCardAssessmentType(rawBody.assessmentType)) {
+      return fail(
+        'invalid_assessment_type',
+        'assessmentType must be family, business, retirement, or protection.',
+      )
+    }
+    assessmentType = rawBody.assessmentType
   }
 
   if (typeof rawBody.assessmentVersion !== 'number' || !Number.isFinite(rawBody.assessmentVersion) || rawBody.assessmentVersion < 1) {
     return fail('invalid_assessment_version', 'assessmentVersion must be a positive number.')
   }
 
-  const answersResult = validateAnswers(rawBody.answers)
+  const answersResult = validateAnswersForType(assessmentType, rawBody.answers)
   if (!answersResult.ok) return answersResult
 
   const sourcePageResult = optionalTrimmedString(rawBody.sourcePage, MAX_SOURCE_PAGE_LENGTH)
@@ -285,6 +416,27 @@ export function validateFamilyReportCardIngestRequest(
 
   const referrerResult = optionalTrimmedString(rawBody.referrer, MAX_REFERRER_LENGTH)
   if (!referrerResult.ok) return fail('invalid_referrer', 'referrer is invalid.')
+
+  const cardPublicKeyResult = optionalTrimmedString(rawBody.cardPublicKey, 64)
+  if (!cardPublicKeyResult.ok) return fail('invalid_card_reference', 'cardPublicKey is invalid.')
+  const cardPublicKey: string | null = cardPublicKeyResult.value
+  if (cardPublicKey && !isValidIdentityPublicKey(cardPublicKey)) {
+    return fail('invalid_card_reference', 'cardPublicKey is invalid.')
+  }
+
+  const cardSlugResult = optionalTrimmedString(rawBody.cardSlug, 64)
+  if (!cardSlugResult.ok) return fail('invalid_card_reference', 'cardSlug is invalid.')
+  const cardSlug = cardSlugResult.value ? normalizeIdentitySlug(cardSlugResult.value) : null
+  if (cardSlugResult.value && !cardSlug) {
+    return fail('invalid_card_reference', 'cardSlug is invalid.')
+  }
+
+  const campaignCodeResult = optionalTrimmedString(rawBody.campaignCode, MAX_UTM_LENGTH)
+  if (!campaignCodeResult.ok) return fail('invalid_utm', 'campaignCode is invalid.')
+  const eventCodeResult = optionalTrimmedString(rawBody.eventCode, MAX_UTM_LENGTH)
+  if (!eventCodeResult.ok) return fail('invalid_utm', 'eventCode is invalid.')
+  const sourceChannelResult = optionalTrimmedString(rawBody.sourceChannel, 32)
+  if (!sourceChannelResult.ok) return fail('invalid_utm', 'sourceChannel is invalid.')
 
   let clientReportedScore: number | null = null
   if (rawBody.clientReportedScore !== undefined) {
@@ -317,7 +469,7 @@ export function validateFamilyReportCardIngestRequest(
     ok: true,
     value: {
       submissionId,
-      assessmentType: 'family',
+      assessmentType,
       assessmentVersion: rawBody.assessmentVersion,
       answers: answersResult.value,
       sourcePage: sourcePageResult.value,
@@ -327,6 +479,11 @@ export function validateFamilyReportCardIngestRequest(
       utmTerm: utmTermResult.value,
       utmContent: utmContentResult.value,
       referrer: referrerResult.value,
+      cardPublicKey,
+      cardSlug,
+      campaignCode: campaignCodeResult.value,
+      eventCode: eventCodeResult.value,
+      sourceChannel: sourceChannelResult.value,
       clientReportedScore,
       clientReportedGrade: clientGradeResult.value,
       consent: consentResult.value,

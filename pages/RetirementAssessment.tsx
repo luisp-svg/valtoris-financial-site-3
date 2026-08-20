@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ROUTES } from '../constants/routes'
-import { CALCULATOR_SUBMISSION_WARNING } from '../constants/urls'
 import AssessmentLayout from '../components/assessment/AssessmentLayout'
 import NavigationButtons from '../components/assessment/NavigationButtons'
+import FamilyConsentSection from '../components/assessment/steps/FamilyConsentSection'
 import {
   RETIREMENT_ANSWERS_STORAGE_KEY,
   RETIREMENT_ASSESSMENT_STEPS,
@@ -13,7 +13,19 @@ import {
   RetirementAssessmentAnswers,
   isRetirementStepComplete,
 } from '../components/assessment/retirement/types'
-import { submitRetirementReportCardLead } from '../components/reportCard/submitReportCardLead'
+import { completePublicReportCardCrmSubmission } from '../components/reportCard/familyIngest/completeFamilyReportCardSubmission'
+import {
+  applyPhoneChangeToConsent,
+  INITIAL_FAMILY_CONSENT_STATE,
+  type FamilyConsentField,
+  type FamilyConsentState,
+} from '../components/reportCard/familyIngest/familyConsent'
+import {
+  beginNewFamilyAssessmentSession,
+  ensureFamilyIngestSession,
+  RETIREMENT_INGEST_SESSION_KEY,
+  type FamilyIngestSession,
+} from '../components/reportCard/familyIngest/submissionSession'
 import StepRetirementWelcome from '../components/assessment/steps/retirement/StepRetirementWelcome'
 import StepRetirementHousehold from '../components/assessment/steps/retirement/StepRetirementHousehold'
 import StepRetirementSpending from '../components/assessment/steps/retirement/StepRetirementSpending'
@@ -28,12 +40,38 @@ export default function RetirementAssessment() {
   const navigate = useNavigate()
   const [currentStep, setCurrentStep] = useState(1)
   const [answers, setAnswers] = useState<RetirementAssessmentAnswers>(INITIAL_RETIREMENT_ANSWERS)
+  const [consent, setConsent] = useState<FamilyConsentState>(INITIAL_FAMILY_CONSENT_STATE)
+  const [honeypotWebsite, setHoneypotWebsite] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [consentMissing, setConsentMissing] = useState<
+    Array<'assessmentStorageAcknowledged' | 'privacyAcknowledged'>
+  >([])
+  const [showConsentErrors, setShowConsentErrors] = useState(false)
+  const [ingestSession, setIngestSession] = useState<FamilyIngestSession>(() =>
+    ensureFamilyIngestSession({
+      search: typeof window === 'undefined' ? '' : window.location.search,
+      referrer: typeof document === 'undefined' ? null : document.referrer || null,
+      storageKey: RETIREMENT_INGEST_SESSION_KEY,
+    }),
+  )
   const answersRef = useRef(answers)
+  const consentRef = useRef(consent)
+  const sessionRef = useRef(ingestSession)
+  const honeypotRef = useRef(honeypotWebsite)
 
   useEffect(() => {
     answersRef.current = answers
   }, [answers])
+  useEffect(() => {
+    consentRef.current = consent
+  }, [consent])
+  useEffect(() => {
+    sessionRef.current = ingestSession
+  }, [ingestSession])
+  useEffect(() => {
+    honeypotRef.current = honeypotWebsite
+  }, [honeypotWebsite])
 
   const canContinue = useMemo(
     () => isRetirementStepComplete(currentStep, answers),
@@ -49,6 +87,9 @@ export default function RetirementAssessment() {
       if (field === 'maritalStatus' && value !== 'married') {
         nextHousehold.spouseAge = ''
         nextHousehold.spouseTargetRetirementAge = ''
+      }
+      if (field === 'phone') {
+        setConsent((prev) => applyPhoneChangeToConsent(prev, value))
       }
       if (field === 'alreadyRetired' && value === 'yes') {
         // Keep any existing target age for reference but it is not required.
@@ -158,25 +199,66 @@ export default function RetirementAssessment() {
     setCurrentStep((step) => step - 1)
   }
 
-  async function completeRetirementAssessment(finalAnswers: RetirementAssessmentAnswers) {
-    let submissionWarning: string | undefined
+  function updateConsent(field: FamilyConsentField, value: boolean) {
+    setConsent((current) => {
+      if (field === 'smsMarketingConsent' && value && answersRef.current.household.phone.trim() === '') {
+        return current
+      }
+      return { ...current, [field]: value }
+    })
+    setShowConsentErrors(false)
+    setConsentMissing([])
+    setSubmitError(null)
+  }
 
+  function handleBegin() {
+    const session = beginNewFamilyAssessmentSession({
+      search: typeof window === 'undefined' ? '' : window.location.search,
+      referrer: typeof document === 'undefined' ? null : document.referrer || null,
+      storageKey: RETIREMENT_INGEST_SESSION_KEY,
+    })
+    setIngestSession(session)
+    setConsent(INITIAL_FAMILY_CONSENT_STATE)
+    setHoneypotWebsite('')
+    setSubmitError(null)
+    setShowConsentErrors(false)
+    setConsentMissing([])
+    setIsSubmitting(false)
+    setCurrentStep(2)
+  }
+
+  async function completeRetirementAssessment(finalAnswers: RetirementAssessmentAnswers) {
+    setSubmitError(null)
     try {
       sessionStorage.setItem(RETIREMENT_ANSWERS_STORAGE_KEY, JSON.stringify(finalAnswers))
-
-      const submission = await submitRetirementReportCardLead(finalAnswers)
-      if (!submission.ok) {
-        console.error('Google Sheets submission failed:', submission.error)
-        submissionWarning = CALCULATOR_SUBMISSION_WARNING
-      }
-    } catch (error) {
-      console.error('Google Sheets submission failed:', error)
-      submissionWarning = CALCULATOR_SUBMISSION_WARNING
-    } finally {
-      navigate(ROUTES.retirementReportCardResults, {
-        state: { answers: finalAnswers, submissionWarning },
-      })
+    } catch {
+      // Non-fatal.
     }
+
+    const { result, session } = await completePublicReportCardCrmSubmission({
+      assessmentType: 'retirement',
+      answers: finalAnswers,
+      consent: consentRef.current,
+      session: sessionRef.current,
+      honeypotWebsite: honeypotRef.current,
+      storageKey: RETIREMENT_INGEST_SESSION_KEY,
+      phone: finalAnswers.household.phone,
+    })
+    setIngestSession(session)
+
+    if (!result.ok) {
+      if (result.code === 'consent_required') {
+        setShowConsentErrors(true)
+        setConsentMissing(result.consentMissing ?? [])
+      }
+      setSubmitError(result.error)
+      setIsSubmitting(false)
+      return
+    }
+
+    navigate(ROUTES.retirementReportCardResults, {
+      state: { answers: finalAnswers, submissionSaved: true, submissionId: result.submissionId },
+    })
   }
 
   async function handleContinue() {
@@ -203,7 +285,7 @@ export default function RetirementAssessment() {
             continueDisabled={!canContinue || isSubmitting}
             continueLabel={
               isSubmitting
-                ? 'Saving...'
+                ? 'Saving your Retirement Report Card…'
                 : currentStep === RETIREMENT_ASSESSMENT_STEPS
                   ? 'View My Retirement Report Card'
                   : 'Continue'
@@ -214,7 +296,7 @@ export default function RetirementAssessment() {
     >
       {currentStep === 1 && (
         <StepRetirementWelcome
-          onBegin={() => setCurrentStep(2)}
+          onBegin={handleBegin}
           onBack={() => navigate(ROUTES.retirementReportCard)}
         />
       )}
@@ -265,12 +347,36 @@ export default function RetirementAssessment() {
         />
       )}
       {currentStep === 9 && (
-        <StepRetirementContact
-          household={answers.household}
-          leadDetails={answers.leadDetails}
-          onHouseholdChange={updateHousehold}
-          onLeadDetailsChange={updateLeadDetails}
-        />
+        <>
+          <StepRetirementContact
+            household={answers.household}
+            leadDetails={answers.leadDetails}
+            onHouseholdChange={updateHousehold}
+            onLeadDetailsChange={updateLeadDetails}
+          />
+          <FamilyConsentSection
+            consent={consent}
+            phone={answers.household.phone}
+            showErrors={showConsentErrors}
+            missing={consentMissing}
+            onChange={updateConsent}
+            honeypotValue={honeypotWebsite}
+            onHoneypotChange={setHoneypotWebsite}
+            productTitle="Retirement Report Card™"
+            storageResultName="Retirement Report Card"
+            intro="Your Retirement Report Card™ is based on the information you shared. Required acknowledgments are marked with an asterisk."
+          />
+          {isSubmitting ? (
+            <p className="family-submit-status" role="status" aria-live="polite">
+              Saving your Retirement Report Card…
+            </p>
+          ) : null}
+          {submitError ? (
+            <p className="family-submit-error" role="alert">
+              {submitError}
+            </p>
+          ) : null}
+        </>
       )}
     </AssessmentLayout>
   )

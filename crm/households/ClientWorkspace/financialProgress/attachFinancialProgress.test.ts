@@ -54,6 +54,8 @@ function makeWorkspace(
     retirementAssessment: null,
     publicFamilyDiagnostic: null,
     publicFamilyDiagnosticCount: 0,
+    publicLatestAssessment: null,
+    publicAssessmentCount: 0,
     annualReview: null,
     recentActivities: [],
     notes: { ok: true, value: [] },

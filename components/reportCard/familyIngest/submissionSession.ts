@@ -4,6 +4,9 @@
  */
 
 export const FAMILY_INGEST_SESSION_KEY = 'valtoris-family-ingest-session'
+export const BUSINESS_INGEST_SESSION_KEY = 'valtoris-business-ingest-session'
+export const RETIREMENT_INGEST_SESSION_KEY = 'valtoris-retirement-ingest-session'
+export const PROTECTION_INGEST_SESSION_KEY = 'valtoris-protection-ingest-session'
 
 export type FamilyUtmSnapshot = {
   utmSource: string | null
@@ -13,6 +16,14 @@ export type FamilyUtmSnapshot = {
   utmContent: string | null
 }
 
+export type FamilyCardAttributionSnapshot = {
+  cardPublicKey: string | null
+  cardSlug: string | null
+  campaignCode: string | null
+  eventCode: string | null
+  sourceChannel: string | null
+}
+
 export type FamilyIngestSessionStatus = 'idle' | 'submitting' | 'succeeded' | 'failed'
 
 export type FamilyIngestSession = {
@@ -20,6 +31,7 @@ export type FamilyIngestSession = {
   formStartedAt: string | null
   referrer: string | null
   utm: FamilyUtmSnapshot
+  cardAttribution: FamilyCardAttributionSnapshot
   /** First-touch UTM already captured for this assessment attempt. */
   utmLocked: boolean
   status: FamilyIngestSessionStatus
@@ -33,6 +45,14 @@ export const EMPTY_UTM: FamilyUtmSnapshot = {
   utmContent: null,
 }
 
+export const EMPTY_CARD_ATTRIBUTION: FamilyCardAttributionSnapshot = {
+  cardPublicKey: null,
+  cardSlug: null,
+  campaignCode: null,
+  eventCode: null,
+  sourceChannel: null,
+}
+
 export function createEmptyFamilyIngestSession(
   nowIso: string = new Date().toISOString(),
 ): FamilyIngestSession {
@@ -41,6 +61,7 @@ export function createEmptyFamilyIngestSession(
     formStartedAt: nowIso,
     referrer: null,
     utm: { ...EMPTY_UTM },
+    cardAttribution: { ...EMPTY_CARD_ATTRIBUTION },
     utmLocked: false,
     status: 'idle',
   }
@@ -99,6 +120,28 @@ export function readUtmFromSearch(search: string): FamilyUtmSnapshot {
   }
 }
 
+/** Opaque card public key + campaign codes. Never reads advisor UUIDs. */
+export function readCardAttributionFromSearch(search: string): FamilyCardAttributionSnapshot {
+  const params = new URLSearchParams(search.startsWith('?') ? search : `?${search}`)
+  return {
+    cardPublicKey: clipQueryValue(params.get('card')),
+    cardSlug: clipQueryValue(params.get('card_slug')),
+    campaignCode: clipQueryValue(params.get('c')),
+    eventCode: clipQueryValue(params.get('e')),
+    sourceChannel: clipQueryValue(params.get('src')),
+  }
+}
+
+export function hasAnyCardAttribution(value: FamilyCardAttributionSnapshot): boolean {
+  return Boolean(
+    value.cardPublicKey ||
+      value.cardSlug ||
+      value.campaignCode ||
+      value.eventCode ||
+      value.sourceChannel,
+  )
+}
+
 export function hasAnyUtm(utm: FamilyUtmSnapshot): boolean {
   return Boolean(
     utm.utmSource || utm.utmMedium || utm.utmCampaign || utm.utmTerm || utm.utmContent,
@@ -113,10 +156,12 @@ function canUseSessionStorage(): boolean {
   }
 }
 
-export function readFamilyIngestSession(): FamilyIngestSession | null {
+export function readFamilyIngestSession(
+  storageKey: string = FAMILY_INGEST_SESSION_KEY,
+): FamilyIngestSession | null {
   if (!canUseSessionStorage()) return null
   try {
-    const raw = sessionStorage.getItem(FAMILY_INGEST_SESSION_KEY)
+    const raw = sessionStorage.getItem(storageKey)
     if (!raw) return null
     const parsed = JSON.parse(raw) as Partial<FamilyIngestSession>
     if (!parsed || typeof parsed !== 'object') return null
@@ -130,6 +175,24 @@ export function readFamilyIngestSession(): FamilyIngestSession | null {
         utmCampaign: typeof parsed.utm?.utmCampaign === 'string' ? parsed.utm.utmCampaign : null,
         utmTerm: typeof parsed.utm?.utmTerm === 'string' ? parsed.utm.utmTerm : null,
         utmContent: typeof parsed.utm?.utmContent === 'string' ? parsed.utm.utmContent : null,
+      },
+      cardAttribution: {
+        cardPublicKey:
+          typeof parsed.cardAttribution?.cardPublicKey === 'string'
+            ? parsed.cardAttribution.cardPublicKey
+            : null,
+        cardSlug:
+          typeof parsed.cardAttribution?.cardSlug === 'string' ? parsed.cardAttribution.cardSlug : null,
+        campaignCode:
+          typeof parsed.cardAttribution?.campaignCode === 'string'
+            ? parsed.cardAttribution.campaignCode
+            : null,
+        eventCode:
+          typeof parsed.cardAttribution?.eventCode === 'string' ? parsed.cardAttribution.eventCode : null,
+        sourceChannel:
+          typeof parsed.cardAttribution?.sourceChannel === 'string'
+            ? parsed.cardAttribution.sourceChannel
+            : null,
       },
       utmLocked: Boolean(parsed.utmLocked),
       status:
@@ -145,19 +208,22 @@ export function readFamilyIngestSession(): FamilyIngestSession | null {
   }
 }
 
-export function writeFamilyIngestSession(session: FamilyIngestSession): void {
+export function writeFamilyIngestSession(
+  session: FamilyIngestSession,
+  storageKey: string = FAMILY_INGEST_SESSION_KEY,
+): void {
   if (!canUseSessionStorage()) return
   try {
-    sessionStorage.setItem(FAMILY_INGEST_SESSION_KEY, JSON.stringify(session))
+    sessionStorage.setItem(storageKey, JSON.stringify(session))
   } catch {
     // Quota / private mode — submission can still proceed in-memory.
   }
 }
 
-export function clearFamilyIngestSession(): void {
+export function clearFamilyIngestSession(storageKey: string = FAMILY_INGEST_SESSION_KEY): void {
   if (!canUseSessionStorage()) return
   try {
-    sessionStorage.removeItem(FAMILY_INGEST_SESSION_KEY)
+    sessionStorage.removeItem(storageKey)
   } catch {
     // ignore
   }
@@ -172,16 +238,19 @@ export function beginNewFamilyAssessmentSession(input: {
   referrer?: string | null
   nowIso?: string
   randomUuid?: () => string
+  storageKey?: string
 }): FamilyIngestSession {
   const nowIso = input.nowIso ?? new Date().toISOString()
   const fromUrl = readUtmFromSearch(input.search ?? '')
+  const cardFromUrl = readCardAttributionFromSearch(input.search ?? '')
   const session = createEmptyFamilyIngestSession(nowIso)
   session.referrer = clipQueryValue(input.referrer ?? null)
-  if (hasAnyUtm(fromUrl)) {
+  if (hasAnyUtm(fromUrl) || hasAnyCardAttribution(cardFromUrl)) {
     session.utm = fromUrl
+    session.cardAttribution = cardFromUrl
     session.utmLocked = true
   }
-  writeFamilyIngestSession(session)
+  writeFamilyIngestSession(session, input.storageKey)
   return session
 }
 
@@ -193,18 +262,22 @@ export function ensureFamilyIngestSession(input: {
   search?: string
   referrer?: string | null
   nowIso?: string
+  storageKey?: string
 }): FamilyIngestSession {
-  const existing = readFamilyIngestSession()
+  const existing = readFamilyIngestSession(input.storageKey)
   if (existing) {
     const recovered: FamilyIngestSession = {
       ...existing,
+      cardAttribution: existing.cardAttribution ?? { ...EMPTY_CARD_ATTRIBUTION },
       // Never leave a refreshed page stuck in "submitting".
       status: existing.status === 'submitting' ? 'failed' : existing.status,
     }
     if (!recovered.utmLocked) {
       const fromUrl = readUtmFromSearch(input.search ?? '')
-      if (hasAnyUtm(fromUrl)) {
+      const cardFromUrl = readCardAttributionFromSearch(input.search ?? '')
+      if (hasAnyUtm(fromUrl) || hasAnyCardAttribution(cardFromUrl)) {
         recovered.utm = fromUrl
+        recovered.cardAttribution = cardFromUrl
         recovered.utmLocked = true
       }
     }
@@ -214,7 +287,7 @@ export function ensureFamilyIngestSession(input: {
     if (!recovered.formStartedAt) {
       recovered.formStartedAt = input.nowIso ?? new Date().toISOString()
     }
-    writeFamilyIngestSession(recovered)
+    writeFamilyIngestSession(recovered, input.storageKey)
     return recovered
   }
   return beginNewFamilyAssessmentSession(input)
@@ -228,21 +301,23 @@ export function ensureFamilyIngestSession(input: {
 export function ensureFamilySubmissionId(
   session: FamilyIngestSession,
   randomUuid?: () => string,
+  storageKey: string = FAMILY_INGEST_SESSION_KEY,
 ): { session: FamilyIngestSession; submissionId: string; created: boolean } {
   if (isUuidV4(session.submissionId)) {
     return { session, submissionId: session.submissionId as string, created: false }
   }
   const submissionId = createUuidV4(randomUuid)
   const next: FamilyIngestSession = { ...session, submissionId }
-  writeFamilyIngestSession(next)
+  writeFamilyIngestSession(next, storageKey)
   return { session: next, submissionId, created: true }
 }
 
 export function markFamilyIngestStatus(
   session: FamilyIngestSession,
   status: FamilyIngestSessionStatus,
+  storageKey: string = FAMILY_INGEST_SESSION_KEY,
 ): FamilyIngestSession {
   const next = { ...session, status }
-  writeFamilyIngestSession(next)
+  writeFamilyIngestSession(next, storageKey)
   return next
 }

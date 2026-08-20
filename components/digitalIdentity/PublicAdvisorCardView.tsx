@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import BrandWordmark from '../BrandWordmark'
 import HomeCardIcon, { type HomeCardIconVariant } from '../home/HomeCardIcon'
 import { ROUTES } from '../../constants/routes'
 import {
+  appendCardAttributionToPath,
+  parseCampaignAttributionFromSearch,
   VALTORIS_PUBLIC_TAGLINE,
   type IdentitySocialLink,
   type IdentitySurfacePublicDto,
@@ -13,6 +15,7 @@ import {
   triggerVCardBrowserDownload,
 } from './downloadPublicCardVCard'
 import LetsConnectModal from './LetsConnectModal'
+import { getCardAttributionSession } from './campaignAttributionSession'
 import {
   buildHeroActions,
   buildOutcomeSections,
@@ -232,7 +235,17 @@ function ReadyCard({ card }: { card: IdentitySurfacePublicDto }) {
   const mailHref = buildPublicMailtoHref(contact.email)
   const phoneDisplay = formatPublicPhoneDisplay(contact.phone)
   const heroActions = buildHeroActions(card)
-  const outcomes = selectPublicCardHelpTiles(buildOutcomeSections(card))
+  const outcomes = useMemo(() => {
+    const session = getCardAttributionSession(card.publicKey)
+    const attribution = session?.firstTouch ??
+      (typeof window === 'undefined' ? {} : parseCampaignAttributionFromSearch(window.location.search))
+    return selectPublicCardHelpTiles(buildOutcomeSections(card)).map((outcome) => ({
+      ...outcome,
+      href: outcome.href
+        ? appendCardAttributionToPath(outcome.href, card.publicKey, attribution)
+        : outcome.href,
+    }))
+  }, [card])
   const socialLinks = selectConfiguredSocialLinks(card)
   const title = card.approvedTitle?.trim() || ''
   const company = card.approvedCompany?.trim() || ''

@@ -12,14 +12,13 @@ import type {
 } from '../../crm/households/assessments/types'
 import {
   PUBLIC_FAMILY_DIAGNOSTIC_DISCLAIMER,
-  PUBLIC_FAMILY_DIAGNOSTIC_PRODUCT_LABEL,
 } from '../../crm/households/assessments/types'
 import { crmHouseholdPath } from '../../constants/routes'
 import { createSupabaseBrowserClient } from '../../lib/supabase/client'
 
 /**
- * Household assessment history / public Family diagnostic detail.
- * Scalable shell: currently implements public Family diagnostics only.
+ * Household assessment history / public Report Card and Protection Gap detail.
+ * History is intentional — repeated completions remain separate rows.
  */
 export default function CrmHouseholdAssessmentsPage() {
   const { householdId = '', assessmentId } = useParams<{
@@ -136,7 +135,7 @@ export default function CrmHouseholdAssessmentsPage() {
           </p>
           <h1>Assessments</h1>
           <p className="crm-page-subtitle">
-            {PUBLIC_FAMILY_DIAGNOSTIC_PRODUCT_LABEL} history for this household.{' '}
+            Public Report Card and Protection Gap history for this household.{' '}
             {PUBLIC_FAMILY_DIAGNOSTIC_DISCLAIMER}
           </p>
         </div>

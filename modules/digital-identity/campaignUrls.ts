@@ -161,6 +161,34 @@ export function buildShareLink(
   })
 }
 
+/**
+ * Append Digital Identity first-touch attribution + opaque card public key
+ * onto an internal Report Card path. Never attaches advisor UUIDs. External
+ * URLs (Calendly, mailto, tel) are returned unchanged.
+ */
+export function appendCardAttributionToPath(
+  href: string,
+  publicKey: string,
+  attribution: CampaignAttributionQuery = {},
+): string {
+  const trimmed = href.trim()
+  if (!trimmed) return href
+  if (/^(https?:|mailto:|tel:|sms:)/i.test(trimmed)) return href
+
+  try {
+    const url = new URL(trimmed, 'https://valtoris.local')
+    const incoming = buildCampaignAttributionSearchParams(attribution)
+    if (publicKey.trim()) incoming.set('card', publicKey.trim())
+    for (const [key, value] of incoming.entries()) {
+      if (!url.searchParams.has(key)) url.searchParams.set(key, value)
+    }
+    const qs = url.searchParams.toString()
+    return `${url.pathname}${qs ? `?${qs}` : ''}${url.hash}`
+  } catch {
+    return href
+  }
+}
+
 /** QR destination path — public_key only, src defaults to qr. */
 export function buildCampaignQrDestinationPath(
   publicKey: string,

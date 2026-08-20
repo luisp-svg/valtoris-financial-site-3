@@ -19,7 +19,7 @@ const sql038 = readFileSync(resolve(migrationsDir, MIGRATION_038_FILENAME), 'utf
 const sql041 = readFileSync(resolve(migrationsDir, MIGRATION_041_FILENAME), 'utf8')
 
 describe('migration 042 writing-receivable eligibility contract', () => {
-  it('records the approved filename after 041 and does not add 043', () => {
+  it('records the approved filename after 041 and allows 043', () => {
     expect(MIGRATION_042_FILENAME).toBe('042_writing_receivable_eligibility.sql')
     const files = readdirSync(migrationsDir)
       .filter((f) => /^\d{3}_.+\.sql$/.test(f))
@@ -30,7 +30,9 @@ describe('migration 042 writing-receivable eligibility contract', () => {
       files.indexOf(MIGRATION_041_FILENAME),
     )
     expect(files.filter((f) => f.startsWith('042_'))).toEqual([MIGRATION_042_FILENAME])
-    expect(files.filter((f) => f.startsWith('043_'))).toEqual([])
+    expect(files.filter((f) => f.startsWith('043_'))).toEqual([
+      '043_public_report_card_ingest.sql',
+    ])
   })
 
   it('includes the durable column, owner RPC, 034 honor path, and audit markers', () => {

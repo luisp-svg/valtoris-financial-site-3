@@ -43,7 +43,7 @@ export function emptyStateCopy(filter: IntakeFilterId): { title: string; body: s
     case 'possible_duplicates':
       return {
         title: 'No possible duplicates',
-        body: 'There are no Family Report Card submissions waiting for duplicate review.',
+        body: 'There are no public Report Card or Protection Gap submissions waiting for duplicate review.',
       }
     case 'sheets_failed':
       return {
@@ -58,7 +58,7 @@ export function emptyStateCopy(filter: IntakeFilterId): { title: string; body: s
     case 'new_prospects':
       return {
         title: 'No new prospects',
-        body: 'No provisional new Family Report Card prospects match this filter.',
+        body: 'No provisional new public Report Card or Protection Gap prospects match this filter.',
       }
     case 'exact_matches':
       return {
@@ -78,12 +78,12 @@ export function emptyStateCopy(filter: IntakeFilterId): { title: string; body: s
     case 'assigned_to_me':
       return {
         title: 'Nothing assigned to you',
-        body: 'No incoming Family Report Card leads are assigned to your advisor profile.',
+        body: 'No incoming public Report Card, Protection Gap, or Digital Identity leads are assigned to your advisor profile.',
       }
     default:
       return {
         title: 'No incoming leads yet',
-        body: 'When a prospect completes the public Family Report Card, their Initial Financial Diagnostic will appear here.',
+        body: 'When a prospect completes a public Report Card, Protection Gap, or Let’s Connect form, the lead will appear here.',
       }
   }
 }

@@ -10,6 +10,11 @@ export type FamilyConsentSectionProps = {
   onChange: (field: FamilyConsentField, value: boolean) => void
   honeypotValue: string
   onHoneypotChange: (value: string) => void
+  /** Public product name in the intro sentence. */
+  productTitle?: string
+  /** Stored-result name in the required storage acknowledgment. */
+  storageResultName?: string
+  intro?: string
 }
 
 /**
@@ -25,6 +30,9 @@ export default function FamilyConsentSection({
   onChange,
   honeypotValue,
   onHoneypotChange,
+  productTitle = 'Family Financial Report Card™',
+  storageResultName = 'Initial Financial Diagnostic',
+  intro,
 }: FamilyConsentSectionProps) {
   const phonePresent = phone.trim().length > 0
   const storageMissing = showErrors && missing.includes('assessmentStorageAcknowledged')
@@ -39,8 +47,8 @@ export default function FamilyConsentSection({
         Acknowledgments
       </h2>
       <p className="family-consent-intro">
-        Your Family Financial Report Card™ provides an Initial Financial Diagnostic based on the
-        information you shared. Required acknowledgments are marked with an asterisk.
+        {intro ??
+          `Your ${productTitle} provides an Initial Financial Diagnostic based on the information you shared. Required acknowledgments are marked with an asterisk.`}
       </p>
 
       <div className="assessment-field assessment-consent-field">
@@ -60,7 +68,7 @@ export default function FamilyConsentSection({
               *
             </span>
             I understand that Valtoris will use the information I provide to calculate and store my
-            Initial Financial Diagnostic and related results.
+            {` ${storageResultName}`} and related results.
           </span>
         </label>
         <p id="family-consent-storage-hint" className="visually-hidden">

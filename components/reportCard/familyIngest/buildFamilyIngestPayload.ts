@@ -2,12 +2,12 @@ import type { DemoAssessmentAnswers } from '../../assessment/types'
 import type { FamilyConsentSnapshot } from './familyConsent'
 import type { FamilyIngestSession } from './submissionSession'
 
-/** Client request body for POST /api/ingest-family-report-card (Phase 2 contract). */
+/** Client request body for POST /api/ingest-family-report-card (unified report-card contract). */
 export type FamilyReportCardClientIngestBody = {
   submissionId: string
-  assessmentType: 'family'
+  assessmentType: 'family' | 'business' | 'retirement' | 'protection'
   assessmentVersion: number
-  answers: DemoAssessmentAnswers
+  answers: DemoAssessmentAnswers | unknown
   sourcePage: string | null
   utmSource: string | null
   utmMedium: string | null
@@ -15,6 +15,11 @@ export type FamilyReportCardClientIngestBody = {
   utmTerm: string | null
   utmContent: string | null
   referrer: string | null
+  cardPublicKey: string | null
+  cardSlug: string | null
+  campaignCode: string | null
+  eventCode: string | null
+  sourceChannel: string | null
   clientReportedScore: number | null
   clientReportedGrade: string | null
   consent: FamilyConsentSnapshot
@@ -28,7 +33,7 @@ export const FAMILY_REPORT_CARD_ASSESSMENT_VERSION = 1
 
 export function buildFamilyReportCardIngestPayload(input: {
   submissionId: string
-  answers: DemoAssessmentAnswers
+  answers: DemoAssessmentAnswers | unknown
   session: FamilyIngestSession
   consent: FamilyConsentSnapshot
   sourcePage: string | null
@@ -36,11 +41,20 @@ export function buildFamilyReportCardIngestPayload(input: {
   clientReportedGrade: string | null
   submittedAt?: string | null
   honeypotWebsite?: string
+  assessmentType?: FamilyReportCardClientIngestBody['assessmentType']
+  assessmentVersion?: number
 }): FamilyReportCardClientIngestBody {
+  const card = input.session.cardAttribution ?? {
+    cardPublicKey: null,
+    cardSlug: null,
+    campaignCode: null,
+    eventCode: null,
+    sourceChannel: null,
+  }
   return {
     submissionId: input.submissionId,
-    assessmentType: 'family',
-    assessmentVersion: FAMILY_REPORT_CARD_ASSESSMENT_VERSION,
+    assessmentType: input.assessmentType ?? 'family',
+    assessmentVersion: input.assessmentVersion ?? FAMILY_REPORT_CARD_ASSESSMENT_VERSION,
     answers: input.answers,
     sourcePage: input.sourcePage,
     utmSource: input.session.utm.utmSource,
@@ -49,6 +63,11 @@ export function buildFamilyReportCardIngestPayload(input: {
     utmTerm: input.session.utm.utmTerm,
     utmContent: input.session.utm.utmContent,
     referrer: input.session.referrer,
+    cardPublicKey: card.cardPublicKey,
+    cardSlug: card.cardSlug,
+    campaignCode: card.campaignCode,
+    eventCode: card.eventCode,
+    sourceChannel: card.sourceChannel,
     clientReportedScore: input.clientReportedScore,
     clientReportedGrade: input.clientReportedGrade,
     consent: {

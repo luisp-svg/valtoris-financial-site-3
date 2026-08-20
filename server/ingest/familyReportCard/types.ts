@@ -1,15 +1,29 @@
+import type { BusinessAssessmentAnswers } from '../../../components/assessment/business/types.js'
+import type { RetirementAssessmentAnswers } from '../../../components/assessment/retirement/types.js'
 import type { DemoAssessmentAnswers } from '../../../components/assessment/types.js'
+import type { CalculatorAnswers } from '../../../components/calculator/types.js'
+import {
+  PUBLIC_REPORT_CARD_ASSESSMENT_VERSION,
+  PUBLIC_REPORT_CARD_SCORING_VERSION,
+  type PublicReportCardAssessmentType,
+} from '../../../modules/reportCard/publicIngestCatalog.js'
 
 /**
- * Public Family Report Card → CRM ingest — shared types.
- * Mirrors the DB contracts introduced in supabase/migrations/020_public_family_diagnostic_ingest.sql.
+ * Public Report Card → CRM ingest — shared types.
+ * Family remains the reference contract from supabase/migrations/020.
+ * Generalized in supabase/migrations/043_public_report_card_ingest.sql.
  */
 
 /** Bump when the request/response contract for this endpoint changes. */
-export const ASSESSMENT_VERSION = 1
+export const ASSESSMENT_VERSION = PUBLIC_REPORT_CARD_ASSESSMENT_VERSION
 
 /** Bump when the server scoring formulas materially change (keeps history comparable). */
-export const FAMILY_REPORT_CARD_SCORING_VERSION = 1
+export const FAMILY_REPORT_CARD_SCORING_VERSION = PUBLIC_REPORT_CARD_SCORING_VERSION.family
+export const BUSINESS_REPORT_CARD_SCORING_VERSION = PUBLIC_REPORT_CARD_SCORING_VERSION.business
+export const RETIREMENT_REPORT_CARD_SCORING_VERSION = PUBLIC_REPORT_CARD_SCORING_VERSION.retirement
+export const PROTECTION_GAP_RESULT_VERSION = PUBLIC_REPORT_CARD_SCORING_VERSION.protection
+
+export type { PublicReportCardAssessmentType }
 
 export type MatchStatus = 'exact_trusted_match' | 'possible_match' | 'new_prospect'
 
@@ -39,12 +53,18 @@ export type ConsentSnapshot = {
   consentedAt: string | null
 }
 
+export type PublicReportCardAnswers =
+  | DemoAssessmentAnswers
+  | BusinessAssessmentAnswers
+  | RetirementAssessmentAnswers
+  | CalculatorAnswers
+
 /** Fully validated + typed public ingest request body. */
 export type FamilyReportCardIngestRequest = {
   submissionId: string
-  assessmentType: 'family'
+  assessmentType: PublicReportCardAssessmentType
   assessmentVersion: number
-  answers: DemoAssessmentAnswers
+  answers: PublicReportCardAnswers
   sourcePage: string | null
   utmSource: string | null
   utmMedium: string | null
@@ -52,11 +72,18 @@ export type FamilyReportCardIngestRequest = {
   utmTerm: string | null
   utmContent: string | null
   referrer: string | null
+  cardPublicKey: string | null
+  cardSlug: string | null
+  campaignCode: string | null
+  eventCode: string | null
+  sourceChannel: string | null
   clientReportedScore: number | null
   clientReportedGrade: string | null
   consent: ConsentSnapshot
   submittedAt: string | null
 }
+
+export type PublicReportCardIngestRequest = FamilyReportCardIngestRequest
 
 export type FamilyReportCardIngestSuccess = {
   ok: true
