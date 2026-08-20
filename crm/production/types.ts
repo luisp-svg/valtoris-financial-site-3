@@ -284,8 +284,16 @@ export type ProductionApplicationListItem = {
   writing_receivable_expected: boolean
 }
 
+export type ProductionLinkedOpportunity = {
+  id: string
+  title: string
+  status: string
+  stage_name: string | null
+}
+
 export type ProductionApplicationDetail = ProductionApplicationListItem & {
   opportunity_id: string | null
+  linked_opportunity: ProductionLinkedOpportunity | null
   is_replacement: boolean
   is_exchange_or_transfer: boolean
   target_premium_cents: number | null

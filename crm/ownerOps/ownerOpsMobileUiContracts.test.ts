@@ -23,7 +23,10 @@ describe('Agency Operations mobile layout contracts', () => {
     expect(files.filter((name) => name.startsWith('044_'))).toEqual([
       '044_policy_application_requirements.sql',
     ])
-    expect(files.filter((name) => name.startsWith('046_'))).toEqual([])
+    expect(files.filter((name) => name.startsWith('046_'))).toEqual([
+      '046_opportunity_case_conversion.sql',
+    ])
+    expect(files.filter((name) => name.startsWith('047_'))).toEqual([])
     expect(existsSync(join(migrationsDir, '044_case_management.sql'))).toBe(false)
   })
 

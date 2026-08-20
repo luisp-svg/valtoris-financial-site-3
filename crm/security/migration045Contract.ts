@@ -94,4 +94,5 @@ export const EXPECTED_NUMBERED_MIGRATIONS = [
   '043_public_report_card_ingest.sql',
   '044_policy_application_requirements.sql',
   '045_policy_post_placement_lifecycle.sql',
+  '046_opportunity_case_conversion.sql',
 ] as const

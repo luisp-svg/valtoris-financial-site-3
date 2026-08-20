@@ -1,0 +1,60 @@
+/** Static contract markers for Migration 046 Opportunity → Case conversion. */
+
+export const MIGRATION_046_FILENAME = '046_opportunity_case_conversion.sql'
+
+export const MIGRATION_046_RPC = 'convert_opportunity_to_policy_application'
+
+export const MIGRATION_046_CONTRACT_MARKERS = [
+  'policy_applications_live_opportunity_unique_idx',
+  'UNIQUE INDEX IF NOT EXISTS policy_applications_live_opportunity_unique_idx',
+  'WHERE opportunity_id IS NOT NULL',
+  'AND deleted_at IS NULL',
+  'CREATE OR REPLACE FUNCTION public.convert_opportunity_to_policy_application(',
+  'p_opportunity_id uuid',
+  'p_payload jsonb',
+  'SET search_path = pg_catalog, public, extensions',
+  'pp_assert_authenticated()',
+  'crm_can_access_opportunity(p_opportunity_id)',
+  'FOR UPDATE',
+  "v_opp.status = 'lost'",
+  "v_opp.status NOT IN ('open', 'on_hold', 'won')",
+  "'created', false",
+  'v_household_id := v_opp.household_id',
+  "v_vertical_code NOT IN ('life', 'retirement')",
+  "v_product_line IS DISTINCT FROM 'fia'",
+  'create_policy_application(v_create_payload)',
+  'pp_assert_allocations_valid',
+  'pp_assert_participants_for_submit',
+  "code = 'application_started'",
+  'move_opportunity_stage',
+  "crm_write_audit(\n    'convert_opportunity_to_policy_application'",
+  'GRANT EXECUTE ON FUNCTION public.convert_opportunity_to_policy_application(uuid, jsonb)',
+  'REVOKE ALL ON FUNCTION public.convert_opportunity_to_policy_application(uuid, jsonb)',
+  'FROM PUBLIC, anon',
+] as const
+
+export const MIGRATION_046_FORBIDDEN_MARKERS = [
+  '047_',
+  'source_opportunity_id',
+  'ALTER TYPE public.policy_application_stage',
+  'ALTER TYPE public.opportunity_status',
+  'ADD VALUE',
+  "'chargeback'",
+  'CREATE TABLE public.cases',
+  'CREATE TABLE IF NOT EXISTS public.cases',
+  'record_policy_writing_commission_event',
+  'pp_refresh_application_expected_compensation',
+  'set_policy_application_writing_receivable_expected',
+  'INSERT INTO public.policy_applications',
+  'INSERT INTO public.policies',
+  'INSERT INTO public.policy_application_expected_compensations',
+  'INSERT INTO public.policy_writing_commission_events',
+  'CREATE TABLE public.commission',
+  'GRANT INSERT',
+  'GRANT UPDATE',
+  'GRANT DELETE',
+  'TO anon',
+  'historical_entry',
+  "'writing_receivable_expected'",
+  "'submission_date'",
+] as const

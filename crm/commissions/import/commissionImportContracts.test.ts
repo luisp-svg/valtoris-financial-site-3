@@ -71,14 +71,18 @@ describe('commission Phase 3A contracts', () => {
     expect(blob).not.toMatch(/xlsx|exceljs|sheetjs/i)
     expect(blob).not.toMatch(/P&C Commission|Student Loan Commission|Credit Repair Commission/)
     const numbered = readdirSync(migrationsDir).filter((name) => /^\d{3}_/.test(name)).sort()
-    expect(numbered).toHaveLength(45)
+    expect(numbered).toHaveLength(46)
     expect(numbered[0]).toBe('001_extensions_and_enums.sql')
     expect(numbered[43]).toBe('044_policy_application_requirements.sql')
     expect(numbered[44]).toBe('045_policy_post_placement_lifecycle.sql')
     expect(numbered.filter((name) => name.startsWith('045_'))).toEqual([
       '045_policy_post_placement_lifecycle.sql',
     ])
-    expect(numbered.filter((name) => name.startsWith('046_'))).toEqual([])
+    expect(numbered[45]).toBe('046_opportunity_case_conversion.sql')
+    expect(numbered.filter((name) => name.startsWith('046_'))).toEqual([
+      '046_opportunity_case_conversion.sql',
+    ])
+    expect(numbered.filter((name) => name.startsWith('047_'))).toEqual([])
     expect(numbered).toContain('040_commission_pending_import.sql')
     expect(numbered).toContain('041_commission_pending_review.sql')
     expect(numbered).toContain('043_public_report_card_ingest.sql')
@@ -156,14 +160,18 @@ describe('commission Phase 3B contracts', () => {
 
   it('keeps paid import isolated from pending staging and does not add a commission lifecycle migration', () => {
     const numbered = readdirSync(migrationsDir).filter((name) => /^\d{3}_/.test(name)).sort()
-    expect(numbered).toHaveLength(45)
+    expect(numbered).toHaveLength(46)
     expect(numbered[0]).toBe('001_extensions_and_enums.sql')
     expect(numbered[43]).toBe('044_policy_application_requirements.sql')
     expect(numbered[44]).toBe('045_policy_post_placement_lifecycle.sql')
     expect(numbered.filter((name) => name.startsWith('045_'))).toEqual([
       '045_policy_post_placement_lifecycle.sql',
     ])
-    expect(numbered.filter((name) => name.startsWith('046_'))).toEqual([])
+    expect(numbered[45]).toBe('046_opportunity_case_conversion.sql')
+    expect(numbered.filter((name) => name.startsWith('046_'))).toEqual([
+      '046_opportunity_case_conversion.sql',
+    ])
+    expect(numbered.filter((name) => name.startsWith('047_'))).toEqual([])
     expect(numbered).toContain('040_commission_pending_import.sql')
     expect(numbered).toContain('041_commission_pending_review.sql')
     expect(numbered).toContain('043_public_report_card_ingest.sql')

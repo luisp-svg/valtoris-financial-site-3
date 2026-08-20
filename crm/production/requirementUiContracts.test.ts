@@ -49,7 +49,10 @@ describe('Case Management Phase 2B requirement UI contracts', () => {
     expect(files.filter((name) => name.startsWith('045_'))).toEqual([
       '045_policy_post_placement_lifecycle.sql',
     ])
-    expect(files.filter((name) => name.startsWith('046_'))).toEqual([])
+    expect(files.filter((name) => name.startsWith('046_'))).toEqual([
+      '046_opportunity_case_conversion.sql',
+    ])
+    expect(files.filter((name) => name.startsWith('047_'))).toEqual([])
     expect(existsSync(join(migrationsDir, '044_case_management.sql'))).toBe(false)
     expect(section).not.toMatch(/from\('cases'\)/)
     expect(section).not.toMatch(/<textarea[^>]*(notes|diagnosis|medication|lab)/i)

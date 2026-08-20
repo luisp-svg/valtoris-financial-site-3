@@ -60,6 +60,7 @@ function application(
     expected_compensations: [],
     writing_receivable_expected: true,
     opportunity_id: null,
+    linked_opportunity: null,
     is_replacement: false,
     is_exchange_or_transfer: false,
     face_amount_cents: 50000000,

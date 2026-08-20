@@ -55,6 +55,7 @@ import type {
   OpportunityHouseholdSummary,
   OpportunityListItem,
   OpportunityLoadResult,
+  OpportunityLinkedApplication,
   OpportunityOwnerSummary,
   OpportunityPipelineOption,
   OpportunityPipelineSummary,
@@ -513,6 +514,45 @@ export async function fetchOpportunityActivities(
   return rows.map((row) => normalizeOpportunityActivityRow(row, advisorNames))
 }
 
+export async function fetchOpportunityLinkedApplication(
+  supabase: SupabaseClient,
+  opportunityId: string,
+): Promise<OpportunityLinkedApplication | null> {
+  const { data, error } = await supabase
+    .from('policy_applications')
+    .select(
+      `
+      id,
+      production_stage,
+      product_line,
+      application_number,
+      carrier:carriers!carrier_id ( name ),
+      product:insurance_products!product_id ( name )
+    `,
+    )
+    .eq('opportunity_id', opportunityId)
+    .is('deleted_at', null)
+    .maybeSingle()
+
+  if (error) throw error
+  if (!data?.id) return null
+
+  const carrier = data.carrier as { name?: string } | { name?: string }[] | null
+  const product = data.product as { name?: string } | { name?: string }[] | null
+  const carrierRow = Array.isArray(carrier) ? carrier[0] : carrier
+  const productRow = Array.isArray(product) ? product[0] : product
+
+  return {
+    id: String(data.id),
+    production_stage: String(data.production_stage ?? ''),
+    product_line: typeof data.product_line === 'string' ? data.product_line : null,
+    application_number:
+      typeof data.application_number === 'string' ? data.application_number : null,
+    carrier_name: carrierRow?.name ? String(carrierRow.name) : null,
+    product_name: productRow?.name ? String(productRow.name) : null,
+  }
+}
+
 export async function fetchOpportunityWorkspace(
   supabase: SupabaseClient,
   opportunityId: string,
@@ -520,13 +560,20 @@ export async function fetchOpportunityWorkspace(
   const opportunity = await fetchOpportunityById(supabase, opportunityId)
   if (!opportunity) return null
 
-  const activities = await settleOpportunityLoad(
-    fetchOpportunityActivities(supabase, opportunityId),
-    [] as OpportunityActivityRecord[],
-    'opportunity_activities',
-  )
+  const [activities, linked] = await Promise.all([
+    settleOpportunityLoad(
+      fetchOpportunityActivities(supabase, opportunityId),
+      [] as OpportunityActivityRecord[],
+      'opportunity_activities',
+    ),
+    settleOpportunityLoad(
+      fetchOpportunityLinkedApplication(supabase, opportunityId),
+      null,
+      'opportunity_linked_application',
+    ),
+  ])
 
-  return { opportunity, activities }
+  return { opportunity, activities, linkedApplication: linked.value }
 }
 
 export function getOpportunityStageLabel(item: {

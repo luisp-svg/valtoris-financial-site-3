@@ -20,16 +20,19 @@ function numberedMigrations(): string[] {
 }
 
 describe('migration 045 post-placement policy lifecycle contract', () => {
-  it('is the only 045 file, follows 044, and rejects 046', () => {
+  it('is the only 045 file, follows 044, and is followed by 046 conversion', () => {
     expect(MIGRATION_045_FILENAME).toBe('045_policy_post_placement_lifecycle.sql')
     const files = numberedMigrations()
     expect(files).toEqual([...EXPECTED_NUMBERED_MIGRATIONS])
-    expect(files).toHaveLength(45)
+    expect(files).toHaveLength(46)
     expect(files[0]).toBe('001_extensions_and_enums.sql')
     expect(files[43]).toBe(MIGRATION_044_FILENAME)
     expect(files[44]).toBe(MIGRATION_045_FILENAME)
+    expect(files[45]).toBe('046_opportunity_case_conversion.sql')
     expect(files.filter((f) => f.startsWith('045_'))).toEqual([MIGRATION_045_FILENAME])
-    expect(files.filter((f) => f.startsWith('046_'))).toEqual([])
+    expect(files.filter((f) => f.startsWith('046_'))).toEqual([
+      '046_opportunity_case_conversion.sql',
+    ])
   })
 
   it('adds termination facts, linked status check, owner RPC, audit, and a narrow link-guard context', () => {

@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { normalizeActivityToTimelineItem } from '../../crm/households/timeline'
 import HouseholdTimelineItemView from '../../crm/households/HouseholdTimelineItemView'
 import type { HouseholdActivityRecord, HouseholdTimelineItem } from '../../crm/households/types'
 import OpportunityFormDialog from '../../crm/opportunities/OpportunityFormDialog'
+import ConvertOpportunityToCaseDialog from '../../crm/opportunities/ConvertOpportunityToCaseDialog'
 import OpportunityLifecycleDialog, {
   type OpportunityLifecycleMode,
 } from '../../crm/opportunities/OpportunityLifecycleDialog'
@@ -31,6 +32,11 @@ import {
   opportunityAttentionFlags,
 } from '../../crm/opportunities/pipelineView'
 import {
+  linkedApplicationLabel,
+  opportunityAllowsCreateCase,
+} from '../../crm/opportunities/convertOpportunityView'
+import { formatProductionStageLabel } from '../../crm/production/labels'
+import {
   getOpportunityActivityViewState,
   getOpportunityWorkspaceViewState,
 } from '../../crm/opportunities/listLoadState'
@@ -39,7 +45,7 @@ import type {
   OpportunityStageOption,
   OpportunityWorkspace,
 } from '../../crm/opportunities/types'
-import { ROUTES, crmHouseholdPath } from '../../constants/routes'
+import { ROUTES, crmHouseholdPath, crmProductionPath } from '../../constants/routes'
 import { createSupabaseBrowserClient } from '../../lib/supabase/client'
 
 type WorkspaceTabId = 'overview' | 'activity'
@@ -102,6 +108,7 @@ function buildOpportunityActivityTimeline(
 
 export default function CrmOpportunityWorkspacePage() {
   const { opportunityId = '' } = useParams<{ opportunityId: string }>()
+  const navigate = useNavigate()
   const [workspace, setWorkspace] = useState<OpportunityWorkspace | null>(null)
   const [pipelineStages, setPipelineStages] = useState<OpportunityStageOption[]>([])
   const [loading, setLoading] = useState(true)
@@ -110,6 +117,7 @@ export default function CrmOpportunityWorkspacePage() {
   const [activeTab, setActiveTab] = useState<WorkspaceTabId>('overview')
   const [reloadKey, setReloadKey] = useState(0)
   const [showEdit, setShowEdit] = useState(false)
+  const [showConvert, setShowConvert] = useState(false)
   const [lifecycleMode, setLifecycleMode] = useState<OpportunityLifecycleMode | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [reloadWarning, setReloadWarning] = useState<string | null>(null)
@@ -302,9 +310,11 @@ export default function CrmOpportunityWorkspacePage() {
               <button
                 type="button"
                 className="crm-secondary-btn"
+                disabled={showConvert || Boolean(lifecycleMode)}
                 onClick={() => {
                   setSuccess(null)
                   setLifecycleMode(null)
+                  setShowConvert(false)
                   setShowEdit(true)
                 }}
               >
@@ -369,6 +379,17 @@ export default function CrmOpportunityWorkspacePage() {
         />
       ) : null}
 
+      {showConvert && workspace ? (
+        <ConvertOpportunityToCaseDialog
+          opportunity={workspace.opportunity}
+          onCancel={() => setShowConvert(false)}
+          onConverted={(result) => {
+            setShowConvert(false)
+            navigate(crmProductionPath(result.applicationId))
+          }}
+        />
+      ) : null}
+
       {viewState.kind === 'ready' && workspace ? (
         <>
           <nav className="crm-household-workspace-tabs" aria-label="Opportunity sections">
@@ -404,7 +425,7 @@ export default function CrmOpportunityWorkspacePage() {
                   <button
                     type="button"
                     className="crm-secondary-btn"
-                    disabled={!lifecycleActions?.canMove || Boolean(lifecycleMode) || showEdit}
+                    disabled={!lifecycleActions?.canMove || Boolean(lifecycleMode) || showEdit || showConvert}
                     onClick={() => {
                       setSuccess(null)
                       setShowEdit(false)
@@ -416,7 +437,7 @@ export default function CrmOpportunityWorkspacePage() {
                   <button
                     type="button"
                     className="crm-secondary-btn"
-                    disabled={!lifecycleActions?.canCloseWon || Boolean(lifecycleMode) || showEdit}
+                    disabled={!lifecycleActions?.canCloseWon || Boolean(lifecycleMode) || showEdit || showConvert}
                     onClick={() => {
                       setSuccess(null)
                       setShowEdit(false)
@@ -428,7 +449,7 @@ export default function CrmOpportunityWorkspacePage() {
                   <button
                     type="button"
                     className="crm-secondary-btn"
-                    disabled={!lifecycleActions?.canCloseLost || Boolean(lifecycleMode) || showEdit}
+                    disabled={!lifecycleActions?.canCloseLost || Boolean(lifecycleMode) || showEdit || showConvert}
                     onClick={() => {
                       setSuccess(null)
                       setShowEdit(false)
@@ -441,18 +462,70 @@ export default function CrmOpportunityWorkspacePage() {
                     <button
                       type="button"
                       className="crm-secondary-btn"
-                      disabled={Boolean(lifecycleMode) || showEdit}
+                      disabled={Boolean(lifecycleMode) || showEdit || showConvert}
                       onClick={() => {
                         setSuccess(null)
                         setShowEdit(false)
+                        setShowConvert(false)
                         setLifecycleMode('reopen')
                       }}
                     >
                       Reopen Opportunity
                     </button>
                   ) : null}
+                  {workspace.linkedApplication ? (
+                    <Link
+                      to={crmProductionPath(workspace.linkedApplication.id)}
+                      className="crm-secondary-btn crm-opportunity-convert-open"
+                    >
+                      Open Case
+                    </Link>
+                  ) : opportunityAllowsCreateCase(workspace.opportunity) ? (
+                    <button
+                      type="button"
+                      className="crm-primary-btn"
+                      disabled={Boolean(lifecycleMode) || showEdit || showConvert}
+                      onClick={() => {
+                        setSuccess(null)
+                        setShowEdit(false)
+                        setLifecycleMode(null)
+                        setShowConvert(true)
+                      }}
+                    >
+                      Create Case
+                    </button>
+                  ) : null}
                 </div>
               </section>
+
+              {workspace.linkedApplication ? (
+                <section
+                  className="crm-panel crm-opportunity-linked-case"
+                  aria-labelledby="crm-opportunity-linked-case-heading"
+                >
+                  <div className="crm-panel-head">
+                    <h2 id="crm-opportunity-linked-case-heading">Linked Case</h2>
+                  </div>
+                  <dl className="crm-opportunity-overview-grid">
+                    <div>
+                      <dt>Application / product</dt>
+                      <dd>{linkedApplicationLabel(workspace.linkedApplication)}</dd>
+                    </div>
+                    <div>
+                      <dt>Production stage</dt>
+                      <dd>{formatProductionStageLabel(workspace.linkedApplication.production_stage)}</dd>
+                    </div>
+                  </dl>
+                  <p>
+                    <Link
+                      to={crmProductionPath(workspace.linkedApplication.id)}
+                      className="crm-opportunities-secondary-link"
+                    >
+                      Open Case
+                    </Link>
+                  </p>
+                </section>
+              ) : null}
 
               <section
                 className="crm-panel crm-opportunity-overview"

@@ -104,6 +104,16 @@ export type OpportunityActivityRecord = {
 export type OpportunityWorkspace = {
   opportunity: OpportunityDetail
   activities: OpportunityLoadResult<OpportunityActivityRecord[]>
+  linkedApplication: OpportunityLinkedApplication | null
+}
+
+export type OpportunityLinkedApplication = {
+  id: string
+  production_stage: string
+  product_line: string | null
+  application_number: string | null
+  carrier_name: string | null
+  product_name: string | null
 }
 
 export type FetchOpportunitiesFilters = {

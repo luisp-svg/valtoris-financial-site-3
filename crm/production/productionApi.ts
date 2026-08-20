@@ -25,6 +25,7 @@ import type {
   ProductionAllocationRole,
   ProductionStage,
   ProductionStageHistoryEntry,
+  ProductionLinkedOpportunity,
 } from './types'
 import { PRODUCTION_PRODUCT_LINES, PRODUCTION_STAGES } from './types'
 
@@ -109,6 +110,12 @@ const APPLICATION_LIST_SELECT = `
 const APPLICATION_DETAIL_SELECT = `
   ${APPLICATION_LIST_SELECT},
   opportunity_id,
+  opportunity:opportunities!opportunity_id (
+    id,
+    title,
+    status,
+    stage:pipeline_stages!stage_id ( name )
+  ),
   is_replacement,
   is_exchange_or_transfer,
   target_premium_cents,
@@ -358,6 +365,12 @@ function mapListItem(row: RawListRow): ProductionApplicationListItem | null {
 
 type RawDetailRow = RawListRow & {
   opportunity_id: string | null
+  opportunity?: EmbedOne<{
+    id: string
+    title: string | null
+    status: string | null
+    stage?: EmbedOne<{ name: string | null }>
+  }>
   is_replacement: boolean
   is_exchange_or_transfer: boolean
   target_premium_cents: number | null
@@ -369,12 +382,29 @@ type RawDetailRow = RawListRow & {
   created_by_user_id: string | null
 }
 
+function mapLinkedOpportunity(
+  opportunityId: string | null,
+  value: RawDetailRow['opportunity'],
+): ProductionLinkedOpportunity | null {
+  const row = asSingle(value ?? null)
+  if (!row?.id && !opportunityId) return null
+  const stage = asSingle(row?.stage ?? null)
+  return {
+    id: String(row?.id ?? opportunityId),
+    title: row?.title?.trim() ? String(row.title) : 'Opportunity',
+    status: row?.status ? String(row.status) : '',
+    stage_name: stage?.name ? String(stage.name) : null,
+  }
+}
+
 function mapDetail(row: RawDetailRow): ProductionApplicationDetail | null {
   const base = mapListItem(row)
   if (!base) return null
+  const opportunityId = row.opportunity_id ? String(row.opportunity_id) : null
   return {
     ...base,
-    opportunity_id: row.opportunity_id ? String(row.opportunity_id) : null,
+    opportunity_id: opportunityId,
+    linked_opportunity: mapLinkedOpportunity(opportunityId, row.opportunity),
     is_replacement: Boolean(row.is_replacement),
     is_exchange_or_transfer: Boolean(row.is_exchange_or_transfer),
     target_premium_cents:

@@ -41,6 +41,7 @@ import {
 import type { ProductionApplicationDetail } from '../../crm/production/types'
 import { PRODUCTION_STALE_DAYS_IN_STAGE } from '../../crm/production/types'
 import { useCrmAuth } from '../../crm/auth/CrmAuthContext'
+import { formatOpportunityStatusLabel } from '../../crm/opportunities/opportunitiesApi'
 import { crmNoteAuthorUserId } from '../../crm/households/noteAuthor'
 import OperationalNotesPanel from '../../crm/households/OperationalNotesPanel'
 import {
@@ -428,12 +429,41 @@ export default function CrmProductionDetailPage() {
           </Link>
         </p>
         {application.opportunity_id ? (
-          <p className="crm-muted">
-            Linked opportunity:{' '}
-            <Link to={crmOpportunityPath(application.opportunity_id)}>
-              {application.opportunity_id}
-            </Link>
-          </p>
+          <div className="crm-production-linked-opportunity">
+            <dl className="crm-opportunity-overview-grid">
+              <div>
+                <dt>Linked opportunity</dt>
+                <dd>
+                  {application.linked_opportunity?.title?.trim()
+                    ? application.linked_opportunity.title
+                    : 'Opportunity'}
+                </dd>
+              </div>
+              {application.linked_opportunity?.status === 'open' ||
+              application.linked_opportunity?.status === 'won' ||
+              application.linked_opportunity?.status === 'lost' ||
+              application.linked_opportunity?.status === 'on_hold' ? (
+                <div>
+                  <dt>Sales status</dt>
+                  <dd>{formatOpportunityStatusLabel(application.linked_opportunity.status)}</dd>
+                </div>
+              ) : null}
+              {application.linked_opportunity?.stage_name ? (
+                <div>
+                  <dt>Sales stage</dt>
+                  <dd>{application.linked_opportunity.stage_name}</dd>
+                </div>
+              ) : null}
+            </dl>
+            <p>
+              <Link
+                to={crmOpportunityPath(application.opportunity_id)}
+                className="crm-opportunities-secondary-link"
+              >
+                Open Opportunity
+              </Link>
+            </p>
+          </div>
         ) : (
           <p className="crm-muted">No linked opportunity.</p>
         )}
