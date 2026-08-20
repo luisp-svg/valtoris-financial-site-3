@@ -86,6 +86,7 @@ describe('Phase B production board contracts', () => {
     expect(board).toContain('crm-production-board-tabs')
     expect(board.indexOf("layout === 'stacked'")).toBeLessThan(board.indexOf('crm-production-board-pipeline'))
     expect(styles).toContain('.crm-production-board-pipeline')
+    expect(styles).toContain('.crm-production-board-viewport')
     expect(styles).toContain('min-width: 240px')
   })
 })

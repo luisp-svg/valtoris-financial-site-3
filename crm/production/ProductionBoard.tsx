@@ -296,37 +296,17 @@ export default function ProductionBoard({
         aria-busy={movementBusy || undefined}
       >
         <div
-          className="crm-production-board-pipeline"
+          className="crm-production-board-viewport"
           role="region"
           aria-label="Primary pipeline"
           tabIndex={0}
         >
-          {model.pipeline.map((column) => (
-            <BoardColumn
-              key={column.stage}
-              column={column}
-              now={now}
-              role={role}
-              enableDrag={enableDrag}
-              movementBusy={movementBusy}
-              activeItem={activeItem}
-              onOpenNotes={onOpenNotes}
-              onRequestMove={onRequestMove}
-            />
-          ))}
-        </div>
-        <details className="crm-production-board-rail" open={model.intakeCount > 0}>
-          <summary>
-            Intake / Application Drafts
-            <span className="crm-production-board-count">{model.intakeCount}</span>
-          </summary>
-          <div className="crm-production-board-rail-columns">
-            {model.intake.map((column) => (
+          <div className="crm-production-board-pipeline">
+            {model.pipeline.map((column) => (
               <BoardColumn
                 key={column.stage}
                 column={column}
                 now={now}
-                showStageBadge
                 role={role}
                 enableDrag={enableDrag}
                 movementBusy={movementBusy}
@@ -336,27 +316,53 @@ export default function ProductionBoard({
               />
             ))}
           </div>
+        </div>
+        <details className="crm-production-board-rail" open={model.intakeCount > 0}>
+          <summary>
+            Intake / Application Drafts
+            <span className="crm-production-board-count">{model.intakeCount}</span>
+          </summary>
+          <div className="crm-production-board-viewport">
+            <div className="crm-production-board-rail-columns">
+              {model.intake.map((column) => (
+                <BoardColumn
+                  key={column.stage}
+                  column={column}
+                  now={now}
+                  showStageBadge
+                  role={role}
+                  enableDrag={enableDrag}
+                  movementBusy={movementBusy}
+                  activeItem={activeItem}
+                  onOpenNotes={onOpenNotes}
+                  onRequestMove={onRequestMove}
+                />
+              ))}
+            </div>
+          </div>
         </details>
         <details className="crm-production-board-rail" open={model.exceptionCount > 0}>
           <summary>
             Exceptions
             <span className="crm-production-board-count">{model.exceptionCount}</span>
           </summary>
-          <div className="crm-production-board-rail-columns">
-            {model.exceptions.map((column) => (
-              <BoardColumn
-                key={column.stage}
-                column={column}
-                now={now}
-                showStageBadge
-                role={role}
-                enableDrag={enableDrag}
-                movementBusy={movementBusy}
-                activeItem={activeItem}
-                onOpenNotes={onOpenNotes}
-                onRequestMove={onRequestMove}
-              />
-            ))}
+          <div className="crm-production-board-viewport">
+            <div className="crm-production-board-rail-columns">
+              {model.exceptions.map((column) => (
+                <BoardColumn
+                  key={column.stage}
+                  column={column}
+                  now={now}
+                  showStageBadge
+                  role={role}
+                  enableDrag={enableDrag}
+                  movementBusy={movementBusy}
+                  activeItem={activeItem}
+                  onOpenNotes={onOpenNotes}
+                  onRequestMove={onRequestMove}
+                />
+              ))}
+            </div>
           </div>
         </details>
       </div>

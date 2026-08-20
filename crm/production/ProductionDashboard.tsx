@@ -122,22 +122,22 @@ function FunnelRow({
   const isRate = kind === 'gross' || kind === 'resolved'
   return (
     <div className="crm-production-funnel-row" role="row">
-      <div role="rowheader">{label}</div>
-      <div role="cell" data-label="Life">
+      <div className="is-metric" role="rowheader">{label}</div>
+      <div className="is-num" role="cell" data-label="Life">
         {isRate ? (
           <FunnelRate rate={kind === 'gross' ? life.grossPlacementRate : life.resolvedPlacementRate} />
         ) : (
           <FunnelCount value={life[kind]} />
         )}
       </div>
-      <div role="cell" data-label="FIA">
+      <div className="is-num" role="cell" data-label="FIA">
         {isRate ? (
           <FunnelRate rate={kind === 'gross' ? fia.grossPlacementRate : fia.resolvedPlacementRate} />
         ) : (
           <FunnelCount value={fia[kind]} />
         )}
       </div>
-      <div role="cell" data-label="Total">
+      <div className="is-num" role="cell" data-label="Total">
         {isRate ? (
           <FunnelRate rate={kind === 'gross' ? all.grossPlacementRate : all.resolvedPlacementRate} />
         ) : (
@@ -157,10 +157,10 @@ function ProductionFunnelTable({ funnel }: { funnel: ProductionFunnelMetrics }) 
       aria-label="Production performance by Life and FIA"
     >
       <div className="crm-production-funnel-row is-head" role="row">
-        <div role="columnheader">Metric</div>
-        <div role="columnheader">Life</div>
-        <div role="columnheader">FIA</div>
-        <div role="columnheader">Total</div>
+        <div className="is-metric" role="columnheader">Metric</div>
+        <div className="is-num" role="columnheader">Life</div>
+        <div className="is-num" role="columnheader">FIA</div>
+        <div className="is-num" role="columnheader">Total</div>
       </div>
       <FunnelRow label="Applied" kind="applied" life={life} fia={fia} all={all} />
       <FunnelRow label="Placed / In Force" kind="placed" life={life} fia={fia} all={all} />

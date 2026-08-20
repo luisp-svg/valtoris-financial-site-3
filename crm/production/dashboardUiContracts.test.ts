@@ -144,5 +144,8 @@ describe('Phase A production dashboard contracts', () => {
     expect(productionApi).toContain('in_force_date')
     expect(styles).toContain('.crm-production-funnel-grid')
     expect(styles).toContain('.crm-production-funnel-row')
+    expect(styles).toContain('grid-template-columns: var(--pp-funnel-columns)')
+    expect(dashboardUi).toContain('className="is-metric"')
+    expect(dashboardUi).toContain('className="is-num"')
   })
 })
