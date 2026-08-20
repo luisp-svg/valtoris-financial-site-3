@@ -294,7 +294,7 @@ export default function CrmProductionDetailPage() {
           <StageBadge stage={application.production_stage} />
           {showEdit ? (
             <Link to={crmProductionEditPath(application.id)} className="crm-primary-btn">
-              Edit / Complete
+              Edit Application
             </Link>
           ) : null}
         </div>
@@ -302,8 +302,8 @@ export default function CrmProductionDetailPage() {
 
       {incompleteDraft ? (
         <div className="crm-banner crm-banner-warning" role="status">
-          Incomplete draft — required participants or writing allocations are missing. Use Edit /
-          Complete to finish this case.
+          Incomplete draft — required participants or writing allocations are missing. Use Edit
+          Application to finish this case.
         </div>
       ) : null}
 
@@ -625,9 +625,9 @@ export default function CrmProductionDetailPage() {
           </div>
         </dl>
         <p className="crm-muted">
-          Approval, issue, delivery, and in-force actions remain later production-stage work. Draft
-          recovery and legal catch-up to in underwriting are available from Edit / Complete when
-          authorized.
+          Stage, delivery, and in-force actions stay in this Case workspace. Edit Application
+          changes application details only. Issued and in-force historical corrections are not
+          handled there.
         </p>
       </section>
 

@@ -62,6 +62,8 @@ describe('CRM mobile responsive cleanup contracts', () => {
     expect(flagsAt).toBeGreaterThan(stageAt)
     expect(amountAt).toBeGreaterThan(flagsAt)
     expect(queueCards).toContain('hideCompensation')
+    expect(queueCards).toContain('Edit Application')
+    expect(queueCards).toContain('crm-production-queue-card-actions')
     expect(queuePage).toContain('hideCompensation={caseView !== \'all_applications\'}')
   })
 
@@ -103,5 +105,7 @@ describe('CRM mobile responsive cleanup contracts', () => {
     expect(styles).toMatch(
       /@media \(max-width: 960px\)[\s\S]*?\.crm-user-menu-logout \{\s*min-height: 44px;/,
     )
+    expect(styles).toContain('.crm-production-edit-action')
+    expect(styles).toContain('.crm-production-queue-card-actions .crm-production-edit-action')
   })
 })

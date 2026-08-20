@@ -272,11 +272,10 @@ export default function CrmProductionEditPage() {
       <header className="crm-page-header crm-opportunities-header">
         <div>
           <p className="crm-page-eyebrow">Production</p>
-          <h1 className="crm-page-title">Edit / complete application</h1>
+          <h1 className="crm-page-title">Edit Application</h1>
           <p className="crm-page-subtitle">
-            Correct supported fields and continue through the legal stage workflow. Catch-up walks
-            Draft → Submitted → In underwriting. The browser workflow is not one database
-            transaction.
+            Update application details for this case. Stage changes stay in the Case workspace.
+            Issued and in-force historical corrections are not handled on this screen.
           </p>
         </div>
         <button type="button" className="crm-secondary-btn" onClick={handleCancel}>

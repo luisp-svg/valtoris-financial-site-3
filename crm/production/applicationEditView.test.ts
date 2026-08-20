@@ -13,10 +13,12 @@ import {
   neverJumpsDraftToUnderwriting,
   recoveryTransitionPlan,
   validateApplicationEdit,
+  PRODUCTION_EDIT_STAGES,
   type ApplicationEditDraft,
   type ApplicationEditOriginal,
 } from './applicationEditView'
-import type { ProductionAllocation, ProductionParticipant } from './types'
+import type { ProductionAllocation, ProductionParticipant, ProductionStage } from './types'
+import { PRODUCTION_STAGES } from './types'
 
 function original(over: Partial<ApplicationEditOriginal> = {}): ApplicationEditOriginal {
   return {
@@ -72,10 +74,38 @@ function draftFrom(base: ApplicationEditOriginal, over: Partial<ApplicationEditD
 
 describe('production application edit helpers', () => {
   it('shows edit for owner and advisor on recoverable stages only', () => {
-    expect(canShowProductionEditAction({ role: 'owner', stage: 'draft', deletedAt: null })).toBe(true)
-    expect(canShowProductionEditAction({ role: 'advisor', stage: 'submitted', deletedAt: null })).toBe(true)
-    expect(canShowProductionEditAction({ role: 'owner', stage: 'issued', deletedAt: null })).toBe(false)
+    expect(PRODUCTION_EDIT_STAGES).toEqual([
+      'draft',
+      'pre_submitted',
+      'submitted',
+      'in_underwriting',
+    ])
+    for (const stage of PRODUCTION_EDIT_STAGES) {
+      expect(canShowProductionEditAction({ role: 'owner', stage, deletedAt: null })).toBe(true)
+      expect(canShowProductionEditAction({ role: 'advisor', stage, deletedAt: null })).toBe(true)
+    }
+    const ineligible = PRODUCTION_STAGES.filter(
+      (stage) => !PRODUCTION_EDIT_STAGES.includes(stage),
+    )
+    expect(ineligible).toEqual([
+      'paramed',
+      'approved',
+      'sent_to_draft',
+      'premium_drafted',
+      'declined',
+      'postponed',
+      'withdrawn',
+      'incomplete',
+      'not_taken',
+      'issued',
+      'in_force',
+    ])
+    for (const stage of ineligible as ProductionStage[]) {
+      expect(canShowProductionEditAction({ role: 'owner', stage, deletedAt: null })).toBe(false)
+      expect(canShowProductionEditAction({ role: 'advisor', stage, deletedAt: null })).toBe(false)
+    }
     expect(canShowProductionEditAction({ role: 'owner', stage: 'draft', deletedAt: '2026-01-01' })).toBe(false)
+    expect(canShowProductionEditAction({ role: null, stage: 'draft', deletedAt: null })).toBe(false)
   })
 
   it('locks catalog after submission and participants/allocations for advisors after submit', () => {

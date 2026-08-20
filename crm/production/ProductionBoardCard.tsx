@@ -1,6 +1,6 @@
 import { useDraggable } from '@dnd-kit/core'
 import { Link } from 'react-router-dom'
-import { crmProductionPath } from '../../constants/routes'
+import { crmProductionEditPath, crmProductionPath } from '../../constants/routes'
 import type { CrmSupportedRole } from '../types'
 import { productionBoardCardMoney } from './boardCardMoney'
 import CaseAttentionFlagList from './CaseAttentionFlagList'
@@ -9,6 +9,7 @@ import {
   formatCaseAttentionLabels,
   formatCaseProductLineLabel,
 } from './caseWorkspace'
+import { canShowProductionEditAction } from './applicationEditView'
 import { boardDraggableId, boardMoveDestinations } from './boardMovement'
 import ProductionBoardMoveMenu from './ProductionBoardMoveMenu'
 import {
@@ -80,6 +81,11 @@ export default function ProductionBoardCard({
   const householdName = item.household?.display_name?.trim() || 'Household'
   const destinations = boardMoveDestinations(item, role)
   const canMove = destinations.length > 0 && Boolean(onRequestMove)
+  const showEdit = canShowProductionEditAction({
+    role,
+    stage: item.production_stage,
+    deletedAt: item.deleted_at,
+  })
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: boardDraggableId(item.id),
     data: { applicationId: item.id },
@@ -162,6 +168,15 @@ export default function ProductionBoardCard({
             disabled={movementBusy}
             onSelect={(stage) => onRequestMove?.(item, stage)}
           />
+        ) : null}
+        {showEdit ? (
+          <Link
+            to={crmProductionEditPath(item.id)}
+            className="crm-production-edit-action"
+            onClick={(event) => event.stopPropagation()}
+          >
+            Edit Application
+          </Link>
         ) : null}
         {onOpenNotes ? (
           <button

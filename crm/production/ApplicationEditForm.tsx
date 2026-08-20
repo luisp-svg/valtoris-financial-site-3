@@ -133,9 +133,9 @@ export default function ApplicationEditForm(props: ApplicationEditFormProps) {
       ) : null}
 
       <p className="crm-muted">
-        Changes use separate RPCs and are not one database transaction. Saved steps stay saved if a
-        later step fails. Nothing is rolled back. Fields that the backend locks after submission
-        stay disabled here.
+        This screen edits application details. Move the case through stages from the Case workspace.
+        Issued and in-force historical corrections are not handled here. Changes use separate RPCs
+        and are not one database transaction. Saved steps stay saved if a later step fails.
       </p>
 
       <form className="crm-opportunity-form" onSubmit={handleSubmit} noValidate>

@@ -8201,6 +8201,40 @@ p { color: var(--muted); line-height: 1.7; }
   outline-offset: 2px;
 }
 
+.crm-production-edit-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: 44px;
+  padding: 8px 0;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 750;
+  line-height: 1.2;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  color: var(--crm-navy);
+  white-space: nowrap;
+}
+
+.crm-production-edit-action:focus-visible {
+  outline: 2px solid var(--crm-blue);
+  outline-offset: 2px;
+}
+
+.crm-production-queue-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  padding: 0 16px 14px;
+}
+
+.crm-opportunities-table .crm-production-edit-action {
+  min-height: 40px;
+  padding: 4px 0;
+}
+
 .crm-operational-notes-dialog {
   width: min(32rem, 100%);
   max-height: min(88vh, 44rem);
@@ -11968,6 +12002,10 @@ button.public-card-diagnostic:disabled {
   gap: 6px;
 }
 
+.crm-production-queue-card .crm-opportunities-card-footer {
+  padding: 0;
+}
+
 .crm-commissions-card {
   gap: 10px;
 }
@@ -12003,6 +12041,16 @@ button.public-card-diagnostic:disabled {
 
   .crm-production-detail-grid {
     grid-template-columns: 1fr;
+  }
+
+  .crm-production-queue-card-actions .crm-production-edit-action {
+    width: 100%;
+    min-height: 44px;
+    justify-content: flex-start;
+  }
+
+  .crm-production-board-card-actions .crm-production-edit-action {
+    min-height: 44px;
   }
 
   .crm-commissions-write-dialog,

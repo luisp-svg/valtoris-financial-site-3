@@ -45,7 +45,7 @@ export const ROUTES = {
   crmProductionCatalog: '/crm/production/catalog',
   /** New Life / IUL / FIA production application (P1B-2B). */
   crmProductionNew: '/crm/production/new',
-  /** Edit / complete a recoverable production application (P1B-2C). */
+  /** Edit Application for a recoverable production application (P1B-2C). */
   crmProductionEdit: '/crm/production/:applicationId/edit',
   crmAnnualReviews: '/crm/annual-reviews',
   crmDocuments: '/crm/documents',

@@ -656,6 +656,7 @@ export default function CrmProductionPage() {
             <ProductionQueueTable
               items={caseItems}
               viewer={viewer}
+              role={role}
               hideCompensation={caseView !== 'all_applications'}
               now={now}
             />
@@ -663,6 +664,7 @@ export default function CrmProductionPage() {
             <ProductionQueueCards
               items={caseItems}
               viewer={viewer}
+              role={role}
               hideCompensation={caseView !== 'all_applications'}
               now={now}
             />

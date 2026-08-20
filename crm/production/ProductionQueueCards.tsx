@@ -29,11 +29,14 @@ import {
 import { formatProductionDate } from './productionApi'
 import type { CompensationViewer, ProductionApplicationListItem } from './types'
 import { PRODUCTION_STALE_DAYS_IN_STAGE } from './types'
-import { crmProductionPath } from '../../constants/routes'
+import { crmProductionEditPath, crmProductionPath } from '../../constants/routes'
+import type { CrmSupportedRole } from '../types'
+import { canShowProductionEditAction } from './applicationEditView'
 
 type ProductionQueueCardsProps = {
   items: ProductionApplicationListItem[]
   viewer: CompensationViewer
+  role?: CrmSupportedRole | null
   now?: Date
   hideCompensation?: boolean
 }
@@ -41,6 +44,7 @@ type ProductionQueueCardsProps = {
 export default function ProductionQueueCards({
   items,
   viewer,
+  role = null,
   now,
   hideCompensation = false,
 }: ProductionQueueCardsProps) {
@@ -66,6 +70,11 @@ export default function ProductionQueueCards({
           writingAdvisorCount: countCurrentWritingAdvisors(item.allocations),
         })
         const amountCaption = listExpectedAmountCaption(expected)
+        const showEdit = canShowProductionEditAction({
+          role,
+          stage: item.production_stage,
+          deletedAt: item.deleted_at,
+        })
 
         return (
           <li key={item.id}>
@@ -144,6 +153,16 @@ export default function ProductionQueueCards({
                   </span>
                 </div>
               </Link>
+              {showEdit ? (
+                <div className="crm-production-queue-card-actions">
+                  <Link
+                    to={crmProductionEditPath(item.id)}
+                    className="crm-production-edit-action"
+                  >
+                    Edit Application
+                  </Link>
+                </div>
+              ) : null}
             </article>
           </li>
         )

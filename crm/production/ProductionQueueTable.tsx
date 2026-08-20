@@ -27,13 +27,16 @@ import {
 } from './labels'
 import { formatProductionDate, formatProductionDateTime } from './productionApi'
 import StageBadge from './StageBadge'
+import type { CrmSupportedRole } from '../types'
 import type { CompensationViewer, ProductionApplicationListItem } from './types'
 import { PRODUCTION_STALE_DAYS_IN_STAGE } from './types'
-import { crmProductionPath } from '../../constants/routes'
+import { crmProductionEditPath, crmProductionPath } from '../../constants/routes'
+import { canShowProductionEditAction } from './applicationEditView'
 
 type ProductionQueueTableProps = {
   items: ProductionApplicationListItem[]
   viewer: CompensationViewer
+  role?: CrmSupportedRole | null
   now?: Date
   hideCompensation?: boolean
 }
@@ -41,6 +44,7 @@ type ProductionQueueTableProps = {
 export default function ProductionQueueTable({
   items,
   viewer,
+  role = null,
   now,
   hideCompensation = false,
 }: ProductionQueueTableProps) {
@@ -73,6 +77,7 @@ export default function ProductionQueueTable({
             <th scope="col">Updated</th>
             <th scope="col">Follow-up</th>
             <th scope="col">Delivery / disposition</th>
+            <th scope="col">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -95,6 +100,11 @@ export default function ProductionQueueTable({
               writingAdvisorCount: countCurrentWritingAdvisors(item.allocations),
             })
             const amountCaption = listExpectedAmountCaption(expected)
+            const showEdit = canShowProductionEditAction({
+              role,
+              stage: item.production_stage,
+              deletedAt: item.deleted_at,
+            })
 
             return (
               <tr key={item.id} className="crm-opportunities-row">
@@ -166,6 +176,18 @@ export default function ProductionQueueTable({
                   <div className="crm-muted">
                     {formatProductionDispositionLabel(item.underwriting_disposition)}
                   </div>
+                </td>
+                <td>
+                  {showEdit ? (
+                    <Link
+                      to={crmProductionEditPath(item.id)}
+                      className="crm-production-edit-action"
+                    >
+                      Edit Application
+                    </Link>
+                  ) : (
+                    '—'
+                  )}
                 </td>
               </tr>
             )
