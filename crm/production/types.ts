@@ -271,6 +271,11 @@ export type ProductionApplicationListItem = {
   /** Live 034 rows visible under RLS. Never a second-writer leak for advisors. */
   expected_compensations: LiveExpectedCompensationRow[]
   /**
+   * Count of overdue persisted requirements for this loaded application.
+   * Computed client-side from a batched RLS read. Not a database column.
+   */
+  overdue_requirement_count?: number
+  /**
    * Whether Valtoris currently expects writing compensation.
    * false = historical/servicing book; 034 writes no live Expected rows.
    */

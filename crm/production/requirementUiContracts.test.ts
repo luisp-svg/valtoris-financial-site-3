@@ -62,13 +62,15 @@ describe('Case Management Phase 2B requirement UI contracts', () => {
     expect(section).toContain('OTHER_LABEL_HINT')
   })
 
-  it('keeps overdue logic out of the queue, board, and household Cases tab', () => {
+  it('keeps Case Detail as the requirement-management surface and reuses the shared overdue helper on summary views', () => {
     expect(view).toContain('isOpenRequirementOverdue')
-    expect(queuePage).not.toContain('isOpenRequirementOverdue')
+    expect(view).toContain('overdueRequirementCountsByApplicationId')
+    expect(section).toContain('isOpenRequirementOverdue')
+    expect(queuePage).toContain('fetchOverdueRequirementCountsByApplicationIds')
     expect(queuePage).not.toContain('fetchApplicationRequirements')
     expect(queuePage).not.toContain('RequirementSection')
-    expect(board).not.toContain('isOpenRequirementOverdue')
-    expect(casesTab).not.toContain('isOpenRequirementOverdue')
+    expect(board).not.toContain('fetchApplicationRequirements')
+    expect(casesTab).toContain('fetchOverdueRequirementCountsByApplicationIds')
     expect(casesTab).not.toContain('fetchApplicationRequirements')
     expect(
       isOpenRequirementOverdue(

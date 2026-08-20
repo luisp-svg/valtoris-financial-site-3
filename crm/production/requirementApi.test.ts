@@ -4,6 +4,7 @@ import {
   REQUIREMENT_RPC,
   createPolicyApplicationRequirement,
   fetchApplicationRequirements,
+  fetchOverdueRequirementCountsByApplicationIds,
   softDeletePolicyApplicationRequirement,
   transitionPolicyApplicationRequirementStatus,
   updatePolicyApplicationRequirement,
@@ -101,5 +102,39 @@ describe('requirement API RPC mapping', () => {
     const rows = await fetchApplicationRequirements(client, 'a1')
     expect(rows).toHaveLength(1)
     expect(from).toHaveBeenCalledWith('policy_application_requirements')
+  })
+
+  it('batches urgency reads for loaded application IDs without labels or DML', async () => {
+    const from = vi.fn().mockReturnValue({
+      select: (columns: string) => {
+        expect(columns).toBe('application_id, status, due_date')
+        expect(columns).not.toContain('custom_label')
+        return {
+          in: () => ({
+            is: () => ({
+              limit: async () => ({
+                data: [
+                  { application_id: 'a1', status: 'open', due_date: '2026-08-19' },
+                  { application_id: 'a1', status: 'complete', due_date: '2026-08-01' },
+                ],
+                error: null,
+              }),
+            }),
+          }),
+        }
+      },
+    })
+    const counts = await fetchOverdueRequirementCountsByApplicationIds(
+      { from } as never,
+      ['a1', 'a2'],
+      '2026-08-20',
+    )
+    expect(from).toHaveBeenCalledWith('policy_application_requirements')
+    expect(counts.get('a1')).toBe(1)
+    expect(counts.get('a2')).toBeUndefined()
+    expect(await fetchOverdueRequirementCountsByApplicationIds({ from } as never, [])).toEqual(
+      new Map(),
+    )
+    expect(from).toHaveBeenCalledTimes(1)
   })
 })

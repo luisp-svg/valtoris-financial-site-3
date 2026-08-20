@@ -345,6 +345,7 @@ function mapListItem(row: RawListRow): ProductionApplicationListItem | null {
     stage_history: mapHistory(row.stage_history ?? null),
     linked_policies: mapLinkedPolicies(row.linked_policies ?? null),
     expected_compensations: [],
+    overdue_requirement_count: 0,
     writing_receivable_expected: row.writing_receivable_expected !== false,
   }
 }

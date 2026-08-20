@@ -49,6 +49,10 @@ import {
   formatProductionSupabaseError,
   PRODUCTION_LIST_DEFAULT_LIMIT,
 } from '../../crm/production/productionApi'
+import {
+  fetchOverdueRequirementCountsByApplicationIds,
+} from '../../crm/production/requirementApi'
+import { applyOverdueRequirementCounts } from '../../crm/production/requirementView'
 import type { CompensationViewer } from '../../crm/production/types'
 import {
   applyProductionQueueView,
@@ -147,9 +151,10 @@ export default function CrmProductionPage() {
         let paidRows: PaidCommissionListEvent[] = []
         let paidLoadError: string | null = null
         const applicationIds = rows.map((row) => row.id)
-        const [expectedResult, paidResult] = await Promise.allSettled([
+        const [expectedResult, paidResult, urgencyResult] = await Promise.allSettled([
           fetchLiveExpectedCompensations(supabase, applicationIds),
           fetchPaidCommissionEvents(supabase, applicationIds),
+          fetchOverdueRequirementCountsByApplicationIds(supabase, applicationIds),
         ])
         if (expectedResult.status === 'fulfilled') {
           expectedByApp = expectedResult.value
@@ -173,12 +178,20 @@ export default function CrmProductionPage() {
             )
           }
         }
+        const overdueCounts =
+          urgencyResult.status === 'fulfilled' ? urgencyResult.value : new Map<string, number>()
+        if (urgencyResult.status === 'rejected' && import.meta.env.DEV) {
+          console.error('[crm/production/requirements]', urgencyResult.reason)
+        }
         if (!cancelled) {
           setItems(
-            rows.map((row) => ({
-              ...row,
-              expected_compensations: expectedByApp.get(row.id) ?? [],
-            })),
+            applyOverdueRequirementCounts(
+              rows.map((row) => ({
+                ...row,
+                expected_compensations: expectedByApp.get(row.id) ?? [],
+              })),
+              overdueCounts,
+            ),
           )
           setPaidEvents(paidRows)
           setCarriers(carrierRows)

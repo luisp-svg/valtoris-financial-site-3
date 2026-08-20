@@ -1,17 +1,22 @@
 import { describe, expect, it } from 'vitest'
 import {
+  applyOverdueRequirementCounts,
   buildRequirementUpdateFields,
   canMutateRequirements,
   canSoftDeleteRequirement,
+  countOverdueRequirements,
+  formatOverdueRequirementLabel,
   historyVisibleForRequirement,
   isOpenRequirementOverdue,
+  overdueRequirementCountsByApplicationId,
   previewCommonRequirements,
+  requirementCalendarToday,
   requirementDisplayLabel,
   requirementStatusActions,
   validateReopenReason,
   validateScheduledFor,
 } from './requirementView'
-import type { RequirementHistoryRow, RequirementRow } from './requirementTypes'
+import type { RequirementHistoryRow, RequirementRow, RequirementUrgencyRow } from './requirementTypes'
 
 function row(over: Partial<RequirementRow> = {}): RequirementRow {
   return {
@@ -76,6 +81,85 @@ describe('requirement dates', () => {
     expect(Object.keys(buildRequirementUpdateFields({ custom_label: 'Carrier form' }))).toEqual([
       'custom_label',
     ])
+  })
+})
+
+describe('overdue requirement rule', () => {
+  const today = '2026-08-20'
+
+  function urgency(over: Partial<RequirementUrgencyRow> = {}): RequirementUrgencyRow {
+    return {
+      application_id: 'a1',
+      status: 'open',
+      due_date: '2026-08-19',
+      ...over,
+    }
+  }
+
+  it('flags open and scheduled rows only when due_date is before today', () => {
+    expect(isOpenRequirementOverdue(urgency({ status: 'open', due_date: '2026-08-19' }), today)).toBe(
+      true,
+    )
+    expect(isOpenRequirementOverdue(urgency({ status: 'open', due_date: today }), today)).toBe(false)
+    expect(isOpenRequirementOverdue(urgency({ status: 'open', due_date: '2026-08-21' }), today)).toBe(
+      false,
+    )
+    expect(isOpenRequirementOverdue(urgency({ status: 'open', due_date: null }), today)).toBe(false)
+    expect(
+      isOpenRequirementOverdue(urgency({ status: 'scheduled', due_date: '2026-08-19' }), today),
+    ).toBe(true)
+    expect(
+      isOpenRequirementOverdue(urgency({ status: 'scheduled', due_date: '2026-09-01' }), today),
+    ).toBe(false)
+  })
+
+  it('does not use scheduled_for as the overdue trigger', () => {
+    expect(
+      isOpenRequirementOverdue(
+        row({ status: 'scheduled', due_date: null, scheduled_for: '2026-08-01' }),
+        today,
+      ),
+    ).toBe(false)
+    expect(
+      isOpenRequirementOverdue(
+        row({ status: 'scheduled', due_date: '2026-08-21', scheduled_for: '2026-08-01' }),
+        today,
+      ),
+    ).toBe(false)
+  })
+
+  it('excludes terminal and deleted rows', () => {
+    expect(isOpenRequirementOverdue(urgency({ status: 'complete' }), today)).toBe(false)
+    expect(isOpenRequirementOverdue(urgency({ status: 'waived' }), today)).toBe(false)
+    expect(isOpenRequirementOverdue(urgency({ status: 'cancelled' }), today)).toBe(false)
+    expect(
+      isOpenRequirementOverdue(urgency({ status: 'open', deleted_at: '2026-08-19T00:00:00Z' }), today),
+    ).toBe(false)
+  })
+
+  it('counts and maps overdue rows without copying labels onto summary items', () => {
+    const rows: RequirementUrgencyRow[] = [
+      urgency({ application_id: 'open-a', status: 'open', due_date: '2026-08-19' }),
+      urgency({ application_id: 'open-a', status: 'scheduled', due_date: '2026-08-01' }),
+      urgency({ application_id: 'open-a', status: 'complete', due_date: '2026-08-01' }),
+      urgency({ application_id: 'other', status: 'open', due_date: today }),
+    ]
+    expect(countOverdueRequirements(rows, today)).toBe(2)
+    const counts = overdueRequirementCountsByApplicationId(rows, today)
+    expect(counts.get('open-a')).toBe(2)
+    expect(counts.get('other')).toBeUndefined()
+    const attached = applyOverdueRequirementCounts(
+      [{ id: 'open-a' }, { id: 'other' }, { id: 'untouched' }],
+      counts,
+    )
+    expect(attached).toEqual([
+      { id: 'open-a', overdue_requirement_count: 2 },
+      { id: 'other', overdue_requirement_count: 0 },
+      { id: 'untouched', overdue_requirement_count: 0 },
+    ])
+    expect(formatOverdueRequirementLabel(1)).toBe('Overdue requirement')
+    expect(formatOverdueRequirementLabel(2)).toBe('2 overdue requirements')
+    expect(requirementCalendarToday(new Date('2026-08-20T15:00:00.000Z'))).toBe('2026-08-20')
   })
 })
 

@@ -14,6 +14,14 @@ export type RequirementRow = {
   updated_at: string
 }
 
+/** Minimal urgency fields for batched Case-view reads. No labels, history, or PHI. */
+export type RequirementUrgencyRow = {
+  application_id: string
+  status: RequirementStatus
+  due_date: string | null
+  deleted_at?: string | null
+}
+
 export type RequirementHistoryRow = {
   id: string
   requirement_id: string

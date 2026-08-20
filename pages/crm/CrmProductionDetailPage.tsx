@@ -373,6 +373,7 @@ export default function CrmProductionDetailPage() {
         productLine={application.product_line}
         productionStage={application.production_stage}
         deletedAt={application.deleted_at}
+        submissionDate={application.submission_date}
         role={role}
       />
 

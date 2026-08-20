@@ -11788,6 +11788,11 @@ button.public-card-diagnostic:disabled {
   margin: 0.1rem 0 0;
 }
 
+.crm-requirement-overdue {
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
 .crm-requirement-actions,
 .crm-requirement-toolbar {
   display: flex;

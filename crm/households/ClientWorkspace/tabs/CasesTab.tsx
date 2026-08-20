@@ -7,6 +7,8 @@ import SectionHeader from '../../../components/ui/SectionHeader'
 import CaseAttentionFlagList from '../../../production/CaseAttentionFlagList'
 import { partitionHouseholdCases, type HouseholdCaseRow } from '../../../production/householdCasesView'
 import { fetchHouseholdProductionApplications } from '../../../production/productionApi'
+import { fetchOverdueRequirementCountsByApplicationIds } from '../../../production/requirementApi'
+import { applyOverdueRequirementCounts } from '../../../production/requirementView'
 import { createSupabaseBrowserClient } from '../../../../lib/supabase/client'
 import type { ClientWorkspaceTabProps } from '../types'
 
@@ -47,12 +49,22 @@ export default function CasesTab({ workspace, householdId }: ClientWorkspaceTabP
       setLoading(true)
       setError(null)
       try {
-        const applications = await fetchHouseholdProductionApplications(
-          createSupabaseBrowserClient(),
-          householdId,
-        )
+        const supabase = createSupabaseBrowserClient()
+        const applications = await fetchHouseholdProductionApplications(supabase, householdId)
         if (cancelled) return
-        const { open, closed } = partitionHouseholdCases(applications)
+        let overdueCounts = new Map<string, number>()
+        try {
+          overdueCounts = await fetchOverdueRequirementCountsByApplicationIds(
+            supabase,
+            applications.map((application) => application.id),
+          )
+        } catch {
+          overdueCounts = new Map()
+        }
+        if (cancelled) return
+        const { open, closed } = partitionHouseholdCases(
+          applyOverdueRequirementCounts(applications, overdueCounts),
+        )
         setOpenRows(open)
         setClosedRows(closed)
       } catch {
@@ -85,7 +97,7 @@ export default function CasesTab({ workspace, householdId }: ClientWorkspaceTabP
         />
         <p className="crm-muted">
           Operational Life and FIA applications. Issued stays open until in force. This is not the
-          Policies tab and does not track requirements, APS, or application-scoped tasks.
+          Policies tab. Requirement details stay on the Case workspace.
         </p>
         {error ? (
           <p className="crm-banner crm-banner-error" role="alert">

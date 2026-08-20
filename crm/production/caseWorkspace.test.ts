@@ -5,11 +5,13 @@ import {
   CASE_RECENTLY_UPDATED_DAYS,
   CASE_UNDERWRITING_STAGES,
   caseAttentionFlags,
+  caseHasOverdueRequirement,
   caseNeedsAttention,
   caseOperationalBucket,
   casePipelineStagesMatchDashboard,
   countOpenPolicyCases,
   formatCaseAmount,
+  formatCaseAttentionLabels,
   formatCaseDeliveryBucketLabel,
   formatCaseProductLineLabel,
   formatCaseStageLabel,
@@ -171,6 +173,7 @@ describe('needs attention', () => {
       overdueFollowUp: false,
       staleInStage: false,
       issuedDeliveryIncomplete: false,
+      overdueRequirementCount: 0,
     })
   })
 
@@ -182,6 +185,64 @@ describe('needs attention', () => {
       next_follow_up_date: '2026-08-01',
     })
     expect(caseNeedsAttention(placed, now)).toBe(false)
+  })
+
+  it('flags an open Case with an overdue persisted requirement', () => {
+    const overdueReq = item({
+      id: 'req',
+      production_stage: 'submitted',
+      updated_at: '2026-08-18T00:00:00.000Z',
+      overdue_requirement_count: 1,
+    })
+    expect(caseNeedsAttention(overdueReq, now)).toBe(true)
+    expect(caseHasOverdueRequirement(overdueReq)).toBe(true)
+    expect(caseAttentionFlags(overdueReq, now).overdueRequirementCount).toBe(1)
+    expect(applyCaseWorkspaceView([overdueReq], 'needs_attention', now).map((row) => row.id)).toEqual(
+      ['req'],
+    )
+    expect(formatCaseAttentionLabels(caseAttentionFlags(overdueReq, now), 'life_term')).toEqual([
+      'Overdue requirement',
+    ])
+  })
+
+  it('does not let a closed Case enter Needs Attention from an overdue requirement', () => {
+    const closed = item({
+      id: 'closed',
+      production_stage: 'withdrawn',
+      overdue_requirement_count: 2,
+      next_follow_up_date: '2026-08-01',
+    })
+    expect(caseHasOverdueRequirement(closed)).toBe(false)
+    expect(caseNeedsAttention(closed, now)).toBe(false)
+    expect(applyCaseWorkspaceView([closed], 'needs_attention', now)).toEqual([])
+    expect(applyCaseWorkspaceView([closed], 'open', now)).toEqual([])
+  })
+
+  it('keeps existing Needs Attention signals and adds overdue requirement as another concise flag', () => {
+    const followUpAndReq = item({
+      id: 'both',
+      production_stage: 'in_underwriting',
+      next_follow_up_date: '2026-08-19',
+      updated_at: '2026-08-18T00:00:00.000Z',
+      overdue_requirement_count: 2,
+    })
+    expect(caseNeedsAttention(followUpAndReq, now)).toBe(true)
+    expect(formatCaseAttentionLabels(caseAttentionFlags(followUpAndReq, now), 'life_term')).toEqual([
+      'Overdue follow-up',
+      '2 overdue requirements',
+    ])
+
+    const staleAndReq = item({
+      id: 'stale-req',
+      production_stage: 'paramed',
+      updated_at: '2026-08-01T00:00:00.000Z',
+      overdue_requirement_count: 1,
+    })
+    expect(caseNeedsAttention(staleAndReq, now)).toBe(true)
+    expect(formatCaseAttentionLabels(caseAttentionFlags(staleAndReq, now), 'life_term')).toEqual([
+      'Stale in stage',
+      'Overdue requirement',
+    ])
   })
 })
 

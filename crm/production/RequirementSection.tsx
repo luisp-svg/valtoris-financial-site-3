@@ -28,7 +28,9 @@ import {
   canMutateRequirements,
   canSoftDeleteRequirement,
   historyVisibleForRequirement,
+  isOpenRequirementOverdue,
   previewCommonRequirements,
+  requirementCalendarToday,
   requirementDisplayLabel,
   requirementStatusActions,
   validateOtherLabel,
@@ -37,6 +39,7 @@ import {
   type RequirementStatusAction,
 } from './requirementView'
 import { formatProductionDate, formatProductionDateTime } from './productionApi'
+import { isOpenPolicyCase } from './caseWorkspace'
 import { createSupabaseBrowserClient } from '../../lib/supabase/client'
 
 type RequirementSectionProps = {
@@ -44,6 +47,7 @@ type RequirementSectionProps = {
   productLine: ProductionProductLine
   productionStage: ProductionStage
   deletedAt: string | null
+  submissionDate: string | null
   role: CrmSupportedRole | null
 }
 
@@ -67,10 +71,17 @@ export default function RequirementSection({
   productLine,
   productionStage,
   deletedAt,
+  submissionDate,
   role,
 }: RequirementSectionProps) {
   const canMutate = canMutateRequirements({ stage: productionStage, deletedAt })
   const canDelete = canSoftDeleteRequirement(role)
+  const caseOpen = isOpenPolicyCase({
+    production_stage: productionStage,
+    submission_date: submissionDate,
+    deleted_at: deletedAt,
+  })
+  const today = requirementCalendarToday()
   const codes = requirementCodesForProductLine(productLine)
 
   const [rows, setRows] = useState<RequirementRow[]>([])
@@ -348,7 +359,12 @@ export default function RequirementSection({
                   {row.due_date ? (
                     <div>
                       <dt>Due</dt>
-                      <dd>{formatProductionDate(row.due_date)}</dd>
+                      <dd>
+                        {formatProductionDate(row.due_date)}
+                        {caseOpen && isOpenRequirementOverdue(row, today) ? (
+                          <span className="crm-case-flag crm-requirement-overdue">Overdue</span>
+                        ) : null}
+                      </dd>
                     </div>
                   ) : null}
                   {row.scheduled_for ? (

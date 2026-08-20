@@ -16,6 +16,7 @@ import {
   isProductionTerminalStage,
   isStaleDaysInStage,
 } from './daysInStage'
+import { formatOverdueRequirementLabel } from './requirementView'
 import {
   formatProductionDeliveryLabel,
   formatProductionDispositionLabel,
@@ -68,6 +69,7 @@ export type CaseAttentionFlags = {
   overdueFollowUp: boolean
   staleInStage: boolean
   issuedDeliveryIncomplete: boolean
+  overdueRequirementCount: number
 }
 
 export function isOpenPolicyCase(item: {
@@ -135,7 +137,14 @@ export function isCaseDeliveryFundingStage(item: {
 export function caseAttentionFlags(
   item: Pick<
     ProductionApplicationListItem,
-    'production_stage' | 'delivery_status' | 'next_follow_up_date' | 'stage_history' | 'updated_at'
+    | 'production_stage'
+    | 'delivery_status'
+    | 'next_follow_up_date'
+    | 'stage_history'
+    | 'updated_at'
+    | 'submission_date'
+    | 'deleted_at'
+    | 'overdue_requirement_count'
   >,
   now: Date = new Date(),
 ): CaseAttentionFlags {
@@ -149,7 +158,20 @@ export function caseAttentionFlags(
     overdueFollowUp: isFollowUpOverdue(item.next_follow_up_date, now),
     staleInStage: isStaleDaysInStage(days),
     issuedDeliveryIncomplete: isIssuedDeliveryIncomplete(item),
+    overdueRequirementCount: caseHasOverdueRequirement(item)
+      ? item.overdue_requirement_count ?? 0
+      : 0,
   }
+}
+
+export function caseHasOverdueRequirement(item: {
+  production_stage: string
+  submission_date: string | null | undefined
+  deleted_at?: string | null
+  overdue_requirement_count?: number
+}): boolean {
+  if (!isOpenPolicyCase(item)) return false
+  return (item.overdue_requirement_count ?? 0) > 0
 }
 
 export function caseNeedsAttention(
@@ -162,12 +184,18 @@ export function caseNeedsAttention(
     | 'updated_at'
     | 'submission_date'
     | 'deleted_at'
+    | 'overdue_requirement_count'
   >,
   now: Date = new Date(),
 ): boolean {
   if (!isOpenPolicyCase(item)) return false
   const flags = caseAttentionFlags(item, now)
-  return flags.overdueFollowUp || flags.staleInStage || flags.issuedDeliveryIncomplete
+  return (
+    flags.overdueFollowUp ||
+    flags.staleInStage ||
+    flags.issuedDeliveryIncomplete ||
+    flags.overdueRequirementCount > 0
+  )
 }
 
 export function isCaseRecentlyUpdated(
@@ -214,6 +242,7 @@ export function applyCaseWorkspaceView<
     | 'next_follow_up_date'
     | 'stage_history'
     | 'updated_at'
+    | 'overdue_requirement_count'
   >,
 >(items: readonly T[], view: CaseWorkspaceView, now: Date = new Date()): T[] {
   if (view === 'all_applications') return [...items]
@@ -231,6 +260,7 @@ export function matchesCaseWorkspaceView(
     | 'next_follow_up_date'
     | 'stage_history'
     | 'updated_at'
+    | 'overdue_requirement_count'
   >,
   view: CaseWorkspaceView,
   now: Date = new Date(),
@@ -286,6 +316,8 @@ export function formatCaseAttentionLabels(
         : 'Issued — delivery incomplete',
     )
   }
+  const overdueLabel = formatOverdueRequirementLabel(flags.overdueRequirementCount)
+  if (overdueLabel) labels.push(overdueLabel)
   return labels
 }
 

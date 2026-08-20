@@ -1,7 +1,7 @@
 /**
  * Case requirement view helpers. Catalog lives in requirementCatalog.ts.
- * Overdue detection is defined here for later Phase 2C reuse and must not be
- * wired into the Production queue, board, or Household Cases tab in Phase 2B.
+ * Overdue-requirement urgency lives only here — Case Detail, Production Case
+ * views, Needs Attention, and Household Cases must reuse these helpers.
  */
 
 import type { ProductionProductLine, ProductionStage } from './types'
@@ -14,7 +14,12 @@ import {
   type RequirementCode,
   type RequirementStatus,
 } from './requirementCatalog'
-import type { RequirementHistoryRow, RequirementRow, RequirementUpdateFields } from './requirementTypes'
+import type {
+  RequirementHistoryRow,
+  RequirementRow,
+  RequirementUpdateFields,
+  RequirementUrgencyRow,
+} from './requirementTypes'
 
 export const REQUIREMENT_STATUS_ACTIONS = [
   'schedule',
@@ -94,18 +99,74 @@ export function validateScheduledFor(value: string): string | null {
   return null
 }
 
+function calendarDay(value: string | null | undefined): string | null {
+  if (!value) return null
+  const day = value.slice(0, 10)
+  return /^\d{4}-\d{2}-\d{2}$/.test(day) ? day : null
+}
+
+/** UTC calendar day (YYYY-MM-DD) used by the overdue-requirement rule. */
+export function requirementCalendarToday(now: Date = new Date()): string {
+  const year = now.getUTCFullYear()
+  const month = String(now.getUTCMonth() + 1).padStart(2, '0')
+  const day = String(now.getUTCDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 /**
- * Phase 2C overdue rule. Do not import this into queue/board/household UI yet.
+ * Row-level overdue rule. Parent open-Case gating belongs in caseWorkspace.
  * Overdue = non-deleted, status open or scheduled, due_date < today.
+ * scheduled_for is not an overdue trigger.
  */
 export function isOpenRequirementOverdue(
-  row: Pick<RequirementRow, 'status' | 'due_date'> & { deleted_at?: string | null },
+  row: Pick<RequirementUrgencyRow, 'status' | 'due_date'> & { deleted_at?: string | null },
   today: string,
 ): boolean {
   if (row.deleted_at) return false
   if (row.status !== 'open' && row.status !== 'scheduled') return false
-  if (!row.due_date) return false
-  return row.due_date < today
+  const due = calendarDay(row.due_date)
+  const todayDay = calendarDay(today)
+  if (!due || !todayDay) return false
+  return due < todayDay
+}
+
+export function countOverdueRequirements(
+  rows: readonly (Pick<RequirementUrgencyRow, 'status' | 'due_date'> & { deleted_at?: string | null })[],
+  today: string,
+): number {
+  let count = 0
+  for (const row of rows) {
+    if (isOpenRequirementOverdue(row, today)) count += 1
+  }
+  return count
+}
+
+export function overdueRequirementCountsByApplicationId(
+  rows: readonly RequirementUrgencyRow[],
+  today: string,
+): Map<string, number> {
+  const counts = new Map<string, number>()
+  for (const row of rows) {
+    if (!isOpenRequirementOverdue(row, today)) continue
+    counts.set(row.application_id, (counts.get(row.application_id) ?? 0) + 1)
+  }
+  return counts
+}
+
+export function applyOverdueRequirementCounts<T extends { id: string }>(
+  items: readonly T[],
+  counts: ReadonlyMap<string, number>,
+): Array<T & { overdue_requirement_count: number }> {
+  return items.map((item) => ({
+    ...item,
+    overdue_requirement_count: counts.get(item.id) ?? 0,
+  }))
+}
+
+export function formatOverdueRequirementLabel(count: number): string {
+  if (count <= 0) return ''
+  if (count === 1) return 'Overdue requirement'
+  return `${count} overdue requirements`
 }
 
 export function previewCommonRequirements(

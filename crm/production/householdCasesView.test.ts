@@ -69,4 +69,31 @@ describe('household Cases tab mapping', () => {
     expect(row?.amount).not.toMatch(/expected|commission/i)
     expect(JSON.stringify(row)).not.toContain('expected_compensation')
   })
+
+  it('surfaces overdue requirement flags only on the matching open Case row', () => {
+    const { open, closed } = partitionHouseholdCases(
+      [
+        item({
+          id: 'overdue',
+          production_stage: 'submitted',
+          overdue_requirement_count: 1,
+        }),
+        item({
+          id: 'clear',
+          production_stage: 'approved',
+          overdue_requirement_count: 0,
+        }),
+        item({
+          id: 'closed-overdue',
+          production_stage: 'withdrawn',
+          overdue_requirement_count: 3,
+        }),
+      ],
+      now,
+    )
+    expect(open.find((row) => row.id === 'overdue')?.attentionLabels).toEqual(['Overdue requirement'])
+    expect(open.find((row) => row.id === 'clear')?.attentionLabels).toEqual([])
+    expect(closed.find((row) => row.id === 'closed-overdue')?.attentionLabels).toEqual([])
+    expect(JSON.stringify(open)).not.toMatch(/custom_label|paramed_exam|aps|diagnosis/i)
+  })
 })

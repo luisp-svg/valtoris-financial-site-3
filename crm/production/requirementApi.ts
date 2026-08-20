@@ -18,8 +18,14 @@ import type {
   RequirementRow,
   RequirementTransitionInput,
   RequirementUpdateFields,
+  RequirementUrgencyRow,
 } from './requirementTypes'
-import { blankToNull, buildRequirementUpdateFields } from './requirementView'
+import {
+  blankToNull,
+  buildRequirementUpdateFields,
+  overdueRequirementCountsByApplicationId,
+  requirementCalendarToday,
+} from './requirementView'
 
 export const REQUIREMENT_RPC = {
   create: 'create_policy_application_requirement',
@@ -57,6 +63,9 @@ const HISTORY_SELECT = `
   reason,
   changed_at
 `
+
+const URGENCY_SELECT = 'application_id, status, due_date'
+const URGENCY_BATCH_LIMIT = 5000
 
 export type RequirementMutationResult<T> =
   | { ok: true; data: T }
@@ -110,6 +119,17 @@ function mapHistory(value: unknown): RequirementHistoryRow | null {
   }
 }
 
+function mapUrgency(value: unknown): RequirementUrgencyRow | null {
+  const row = asRecord(value)
+  if (typeof row?.application_id !== 'string') return null
+  if (!isRequirementStatus(row.status)) return null
+  return {
+    application_id: row.application_id,
+    status: row.status,
+    due_date: typeof row.due_date === 'string' ? row.due_date : null,
+  }
+}
+
 function mutationFailure(err: unknown): RequirementMutationResult<never> {
   return { ok: false, message: formatRequirementUserError(err) }
 }
@@ -146,6 +166,35 @@ export async function fetchApplicationRequirementHistory(
     .order('changed_at', { ascending: true })
   if (error) throw error
   return (data ?? []).map(mapHistory).filter((row): row is RequirementHistoryRow => row != null)
+}
+
+/**
+ * Batched urgency read for already-loaded application IDs.
+ * Authenticated SELECT + RLS only. Does not fetch labels, history, or PHI.
+ */
+export async function fetchRequirementUrgencyByApplicationIds(
+  supabase: SupabaseClient,
+  applicationIds: readonly string[],
+): Promise<RequirementUrgencyRow[]> {
+  const ids = [...new Set(applicationIds.filter(Boolean))]
+  if (ids.length === 0) return []
+  const { data, error } = await supabase
+    .from('policy_application_requirements')
+    .select(URGENCY_SELECT)
+    .in('application_id', ids)
+    .is('deleted_at', null)
+    .limit(URGENCY_BATCH_LIMIT)
+  if (error) throw error
+  return (data ?? []).map(mapUrgency).filter((row): row is RequirementUrgencyRow => row != null)
+}
+
+export async function fetchOverdueRequirementCountsByApplicationIds(
+  supabase: SupabaseClient,
+  applicationIds: readonly string[],
+  today: string = requirementCalendarToday(),
+): Promise<Map<string, number>> {
+  const rows = await fetchRequirementUrgencyByApplicationIds(supabase, applicationIds)
+  return overdueRequirementCountsByApplicationId(rows, today)
 }
 
 export async function createPolicyApplicationRequirement(
