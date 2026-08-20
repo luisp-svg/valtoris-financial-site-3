@@ -1,18 +1,18 @@
-import { parseAmount, formatCurrency } from '../../calculator/calculations'
-import { PriorityRecommendation } from '../../results/PriorityRecommendationCard'
-import { CategoryScore, CategoryStatus } from '../../reportCard/types'
-import { ReportActionPlan } from '../../reportDashboard/types'
+import { parseAmount, formatCurrency } from '../../calculator/calculations.js'
+import type { PriorityRecommendation } from '../../results/PriorityRecommendationCard.js'
+import type { CategoryScore, CategoryStatus } from '../../reportCard/types.js'
+import type { ReportActionPlan } from '../../reportDashboard/types.js'
 import {
   RETIREMENT_CATEGORY_WEIGHTS,
   RETIREMENT_PROJECTION_ASSUMPTIONS,
   type RetirementCategoryId,
-} from '../retirement/constants'
+} from '../retirement/constants.js'
 import {
-  RetirementAssessmentAnswers,
   isAlreadyRetiredAnswer,
   isMarried,
-} from '../retirement/types'
-import { scoreToGrade } from './scoreFamilyAssessment'
+  type RetirementAssessmentAnswers,
+} from '../retirement/types.js'
+import { scoreToGrade } from './scoreFamilyAssessment.js'
 
 export type RetirementProjectionAssumptions = {
   inflation: number

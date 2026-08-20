@@ -2,6 +2,15 @@ import { describe, expect, it } from 'vitest'
 import { scoreBusinessAssessment } from '../../../components/assessment/scoring/scoreBusinessAssessment'
 import { scoreFamilyAssessment } from '../../../components/assessment/scoring/scoreFamilyAssessment'
 import { scoreRetirementAssessment } from '../../../components/assessment/scoring/scoreRetirementAssessment'
+import {
+  STRONG_BUSINESS_PROFILE,
+  WEAK_BUSINESS_PROFILE,
+} from '../../../components/assessment/scoring/scoreBusinessAssessment.test'
+import {
+  ALREADY_RETIRED_PROFILE,
+  INCOME_GAP_RETIREMENT_PROFILE,
+  STRONG_RETIREMENT_PROFILE,
+} from '../../../components/assessment/scoring/scoreRetirementAssessment.test'
 import { DEMO_BUSINESS_ANSWERS } from '../../../components/reportCard/businessReportCardData'
 import { DEMO_RETIREMENT_ANSWERS } from '../../../components/reportCard/retirementReportCardData'
 import {
@@ -13,6 +22,47 @@ import {
 } from './score'
 import { FAMILY_REPORT_CARD_SCORING_VERSION } from './types'
 import { validFamilyAnswersFixture, validProtectionAnswersFixture } from './testFixtures'
+
+function expectBusinessParity(answers: typeof DEMO_BUSINESS_ANSWERS) {
+  const browser = scoreBusinessAssessment(answers)
+  const server = recalculateBusinessReportCardScore(answers)
+  expect(server.overallScore).toBe(browser.overallScore)
+  expect(server.overallGrade).toBe(browser.overallGrade)
+  expect(server.currentLevel).toBe(browser.currentLevel)
+  expect(server.categories.map((c) => [c.id, c.score, c.grade])).toEqual(
+    browser.categories.map((c) => [c.id, c.score, c.grade]),
+  )
+  expect(server.priorities.map((p) => [p.level, p.title, p.why, p.timeline])).toEqual(
+    browser.priorities.map((p) => [p.level, p.title, p.why, p.timeline]),
+  )
+  expect(server.extraDerived).toEqual({
+    growthReadiness: browser.growthReadiness,
+    protectionRating: browser.protectionRating,
+  })
+}
+
+function expectRetirementParity(answers: typeof DEMO_RETIREMENT_ANSWERS) {
+  const browser = scoreRetirementAssessment(answers)
+  const server = recalculateRetirementReportCardScore(answers)
+  expect(server.overallScore).toBe(browser.overallScore)
+  expect(server.overallGrade).toBe(browser.overallGrade)
+  expect(server.currentLevel).toBe(browser.currentLevel)
+  expect(server.categories.map((c) => [c.id, c.score, c.grade])).toEqual(
+    browser.categories.map((c) => [c.id, c.score, c.grade]),
+  )
+  expect(server.priorities.map((p) => [p.level, p.title, p.why, p.timeline])).toEqual(
+    browser.priorities.map((p) => [p.level, p.title, p.why, p.timeline]),
+  )
+  expect(server.extraDerived?.metrics).toMatchObject({
+    annualIncomeGap: browser.metrics.annualIncomeGap,
+    targetAnnualRetirementSpending: browser.metrics.targetAnnualRetirementSpending,
+    totalProjectedMonthlyIncome: browser.metrics.totalProjectedMonthlyIncome,
+    nestEggGap: browser.metrics.nestEggGap,
+    currentAge: browser.metrics.currentAge,
+    retirementAge: browser.metrics.retirementAge,
+    isAlreadyRetired: browser.metrics.isAlreadyRetired,
+  })
+}
 
 describe('recalculateFamilyReportCardScore', () => {
   it('matches the browser scoring path exactly (same pure engine, same inputs)', () => {
@@ -84,20 +134,25 @@ describe('compareClientScore', () => {
 })
 
 describe('recalculateBusinessReportCardScore', () => {
-  it('matches the browser scoring path', () => {
-    const browser = scoreBusinessAssessment(DEMO_BUSINESS_ANSWERS)
-    const server = recalculateBusinessReportCardScore(DEMO_BUSINESS_ANSWERS)
-    expect(server.overallScore).toBe(browser.overallScore)
-    expect(server.overallGrade).toBe(browser.overallGrade)
+  it('matches the browser scoring path for the demo fixture', () => {
+    expectBusinessParity(DEMO_BUSINESS_ANSWERS)
+  })
+
+  it('matches the browser scoring path for weak and strong boundary profiles', () => {
+    expectBusinessParity(WEAK_BUSINESS_PROFILE)
+    expectBusinessParity(STRONG_BUSINESS_PROFILE)
   })
 })
 
 describe('recalculateRetirementReportCardScore', () => {
-  it('matches the browser scoring path', () => {
-    const browser = scoreRetirementAssessment(DEMO_RETIREMENT_ANSWERS)
-    const server = recalculateRetirementReportCardScore(DEMO_RETIREMENT_ANSWERS)
-    expect(server.overallScore).toBe(browser.overallScore)
-    expect(server.overallGrade).toBe(browser.overallGrade)
+  it('matches the browser scoring path for the demo fixture', () => {
+    expectRetirementParity(DEMO_RETIREMENT_ANSWERS)
+  })
+
+  it('matches the browser scoring path for strong, income-gap, and already-retired profiles', () => {
+    expectRetirementParity(STRONG_RETIREMENT_PROFILE)
+    expectRetirementParity(INCOME_GAP_RETIREMENT_PROFILE)
+    expectRetirementParity(ALREADY_RETIRED_PROFILE)
   })
 })
 

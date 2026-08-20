@@ -41,7 +41,10 @@ export function findExtensionlessServerImports(root = ROOT) {
     if (visited.has(rel) || !existsSync(file)) continue
     visited.add(rel)
 
-    const text = readFileSync(file, 'utf8')
+    const text = readFileSync(file, 'utf8').replace(
+      /import\s+type\s+(?:type\s+)?(?:\{[\s\S]*?\}|\*\s+as\s+\w+|\w+)\s+from\s+['"][^'"]+['"];?/g,
+      '',
+    )
     const re = /(?:from\s+|import\s*\(\s*)(['"])(\.[^'"]+)\1/g
     let m
     while ((m = re.exec(text))) {

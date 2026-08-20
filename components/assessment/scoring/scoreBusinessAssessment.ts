@@ -1,8 +1,8 @@
-import { PriorityRecommendation } from '../../results/PriorityRecommendationCard'
-import { CategoryScore } from '../../reportCard/types'
-import { ReportActionPlan } from '../../reportDashboard/types'
-import { BusinessAssessmentAnswers } from '../business/types'
-import { scoreToGrade } from './scoreFamilyAssessment'
+import type { PriorityRecommendation } from '../../results/PriorityRecommendationCard.js'
+import type { CategoryScore } from '../../reportCard/types.js'
+import type { ReportActionPlan } from '../../reportDashboard/types.js'
+import type { BusinessAssessmentAnswers } from '../business/types.js'
+import { scoreToGrade } from './scoreFamilyAssessment.js'
 
 export type BusinessAssessmentScoreResult = {
   overallScore: number
