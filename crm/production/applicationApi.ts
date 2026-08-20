@@ -45,6 +45,11 @@ import type {
 } from './types'
 import { PRODUCTION_PRODUCT_LINES } from './types'
 import { toWritingAllocationRpcPayload } from './writingSplits'
+import {
+  CASE_OPERATIONS_PAYLOAD_KEYS,
+  sanitizeCaseOperationsPatch,
+  type CaseOperationsPatch,
+} from './caseOperationsView'
 
 const APPLICATION_RPC = {
   create: 'create_policy_application',
@@ -432,6 +437,28 @@ export async function updatePolicyApplication(
   const row = asRecord(data)
   const id = typeof row?.application_id === 'string' ? row.application_id : applicationId
   return { ok: true, data: { applicationId: id } }
+}
+
+/**
+ * Phase 2 Case Operations wrapper. Sends only the approved operational keys
+ * through update_policy_application. Not a generic patch helper.
+ */
+export async function saveCaseOperations(
+  supabase: SupabaseClient,
+  applicationId: string,
+  patch: CaseOperationsPatch,
+): Promise<ApplicationMutationResult<{ applicationId: string; unchanged: boolean }>> {
+  const sanitized = sanitizeCaseOperationsPatch(patch)
+  const keys = Object.keys(sanitized)
+  if (keys.some((key) => !(CASE_OPERATIONS_PAYLOAD_KEYS as readonly string[]).includes(key))) {
+    return { ok: false, message: 'That Case Operations change cannot be saved.' }
+  }
+  if (keys.length === 0) {
+    return { ok: true, data: { applicationId, unchanged: true } }
+  }
+  const updated = await updatePolicyApplication(supabase, applicationId, sanitized)
+  if (!updated.ok) return updated
+  return { ok: true, data: { applicationId: updated.data.applicationId, unchanged: false } }
 }
 
 export async function setPolicyApplicationNumber(

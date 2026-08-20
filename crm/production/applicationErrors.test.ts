@@ -18,6 +18,9 @@ describe('application error normalization', () => {
     expect(formatApplicationUserError({ message: 'CRM_PP:invalid_premium' })).toBe(
       'Premium information is incomplete.',
     )
+    expect(formatApplicationUserError({ message: 'CRM_PP:invalid_delivery_status' })).toBe(
+      'That delivery status is not allowed for this stage.',
+    )
     const leaked = formatApplicationUserError({
       message: 'permission denied for table policy_applications',
       code: '42501',

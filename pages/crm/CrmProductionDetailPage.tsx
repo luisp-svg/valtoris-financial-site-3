@@ -57,6 +57,7 @@ import { isIncompleteDraft, canShowProductionEditAction } from '../../crm/produc
 import { transitionPolicyApplicationStage } from '../../crm/production/applicationApi'
 import StageTransitionPanel from '../../crm/production/StageTransitionPanel'
 import RequirementSection from '../../crm/production/RequirementSection'
+import CaseOperationsSection from '../../crm/production/CaseOperationsSection'
 import {
   defaultStageTransitionReason,
   type StageTransitionAction,
@@ -368,6 +369,12 @@ export default function CrmProductionDetailPage() {
         </dl>
       </section>
 
+      <CaseOperationsSection
+        application={application}
+        role={role}
+        onSaved={() => setReloadKey((n) => n + 1)}
+      />
+
       <RequirementSection
         applicationId={application.id}
         productLine={application.product_line}
@@ -666,8 +673,12 @@ export default function CrmProductionDetailPage() {
 
       <section className="crm-panel" aria-labelledby="pp-operational-notes-heading">
         <div className="crm-panel-head">
-          <h2 id="pp-operational-notes-heading">Operational Notes — {householdName}</h2>
+          <h2 id="pp-operational-notes-heading">Household Operational Notes — {householdName}</h2>
         </div>
+        <p className="crm-muted">
+          Client/household-level notes. The application note in Case Operations above is specific
+          to this case and is not this timeline.
+        </p>
         <OperationalNotesPanel
           householdId={application.household_id}
           householdName={householdName}
@@ -675,24 +686,9 @@ export default function CrmProductionDetailPage() {
         />
         <p>
           <Link to={householdWorkspaceTab(application.household_id, 'notes')}>
-            Open full Operational Notes in household workspace
+            Open full Household Operational Notes in household workspace
           </Link>
         </p>
-      </section>
-
-      <section className="crm-panel" aria-labelledby="pp-notes-heading">
-        <div className="crm-panel-head">
-          <h2 id="pp-notes-heading">Application notes</h2>
-        </div>
-        <p className="crm-muted">
-          Legacy application field. This is not the household Operational Notes timeline and is not
-          updated from Production Notes.
-        </p>
-        {application.notes?.trim() ? (
-          <p className="crm-production-notes">{application.notes}</p>
-        ) : (
-          <p className="crm-muted">No application notes on this record.</p>
-        )}
       </section>
 
       <section className="crm-panel" aria-labelledby="pp-links-heading">

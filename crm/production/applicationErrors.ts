@@ -28,6 +28,7 @@ const APPLICATION_ERROR_MESSAGES: Record<string, string> = {
   participant_change_denied: 'This application can no longer be edited.',
   identifier_locked: 'That application number is already set. An owner can correct it with a reason.',
   invalid_disposition: 'That underwriting disposition is not allowed for this stage.',
+  invalid_delivery_status: 'That delivery status is not allowed for this stage.',
 }
 
 export function formatApplicationUserError(err: unknown): string {

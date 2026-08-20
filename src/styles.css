@@ -11621,6 +11621,69 @@ button.public-card-diagnostic:disabled {
   flex-wrap: wrap;
 }
 
+.crm-case-operations-form {
+  display: grid;
+  gap: 16px;
+}
+
+.crm-case-operations-block {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.crm-case-operations-label {
+  margin: 0;
+  color: var(--crm-navy);
+  font-size: 0.95rem;
+}
+
+.crm-case-operations .crm-checkbox-field {
+  min-height: 44px;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.crm-case-operations .crm-checkbox-field input {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+}
+
+.crm-case-operations textarea {
+  min-height: 5.5rem;
+  width: 100%;
+  max-width: 100%;
+  resize: vertical;
+}
+
+.crm-case-operations-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.crm-case-operations-actions .crm-primary-btn {
+  min-height: 44px;
+}
+
+@media (max-width: 960px) {
+  .crm-case-operations input[type='date'],
+  .crm-case-operations select,
+  .crm-case-operations textarea {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .crm-case-operations-actions .crm-primary-btn {
+    width: 100%;
+  }
+
+  .crm-case-operations .crm-text-btn {
+    min-height: 44px;
+  }
+}
+
 .crm-field-locked input,
 .crm-field-locked select {
   opacity: 0.72;
