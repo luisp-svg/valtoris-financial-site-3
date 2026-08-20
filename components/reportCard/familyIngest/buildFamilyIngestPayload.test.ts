@@ -49,7 +49,8 @@ describe('buildFamilyReportCardIngestPayload', () => {
     expect(payload.clientReportedGrade).toBe(scored.overallGrade)
     expect(payload.utmSource).toBe('google')
     expect(payload.sourcePage).toBe('/family-assessment')
-    expect(payload.formStartedAt).toBe('2026-07-28T19:00:00.000Z')
+    expect(payload.formStartedAt).toBe(Date.parse('2026-07-28T19:00:00.000Z'))
+    expect(typeof payload.formStartedAt).toBe('number')
     expect(payload.website).toBe('')
     expect(payload.consent.assessmentStorageAcknowledged).toBe(true)
     expect(payload.consent.contactPermission).toBe(true)
@@ -81,5 +82,79 @@ describe('buildFamilyReportCardIngestPayload', () => {
     })
     expect(payload).not.toHaveProperty('serverCalculatedScore')
     expect(payload.clientReportedScore).toBe(scored.overallScore)
+  })
+
+  it('emits formStartedAt as Unix epoch milliseconds, never an ISO string', () => {
+    const answers = validFamilyAnswersFixture()
+    const session = createEmptyFamilyIngestSession('2026-07-28T19:00:00.000Z')
+    const payload = buildFamilyReportCardIngestPayload({
+      submissionId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+      answers,
+      session,
+      consent: buildFamilyConsentSnapshot({
+        consent: {
+          ...INITIAL_FAMILY_CONSENT_STATE,
+          assessmentStorageAcknowledged: true,
+          privacyAcknowledged: true,
+        },
+        phone: answers.family.phone,
+        nowIso: '2026-07-28T20:00:00.000Z',
+      }),
+      sourcePage: '/family-assessment',
+      clientReportedScore: 72,
+      clientReportedGrade: 'C',
+    })
+    const serialized = JSON.stringify(payload)
+    expect(typeof payload.formStartedAt).toBe('number')
+    expect(payload.formStartedAt).toBe(Date.parse('2026-07-28T19:00:00.000Z'))
+    expect(serialized).not.toContain('2026-07-28T19:00:00.000Z')
+    expect(serialized).not.toMatch(/"formStartedAt":"/)
+  })
+
+  it('omits clientReportedScore when no numeric client score exists', () => {
+    const answers = validFamilyAnswersFixture()
+    const payload = buildFamilyReportCardIngestPayload({
+      submissionId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+      answers,
+      session: createEmptyFamilyIngestSession('2026-07-28T19:00:00.000Z'),
+      consent: buildFamilyConsentSnapshot({
+        consent: {
+          ...INITIAL_FAMILY_CONSENT_STATE,
+          assessmentStorageAcknowledged: true,
+          privacyAcknowledged: true,
+        },
+        phone: answers.family.phone,
+        nowIso: '2026-07-28T20:00:00.000Z',
+      }),
+      sourcePage: '/family-assessment',
+      clientReportedScore: null,
+      clientReportedGrade: null,
+    })
+    expect(payload).not.toHaveProperty('clientReportedScore')
+    expect(JSON.parse(JSON.stringify(payload))).not.toHaveProperty('clientReportedScore')
+  })
+
+  it('omits formStartedAt when the session has no convertible start time', () => {
+    const answers = validFamilyAnswersFixture()
+    const session = createEmptyFamilyIngestSession('2026-07-28T19:00:00.000Z')
+    session.formStartedAt = null
+    const payload = buildFamilyReportCardIngestPayload({
+      submissionId: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+      answers,
+      session,
+      consent: buildFamilyConsentSnapshot({
+        consent: {
+          ...INITIAL_FAMILY_CONSENT_STATE,
+          assessmentStorageAcknowledged: true,
+          privacyAcknowledged: true,
+        },
+        phone: answers.family.phone,
+        nowIso: '2026-07-28T20:00:00.000Z',
+      }),
+      sourcePage: '/family-assessment',
+      clientReportedScore: 72,
+      clientReportedGrade: 'C',
+    })
+    expect(payload).not.toHaveProperty('formStartedAt')
   })
 })

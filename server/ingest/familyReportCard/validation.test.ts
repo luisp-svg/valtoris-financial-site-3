@@ -185,6 +185,30 @@ describe('validateFamilyReportCardIngestRequest', () => {
     expect(result.ok).toBe(true)
   })
 
+  it('rejects an ISO-string formStartedAt', () => {
+    const result = validateFamilyReportCardIngestRequest(
+      validIngestRequestBodyFixture({ formStartedAt: '2026-07-28T19:00:00.000Z' }),
+    )
+    expect(result.ok).toBe(false)
+    if (!result.ok) expect(result.code).toBe('invalid_form_started_at')
+  })
+
+  it('rejects a null clientReportedScore', () => {
+    const result = validateFamilyReportCardIngestRequest(
+      validIngestRequestBodyFixture({ clientReportedScore: null }),
+    )
+    expect(result.ok).toBe(false)
+    if (!result.ok) expect(result.code).toBe('invalid_client_score')
+  })
+
+  it('accepts a payload that omits clientReportedScore', () => {
+    const body = validIngestRequestBodyFixture()
+    delete body.clientReportedScore
+    const result = validateFamilyReportCardIngestRequest(body)
+    expect(result.ok).toBe(true)
+    if (result.ok) expect(result.value.clientReportedScore).toBeNull()
+  })
+
   it('rejects an out-of-range clientReportedScore', () => {
     const result = validateFamilyReportCardIngestRequest(
       validIngestRequestBodyFixture({ clientReportedScore: 150 }),

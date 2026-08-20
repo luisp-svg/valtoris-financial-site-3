@@ -1,7 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { scoreFamilyAssessment } from '../../assessment/scoring/scoreFamilyAssessment'
-import { validFamilyAnswersFixture } from '../../../server/ingest/familyReportCard/testFixtures'
-import { completeFamilyReportCardCrmSubmission } from './completeFamilyReportCardSubmission'
+import { DEMO_BUSINESS_ANSWERS } from '../businessReportCardData'
+import { DEMO_RETIREMENT_ANSWERS } from '../retirementReportCardData'
+import {
+  validFamilyAnswersFixture,
+  validProtectionAnswersFixture,
+} from '../../../server/ingest/familyReportCard/testFixtures'
+import { validateFamilyReportCardIngestRequest } from '../../../server/ingest/familyReportCard/validation'
+import {
+  completeFamilyReportCardCrmSubmission,
+  completePublicReportCardCrmSubmission,
+} from './completeFamilyReportCardSubmission'
 import { INITIAL_FAMILY_CONSENT_STATE } from './familyConsent'
 import {
   beginNewFamilyAssessmentSession,
@@ -235,5 +244,123 @@ describe('completeFamilyReportCardCrmSubmission', () => {
 
     expect(fetchImpl).toHaveBeenCalledTimes(1)
     expect(String(fetchImpl.mock.calls[0]?.[0])).toBe('/api/ingest-family-report-card')
+  })
+
+  it('sends a Family browser payload that ingest validation accepts with numeric formStartedAt', async () => {
+    const session = beginNewFamilyAssessmentSession({ nowIso: '2026-07-28T20:00:00.000Z' })
+    const fetchImpl = vi.fn(async () =>
+      new Response(
+        JSON.stringify({
+          ok: true,
+          created: true,
+          submissionId: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+          assessmentId: 'assess-1',
+          matchStatus: 'new_prospect',
+          sheetsSync: { status: 'succeeded' },
+        }),
+        { status: 201 },
+      ),
+    )
+
+    await completeFamilyReportCardCrmSubmission({
+      answers: validFamilyAnswersFixture(),
+      consent: requiredConsent,
+      session,
+      nowIso: '2026-07-28T20:05:00.000Z',
+      randomUuid: () => 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+      submitOptions: { fetchImpl: fetchImpl as never },
+    })
+
+    const body = JSON.parse(String((fetchImpl.mock.calls[0] as unknown as [unknown, RequestInit?])[1]?.body ?? '{}'))
+    expect(typeof body.formStartedAt).toBe('number')
+    expect(body.formStartedAt).toBe(Date.parse('2026-07-28T20:00:00.000Z'))
+    expect(JSON.stringify(body)).not.toMatch(/"formStartedAt":"/)
+    expect(typeof body.clientReportedScore).toBe('number')
+    const validation = validateFamilyReportCardIngestRequest(body)
+    expect(validation.ok).toBe(true)
+    if (validation.ok) {
+      expect(validation.value.clientReportedScore).toBe(scoreFamilyAssessment(validFamilyAnswersFixture()).overallScore)
+    }
+  })
+})
+
+describe('completePublicReportCardCrmSubmission wire contract', () => {
+  beforeEach(() => {
+    installMemorySessionStorage()
+    clearFamilyIngestSession()
+  })
+
+  afterEach(() => {
+    clearFamilyIngestSession()
+    vi.unstubAllGlobals()
+  })
+
+  function okFetch() {
+    return vi.fn(async () =>
+      new Response(
+        JSON.stringify({
+          ok: true,
+          created: true,
+          submissionId: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+          assessmentId: 'assess-1',
+          matchStatus: 'new_prospect',
+          sheetsSync: { status: 'succeeded' },
+        }),
+        { status: 201 },
+      ),
+    )
+  }
+
+  function postedBody(fetchImpl: ReturnType<typeof okFetch>) {
+    const calls = fetchImpl.mock.calls as unknown as Array<[unknown, RequestInit?]>
+    return JSON.parse(String(calls[0]?.[1]?.body ?? '{}')) as Record<string, unknown>
+  }
+
+  it('sends numeric formStartedAt for Business, Retirement, and Protection', async () => {
+    const startedIso = '2026-07-28T20:00:00.000Z'
+    const cases: Array<{
+      assessmentType: 'business' | 'retirement' | 'protection'
+      answers: unknown
+      phone: string
+    }> = [
+      { assessmentType: 'business', answers: DEMO_BUSINESS_ANSWERS, phone: DEMO_BUSINESS_ANSWERS.owner.phone },
+      {
+        assessmentType: 'retirement',
+        answers: DEMO_RETIREMENT_ANSWERS,
+        phone: DEMO_RETIREMENT_ANSWERS.household.phone,
+      },
+      {
+        assessmentType: 'protection',
+        answers: validProtectionAnswersFixture(),
+        phone: validProtectionAnswersFixture().family.phone,
+      },
+    ]
+
+    for (const testCase of cases) {
+      const fetchImpl = okFetch()
+      const session = beginNewFamilyAssessmentSession({ nowIso: startedIso })
+      await completePublicReportCardCrmSubmission({
+        assessmentType: testCase.assessmentType,
+        answers: testCase.answers as never,
+        consent: requiredConsent,
+        session,
+        phone: testCase.phone,
+        nowIso: '2026-07-28T20:05:00.000Z',
+        randomUuid: () => 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+        submitOptions: { fetchImpl: fetchImpl as never },
+      })
+      const body = postedBody(fetchImpl)
+      expect(body.assessmentType, testCase.assessmentType).toBe(testCase.assessmentType)
+      expect(typeof body.formStartedAt, testCase.assessmentType).toBe('number')
+      expect(body.formStartedAt, testCase.assessmentType).toBe(Date.parse(startedIso))
+      expect(JSON.stringify(body), testCase.assessmentType).not.toMatch(/"formStartedAt":"/)
+      const validation = validateFamilyReportCardIngestRequest(body)
+      expect(validation.ok, `${testCase.assessmentType} ${validation.ok ? '' : JSON.stringify(validation)}`).toBe(true)
+      if (testCase.assessmentType === 'protection') {
+        expect(body).not.toHaveProperty('clientReportedScore')
+      } else {
+        expect(typeof body.clientReportedScore).toBe('number')
+      }
+    }
   })
 })

@@ -20,16 +20,26 @@ export type FamilyReportCardClientIngestBody = {
   campaignCode: string | null
   eventCode: string | null
   sourceChannel: string | null
-  clientReportedScore: number | null
+  clientReportedScore?: number
   clientReportedGrade: string | null
   consent: FamilyConsentSnapshot
   submittedAt: string | null
-  formStartedAt: string | null
+  /** Unix epoch milliseconds. Omitted when the session has no convertible start time. */
+  formStartedAt?: number
   /** Honeypot — must remain empty. */
   website: string
 }
 
 export const FAMILY_REPORT_CARD_ASSESSMENT_VERSION = 1
+
+/** Converts session ISO start time to Unix epoch ms for the ingest wire contract. */
+export function toFormStartedAtEpochMs(value: string | null | undefined): number | undefined {
+  if (typeof value !== 'string') return undefined
+  const trimmed = value.trim()
+  if (!trimmed) return undefined
+  const ms = Date.parse(trimmed)
+  return Number.isFinite(ms) ? ms : undefined
+}
 
 export function buildFamilyReportCardIngestPayload(input: {
   submissionId: string
@@ -51,6 +61,11 @@ export function buildFamilyReportCardIngestPayload(input: {
     eventCode: null,
     sourceChannel: null,
   }
+  const formStartedAt = toFormStartedAtEpochMs(input.session.formStartedAt)
+  const clientReportedScore =
+    typeof input.clientReportedScore === 'number' && Number.isFinite(input.clientReportedScore)
+      ? input.clientReportedScore
+      : undefined
   return {
     submissionId: input.submissionId,
     assessmentType: input.assessmentType ?? 'family',
@@ -68,7 +83,7 @@ export function buildFamilyReportCardIngestPayload(input: {
     campaignCode: card.campaignCode,
     eventCode: card.eventCode,
     sourceChannel: card.sourceChannel,
-    clientReportedScore: input.clientReportedScore,
+    ...(clientReportedScore !== undefined ? { clientReportedScore } : {}),
     clientReportedGrade: input.clientReportedGrade,
     consent: {
       assessmentStorageAcknowledged: input.consent.assessmentStorageAcknowledged === true,
@@ -80,7 +95,7 @@ export function buildFamilyReportCardIngestPayload(input: {
       consentedAt: input.consent.consentedAt,
     },
     submittedAt: input.submittedAt ?? new Date().toISOString(),
-    formStartedAt: input.session.formStartedAt,
+    ...(formStartedAt !== undefined ? { formStartedAt } : {}),
     website: input.honeypotWebsite ?? '',
   }
 }
