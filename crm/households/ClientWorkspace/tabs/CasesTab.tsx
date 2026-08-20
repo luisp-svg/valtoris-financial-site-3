@@ -14,22 +14,23 @@ import type { ClientWorkspaceTabProps } from '../types'
 
 function CaseRow({ row }: { row: HouseholdCaseRow }) {
   return (
-    <li>
-      <p className="crm-task-title">
+    <li className="crm-household-case-card">
+      <h3 className="crm-household-case-product">
         {row.carrier} · {row.product}
-      </p>
-      <p className="crm-task-meta">
+      </h3>
+      <p className="crm-household-case-stage">
         {row.productLine} · {row.stage}
+      </p>
+      <CaseAttentionFlagList labels={row.attentionLabels} />
+      <p className="crm-household-case-amount">{row.amount}</p>
+      <p className="crm-task-meta">
+        Follow-up {row.followUp}
         {row.applicationNumber ? ` · App ${row.applicationNumber}` : ''}
         {row.policyNumber ? ` · Policy ${row.policyNumber}` : ''}
       </p>
       <p className="crm-task-meta">
         {row.insuredOrAnnuitant} · Writing {row.writingAdvisors}
       </p>
-      <p className="crm-task-meta">
-        {row.amount} · Follow-up {row.followUp}
-      </p>
-      <CaseAttentionFlagList labels={row.attentionLabels} />
       <Link to={crmProductionPath(row.id)} className="crm-text-btn">
         Open case workspace
       </Link>

@@ -12,10 +12,14 @@ function read(name: string): string {
 }
 
 describe('commission Phase 2 contracts', () => {
-  it('does not add a commission lifecycle migration or change 001–038', () => {
-    const numbered = readdirSync(migrationsDir).filter((name) => /^\d{3}_/.test(name))
-    expect(numbered).toHaveLength(42)
+  it('does not add a commission lifecycle migration and keeps the 001–044 baseline', () => {
+    const numbered = readdirSync(migrationsDir).filter((name) => /^\d{3}_/.test(name)).sort()
+    expect(numbered).toHaveLength(44)
+    expect(numbered[0]).toBe('001_extensions_and_enums.sql')
+    expect(numbered[43]).toBe('044_policy_application_requirements.sql')
+    expect(numbered.filter((name) => name.startsWith('045_'))).toEqual([])
     expect(numbered).toContain('040_commission_pending_import.sql')
+    expect(numbered).toContain('043_public_report_card_ingest.sql')
     expect(existsSync(join(migrationsDir, '039_commission_lifecycle.sql'))).toBe(false)
   })
 

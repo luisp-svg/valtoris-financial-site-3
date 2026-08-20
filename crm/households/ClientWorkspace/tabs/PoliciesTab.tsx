@@ -70,20 +70,23 @@ export default function PoliciesTab({ workspace, householdId }: ClientWorkspaceT
         {!loading && rows.length > 0 ? (
           <ul className="crm-household-overview-list crm-client-policies-list">
             {rows.map((policy) => (
-              <li key={policy.id}>
-                <p className="crm-task-title">
+              <li key={policy.id} className="crm-household-case-card crm-household-policy-card">
+                <h3 className="crm-household-case-product">
                   {policy.carrier} · {policy.product}
+                </h3>
+                <p className="crm-household-case-stage">
+                  {policy.productLine} · {policy.stage}
                 </p>
+                <p className="crm-household-case-amount">{policy.premiumDisplay}</p>
                 <p className="crm-task-meta">
                   Policy {policy.policyNumberDisplay}
                   {policy.applicationNumber && !policy.policyNumberDisplay.startsWith('Application ')
                     ? ` · Application ${policy.applicationNumber}`
                     : ''}
-                  {` · ${policy.productLine} · ${policy.stage}`}
                 </p>
                 <p className="crm-task-meta">{policy.roles}</p>
                 <p className="crm-task-meta">
-                  {policy.premiumDisplay} · Writing {policy.writingAdvisors} · {policy.dates}
+                  Writing {policy.writingAdvisors} · {policy.dates}
                 </p>
                 <Link to={crmProductionPath(policy.id)} className="crm-text-btn">
                   Open in Production

@@ -97,32 +97,16 @@ export default function ProductionBoardCard({
           {item.carrier?.name ?? '—'} · {item.product?.name ?? '—'} ·{' '}
           {formatCaseProductLineLabel(item.product_line)}
         </p>
-        <p className="crm-production-board-card-ids">
-          App {item.application_number ?? '—'}
-          {policyNumber ? ` · Policy ${policyNumber}` : ''}
-        </p>
+        {showStageBadge ? (
+          <div className="crm-production-board-card-stage">
+            <StageBadge stage={item.production_stage} />
+          </div>
+        ) : null}
         <CaseAttentionFlagList labels={attention} />
+        <p className="crm-production-board-card-money">
+          <BoardCardMoney item={item} />
+        </p>
         <dl className="crm-production-board-card-meta">
-          {showStageBadge ? (
-            <div>
-              <dt>Stage</dt>
-              <dd>
-                <StageBadge stage={item.production_stage} />
-              </dd>
-            </div>
-          ) : null}
-          <div>
-            <dt>Insured / Annuitant</dt>
-            <dd>{getInsuredOrAnnuitantLabel(item)}</dd>
-          </div>
-          <div>
-            <dt>Advisor</dt>
-            <dd>{getWritingAdvisorLabel(item)}</dd>
-          </div>
-          <div>
-            <dt>State</dt>
-            <dd>{item.state || '—'}</dd>
-          </div>
           <div>
             <dt>Follow-up</dt>
             <dd className={overdue ? 'crm-production-overdue' : undefined}>
@@ -137,9 +121,22 @@ export default function ProductionBoardCard({
               {stale ? ` · ${PRODUCTION_STALE_DAYS_IN_STAGE}+` : ''}
             </dd>
           </div>
+          <div>
+            <dt>Insured / Annuitant</dt>
+            <dd>{getInsuredOrAnnuitantLabel(item)}</dd>
+          </div>
+          <div>
+            <dt>Advisor</dt>
+            <dd>{getWritingAdvisorLabel(item)}</dd>
+          </div>
+          <div>
+            <dt>State</dt>
+            <dd>{item.state || '—'}</dd>
+          </div>
         </dl>
-        <p className="crm-production-board-card-money">
-          <BoardCardMoney item={item} />
+        <p className="crm-production-board-card-ids">
+          App {item.application_number ?? '—'}
+          {policyNumber ? ` · Policy ${policyNumber}` : ''}
         </p>
       </Link>
       <div className="crm-production-board-card-actions" onClick={(event) => event.stopPropagation()}>

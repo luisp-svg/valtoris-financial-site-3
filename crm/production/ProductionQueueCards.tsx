@@ -69,49 +69,20 @@ export default function ProductionQueueCards({
 
         return (
           <li key={item.id}>
-            <article className="crm-opportunities-card">
+            <article className="crm-opportunities-card crm-production-queue-card">
               <Link to={crmProductionPath(item.id)} className="crm-opportunities-card-link">
                 <h3 className="crm-opportunities-name">
                   {item.household?.display_name?.trim() || 'Household'}
                 </h3>
+                <p className="crm-production-queue-card-product">
+                  {item.carrier?.name ?? '—'} · {item.product?.name ?? '—'} (
+                  {formatCaseProductLineLabel(item.product_line)})
+                </p>
+                <p className="crm-production-queue-card-stage">
+                  {formatProductionStageLabel(item.production_stage)}
+                </p>
                 <CaseAttentionFlagList labels={attention} />
                 <dl className="crm-opportunities-card-meta">
-                  <div>
-                    <dt>Stage</dt>
-                    <dd>{formatProductionStageLabel(item.production_stage)}</dd>
-                  </div>
-                  <div>
-                    <dt>Days in stage</dt>
-                    <dd>
-                      {days}
-                      {stale ? ` · ${PRODUCTION_STALE_DAYS_IN_STAGE}+ days in stage` : ''}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Follow-up</dt>
-                    <dd className={overdue ? 'crm-production-overdue' : undefined}>
-                      {formatProductionDate(item.next_follow_up_date)}
-                      {overdue ? ' (overdue)' : ''}
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Insured / Annuitant</dt>
-                    <dd>{getInsuredOrAnnuitantLabel(item)}</dd>
-                  </div>
-                  <div>
-                    <dt>Carrier / product</dt>
-                    <dd>
-                      {item.carrier?.name ?? '—'} · {item.product?.name ?? '—'} (
-                      {formatCaseProductLineLabel(item.product_line)})
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Writing advisor</dt>
-                    <dd>
-                      {getWritingAdvisorLabel(item)}
-                      {expected.split ? ' · Split' : ''}
-                    </dd>
-                  </div>
                   {hideCompensation ? (
                     <div>
                       <dt>Amount</dt>
@@ -130,6 +101,31 @@ export default function ProductionQueueCards({
                       </dd>
                     </div>
                   )}
+                  <div>
+                    <dt>Follow-up</dt>
+                    <dd className={overdue ? 'crm-production-overdue' : undefined}>
+                      {formatProductionDate(item.next_follow_up_date)}
+                      {overdue ? ' (overdue)' : ''}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Days in stage</dt>
+                    <dd>
+                      {days}
+                      {stale ? ` · ${PRODUCTION_STALE_DAYS_IN_STAGE}+ days in stage` : ''}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>Insured / Annuitant</dt>
+                    <dd>{getInsuredOrAnnuitantLabel(item)}</dd>
+                  </div>
+                  <div>
+                    <dt>Writing advisor</dt>
+                    <dd>
+                      {getWritingAdvisorLabel(item)}
+                      {expected.split ? ' · Split' : ''}
+                    </dd>
+                  </div>
                   <div>
                     <dt>Delivery / disposition</dt>
                     <dd>
