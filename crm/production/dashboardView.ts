@@ -1,23 +1,38 @@
 /**
  * Production dashboard — client-side aggregation over the filtered working set.
  * Life premium is annualized with Migration 034 premium_mode semantics.
- * Pipeline KPIs remain current-stage snapshots, optionally period-scoped by
- * submission_date. Active Life Protection period uses in_force_date.
+ *
+ * Production Performance (Applied, placement) uses the submission-date cohort.
+ * Current Case Pipeline is current-stage within that same cohort.
+ * Active Life Protection period uses in_force_date and is unchanged.
  */
-import { calendarDateInPeriod, type DashboardReportingPeriod } from './dashboardPeriod'
+import { calendarDateInPeriod, calendarDateOnly, type DashboardReportingPeriod } from './dashboardPeriod'
 import { annualizeProductionPremium } from './premiumAnnualize'
-import type { ProductionApplicationListItem, ProductionProductLine } from './types'
+import {
+  applicationsInSubmittedCohort,
+  computeProductionFunnel,
+  emptyLineFunnelCounts,
+  isDashboardPipelineStage,
+  isFiaProductionLine,
+  isLifeProductionLine,
+  placementRatesFromCounts,
+  type DashboardPipelineStage,
+  type ProductionFunnelMetrics,
+} from './productionMetrics'
+import type { ProductionApplicationListItem } from './types'
 
-export const DASHBOARD_PIPELINE_STAGES = [
-  'submitted',
-  'paramed',
-  'in_underwriting',
-  'approved',
-  'sent_to_draft',
-  'premium_drafted',
-] as const
-
-export type DashboardPipelineStage = (typeof DASHBOARD_PIPELINE_STAGES)[number]
+export {
+  applicationsInSubmittedCohort,
+  computeProductionFunnel,
+  DASHBOARD_PIPELINE_STAGES,
+  formatPlacementRate,
+  isDashboardPipelineStage,
+  isFiaProductionLine,
+  isLegitimateSubmittedApplication,
+  isLifeProductionLine,
+  pipelineStageLabel,
+} from './productionMetrics'
+export type { DashboardPipelineStage, LineFunnelMetrics, ProductionFunnelMetrics } from './productionMetrics'
 
 export type PaidCommissionListEvent = {
   id: string
@@ -41,6 +56,8 @@ export type ProtectionMetric = {
   knownFaceCents: number
   unknownFaceCount: number
   inForceLifeCount: number
+  /** In-force life with no usable in-force date. Counted in Lifetime; omitted from YTD/Month. */
+  missingInForceDateCount: number
 }
 
 export type ProductionDashboardModel = {
@@ -52,20 +69,16 @@ export type ProductionDashboardModel = {
     unannualizableLifeCount: number
   }
   protection: ProtectionMetric
-}
-
-const LIFE_LINES: ReadonlySet<ProductionProductLine> = new Set(['life_term', 'life_permanent'])
-
-export function isLifeProductionLine(line: ProductionProductLine | string): boolean {
-  return LIFE_LINES.has(line as ProductionProductLine)
-}
-
-export function isFiaProductionLine(line: ProductionProductLine | string): boolean {
-  return line === 'fia'
+  funnel: ProductionFunnelMetrics
 }
 
 export function emptyStageTotals(): StageMoneyTotals {
   return { caseCount: 0, lifePremiumCents: 0, annuityDepositCents: 0, unannualizableLifeCount: 0 }
+}
+
+function emptyFunnel(): ProductionFunnelMetrics {
+  const empty = placementRatesFromCounts(emptyLineFunnelCounts())
+  return { life: empty, fia: empty, all: empty }
 }
 
 export function emptyDashboardModel(
@@ -80,9 +93,16 @@ export function emptyDashboardModel(
       approved: emptyStageTotals(),
       sent_to_draft: emptyStageTotals(),
       premium_drafted: emptyStageTotals(),
+      issued: emptyStageTotals(),
     },
     summary: { lifePremiumCents: 0, annuityDepositCents: 0, unannualizableLifeCount: 0 },
-    protection: { knownFaceCents: 0, unknownFaceCount: 0, inForceLifeCount: 0 },
+    protection: {
+      knownFaceCents: 0,
+      unknownFaceCount: 0,
+      inForceLifeCount: 0,
+      missingInForceDateCount: 0,
+    },
+    funnel: emptyFunnel(),
   }
 }
 
@@ -114,10 +134,6 @@ function addApplicationMoney(
   if (isFiaProductionLine(item.product_line)) {
     totals.annuityDepositCents = addKnownCents(totals.annuityDepositCents, item.annuity_deposit_cents)
   }
-}
-
-export function isDashboardPipelineStage(stage: string): stage is DashboardPipelineStage {
-  return (DASHBOARD_PIPELINE_STAGES as readonly string[]).includes(stage)
 }
 
 export function summarizeLifeAndAnnuity(
@@ -161,10 +177,14 @@ export function computeActiveLifeProtection(
   let knownFaceCents = 0
   let unknownFaceCount = 0
   let inForceLifeCount = 0
+  let missingInForceDateCount = 0
   for (const item of items) {
     if (item.deleted_at != null) continue
     if (!isLifeProductionLine(item.product_line)) continue
     if (item.production_stage !== 'in_force') continue
+    if (!calendarDateOnly(item.in_force_date)) {
+      missingInForceDateCount += 1
+    }
     if (period !== 'lifetime' && !calendarDateInPeriod(item.in_force_date, period, today)) {
       continue
     }
@@ -175,16 +195,7 @@ export function computeActiveLifeProtection(
       knownFaceCents += item.face_amount_cents
     }
   }
-  return { knownFaceCents, unknownFaceCount, inForceLifeCount }
-}
-
-export function applicationsInProductionPeriod(
-  items: readonly ProductionApplicationListItem[],
-  period: DashboardReportingPeriod,
-  today: string,
-): ProductionApplicationListItem[] {
-  if (period === 'lifetime') return [...items]
-  return items.filter((item) => calendarDateInPeriod(item.submission_date, period, today))
+  return { knownFaceCents, unknownFaceCount, inForceLifeCount, missingInForceDateCount }
 }
 
 export function buildProductionDashboard(
@@ -193,23 +204,15 @@ export function buildProductionDashboard(
 ): ProductionDashboardModel {
   const period = options.period ?? 'lifetime'
   const today = options.today ?? '9999-12-31'
-  const scoped = applicationsInProductionPeriod(items, period, today)
+  const cohort = applicationsInSubmittedCohort(items, period, today)
   const model = emptyDashboardModel(period)
-  for (const item of scoped) {
+  for (const item of cohort) {
     if (isDashboardPipelineStage(item.production_stage)) {
       addApplicationMoney(model.pipeline[item.production_stage], item)
     }
   }
-  model.summary = summarizeLifeAndAnnuity(scoped)
+  model.summary = summarizeLifeAndAnnuity(cohort)
   model.protection = computeActiveLifeProtection(items, { period, today })
+  model.funnel = computeProductionFunnel(cohort)
   return model
-}
-
-export function pipelineStageLabel(stage: DashboardPipelineStage): string {
-  if (stage === 'submitted') return 'Applied'
-  if (stage === 'paramed') return 'Paramed'
-  if (stage === 'in_underwriting') return 'In Underwriting'
-  if (stage === 'approved') return 'Approved'
-  if (stage === 'sent_to_draft') return 'Sent to Draft'
-  return 'Drafted'
 }

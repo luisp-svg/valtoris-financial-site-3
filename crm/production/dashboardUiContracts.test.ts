@@ -11,6 +11,8 @@ const applicationApi = readFileSync(join(here, 'applicationApi.ts'), 'utf8')
 const compensationApi = readFileSync(join(here, 'compensationApi.ts'), 'utf8')
 const dashboardView = readFileSync(join(here, 'dashboardView.ts'), 'utf8')
 const dashboardUi = readFileSync(join(here, 'ProductionDashboard.tsx'), 'utf8')
+const productionMetrics = readFileSync(join(here, 'productionMetrics.ts'), 'utf8')
+const styles = readFileSync(join(here, '../../src/styles.css'), 'utf8')
 
 const EXPECTED_MIGRATIONS = [
   '001_extensions_and_enums.sql',
@@ -55,13 +57,15 @@ const EXPECTED_MIGRATIONS = [
   '040_commission_pending_import.sql',
   '041_commission_pending_review.sql',
   '042_writing_receivable_eligibility.sql',
+  '043_public_report_card_ingest.sql',
 ]
 
 describe('Phase A production dashboard contracts', () => {
-  it('does not add a production dashboard migration and leaves 001–042 as the migration set', () => {
+  it('does not add a production dashboard or Case migration and leaves 001–043 as the migration set', () => {
     const files = readdirSync(migrationsDir).filter((name) => name.endsWith('.sql')).sort()
     expect(files).toEqual(EXPECTED_MIGRATIONS)
-    expect(existsSync(join(migrationsDir, '039_production_dashboard.sql'))).toBe(false)
+    expect(existsSync(join(migrationsDir, '044_case_management.sql'))).toBe(false)
+    expect(files.filter((name) => name.startsWith('044_'))).toEqual([])
   })
 
   it('does not introduce drag/drop, pending commission stage, or stage mutation', () => {
@@ -112,6 +116,15 @@ describe('Phase A production dashboard contracts', () => {
     expect(dashboardUi).toContain('Net Paid')
     expect(dashboardUi).toContain('not a production stage')
     expect(dashboardUi).toContain('Active Life Protection')
+    expect(dashboardUi).toContain('Production Performance')
+    expect(dashboardUi).toContain('Current Case Pipeline')
+    expect(dashboardUi).toContain('pipelineStageLabel(stage)')
+    expect(productionMetrics).toContain("Issued / Awaiting Placement")
+    expect(productionMetrics).toContain("return 'Submitted'")
+    expect(dashboardUi).toContain('Gross Placement Rate')
+    expect(dashboardUi).toContain('Resolved Placement Rate')
+    expect(dashboardUi).toContain('not Applied')
+    expect(dashboardView).toContain('applicationsInSubmittedCohort')
     expect(dashboardUi).toContain('crm-production-comp-grid')
     expect(dashboardUi).toContain('role="table"')
     expect(dashboardUi).toContain('ExpectedReviewDialog')
@@ -126,5 +139,7 @@ describe('Phase A production dashboard contracts', () => {
     expect(productionApi).toContain('face_amount_cents')
     expect(productionApi).toContain('premium_mode')
     expect(productionApi).toContain('in_force_date')
+    expect(styles).toContain('.crm-production-funnel-grid')
+    expect(styles).toContain('.crm-production-funnel-row')
   })
 })

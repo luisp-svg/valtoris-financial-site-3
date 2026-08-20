@@ -45,7 +45,7 @@ function item(
 }
 
 describe('production dashboard aggregation', () => {
-  it('counts submitted under Applied and premium_drafted under Drafted', () => {
+  it('counts current submitted on the pipeline and cumulative Applied on the funnel', () => {
     const model = buildProductionDashboard([
       item({
         id: 'applied',
@@ -68,6 +68,8 @@ describe('production dashboard aggregation', () => {
     expect(model.pipeline.premium_drafted.caseCount).toBe(1)
     expect(model.pipeline.premium_drafted.lifePremiumCents).toBe(100000)
     expect(model.pipeline.paramed.caseCount).toBe(0)
+    expect(model.funnel.all.applied).toBe(2)
+    expect(model.funnel.life.applied).toBe(2)
   })
 
   it('annualizes stored monthly premium using premium_mode and never treats face as premium', () => {
@@ -231,6 +233,7 @@ describe('production dashboard aggregation', () => {
     expect(protection.knownFaceCents).toBe(1247609400)
     expect(protection.unknownFaceCount).toBe(1)
     expect(protection.inForceLifeCount).toBe(2)
+    expect(protection.missingInForceDateCount).toBe(1)
   })
 
   it('scopes Active Life Protection YTD and This Month by in-force date, not submission date', () => {
@@ -262,6 +265,7 @@ describe('production dashboard aggregation', () => {
     expect(computeActiveLifeProtection(rows, { period: 'ytd', today }).knownFaceCents).toBe(300000)
     expect(computeActiveLifeProtection(rows, { period: 'this_month', today }).knownFaceCents).toBe(200000)
     expect(computeActiveLifeProtection(rows, { period: 'ytd', today }).inForceLifeCount).toBe(2)
+    expect(computeActiveLifeProtection(rows, { period: 'ytd', today }).missingInForceDateCount).toBe(1)
   })
 
   it('scopes pipeline snapshots by submission date for YTD and This Month', () => {
@@ -295,14 +299,17 @@ describe('production dashboard aggregation', () => {
     const lifetime = buildProductionDashboard(rows, { period: 'lifetime', today })
     const ytd = buildProductionDashboard(rows, { period: 'ytd', today })
     const month = buildProductionDashboard(rows, { period: 'this_month', today })
-    expect(lifetime.pipeline.approved.caseCount).toBe(3)
-    expect(lifetime.pipeline.approved.lifePremiumCents).toBe(70000)
+    expect(lifetime.pipeline.approved.caseCount).toBe(2)
+    expect(lifetime.pipeline.approved.lifePremiumCents).toBe(30000)
+    expect(lifetime.funnel.all.applied).toBe(3)
     expect(ytd.pipeline.approved.caseCount).toBe(1)
     expect(ytd.pipeline.approved.lifePremiumCents).toBe(20000)
     expect(ytd.pipeline.in_underwriting.caseCount).toBe(1)
+    expect(ytd.funnel.all.applied).toBe(2)
     expect(month.pipeline.in_underwriting.caseCount).toBe(1)
     expect(month.pipeline.approved.caseCount).toBe(0)
     expect(month.summary.lifePremiumCents).toBe(30000)
+    expect(month.funnel.all.applied).toBe(1)
   })
 
   it('composes operational filters with the reporting period without mutating the queue set', () => {
@@ -337,5 +344,28 @@ describe('production dashboard aggregation', () => {
     expect(filtered.map((row) => row.id).sort()).toEqual(['tx-month', 'tx-old'])
     expect(month.pipeline.in_underwriting.caseCount).toBe(1)
     expect(month.pipeline.in_underwriting.lifePremiumCents).toBe(50000)
+  })
+
+  it('puts issued on the current-stage pipeline and still counts it as Applied', () => {
+    const model = buildProductionDashboard([
+      item({
+        id: 'iss',
+        production_stage: 'issued',
+        submitted_premium_cents: 120000,
+      }),
+      item({
+        id: 'if',
+        production_stage: 'in_force',
+        submitted_premium_cents: 80000,
+        face_amount_cents: 25000000,
+        in_force_date: '2026-06-01',
+      }),
+    ])
+    expect(model.pipeline.issued.caseCount).toBe(1)
+    expect(model.pipeline.issued.lifePremiumCents).toBe(120000)
+    expect(model.funnel.all.applied).toBe(2)
+    expect(model.funnel.all.placed).toBe(1)
+    expect(model.funnel.all.pending).toBe(1)
+    expect(model.protection.inForceLifeCount).toBe(1)
   })
 })

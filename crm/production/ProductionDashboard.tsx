@@ -4,8 +4,11 @@ import { formatSignedCents } from './compensationView'
 import type { DashboardReportingPeriod } from './dashboardPeriod'
 import {
   DASHBOARD_PIPELINE_STAGES,
+  formatPlacementRate,
   pipelineStageLabel,
+  type LineFunnelMetrics,
   type ProductionDashboardModel,
+  type ProductionFunnelMetrics,
   type StageMoneyTotals,
 } from './dashboardView'
 import ExpectedReviewDialog from './ExpectedReviewDialog'
@@ -30,6 +33,28 @@ function caseLabel(count: number): string {
 
 function reviewCountLabel(count: number): string {
   return count === 1 ? '1 needs review' : `${count} need review`
+}
+
+function protectionPeriodCaption(period: DashboardReportingPeriod): string {
+  if (period === 'ytd') {
+    return 'YTD = policies entering in-force this year. Lifetime is the entire current in-force book.'
+  }
+  if (period === 'this_month') {
+    return 'This Month = policies entering in-force this month. Lifetime is the entire current in-force book.'
+  }
+  return 'Lifetime = entire current in-force book. YTD / This Month = policies entering in-force during that period.'
+}
+
+function missingInForceDateNote(
+  period: DashboardReportingPeriod,
+  missingCount: number,
+): string | null {
+  if (missingCount <= 0) return null
+  const noun = missingCount === 1 ? 'in-force life policy has' : 'in-force life policies have'
+  if (period === 'lifetime') {
+    return `${missingCount} ${noun} no in-force date. They are included in Lifetime and omitted from YTD / This Month.`
+  }
+  return `${missingCount} ${noun} no in-force date and ${missingCount === 1 ? 'is' : 'are'} omitted from this period.`
 }
 
 function StageKpiCard({
@@ -64,6 +89,91 @@ function StageKpiCard({
   )
 }
 
+function FunnelCount({ value }: { value: number }) {
+  return <span>{value}</span>
+}
+
+function FunnelRate({ rate }: { rate: number | null }) {
+  return <span>{formatPlacementRate(rate)}</span>
+}
+
+function FunnelRow({
+  label,
+  life,
+  fia,
+  all,
+  kind,
+}: {
+  label: string
+  life: LineFunnelMetrics
+  fia: LineFunnelMetrics
+  all: LineFunnelMetrics
+  kind:
+    | 'applied'
+    | 'placed'
+    | 'declined'
+    | 'notTaken'
+    | 'withdrawn'
+    | 'incomplete'
+    | 'pending'
+    | 'gross'
+    | 'resolved'
+}) {
+  const isRate = kind === 'gross' || kind === 'resolved'
+  return (
+    <div className="crm-production-funnel-row" role="row">
+      <div role="rowheader">{label}</div>
+      <div role="cell" data-label="Life">
+        {isRate ? (
+          <FunnelRate rate={kind === 'gross' ? life.grossPlacementRate : life.resolvedPlacementRate} />
+        ) : (
+          <FunnelCount value={life[kind]} />
+        )}
+      </div>
+      <div role="cell" data-label="FIA">
+        {isRate ? (
+          <FunnelRate rate={kind === 'gross' ? fia.grossPlacementRate : fia.resolvedPlacementRate} />
+        ) : (
+          <FunnelCount value={fia[kind]} />
+        )}
+      </div>
+      <div role="cell" data-label="Total">
+        {isRate ? (
+          <FunnelRate rate={kind === 'gross' ? all.grossPlacementRate : all.resolvedPlacementRate} />
+        ) : (
+          <FunnelCount value={all[kind]} />
+        )}
+      </div>
+    </div>
+  )
+}
+
+function ProductionFunnelTable({ funnel }: { funnel: ProductionFunnelMetrics }) {
+  const { life, fia, all } = funnel
+  return (
+    <div
+      className="crm-production-funnel-grid"
+      role="table"
+      aria-label="Production performance by Life and FIA"
+    >
+      <div className="crm-production-funnel-row is-head" role="row">
+        <div role="columnheader">Metric</div>
+        <div role="columnheader">Life</div>
+        <div role="columnheader">FIA</div>
+        <div role="columnheader">Total</div>
+      </div>
+      <FunnelRow label="Applied" kind="applied" life={life} fia={fia} all={all} />
+      <FunnelRow label="Placed / In Force" kind="placed" life={life} fia={fia} all={all} />
+      <FunnelRow label="Declined" kind="declined" life={life} fia={fia} all={all} />
+      <FunnelRow label="Not Taken" kind="notTaken" life={life} fia={fia} all={all} />
+      <FunnelRow label="Withdrawn" kind="withdrawn" life={life} fia={fia} all={all} />
+      <FunnelRow label="Pending" kind="pending" life={life} fia={fia} all={all} />
+      <FunnelRow label="Gross Placement Rate" kind="gross" life={life} fia={fia} all={all} />
+      <FunnelRow label="Resolved Placement Rate" kind="resolved" life={life} fia={fia} all={all} />
+    </div>
+  )
+}
+
 function ReviewCountButton({
   count,
   onClick,
@@ -88,8 +198,9 @@ export default function ProductionDashboard({
   onCompensationPeriodChange,
   loading,
 }: ProductionDashboardProps) {
-  const { summary, protection, pipeline } = model
+  const { summary, protection, pipeline, funnel } = model
   const [reviewScope, setReviewScope] = useState<ReviewScope | null>(null)
+  const dateNote = missingInForceDateNote(productionPeriod, protection.missingInForceDateCount)
 
   const reviewItems = useMemo(() => {
     if (reviewScope == null) return []
@@ -118,9 +229,9 @@ export default function ProductionDashboard({
       ) : (
         <div className="crm-production-dashboard-stack">
           <p className="crm-production-kpi-caption">
-            Current-stage snapshot. Production period uses application submission date. Active Life
-            Protection period uses in-force date. Queue filters still apply; this control does not
-            change the applications list.
+            Production Performance uses application submission date. Current Case Pipeline is the
+            current stage of that submitted cohort. Active Life Protection uses in-force date.
+            Queue filters still apply; this control does not change the applications list.
           </p>
           <div className="crm-production-kpi-grid crm-production-kpi-grid-summary">
             <article className="crm-production-kpi-card crm-production-kpi-card-hero">
@@ -133,15 +244,23 @@ export default function ProductionDashboard({
                   : ` · ${protection.inForceLifeCount} in-force life policies`}
               </p>
               <p className="crm-production-kpi-caption">
-                {protection.unknownFaceCount === 1
-                  ? '1 in-force life policy with unknown face amount'
-                  : `${protection.unknownFaceCount} in-force life policies with unknown face amount`}
+                {protectionPeriodCaption(productionPeriod)}
               </p>
+              {protection.unknownFaceCount > 0 ? (
+                <p className="crm-production-kpi-caption">
+                  {protection.unknownFaceCount === 1
+                    ? '1 in-force life policy with unknown face amount'
+                    : `${protection.unknownFaceCount} in-force life policies with unknown face amount`}
+                </p>
+              ) : null}
+              {dateNote ? <p className="crm-production-kpi-caption">{dateNote}</p> : null}
             </article>
             <article className="crm-production-kpi-card">
               <h3 className="crm-production-kpi-label">Annual Life Premium</h3>
               <p className="crm-production-kpi-value">{formatCents(summary.lifePremiumCents)}</p>
-              <p className="crm-production-kpi-caption">Annualized submitted life premium</p>
+              <p className="crm-production-kpi-caption">
+                Annualized submitted life premium in the submission cohort
+              </p>
               {summary.unannualizableLifeCount > 0 ? (
                 <p className="crm-production-kpi-caption">
                   {summary.unannualizableLifeCount === 1
@@ -153,19 +272,38 @@ export default function ProductionDashboard({
             <article className="crm-production-kpi-card">
               <h3 className="crm-production-kpi-label">Annuity / FIA Deposits</h3>
               <p className="crm-production-kpi-value">{formatCents(summary.annuityDepositCents)}</p>
-              <p className="crm-production-kpi-caption">Visible FIA applications</p>
+              <p className="crm-production-kpi-caption">
+                FIA deposit amounts in the submission cohort — not life premium
+              </p>
             </article>
           </div>
 
-          <div className="crm-production-kpi-grid crm-production-kpi-grid-pipeline">
-            {DASHBOARD_PIPELINE_STAGES.map((stage) => (
-              <StageKpiCard
-                key={stage}
-                title={pipelineStageLabel(stage)}
-                totals={pipeline[stage]}
-              />
-            ))}
-          </div>
+          <section className="crm-production-funnel" aria-label="Production Performance">
+            <h3>Production Performance</h3>
+            <p className="crm-production-kpi-caption">
+              How much we wrote and placed. Applied is cumulative submitted applications for this
+              period, including later stages. Placement rates are case counts, not dollars.
+              Postponed stays pending.
+            </p>
+            <ProductionFunnelTable funnel={funnel} />
+          </section>
+
+          <section className="crm-production-pipeline" aria-label="Current Case Pipeline">
+            <h3>Current Case Pipeline</h3>
+            <p className="crm-production-kpi-caption">
+              Where open cases are right now, within the selected submission cohort. Submitted is
+              the current stage — not Applied.
+            </p>
+            <div className="crm-production-kpi-grid crm-production-kpi-grid-pipeline">
+              {DASHBOARD_PIPELINE_STAGES.map((stage) => (
+                <StageKpiCard
+                  key={stage}
+                  title={pipelineStageLabel(stage)}
+                  totals={pipeline[stage]}
+                />
+              ))}
+            </div>
+          </section>
 
           <section className="crm-production-compensation" aria-label="Advisor Compensation">
             <div className="crm-production-dashboard-head">
