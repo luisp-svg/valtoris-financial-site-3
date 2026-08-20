@@ -1,5 +1,7 @@
 import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js'
 import { formatActivityTypeLabel as formatPlatformActivityTypeLabel } from '../../platform/activities'
+import { countOpenPolicyCases } from '../production/caseWorkspace'
+import { fetchHouseholdProductionApplications } from '../production/productionApi'
 import { MANUAL_CONTACT_HOUSEHOLD_EXCLUSION } from '../contacts/exclusions'
 import {
   fetchHouseholdActivityRecords,
@@ -1172,6 +1174,7 @@ export async function fetchHouseholdWorkspace(
     activities,
     activePolicies,
     recentDocuments,
+    productionApplications,
   ] = await Promise.all([
     settledOrEmpty(
       fetchOpenTasksForHousehold(supabase, householdId),
@@ -1227,6 +1230,11 @@ export async function fetchHouseholdWorkspace(
       [] as HouseholdDocumentSummary[],
       'recent_documents',
     ),
+    settledOrEmpty(
+      fetchHouseholdProductionApplications(supabase, householdId),
+      [],
+      'production_applications',
+    ),
   ])
 
   const { timeline, timelineComplete } = buildWorkspaceTimeline(notes, activities)
@@ -1253,7 +1261,7 @@ export async function fetchHouseholdWorkspace(
     activities,
     timeline,
     timelineComplete,
-    openCasesCount: 0,
+    openCasesCount: countOpenPolicyCases(productionApplications),
     activePolicies: scoringCollections.activePolicies,
     financialProgressPolicies: scoringCollections.financialProgressPolicies,
     financialProgressOpenTasks: scoringCollections.financialProgressOpenTasks,

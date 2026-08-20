@@ -3,15 +3,23 @@ import { Link } from 'react-router-dom'
 import { crmProductionPath } from '../../constants/routes'
 import type { CrmSupportedRole } from '../types'
 import { productionBoardCardMoney } from './boardCardMoney'
+import CaseAttentionFlagList from './CaseAttentionFlagList'
+import {
+  caseAttentionFlags,
+  formatCaseAttentionLabels,
+  formatCaseProductLineLabel,
+} from './caseWorkspace'
 import { boardDraggableId, boardMoveDestinations } from './boardMovement'
 import ProductionBoardMoveMenu from './ProductionBoardMoveMenu'
 import {
   computeDaysInStage,
   getActiveLinkedPolicy,
+  getInsuredOrAnnuitantLabel,
   getWritingAdvisorLabel,
+  isFollowUpOverdue,
 } from './daysInStage'
 import StageBadge from './StageBadge'
-import { formatCents } from './productionApi'
+import { formatCents, formatProductionDate } from './productionApi'
 import type { ProductionApplicationListItem, ProductionStage } from './types'
 import { PRODUCTION_STALE_DAYS_IN_STAGE } from './types'
 
@@ -65,6 +73,8 @@ export default function ProductionBoardCard({
     now: asOf,
   })
   const stale = days >= PRODUCTION_STALE_DAYS_IN_STAGE
+  const overdue = isFollowUpOverdue(item.next_follow_up_date, asOf)
+  const attention = formatCaseAttentionLabels(caseAttentionFlags(item, asOf), item.product_line)
   const linked = getActiveLinkedPolicy(item)
   const policyNumber = linked?.policy_number ?? item.policy_number
   const householdName = item.household?.display_name?.trim() || 'Household'
@@ -84,12 +94,14 @@ export default function ProductionBoardCard({
       <Link to={crmProductionPath(item.id)} className="crm-production-board-card-link">
         <h4 className="crm-production-board-card-name">{householdName}</h4>
         <p className="crm-production-board-card-product">
-          {item.carrier?.name ?? '—'} · {item.product?.name ?? '—'}
+          {item.carrier?.name ?? '—'} · {item.product?.name ?? '—'} ·{' '}
+          {formatCaseProductLineLabel(item.product_line)}
         </p>
         <p className="crm-production-board-card-ids">
           App {item.application_number ?? '—'}
           {policyNumber ? ` · Policy ${policyNumber}` : ''}
         </p>
+        <CaseAttentionFlagList labels={attention} />
         <dl className="crm-production-board-card-meta">
           {showStageBadge ? (
             <div>
@@ -100,12 +112,23 @@ export default function ProductionBoardCard({
             </div>
           ) : null}
           <div>
+            <dt>Insured / Annuitant</dt>
+            <dd>{getInsuredOrAnnuitantLabel(item)}</dd>
+          </div>
+          <div>
             <dt>Advisor</dt>
             <dd>{getWritingAdvisorLabel(item)}</dd>
           </div>
           <div>
             <dt>State</dt>
             <dd>{item.state || '—'}</dd>
+          </div>
+          <div>
+            <dt>Follow-up</dt>
+            <dd className={overdue ? 'crm-production-overdue' : undefined}>
+              {formatProductionDate(item.next_follow_up_date)}
+              {overdue ? ' · overdue' : ''}
+            </dd>
           </div>
           <div>
             <dt>Days in stage</dt>

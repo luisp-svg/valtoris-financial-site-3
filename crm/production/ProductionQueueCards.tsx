@@ -1,4 +1,11 @@
 import { Link } from 'react-router-dom'
+import CaseAttentionFlagList from './CaseAttentionFlagList'
+import {
+  caseAttentionFlags,
+  formatCaseAmount,
+  formatCaseAttentionLabels,
+  formatCaseProductLineLabel,
+} from './caseWorkspace'
 import CompensationStatusBadge from './CompensationStatusBadge'
 import {
   countCurrentWritingAdvisors,
@@ -17,7 +24,6 @@ import {
 import {
   formatProductionDeliveryLabel,
   formatProductionDispositionLabel,
-  formatProductionProductLineShort,
   formatProductionStageLabel,
 } from './labels'
 import { formatProductionDate } from './productionApi'
@@ -29,9 +35,15 @@ type ProductionQueueCardsProps = {
   items: ProductionApplicationListItem[]
   viewer: CompensationViewer
   now?: Date
+  hideCompensation?: boolean
 }
 
-export default function ProductionQueueCards({ items, viewer, now }: ProductionQueueCardsProps) {
+export default function ProductionQueueCards({
+  items,
+  viewer,
+  now,
+  hideCompensation = false,
+}: ProductionQueueCardsProps) {
   const asOf = now ?? new Date()
 
   return (
@@ -44,8 +56,9 @@ export default function ProductionQueueCards({ items, viewer, now }: ProductionQ
           now: asOf,
         })
         const stale = isStaleDaysInStage(days)
-        const overdue = isFollowUpOverdue(item.next_follow_up_date, asOf)
-        const linked = getActiveLinkedPolicy(item)
+            const overdue = isFollowUpOverdue(item.next_follow_up_date, asOf)
+            const attention = formatCaseAttentionLabels(caseAttentionFlags(item, asOf), item.product_line)
+            const linked = getActiveLinkedPolicy(item)
         const expected = deriveExpectedListPresentation({
           viewer,
           productionStage: item.production_stage,
@@ -61,6 +74,7 @@ export default function ProductionQueueCards({ items, viewer, now }: ProductionQ
                 <h3 className="crm-opportunities-name">
                   {item.household?.display_name?.trim() || 'Household'}
                 </h3>
+                <CaseAttentionFlagList labels={attention} />
                 <dl className="crm-opportunities-card-meta">
                   <div>
                     <dt>Stage</dt>
@@ -88,7 +102,7 @@ export default function ProductionQueueCards({ items, viewer, now }: ProductionQ
                     <dt>Carrier / product</dt>
                     <dd>
                       {item.carrier?.name ?? '—'} · {item.product?.name ?? '—'} (
-                      {formatProductionProductLineShort(item.product_line)})
+                      {formatCaseProductLineLabel(item.product_line)})
                     </dd>
                   </div>
                   <div>
@@ -98,17 +112,24 @@ export default function ProductionQueueCards({ items, viewer, now }: ProductionQ
                       {expected.split ? ' · Split' : ''}
                     </dd>
                   </div>
-                  <div>
-                    <dt>Expected</dt>
-                    <dd>
-                      <CompensationStatusBadge status={expected.status} review={expected.review} />
-                      <div className="crm-production-money">
-                        {formatListExpectedAmount(expected)}
-                      </div>
-                      {amountCaption ? <div className="crm-muted">{amountCaption}</div> : null}
-                      {expected.review ? <div>Review</div> : null}
-                    </dd>
-                  </div>
+                  {hideCompensation ? (
+                    <div>
+                      <dt>Amount</dt>
+                      <dd>{formatCaseAmount(item)}</dd>
+                    </div>
+                  ) : (
+                    <div>
+                      <dt>Expected</dt>
+                      <dd>
+                        <CompensationStatusBadge status={expected.status} review={expected.review} />
+                        <div className="crm-production-money">
+                          {formatListExpectedAmount(expected)}
+                        </div>
+                        {amountCaption ? <div className="crm-muted">{amountCaption}</div> : null}
+                        {expected.review ? <div>Review</div> : null}
+                      </dd>
+                    </div>
+                  )}
                   <div>
                     <dt>Delivery / disposition</dt>
                     <dd>

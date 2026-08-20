@@ -30,6 +30,8 @@ describe('Phase B production board contracts', () => {
     expect(queuePage).toMatch(/useEffect\([\s\S]*, \[reloadKey\]\)/)
     expect(queuePage).not.toMatch(/useEffect\([\s\S]*, \[[^\]]*viewMode/)
     expect(queuePage).toContain('buildProductionDashboard(filteredItems, { period: productionPeriod, today })')
+    expect(queuePage).not.toMatch(/buildProductionDashboard\([^)]*caseItems/)
+    expect(queuePage).not.toMatch(/buildProductionDashboard\([^)]*caseView/)
     expect(queuePage).not.toMatch(/buildProductionDashboard\([^)]*viewMode/)
     expect(queuePage).not.toMatch(/useEffect\([\s\S]*, \[[^\]]*productionPeriod/)
     expect(queuePage).not.toMatch(/useEffect\([\s\S]*, \[[^\]]*compensationPeriod/)
@@ -56,7 +58,7 @@ describe('Phase B production board contracts', () => {
 
   it('uses the existing detail path and shared filtered items', () => {
     expect(card).toContain('crmProductionPath(item.id)')
-    expect(queuePage).toContain('items={filteredItems}')
+    expect(queuePage).toContain('items={caseItems}')
     expect(queuePage).toContain('stageFilter={filters.stages}')
     expect(queuePage).toContain('ProductionQueueCards')
     expect(queuePage).toContain('productionListCapWarning')

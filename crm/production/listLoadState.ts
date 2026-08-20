@@ -60,5 +60,5 @@ export function productionListCapWarning(
   limit: number,
 ): string | null {
   if (loadedCount !== limit) return null
-  return `Showing the first ${limit} production records. Production dashboard and Advisor Compensation totals may be incomplete.`
+  return `Showing the first ${limit} production records. Production dashboard, Case views, and Advisor Compensation totals may be incomplete.`
 }

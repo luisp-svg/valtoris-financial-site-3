@@ -1,4 +1,11 @@
 import { Link } from 'react-router-dom'
+import CaseAttentionFlagList from './CaseAttentionFlagList'
+import {
+  caseAttentionFlags,
+  formatCaseAmount,
+  formatCaseAttentionLabels,
+  formatCaseProductLineLabel,
+} from './caseWorkspace'
 import CompensationStatusBadge from './CompensationStatusBadge'
 import {
   countCurrentWritingAdvisors,
@@ -17,7 +24,6 @@ import {
 import {
   formatProductionDeliveryLabel,
   formatProductionDispositionLabel,
-  formatProductionProductLineShort,
 } from './labels'
 import { formatProductionDate, formatProductionDateTime } from './productionApi'
 import StageBadge from './StageBadge'
@@ -29,9 +35,15 @@ type ProductionQueueTableProps = {
   items: ProductionApplicationListItem[]
   viewer: CompensationViewer
   now?: Date
+  hideCompensation?: boolean
 }
 
-export default function ProductionQueueTable({ items, viewer, now }: ProductionQueueTableProps) {
+export default function ProductionQueueTable({
+  items,
+  viewer,
+  now,
+  hideCompensation = false,
+}: ProductionQueueTableProps) {
   const asOf = now ?? new Date()
 
   return (
@@ -49,9 +61,15 @@ export default function ProductionQueueTable({ items, viewer, now }: ProductionQ
             <th scope="col">Days in stage</th>
             <th scope="col">App / policy #</th>
             <th scope="col">Submitted</th>
-            <th scope="col">Expected status</th>
-            <th scope="col">Expected</th>
-            <th scope="col">Review</th>
+            {hideCompensation ? (
+              <th scope="col">Amount</th>
+            ) : (
+              <>
+                <th scope="col">Expected status</th>
+                <th scope="col">Expected</th>
+                <th scope="col">Review</th>
+              </>
+            )}
             <th scope="col">Updated</th>
             <th scope="col">Follow-up</th>
             <th scope="col">Delivery / disposition</th>
@@ -67,6 +85,7 @@ export default function ProductionQueueTable({ items, viewer, now }: ProductionQ
             })
             const stale = isStaleDaysInStage(days)
             const overdue = isFollowUpOverdue(item.next_follow_up_date, asOf)
+            const attention = formatCaseAttentionLabels(caseAttentionFlags(item, asOf), item.product_line)
             const linked = getActiveLinkedPolicy(item)
             const policyNumber = linked?.policy_number ?? item.policy_number
             const expected = deriveExpectedListPresentation({
@@ -86,6 +105,7 @@ export default function ProductionQueueTable({ items, viewer, now }: ProductionQ
                   >
                     {item.household?.display_name?.trim() || 'Household'}
                   </Link>
+                  <CaseAttentionFlagList labels={attention} />
                   {linked ? (
                     <span className="crm-production-linked-pill" title="Linked issued policy">
                       Linked policy
@@ -97,7 +117,7 @@ export default function ProductionQueueTable({ items, viewer, now }: ProductionQ
                 <td>
                   <div>{item.product?.name ?? '—'}</div>
                   <div className="crm-muted">
-                    {formatProductionProductLineShort(item.product_line)}
+                    {formatCaseProductLineLabel(item.product_line)}
                   </div>
                 </td>
                 <td>{getWritingAdvisorLabel(item)}</td>
@@ -118,16 +138,22 @@ export default function ProductionQueueTable({ items, viewer, now }: ProductionQ
                   <div className="crm-muted">{policyNumber ?? '—'}</div>
                 </td>
                 <td>{formatProductionDate(item.submission_date)}</td>
-                <td>
-                  <CompensationStatusBadge status={expected.status} review={expected.review} />
-                </td>
-                <td className="crm-production-money">
-                  {formatListExpectedAmount(expected)}
-                  {amountCaption ? (
-                    <div className="crm-muted">{amountCaption}</div>
-                  ) : null}
-                </td>
-                <td>{expected.review ? 'Review' : '—'}</td>
+                {hideCompensation ? (
+                  <td>{formatCaseAmount(item)}</td>
+                ) : (
+                  <>
+                    <td>
+                      <CompensationStatusBadge status={expected.status} review={expected.review} />
+                    </td>
+                    <td className="crm-production-money">
+                      {formatListExpectedAmount(expected)}
+                      {amountCaption ? (
+                        <div className="crm-muted">{amountCaption}</div>
+                      ) : null}
+                    </td>
+                    <td>{expected.review ? 'Review' : '—'}</td>
+                  </>
+                )}
                 <td>{formatProductionDateTime(item.updated_at)}</td>
                 <td>
                   <span className={overdue ? 'crm-production-overdue' : undefined}>

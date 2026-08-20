@@ -56,6 +56,13 @@ import {
   writtenStateFilterOptions,
 } from '../../crm/production/queueView'
 import {
+  applyCaseWorkspaceView,
+  CASE_WORKSPACE_VIEWS,
+  caseListHeading,
+  type CaseWorkspaceView,
+} from '../../crm/production/caseWorkspace'
+import CaseWorkspaceViewBar from '../../crm/production/CaseWorkspaceViewBar'
+import {
   PRODUCTION_PRODUCT_LINES,
   PRODUCTION_STAGES,
   PRODUCTION_STALE_DAYS_IN_STAGE,
@@ -108,6 +115,7 @@ export default function CrmProductionPage() {
     DEFAULT_COMPENSATION_DASHBOARD_PERIOD,
   )
   const [viewMode, setViewMode] = useState<ProductionQueueViewMode>(DEFAULT_PRODUCTION_QUEUE_VIEW)
+  const [caseView, setCaseView] = useState<CaseWorkspaceView>('all_applications')
   const [reloadKey, setReloadKey] = useState(0)
   const [notesTarget, setNotesTarget] = useState<{
     householdId: string
@@ -222,8 +230,23 @@ export default function CrmProductionPage() {
     () => applyProductionQueueView(items, filters),
     [items, filters],
   )
-
   const today = localDateString()
+  const now = useMemo(() => {
+    const parsed = new Date(`${today}T12:00:00`)
+    return Number.isNaN(parsed.getTime()) ? new Date() : parsed
+  }, [today])
+  const caseItems = useMemo(
+    () => applyCaseWorkspaceView(filteredItems, caseView, now),
+    [filteredItems, caseView, now],
+  )
+  const caseViewCounts = useMemo(() => {
+    const counts = {} as Record<CaseWorkspaceView, number>
+    for (const view of CASE_WORKSPACE_VIEWS) {
+      counts[view] = applyCaseWorkspaceView(filteredItems, view, now).length
+    }
+    return counts
+  }, [filteredItems, now])
+
   const dashboard = useMemo(
     () => buildProductionDashboard(filteredItems, { period: productionPeriod, today }),
     [filteredItems, productionPeriod, today],
@@ -245,7 +268,7 @@ export default function CrmProductionPage() {
     loading,
     error,
     totalCount: items.length,
-    filteredCount: filteredItems.length,
+    filteredCount: caseItems.length,
   })
 
   const hasActiveFilters =
@@ -322,8 +345,9 @@ export default function CrmProductionPage() {
           <p className="crm-page-eyebrow">Production</p>
           <h1 className="crm-page-title">Life / IUL / FIA production</h1>
           <p className="crm-page-subtitle">
-            Track applications through underwriting, delivery, and in force. Enter an existing
-            Life, IUL, or FIA case, including cases already in underwriting.
+            Track applications through underwriting, delivery, and in force. Case views answer
+            which applications need operational attention. Production Performance still measures
+            what was written and placed.
           </p>
         </div>
         <div className="crm-production-header-actions">
@@ -545,10 +569,25 @@ export default function CrmProductionPage() {
         ) : null}
       </section>
 
+      <section className="crm-panel" aria-label="Case views">
+        <h2 className="crm-production-case-views-heading">Case views</h2>
+        <p className="crm-production-kpi-caption">
+          Operational working set over the current queue. Production Performance above is not
+          changed by this control. Requirements, APS, paramed results, suitability, 1035 paperwork,
+          funds-received, and application-scoped tasks or documents are not tracked yet.
+        </p>
+        <CaseWorkspaceViewBar
+          value={caseView}
+          onChange={setCaseView}
+          counts={caseViewCounts}
+          disabled={loading}
+        />
+      </section>
+
       <section className="crm-panel" aria-labelledby="crm-production-list-heading">
         <div className="crm-panel-head crm-production-view-head">
           <h2 id="crm-production-list-heading">
-            Applications ({loading ? '…' : filteredItems.length})
+            {caseListHeading(caseView)} ({loading ? '…' : caseItems.length})
           </h2>
           <ProductionViewToggle value={viewMode} onChange={setViewMode} />
         </div>
@@ -587,9 +626,10 @@ export default function CrmProductionPage() {
 
         {viewState.kind === 'ready' && viewMode === 'board' ? (
           <ProductionBoard
-            items={filteredItems}
+            items={caseItems}
             layout={boardLayout}
             stageFilter={filters.stages}
+            now={now}
             role={role}
             movementBusy={movementBusy}
             focusStage={boardFocusStage}
@@ -600,9 +640,19 @@ export default function CrmProductionPage() {
 
         {viewState.kind === 'ready' && viewMode === 'table' ? (
           tablePresentation === 'table' ? (
-            <ProductionQueueTable items={filteredItems} viewer={viewer} />
+            <ProductionQueueTable
+              items={caseItems}
+              viewer={viewer}
+              hideCompensation={caseView !== 'all_applications'}
+              now={now}
+            />
           ) : (
-            <ProductionQueueCards items={filteredItems} viewer={viewer} />
+            <ProductionQueueCards
+              items={caseItems}
+              viewer={viewer}
+              hideCompensation={caseView !== 'all_applications'}
+              now={now}
+            />
           )
         ) : null}
       </section>

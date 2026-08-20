@@ -9,21 +9,30 @@ type Props = {
 }
 
 export default function OpenCasesWidget({ workspace, onNavigateTab }: Props) {
+  const count = workspace.openCasesCount
   return (
     <Widget
       title="Open Cases"
       titleId="crm-widget-open-cases"
-      meta={<span className="crm-count-pill">{workspace.openCasesCount}</span>}
+      meta={<span className="crm-count-pill">{count}</span>}
       actions={
         <button type="button" className="crm-text-btn" onClick={() => onNavigateTab('cases')}>
           View cases
         </button>
       }
     >
-      <EmptyState
-        title="No open cases"
-        description="Cases will appear here when the Cases domain is available."
-      />
+      {count === 0 ? (
+        <EmptyState
+          title="No open cases"
+          description="Submitted Life and FIA applications still in pipeline will appear here."
+        />
+      ) : (
+        <p className="crm-muted">
+          {count === 1
+            ? '1 open Life or FIA application needs operational follow-through.'
+            : `${count} open Life or FIA applications need operational follow-through.`}
+        </p>
+      )}
     </Widget>
   )
 }

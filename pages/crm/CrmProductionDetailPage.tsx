@@ -1,5 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import CaseAttentionFlagList from '../../crm/production/CaseAttentionFlagList'
+import {
+  caseAttentionFlags,
+  formatCaseAttentionLabels,
+  formatCaseDeliveryStatusLabel,
+  formatCaseProductLineLabel,
+  formatCaseStageLabel,
+} from '../../crm/production/caseWorkspace'
 import {
   computeDaysInStage,
   formatMemberDisplayName,
@@ -13,7 +21,6 @@ import {
   formatProductionDeliveryLabel,
   formatProductionDispositionLabel,
   formatProductionParticipantRoleLabel,
-  formatProductionProductLineLabel,
   formatProductionStageLabel,
 } from '../../crm/production/labels'
 import { getProductionDetailViewState } from '../../crm/production/listLoadState'
@@ -221,6 +228,7 @@ export default function CrmProductionDetailPage() {
   })
   const stale = isStaleDaysInStage(days)
   const overdue = isFollowUpOverdue(application.next_follow_up_date, now)
+  const attention = formatCaseAttentionLabels(caseAttentionFlags(application, now), application.product_line)
   const linked = getActiveLinkedPolicy(application)
   const participants = getCurrentParticipants(application.participants)
   const allocations = getCurrentAllocations(application.allocations)
@@ -272,11 +280,13 @@ export default function CrmProductionDetailPage() {
         <div>
           <p className="crm-page-eyebrow">
             <Link to={ROUTES.crmProduction}>Production</Link>
+            {' · '}
+            Case workspace
           </p>
           <h1 className="crm-page-title">{householdName}</h1>
           <p className="crm-page-subtitle">
             {application.carrier?.name ?? 'Carrier'} · {application.product?.name ?? 'Product'} ·{' '}
-            {formatProductionProductLineLabel(application.product_line)}
+            {formatCaseProductLineLabel(application.product_line)}
           </p>
         </div>
         <div className="crm-production-header-actions">
@@ -306,10 +316,16 @@ export default function CrmProductionDetailPage() {
         <div className="crm-panel-head">
           <h2 id="pp-summary-heading">Case summary</h2>
         </div>
+        <p className="crm-muted">
+          This application is the Case record. Requirements, APS, paramed vendor results,
+          suitability, 1035 paperwork, funds-received, and application-scoped tasks or documents
+          are not tracked yet.
+        </p>
+        <CaseAttentionFlagList labels={attention} />
         <dl className="crm-production-detail-grid">
           <div>
             <dt>Stage</dt>
-            <dd>{formatProductionStageLabel(application.production_stage)}</dd>
+            <dd>{formatCaseStageLabel(application.production_stage)}</dd>
           </div>
           <div>
             <dt>Days in stage</dt>
@@ -433,7 +449,7 @@ export default function CrmProductionDetailPage() {
           </div>
           <div>
             <dt>Product line</dt>
-            <dd>{formatProductionProductLineLabel(application.product_line)}</dd>
+            <dd>{formatCaseProductLineLabel(application.product_line)}</dd>
           </div>
           <div>
             <dt>Application state</dt>
@@ -591,7 +607,7 @@ export default function CrmProductionDetailPage() {
             <dd>{formatProductionDispositionLabel(application.underwriting_disposition)}</dd>
           </div>
           <div>
-            <dt>Delivery status</dt>
+            <dt>{formatCaseDeliveryStatusLabel(application.product_line)}</dt>
             <dd>{formatProductionDeliveryLabel(application.delivery_status)}</dd>
           </div>
           <div>

@@ -11083,6 +11083,63 @@ button.public-card-diagnostic:disabled {
   font-weight: 600;
 }
 
+.crm-case-view-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.crm-production-case-views-heading {
+  margin: 0 0 8px;
+  color: var(--crm-navy);
+  font-size: 1rem;
+}
+
+.crm-case-view-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--crm-border, #d5dbe7);
+  background: #fff;
+  color: var(--crm-navy);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.crm-case-view-btn.is-active {
+  border-color: var(--crm-navy);
+  background: var(--crm-navy);
+  color: #fff;
+}
+
+.crm-case-view-btn.is-active .crm-count-pill {
+  background: rgba(255, 255, 255, 0.18);
+  color: inherit;
+}
+
+.crm-case-attention-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.crm-case-flag {
+  display: inline-block;
+  border: 1px solid #e4c3a8;
+  background: #fbf4ee;
+  color: #8a3b12;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 0.72rem;
+  font-weight: 650;
+}
+
+
 .crm-production-check-field {
   display: flex;
   flex-direction: column;
