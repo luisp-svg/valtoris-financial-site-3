@@ -18,9 +18,11 @@ const caseWorkspace = readFileSync(join(here, 'caseWorkspace.ts'), 'utf8')
 const productionApi = readFileSync(join(here, 'productionApi.ts'), 'utf8')
 
 describe('Case Management Phase 1 contracts', () => {
-  it('does not create public.cases or Migration 044', () => {
+  it('does not create public.cases or a Case-table migration', () => {
     const files = readdirSync(migrationsDir).filter((name) => name.endsWith('.sql')).sort()
-    expect(files.filter((name) => name.startsWith('044_'))).toEqual([])
+    expect(files.filter((name) => name.startsWith('044_'))).toEqual([
+      '044_policy_application_requirements.sql',
+    ])
     expect(existsSync(join(migrationsDir, '044_case_management.sql'))).toBe(false)
     expect(caseWorkspace).toContain('No public.cases table')
     expect(casesTab).not.toMatch(/from\('cases'\)/)

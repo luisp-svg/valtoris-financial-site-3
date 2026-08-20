@@ -13,7 +13,7 @@ const sql = readFileSync(resolve(migrationsDir, MIGRATION_043_FILENAME), 'utf8')
 const sql042 = readFileSync(resolve(migrationsDir, MIGRATION_042_FILENAME), 'utf8')
 
 describe('migration 043 public Report Card ingest contract', () => {
-  it('records the approved filename after 042 and does not add 044', () => {
+  it('records the approved filename after 042 and does not mention 044 inside 043 SQL', () => {
     expect(MIGRATION_043_FILENAME).toBe('043_public_report_card_ingest.sql')
     const files = readdirSync(migrationsDir)
       .filter((f) => /^\d{3}_.+\.sql$/.test(f))
@@ -24,7 +24,9 @@ describe('migration 043 public Report Card ingest contract', () => {
       files.indexOf(MIGRATION_042_FILENAME),
     )
     expect(files.filter((f) => f.startsWith('043_'))).toEqual([MIGRATION_043_FILENAME])
-    expect(files.filter((f) => f.startsWith('044_'))).toEqual([])
+    expect(files.filter((f) => f.startsWith('044_'))).toEqual([
+      '044_policy_application_requirements.sql',
+    ])
   })
 
   it('includes the generalized ingest RPC, Family wrapper, and service_role-only grant', () => {
