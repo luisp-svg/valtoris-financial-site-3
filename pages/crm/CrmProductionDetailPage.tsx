@@ -56,6 +56,7 @@ import type { CompensationViewer, LiveExpectedCompensationRow } from '../../crm/
 import { isIncompleteDraft, canShowProductionEditAction } from '../../crm/production/applicationEditView'
 import { transitionPolicyApplicationStage } from '../../crm/production/applicationApi'
 import StageTransitionPanel from '../../crm/production/StageTransitionPanel'
+import RequirementSection from '../../crm/production/RequirementSection'
 import {
   defaultStageTransitionReason,
   type StageTransitionAction,
@@ -317,9 +318,8 @@ export default function CrmProductionDetailPage() {
           <h2 id="pp-summary-heading">Case summary</h2>
         </div>
         <p className="crm-muted">
-          This application is the Case record. Requirements, APS, paramed vendor results,
-          suitability, 1035 paperwork, funds-received, and application-scoped tasks or documents
-          are not tracked yet.
+          This application is the Case record. Track administrative carrier requirements in the
+          section below. Application-scoped tasks and documents remain household-level for now.
         </p>
         <CaseAttentionFlagList labels={attention} />
         <dl className="crm-production-detail-grid">
@@ -367,6 +367,14 @@ export default function CrmProductionDetailPage() {
           </div>
         </dl>
       </section>
+
+      <RequirementSection
+        applicationId={application.id}
+        productLine={application.product_line}
+        productionStage={application.production_stage}
+        deletedAt={application.deleted_at}
+        role={role}
+      />
 
       <StageTransitionPanel
         application={application}
