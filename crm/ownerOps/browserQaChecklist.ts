@@ -19,7 +19,8 @@ export const CRM_9B_DESKTOP_QA = [
 ] as const
 
 export const CRM_9B_MOBILE_QA = [
-  'Narrow (~360) and larger (~430): sections stack; metric grid becomes 2 columns',
+  'Narrow (~360–393): Quick Actions stack full-width; Agency Snapshot is 1 KPI per row',
+  'Larger phone/tablet (~430–960): Snapshot KPI grid may use 2 columns',
   'Workload table scrolls horizontally without page overflow',
   'Alert and stage rows remain tappable; titles wrap',
   'Navigation drawer still works from owner Home',

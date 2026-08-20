@@ -5740,6 +5740,8 @@ p { color: var(--muted); line-height: 1.7; }
 .crm-dashboard-layout {
   display: grid;
   gap: 16px;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .crm-dashboard-header {
@@ -5755,6 +5757,7 @@ p { color: var(--muted); line-height: 1.7; }
     linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
   padding: 20px;
   box-shadow: 0 10px 24px rgba(7, 20, 77, 0.04);
+  min-width: 0;
 }
 
 .crm-dashboard-panel-wide {
@@ -5771,6 +5774,7 @@ p { color: var(--muted); line-height: 1.7; }
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+  min-width: 0;
 }
 
 .crm-dashboard-metric-row {
@@ -5788,6 +5792,7 @@ p { color: var(--muted); line-height: 1.7; }
   background: #fff;
   text-decoration: none;
   color: inherit;
+  min-width: 0;
   min-height: 72px;
   transition: border-color 0.15s ease, background 0.15s ease;
 }
@@ -5811,6 +5816,7 @@ p { color: var(--muted); line-height: 1.7; }
   color: var(--crm-muted);
   font-size: 0.86rem;
   font-weight: 600;
+  overflow-wrap: anywhere;
 }
 
 .crm-dashboard-attention-list,
@@ -5887,6 +5893,8 @@ p { color: var(--muted); line-height: 1.7; }
 
 .crm-dashboard-footnote {
   margin: 0 0 12px;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .crm-dashboard-task-group + .crm-dashboard-task-group {
@@ -5931,6 +5939,7 @@ p { color: var(--muted); line-height: 1.7; }
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
+  min-width: 0;
 }
 
 .crm-owner-ops-health-stats {
@@ -5961,6 +5970,8 @@ p { color: var(--muted); line-height: 1.7; }
 
 .crm-owner-ops-table-wrap {
   overflow-x: auto;
+  min-width: 0;
+  max-width: 100%;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -8814,6 +8825,7 @@ p { color: var(--muted); line-height: 1.7; }
   .crm-dashboard-quick-action-row .crm-primary-btn,
   .crm-dashboard-quick-action-row .crm-secondary-btn {
     flex: 1 1 140px;
+    min-width: 0;
     text-align: center;
     min-height: 44px;
     display: inline-flex;
@@ -12020,6 +12032,22 @@ button.public-card-diagnostic:disabled {
 }
 
 @media (max-width: 429px) {
+  .crm-dashboard-quick-action-row {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .crm-dashboard-quick-action-row .crm-primary-btn,
+  .crm-dashboard-quick-action-row .crm-secondary-btn {
+    width: 100%;
+    min-width: 0;
+    flex: none;
+  }
+
+  .crm-owner-ops-metric-grid {
+    grid-template-columns: 1fr;
+  }
+
   .crm-production-page .crm-opportunities-filters-grid {
     grid-template-columns: 1fr;
   }
