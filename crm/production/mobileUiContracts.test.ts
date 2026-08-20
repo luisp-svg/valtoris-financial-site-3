@@ -16,12 +16,15 @@ const dashboard = readFileSync(join(here, 'ProductionDashboard.tsx'), 'utf8')
 const commissionSummary = readFileSync(join(here, '../commissions/CommissionSummary.tsx'), 'utf8')
 
 describe('CRM mobile responsive cleanup contracts', () => {
-  it('does not add Migration 045 or change 044', () => {
+  it('does not add a mobile-layout migration; 045 is policy lifecycle only', () => {
     const files = readdirSync(migrationsDir).filter((name) => name.endsWith('.sql')).sort()
-    expect(files.filter((name) => name.startsWith('045_'))).toEqual([])
+    expect(files.filter((name) => name.startsWith('045_'))).toEqual([
+      '045_policy_post_placement_lifecycle.sql',
+    ])
     expect(files.filter((name) => name.startsWith('044_'))).toEqual([
       '044_policy_application_requirements.sql',
     ])
+    expect(files.filter((name) => name.startsWith('046_'))).toEqual([])
     expect(existsSync(join(migrationsDir, '044_case_management.sql'))).toBe(false)
   })
 

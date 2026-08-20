@@ -20,10 +20,13 @@ const styles = readFileSync(join(root, 'src/styles.css'), 'utf8')
 const catalog = readFileSync(join(root, 'platform/registry/catalog.ts'), 'utf8')
 
 describe('Phase 1 pipeline visibility contracts', () => {
-  it('does not add Migration 045', () => {
+  it('does not add an opportunities migration; 045 is policy lifecycle only', () => {
     const files = readdirSync(migrationsDir).filter((name) => name.endsWith('.sql')).sort()
-    expect(files).toHaveLength(44)
-    expect(files.filter((name) => name.startsWith('045_'))).toEqual([])
+    expect(files).toHaveLength(45)
+    expect(files.filter((name) => name.startsWith('045_'))).toEqual([
+      '045_policy_post_placement_lifecycle.sql',
+    ])
+    expect(files.filter((name) => name.startsWith('046_'))).toEqual([])
     expect(existsSync(join(migrationsDir, '045_opportunities.sql'))).toBe(false)
   })
 

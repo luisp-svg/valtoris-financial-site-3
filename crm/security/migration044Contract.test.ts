@@ -19,7 +19,7 @@ function numberedMigrations(): string[] {
 }
 
 describe('migration 044 policy application requirements contract', () => {
-  it('records the approved filename after 043 and does not add 045', () => {
+  it('records the approved filename after 043 and is followed only by 045 lifecycle', () => {
     expect(MIGRATION_044_FILENAME).toBe('044_policy_application_requirements.sql')
     const files = numberedMigrations()
     expect(files).toContain(MIGRATION_043_FILENAME)
@@ -29,7 +29,10 @@ describe('migration 044 policy application requirements contract', () => {
     )
     expect(files.filter((f) => f.startsWith('043_'))).toEqual([MIGRATION_043_FILENAME])
     expect(files.filter((f) => f.startsWith('044_'))).toEqual([MIGRATION_044_FILENAME])
-    expect(files.filter((f) => f.startsWith('045_'))).toEqual([])
+    expect(files.filter((f) => f.startsWith('045_'))).toEqual([
+      '045_policy_post_placement_lifecycle.sql',
+    ])
+    expect(files.filter((f) => f.startsWith('046_'))).toEqual([])
     expect(files.filter((f) => Number(f.slice(0, 3)) >= 1 && Number(f.slice(0, 3)) <= 43)).toHaveLength(
       43,
     )

@@ -16,10 +16,13 @@ const editForm = readFileSync(join(here, 'ApplicationEditForm.tsx'), 'utf8')
 const editPage = readFileSync(join(here, '../../pages/crm/CrmProductionEditPage.tsx'), 'utf8')
 
 describe('Phase 2 Case Operations contracts', () => {
-  it('does not add Migration 045 or change 001-044', () => {
+  it('does not add a Case Operations migration; 045 is policy lifecycle only', () => {
     const files = readdirSync(migrationsDir).filter((name) => name.endsWith('.sql')).sort()
-    expect(files).toHaveLength(44)
-    expect(files.filter((name) => name.startsWith('045_'))).toEqual([])
+    expect(files).toHaveLength(45)
+    expect(files.filter((name) => name.startsWith('045_'))).toEqual([
+      '045_policy_post_placement_lifecycle.sql',
+    ])
+    expect(files.filter((name) => name.startsWith('046_'))).toEqual([])
     expect(existsSync(join(migrationsDir, '045_case_operations.sql'))).toBe(false)
     expect(updateSql).toContain('CREATE OR REPLACE FUNCTION public.update_policy_application(p_id uuid, p_payload jsonb)')
     expect(updateSql).toContain("WHEN v_app.production_stage = 'issued' THEN ARRAY[")

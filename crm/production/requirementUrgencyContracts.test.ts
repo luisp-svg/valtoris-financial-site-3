@@ -28,12 +28,15 @@ const householdsApi = readFileSync(join(here, '../households/householdsApi.ts'),
 const SUMMARY_SURFACES = [queuePage, queueTable, queueCards, board, boardCard, casesTab]
 
 describe('Case Management Phase 2C overdue-requirement contracts', () => {
-  it('does not add Migration 045 or change 044', () => {
+  it('does not add a requirements migration past 044; 045 is policy lifecycle only', () => {
     const files = readdirSync(migrationsDir).filter((name) => name.endsWith('.sql')).sort()
-    expect(files.filter((name) => name.startsWith('045_'))).toEqual([])
+    expect(files.filter((name) => name.startsWith('045_'))).toEqual([
+      '045_policy_post_placement_lifecycle.sql',
+    ])
     expect(files.filter((name) => name.startsWith('044_'))).toEqual([
       '044_policy_application_requirements.sql',
     ])
+    expect(files.filter((name) => name.startsWith('046_'))).toEqual([])
     expect(existsSync(join(migrationsDir, '044_case_management.sql'))).toBe(false)
   })
 
