@@ -59,7 +59,7 @@ describe('migration 045 post-placement policy lifecycle contract', () => {
     expect(sql).not.toContain('CREATE OR REPLACE FUNCTION public.transition_policy_application_stage')
   })
 
-  it('does not expose the owner lifecycle RPC as a write control yet', () => {
+  it('does not expose the owner lifecycle RPC outside the dedicated Case writer', () => {
     const surfaces = [
       'crm/production/applicationApi.ts',
       'crm/production/productionApi.ts',
@@ -69,12 +69,19 @@ describe('migration 045 post-placement policy lifecycle contract', () => {
       'crm/production/dashboardView.ts',
       'crm/commissions/commissionWriteApi.ts',
       'pages/crm/CrmProductionPage.tsx',
-      'pages/crm/CrmProductionDetailPage.tsx',
+      'pages/crm/CrmProductionEditPage.tsx',
     ]
     for (const rel of surfaces) {
       const body = readFileSync(resolve(root, rel), 'utf8')
       expect(body, rel).not.toContain('record_policy_post_placement_outcome')
     }
+    const detail = readFileSync(resolve(root, 'pages/crm/CrmProductionDetailPage.tsx'), 'utf8')
+    const writer = readFileSync(resolve(root, 'crm/production/policyLifecycleApi.ts'), 'utf8')
+    const section = readFileSync(resolve(root, 'crm/production/PolicyLifecycleSection.tsx'), 'utf8')
+    expect(detail).toContain('PolicyLifecycleSection')
+    expect(detail).not.toContain('record_policy_post_placement_outcome')
+    expect(writer).toContain("export const POLICY_LIFECYCLE_RPC = 'record_policy_post_placement_outcome'")
+    expect(section).toContain('recordPolicyPostPlacementOutcome')
     const stages = readFileSync(resolve(root, 'crm/production/types.ts'), 'utf8')
     expect(stages).toContain("'in_force'")
     expect(stages).not.toMatch(/PRODUCTION_STAGES = \[[^\]]*canceled/s)

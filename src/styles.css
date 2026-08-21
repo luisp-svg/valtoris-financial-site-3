@@ -7855,6 +7855,37 @@ p { color: var(--muted); line-height: 1.7; }
   margin-bottom: 10px;
 }
 
+.crm-policy-lifecycle-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.crm-policy-lifecycle-actions .crm-primary-btn,
+.crm-policy-lifecycle-actions .crm-secondary-btn {
+  min-height: 44px;
+}
+
+.crm-policy-lifecycle-form {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.crm-policy-lifecycle-dialog {
+  margin-top: 16px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.crm-policy-lifecycle-dialog input,
+.crm-policy-lifecycle-dialog textarea {
+  min-width: 0;
+  max-width: 100%;
+}
+
 .crm-production-queue-card-lifecycle,
 .crm-production-board-card-lifecycle {
   margin: 0;
@@ -7980,6 +8011,25 @@ p { color: var(--muted); line-height: 1.7; }
 
   .crm-policy-lifecycle-badge {
     white-space: normal;
+  }
+
+  .crm-policy-lifecycle-actions,
+  .crm-policy-lifecycle-dialog .crm-form-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .crm-policy-lifecycle-actions .crm-primary-btn,
+  .crm-policy-lifecycle-actions .crm-secondary-btn,
+  .crm-policy-lifecycle-dialog .crm-form-actions .crm-primary-btn,
+  .crm-policy-lifecycle-dialog .crm-form-actions .crm-secondary-btn {
+    width: 100%;
+  }
+
+  .crm-policy-lifecycle-dialog,
+  .crm-policy-lifecycle-form {
+    min-width: 0;
+    max-width: 100%;
   }
 }
 

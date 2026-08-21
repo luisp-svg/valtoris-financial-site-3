@@ -26,8 +26,8 @@ import {
 import { getProductionDetailViewState } from '../../crm/production/listLoadState'
 import StageBadge from '../../crm/production/StageBadge'
 import PolicyLifecycleBadge from '../../crm/production/PolicyLifecycleBadge'
+import PolicyLifecycleSection from '../../crm/production/PolicyLifecycleSection'
 import {
-  POLICY_LIFECYCLE_CHARGEBACK_NOTE,
   isPlacedApplication,
   policyLifecycleDetailModel,
 } from '../../crm/production/policyLifecycle'
@@ -603,38 +603,11 @@ export default function CrmProductionDetailPage() {
         error={actualError}
       />
 
-      {lifecycle.visible ? (
-        <section className="crm-panel crm-policy-lifecycle-section" aria-labelledby="pp-lifecycle-heading">
-          <div className="crm-panel-head">
-            <h2 id="pp-lifecycle-heading">Policy Lifecycle</h2>
-          </div>
-          <dl className="crm-production-detail-grid">
-            <div>
-              <dt>Current policy status</dt>
-              <dd>
-                {lifecycle.statusLabel ? (
-                  <PolicyLifecycleBadge status={linked?.status} />
-                ) : (
-                  '—'
-                )}
-              </dd>
-            </div>
-            {lifecycle.showTerminationFacts ? (
-              <>
-                <div>
-                  <dt>Terminated on</dt>
-                  <dd>{formatProductionDate(lifecycle.terminatedOn)}</dd>
-                </div>
-                <div>
-                  <dt>Termination reason</dt>
-                  <dd>{lifecycle.terminationReason || '—'}</dd>
-                </div>
-              </>
-            ) : null}
-          </dl>
-          <p className="crm-production-kpi-caption">{POLICY_LIFECYCLE_CHARGEBACK_NOTE}</p>
-        </section>
-      ) : null}
+      <PolicyLifecycleSection
+        application={application}
+        role={role}
+        onSaved={() => setReloadKey((n) => n + 1)}
+      />
 
       <section className="crm-panel" aria-labelledby="pp-ids-heading">
         <div className="crm-panel-head">
