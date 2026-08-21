@@ -80,6 +80,7 @@ describe('opportunity response normalization', () => {
     expect(item.stage?.code).toBe('underwriting')
     expect(item.service_vertical?.code).toBe('life')
     expect(item.assigned_advisor?.display_name).toBe('Alex Advisor')
+    expect(item.linkedApplication).toBeNull()
   })
 
   it('accepts array-shaped PostgREST embeds via asSingle', () => {
@@ -165,6 +166,35 @@ describe('opportunity response normalization', () => {
     expect(parseOpportunityStatus('won')).toBe('won')
     expect(parseOpportunityStatus('nope')).toBe('open')
     expect(formatOpportunityStatusLabel('on_hold')).toBe('On hold')
+  })
+
+  it('derives a live Case from the left embed without changing status or stage', () => {
+    const unlinked = normalizeOpportunityListItem(makeRawRow())
+    expect(unlinked.linkedApplication).toBeNull()
+    expect(unlinked.status).toBe('open')
+    expect(unlinked.stage?.code).toBe('underwriting')
+
+    const deletedOnly = normalizeOpportunityListItem(
+      makeRawRow({
+        linked_applications: [
+          { id: 'app-del', production_stage: 'submitted', deleted_at: '2026-08-01T00:00:00.000Z' },
+        ],
+      }),
+    )
+    expect(deletedOnly.linkedApplication).toBeNull()
+    expect(deletedOnly.status).toBe('open')
+
+    const live = normalizeOpportunityListItem(
+      makeRawRow({
+        linked_applications: [
+          { id: 'app-del', production_stage: 'submitted', deleted_at: '2026-08-01T00:00:00.000Z' },
+          { id: 'app-live', production_stage: 'draft', deleted_at: null },
+        ],
+      }),
+    )
+    expect(live.linkedApplication).toEqual({ id: 'app-live', production_stage: 'draft' })
+    expect(live.status).toBe('open')
+    expect(live.stage?.code).toBe('underwriting')
   })
 })
 

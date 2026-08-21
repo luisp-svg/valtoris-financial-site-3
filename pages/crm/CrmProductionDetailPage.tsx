@@ -439,6 +439,12 @@ export default function CrmProductionDetailPage() {
                     : 'Opportunity'}
                 </dd>
               </div>
+              {application.linked_opportunity?.vertical_name ? (
+                <div>
+                  <dt>Primary Product / Service</dt>
+                  <dd>{application.linked_opportunity.vertical_name}</dd>
+                </div>
+              ) : null}
               {application.linked_opportunity?.status === 'open' ||
               application.linked_opportunity?.status === 'won' ||
               application.linked_opportunity?.status === 'lost' ||
@@ -452,6 +458,12 @@ export default function CrmProductionDetailPage() {
                 <div>
                   <dt>Sales stage</dt>
                   <dd>{application.linked_opportunity.stage_name}</dd>
+                </div>
+              ) : null}
+              {application.linked_opportunity?.advisor_name ? (
+                <div>
+                  <dt>Assigned advisor</dt>
+                  <dd>{application.linked_opportunity.advisor_name}</dd>
                 </div>
               ) : null}
             </dl>

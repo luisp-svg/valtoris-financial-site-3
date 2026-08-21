@@ -114,7 +114,9 @@ const APPLICATION_DETAIL_SELECT = `
     id,
     title,
     status,
-    stage:pipeline_stages!stage_id ( name )
+    stage:pipeline_stages!stage_id ( name ),
+    service_vertical:service_verticals!service_vertical_id ( name ),
+    assigned_advisor:advisor_profiles!assigned_advisor_id ( display_name )
   ),
   is_replacement,
   is_exchange_or_transfer,
@@ -370,6 +372,8 @@ type RawDetailRow = RawListRow & {
     title: string | null
     status: string | null
     stage?: EmbedOne<{ name: string | null }>
+    service_vertical?: EmbedOne<{ name: string | null }>
+    assigned_advisor?: EmbedOne<{ display_name: string | null }>
   }>
   is_replacement: boolean
   is_exchange_or_transfer: boolean
@@ -389,11 +393,15 @@ function mapLinkedOpportunity(
   const row = asSingle(value ?? null)
   if (!row?.id && !opportunityId) return null
   const stage = asSingle(row?.stage ?? null)
+  const vertical = asSingle(row?.service_vertical ?? null)
+  const advisor = asSingle(row?.assigned_advisor ?? null)
   return {
     id: String(row?.id ?? opportunityId),
     title: row?.title?.trim() ? String(row.title) : 'Opportunity',
     status: row?.status ? String(row.status) : '',
     stage_name: stage?.name ? String(stage.name) : null,
+    vertical_name: vertical?.name ? String(vertical.name) : null,
+    advisor_name: advisor?.display_name ? String(advisor.display_name) : null,
   }
 }
 

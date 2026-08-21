@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import CaseCreatedBadge from './CaseCreatedBadge'
 import OpportunityAttentionFlagList from './OpportunityAttentionFlagList'
 import { pipelineCardCopy } from './pipelineView'
 import type { OpportunityListItem } from './types'
@@ -21,6 +22,9 @@ export default function OpportunityPipelineCard({
         <h3 className="crm-opportunities-name crm-pipeline-card-name">{copy.householdName}</h3>
         <p className="crm-pipeline-card-product">{copy.primaryProduct}</p>
         <p className="crm-pipeline-card-stage">{copy.stage}</p>
+        {copy.caseCreated ? (
+          <CaseCreatedBadge productionStage={opportunity.linkedApplication?.production_stage} />
+        ) : null}
         <OpportunityAttentionFlagList labels={copy.attention} />
         <dl className="crm-opportunities-card-meta">
           <div>

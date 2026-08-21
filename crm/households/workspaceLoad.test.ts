@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  attachLiveCasesToOpenOpportunities,
   buildWorkspaceTimeline,
   partitionWorkspaceScoringCollections,
   settleWorkspaceLoad,
@@ -183,5 +184,59 @@ describe('buildWorkspaceTimeline', () => {
     )
     expect(built.timelineComplete).toBe(false)
     expect(built.timeline).toEqual([])
+  })
+})
+
+describe('attachLiveCasesToOpenOpportunities', () => {
+  it('attaches slim live Case fields only and leaves unlinked rows unchanged', () => {
+    const opportunities = [
+      {
+        id: 'opp-1',
+        title: 'Life',
+        status: 'open',
+        next_action: 'Call',
+        stage: { id: 's1', name: 'Fact Finder' },
+        service_vertical: { id: 'v1', code: 'life', name: 'Life Insurance' },
+        assigned_advisor: { id: 'a1', display_name: 'Alex' },
+        liveCase: null,
+      },
+      {
+        id: 'opp-2',
+        title: 'FIA',
+        status: 'open',
+        next_action: null,
+        stage: null,
+        service_vertical: null,
+        assigned_advisor: null,
+        liveCase: null,
+      },
+    ]
+
+    const attached = attachLiveCasesToOpenOpportunities(opportunities, [
+      {
+        id: 'app-1',
+        opportunity_id: 'opp-1',
+        production_stage: 'draft',
+        deleted_at: null,
+      },
+      {
+        id: 'app-dead',
+        opportunity_id: 'opp-2',
+        production_stage: 'submitted',
+        deleted_at: '2026-08-01T00:00:00.000Z',
+      },
+    ])
+
+    expect(attached[0]?.liveCase).toEqual({
+      applicationId: 'app-1',
+      productionStage: 'draft',
+    })
+    expect(attached[1]?.liveCase).toBeNull()
+    expect(attached[0]).not.toHaveProperty('notes')
+    expect(attached[0]).not.toHaveProperty('allocations')
+    expect(Object.keys(attached[0]?.liveCase ?? {})).toEqual([
+      'applicationId',
+      'productionStage',
+    ])
   })
 })

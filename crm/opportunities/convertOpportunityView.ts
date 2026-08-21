@@ -18,8 +18,13 @@ import type {
   ProductionParticipantRole,
   ProductionProductLine,
 } from '../production/types'
+import { formatProductionStageLabel } from '../production/labels'
 import { writingSplitError } from '../production/writingSplits'
-import type { OpportunityLinkedApplication, OpportunityStatus } from './types'
+import type {
+  OpportunityLinkedApplication,
+  OpportunityListLinkedApplication,
+  OpportunityStatus,
+} from './types'
 
 export const CONVERSION_ELIGIBLE_STATUSES: readonly OpportunityStatus[] = [
   'open',
@@ -188,4 +193,65 @@ export function validateConversionDraft(input: ConversionDraftInput): {
 export function linkedApplicationLabel(application: OpportunityLinkedApplication): string {
   const product = [application.carrier_name, application.product_name].filter(Boolean).join(' ')
   return product || application.application_number || 'Production application'
+}
+
+function isDeletedAt(value: unknown): boolean {
+  return value != null && value !== ''
+}
+
+/**
+ * Pick the live Case from a PostgREST left embed (array or single row).
+ * Soft-deleted rows do not occupy the live slot. Empty/missing embeds stay unlinked.
+ */
+export function pickLiveLinkedApplication(value: unknown): OpportunityListLinkedApplication | null {
+  const rows = Array.isArray(value) ? value : value == null ? [] : [value]
+  for (const row of rows) {
+    if (!row || typeof row !== 'object') continue
+    const rec = row as Record<string, unknown>
+    if (isDeletedAt(rec.deleted_at)) continue
+    if (typeof rec.id !== 'string' || !rec.id) continue
+    return {
+      id: rec.id,
+      production_stage: typeof rec.production_stage === 'string' ? rec.production_stage : '',
+    }
+  }
+  return null
+}
+
+export type SlimLiveCaseLink = {
+  applicationId: string
+  productionStage: string
+}
+
+/**
+ * Household/Pipeline helper: map live applications onto opportunity IDs.
+ * Callers must pass only id / opportunity_id / production_stage / deleted_at.
+ */
+export function slimLiveCasesByOpportunityId(
+  applications: ReadonlyArray<{
+    id: string
+    opportunity_id: string | null
+    production_stage: string
+    deleted_at?: string | null
+  }>,
+): Map<string, SlimLiveCaseLink> {
+  const live = new Map<string, SlimLiveCaseLink>()
+  for (const application of applications) {
+    if (!application.opportunity_id) continue
+    if (isDeletedAt(application.deleted_at)) continue
+    if (live.has(application.opportunity_id)) continue
+    live.set(application.opportunity_id, {
+      applicationId: application.id,
+      productionStage: application.production_stage,
+    })
+  }
+  return live
+}
+
+export function formatCaseCreatedStageLabel(
+  productionStage: string | null | undefined,
+): string | null {
+  const label = formatProductionStageLabel(productionStage)
+  if (!label || label === '—') return null
+  return label
 }

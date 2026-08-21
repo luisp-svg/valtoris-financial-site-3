@@ -1,7 +1,13 @@
 import { Link } from 'react-router-dom'
 import EmptyState from '../../../components/ui/EmptyState'
 import Widget from '../../../components/ui/Widget'
-import { crmOpportunityPath } from '../../../../constants/routes'
+import CaseCreatedBadge from '../../../opportunities/CaseCreatedBadge'
+import {
+  getOpportunityOwnerLabel,
+  getOpportunityStageLabel,
+  getOpportunityVerticalLabel,
+} from '../../../opportunities/opportunitiesApi'
+import { crmOpportunityPath, crmProductionPath } from '../../../../constants/routes'
 import type { CrmHouseholdWorkspace } from '../../types'
 
 type Props = {
@@ -38,22 +44,43 @@ export default function CurrentOpportunitiesWidget({
         />
       ) : (
         <ul className="crm-household-overview-list">
-          {opportunities.map((opportunity) => (
-            <li key={opportunity.id}>
-              <p className="crm-task-title">
-                <Link
-                  to={crmOpportunityPath(opportunity.id)}
-                  className="crm-opportunities-name-link"
-                >
-                  {opportunity.title}
-                </Link>
-              </p>
-              <p className="crm-task-meta">
-                {opportunity.stage?.name ?? 'Stage unavailable'}
-                {opportunity.next_action ? ` · ${opportunity.next_action}` : ''}
-              </p>
-            </li>
-          ))}
+          {opportunities.map((opportunity) => {
+            const liveCase = opportunity.liveCase
+            return (
+              <li key={opportunity.id} className="crm-household-opportunity-row">
+                <p className="crm-task-title">{opportunity.title}</p>
+                {liveCase ? (
+                  <CaseCreatedBadge productionStage={liveCase.productionStage} />
+                ) : null}
+                <p className="crm-task-meta">
+                  {getOpportunityVerticalLabel(opportunity)}
+                  {' · '}
+                  {getOpportunityStageLabel(opportunity)}
+                  {' · '}
+                  {getOpportunityOwnerLabel(opportunity)}
+                </p>
+                {opportunity.next_action ? (
+                  <p className="crm-task-meta">{opportunity.next_action}</p>
+                ) : null}
+                <div className="crm-household-opportunity-actions">
+                  <Link
+                    to={crmOpportunityPath(opportunity.id)}
+                    className="crm-text-btn crm-household-opportunity-action"
+                  >
+                    Open Opportunity
+                  </Link>
+                  {liveCase ? (
+                    <Link
+                      to={crmProductionPath(liveCase.applicationId)}
+                      className="crm-text-btn crm-household-opportunity-action"
+                    >
+                      Open Case
+                    </Link>
+                  ) : null}
+                </div>
+              </li>
+            )
+          })}
         </ul>
       )}
     </Widget>

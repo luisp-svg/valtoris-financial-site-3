@@ -7219,6 +7219,27 @@ p { color: var(--muted); line-height: 1.7; }
   padding-top: 0;
 }
 
+.crm-household-opportunity-row {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.crm-household-opportunity-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.crm-household-opportunity-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 8px 10px;
+}
+
 .crm-household-overview-metric {
   margin: 0;
   color: var(--crm-navy);
@@ -7939,9 +7960,22 @@ p { color: var(--muted); line-height: 1.7; }
   .crm-production-protection-split,
   .crm-policy-lifecycle-section .crm-production-detail-grid,
   .crm-household-policy-card,
-  .crm-household-case-card {
+  .crm-household-case-card,
+  .crm-production-linked-opportunity,
+  .crm-opportunity-linked-case,
+  .crm-household-opportunity-row,
+  .crm-case-created-badge {
     min-width: 0;
     max-width: 100%;
+  }
+
+  .crm-household-opportunity-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .crm-household-opportunity-action {
+    width: 100%;
   }
 
   .crm-policy-lifecycle-badge {
@@ -8544,7 +8578,7 @@ p { color: var(--muted); line-height: 1.7; }
 .crm-opportunities-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 920px;
+  min-width: 1040px;
 }
 
 .crm-opportunities-table th,
@@ -8847,6 +8881,11 @@ p { color: var(--muted); line-height: 1.7; }
   align-items: center;
   justify-content: center;
   text-decoration: none;
+}
+
+.crm-opportunity-linked-case,
+.crm-production-linked-opportunity {
+  min-width: 0;
 }
 
 .crm-opportunity-convert-overlay {
@@ -11539,6 +11578,28 @@ button.public-card-diagnostic:disabled {
   padding: 2px 8px;
   font-size: 0.72rem;
   font-weight: 650;
+}
+
+.crm-case-created-badge {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+  max-width: 100%;
+  border: 1px solid var(--crm-border, #d5dbe7);
+  background: transparent;
+  color: var(--crm-navy);
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 0.72rem;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.crm-case-created-stage {
+  font-weight: 500;
+  color: var(--crm-muted, #5b6475);
 }
 
 

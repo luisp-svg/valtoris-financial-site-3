@@ -139,12 +139,21 @@ export type HouseholdOpenTaskSummary = {
   lead_id?: string | null
 }
 
+export type HouseholdOpportunityLiveCase = {
+  applicationId: string
+  productionStage: string
+}
+
 export type HouseholdOpenOpportunitySummary = {
   id: string
   title: string
   status: string
   next_action: string | null
   stage: { id: string; name: string } | null
+  service_vertical: { id: string; code: string; name: string } | null
+  assigned_advisor: { id: string; display_name: string } | null
+  /** Slim live Case link. Never a full Production application payload. */
+  liveCase: HouseholdOpportunityLiveCase | null
 }
 
 /** Latest completed family/business/retirement/protection summary for workspace. */
@@ -368,10 +377,7 @@ export type CrmHouseholdWorkspace = {
   timeline: HouseholdTimelineItem[]
   /** True only when both notes and activities results are ok. */
   timelineComplete: boolean
-  /**
-   * No `cases` table exists yet — always 0 until a Cases domain is introduced.
-   * Kept on the workspace payload so KPI/widgets share one source of truth.
-   */
+  /** Count of open Life/FIA production applications for this household. */
   openCasesCount: number
   /** Preview-limited active policies for UI display. */
   activePolicies: HouseholdPolicySummary[]

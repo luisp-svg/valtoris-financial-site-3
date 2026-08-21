@@ -13,6 +13,7 @@ import {
   buildLifecycleReloadRetryUi,
 } from '../../crm/opportunities/lifecyclePartialSuccess'
 import OpportunityAttentionFlagList from '../../crm/opportunities/OpportunityAttentionFlagList'
+import CaseCreatedBadge from '../../crm/opportunities/CaseCreatedBadge'
 import {
   fetchOpportunityStageOptions,
   fetchOpportunityWorkspace,
@@ -505,6 +506,9 @@ export default function CrmOpportunityWorkspacePage() {
                 >
                   <div className="crm-panel-head">
                     <h2 id="crm-opportunity-linked-case-heading">Linked Case</h2>
+                    <CaseCreatedBadge
+                      productionStage={workspace.linkedApplication.production_stage}
+                    />
                   </div>
                   <dl className="crm-opportunity-overview-grid">
                     <div>
@@ -516,14 +520,6 @@ export default function CrmOpportunityWorkspacePage() {
                       <dd>{formatProductionStageLabel(workspace.linkedApplication.production_stage)}</dd>
                     </div>
                   </dl>
-                  <p>
-                    <Link
-                      to={crmProductionPath(workspace.linkedApplication.id)}
-                      className="crm-opportunities-secondary-link"
-                    >
-                      Open Case
-                    </Link>
-                  </p>
                 </section>
               ) : null}
 

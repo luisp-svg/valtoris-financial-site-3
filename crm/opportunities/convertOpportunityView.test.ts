@@ -3,8 +3,11 @@ import { defaultWritingAllocations } from '../production/applicationView'
 import {
   carriersForConversion,
   conversionProductLinesForVertical,
+  formatCaseCreatedStageLabel,
   opportunityAllowsCreateCase,
+  pickLiveLinkedApplication,
   productsForConversion,
+  slimLiveCasesByOpportunityId,
   suggestedWritingAllocations,
   validateConversionDraft,
 } from './convertOpportunityView'
@@ -85,5 +88,57 @@ describe('opportunity case conversion eligibility', () => {
     })
     expect(result.invalid).toBe(true)
     expect(result.fieldErrors.participants).toMatch(/household/)
+  })
+})
+
+describe('live Case linkage helpers', () => {
+  it('keeps unlinked embeds as null and ignores soft-deleted rows', () => {
+    expect(pickLiveLinkedApplication(null)).toBeNull()
+    expect(pickLiveLinkedApplication([])).toBeNull()
+    expect(
+      pickLiveLinkedApplication([
+        { id: 'app-del', production_stage: 'submitted', deleted_at: '2026-08-01T00:00:00.000Z' },
+      ]),
+    ).toBeNull()
+  })
+
+  it('selects the live row from a left embed that also contains deleted Cases', () => {
+    expect(
+      pickLiveLinkedApplication([
+        { id: 'app-del', production_stage: 'submitted', deleted_at: '2026-08-01T00:00:00.000Z' },
+        { id: 'app-live', production_stage: 'draft', deleted_at: null },
+      ]),
+    ).toEqual({ id: 'app-live', production_stage: 'draft' })
+    expect(
+      pickLiveLinkedApplication({ id: 'app-one', production_stage: 'in_underwriting', deleted_at: null }),
+    ).toEqual({ id: 'app-one', production_stage: 'in_underwriting' })
+  })
+
+  it('maps household applications onto opportunity IDs without keeping extra fields', () => {
+    const live = slimLiveCasesByOpportunityId([
+      {
+        id: 'app-1',
+        opportunity_id: 'opp-1',
+        production_stage: 'draft',
+        deleted_at: null,
+      },
+      {
+        id: 'app-deleted',
+        opportunity_id: 'opp-2',
+        production_stage: 'submitted',
+        deleted_at: '2026-08-02T00:00:00.000Z',
+      },
+      {
+        id: 'app-orphan',
+        opportunity_id: null,
+        production_stage: 'draft',
+        deleted_at: null,
+      },
+    ])
+    expect(live.get('opp-1')).toEqual({ applicationId: 'app-1', productionStage: 'draft' })
+    expect(live.get('opp-2')).toBeUndefined()
+    expect(live.size).toBe(1)
+    expect(formatCaseCreatedStageLabel('draft')).toBe('Application Draft')
+    expect(formatCaseCreatedStageLabel(null)).toBeNull()
   })
 })

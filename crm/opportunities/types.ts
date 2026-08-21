@@ -59,6 +59,8 @@ export type OpportunityListItem = {
   stage: OpportunityStageSummary | null
   service_vertical: OpportunityServiceVerticalSummary | null
   assigned_advisor: OpportunityOwnerSummary | null
+  /** Live linked Case, if any. Derived from policy_applications; not a persisted Opportunity field. */
+  linkedApplication: OpportunityListLinkedApplication | null
 }
 
 export type OpportunityDetail = OpportunityListItem & {
@@ -107,9 +109,13 @@ export type OpportunityWorkspace = {
   linkedApplication: OpportunityLinkedApplication | null
 }
 
-export type OpportunityLinkedApplication = {
+/** Slim Pipeline/list linkage. Not the Workspace product/carrier snapshot. */
+export type OpportunityListLinkedApplication = {
   id: string
   production_stage: string
+}
+
+export type OpportunityLinkedApplication = OpportunityListLinkedApplication & {
   product_line: string | null
   application_number: string | null
   carrier_name: string | null

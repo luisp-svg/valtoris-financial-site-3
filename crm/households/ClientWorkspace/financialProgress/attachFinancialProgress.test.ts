@@ -225,6 +225,9 @@ describe('attachFinancialProgress', () => {
         status: 'open',
         next_action: null,
         stage: null,
+        service_vertical: null,
+        assigned_advisor: null,
+        liveCase: null,
       },
     ]
     const retirementAssessment = makeAssessment({

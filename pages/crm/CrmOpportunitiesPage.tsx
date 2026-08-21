@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import OpportunityFormDialog from '../../crm/opportunities/OpportunityFormDialog'
 import OpportunityPipelineCard from '../../crm/opportunities/OpportunityPipelineCard'
 import PipelineViewBar from '../../crm/opportunities/PipelineViewBar'
+import CaseCreatedBadge from '../../crm/opportunities/CaseCreatedBadge'
 import OpportunityAttentionFlagList from '../../crm/opportunities/OpportunityAttentionFlagList'
 import {
   fetchCurrentAdvisorProfileId,
@@ -308,6 +309,7 @@ export default function CrmOpportunitiesPage() {
                     <th scope="col">Household</th>
                     <th scope="col">Primary Product / Service</th>
                     <th scope="col">Stage</th>
+                    <th scope="col">Case</th>
                     <th scope="col">Advisor</th>
                     <th scope="col">Next action</th>
                     <th scope="col">Due</th>
@@ -345,6 +347,15 @@ export default function CrmOpportunitiesPage() {
                           <span className="crm-status-chip">
                             {getOpportunityStageLabel(opportunity)}
                           </span>
+                        </td>
+                        <td>
+                          {copy.caseCreated ? (
+                            <CaseCreatedBadge
+                              productionStage={opportunity.linkedApplication?.production_stage}
+                            />
+                          ) : (
+                            '—'
+                          )}
                         </td>
                         <td>{getOpportunityOwnerLabel(opportunity)}</td>
                         <td>{copy.nextAction}</td>

@@ -188,6 +188,7 @@ describe('CRM-8.2B RPC close/reopen argument shapes', () => {
       stage: null,
       service_vertical: null,
       assigned_advisor: null,
+      linkedApplication: null,
     }
     const supabase = {
       rpc,

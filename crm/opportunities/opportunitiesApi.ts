@@ -37,6 +37,7 @@
  */
 
 import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js'
+import { pickLiveLinkedApplication } from './convertOpportunityView'
 import {
   normalizeCreateOpportunityInput,
   normalizeUpdateOpportunityInput,
@@ -103,7 +104,12 @@ const OPPORTUNITY_LIST_SELECT = `
   pipeline:pipelines!pipeline_id ( id, name ),
   stage:pipeline_stages!stage_id ( ${STAGE_EMBED_SELECT} ),
   service_vertical:service_verticals!service_vertical_id ( id, code, name ),
-  assigned_advisor:advisor_profiles!assigned_advisor_id ( id, display_name )
+  assigned_advisor:advisor_profiles!assigned_advisor_id ( id, display_name ),
+  linked_applications:policy_applications!opportunity_id (
+    id,
+    production_stage,
+    deleted_at
+  )
 `
 
 const OPPORTUNITY_DETAIL_SELECT = `
@@ -289,6 +295,7 @@ export function normalizeOpportunityListItem(row: Record<string, unknown>): Oppo
     stage: normalizeStage(row.stage),
     service_vertical: normalizeServiceVertical(row.service_vertical),
     assigned_advisor: normalizeOwner(row.assigned_advisor),
+    linkedApplication: pickLiveLinkedApplication(row.linked_applications),
   }
 }
 
@@ -577,7 +584,7 @@ export async function fetchOpportunityWorkspace(
 }
 
 export function getOpportunityStageLabel(item: {
-  stage: OpportunityStageSummary | null
+  stage: { name: string } | null
 }): string {
   return item.stage?.name ?? 'Stage unavailable'
 }

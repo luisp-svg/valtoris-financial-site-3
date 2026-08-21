@@ -289,6 +289,8 @@ export type ProductionLinkedOpportunity = {
   title: string
   status: string
   stage_name: string | null
+  vertical_name: string | null
+  advisor_name: string | null
 }
 
 export type ProductionApplicationDetail = ProductionApplicationListItem & {

@@ -149,6 +149,20 @@ describe('Active / My / Won / Lost filtering', () => {
       lost: 1,
     })
   })
+
+  it('keeps unlinked Opportunities visible and does not filter on Case linkage', () => {
+    const linked = item({
+      id: 'linked',
+      linkedApplication: { id: 'app-1', production_stage: 'draft' },
+    })
+    const unlinked = item({ id: 'unlinked', linkedApplication: null })
+    const ids = filterPipelineOpportunities([linked, unlinked], { view: 'active' }).map(
+      (row) => row.id,
+    )
+    expect(ids).toEqual(['linked', 'unlinked'])
+    expect(linked.status).toBe('open')
+    expect(unlinked.status).toBe('open')
+  })
 })
 
 describe('Needs Attention', () => {
@@ -232,7 +246,22 @@ describe('card copy', () => {
     expect(copy.advisor).toBe('Alex Advisor')
     expect(copy.nextAction).toBe('Call client')
     expect(copy.nextActionDue).toBe(formatOpportunityNextActionDueLabel('2026-08-22'))
+    expect(copy.caseCreated).toBe(false)
+    expect(copy.caseStageLabel).toBeNull()
     expect(getOpportunityPrimaryProductLabel(item())).toBe('Life Insurance')
+  })
+
+  it('marks Case created as informational copy without changing attention flags', () => {
+    const copy = pipelineCardCopy(
+      item({
+        linkedApplication: { id: 'app-1', production_stage: 'draft' },
+      }),
+      TODAY,
+    )
+    expect(copy.caseCreated).toBe(true)
+    expect(copy.caseStageLabel).toBe('Application Draft')
+    expect(copy.attention).toEqual([])
+    expect(copy.stage).toBe('Fact Finder')
   })
 
   it('does not invent a finer product taxonomy', () => {

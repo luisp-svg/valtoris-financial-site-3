@@ -19,6 +19,7 @@ describe('opportunity case conversion UX contracts', () => {
   it('adds Create Case / Open Case on the existing Opportunity Workspace route only', () => {
     expect(workspace).toContain('Create Case')
     expect(workspace).toContain('Open Case')
+    expect(workspace.match(/Open Case/g)).toEqual(['Open Case'])
     expect(workspace).toContain('ConvertOpportunityToCaseDialog')
     expect(workspace).toContain('opportunityAllowsCreateCase')
     expect(workspace).toContain('crmProductionPath')
@@ -62,6 +63,10 @@ describe('opportunity case conversion UX contracts', () => {
     expect(detail).toContain('Open Opportunity')
     expect(detail).toContain('linked_opportunity')
     expect(detail).toContain('formatOpportunityStatusLabel')
+    expect(detail).toContain('vertical_name')
+    expect(detail).toContain('advisor_name')
+    expect(detail).toContain('Primary Product / Service')
+    expect(detail).toContain('Assigned advisor')
     expect(detail).not.toMatch(/Linked opportunity:\s*\{\s*['"]/)
   })
 

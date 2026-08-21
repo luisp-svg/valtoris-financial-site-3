@@ -2,6 +2,7 @@ import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js'
 import { formatActivityTypeLabel as formatPlatformActivityTypeLabel } from '../../platform/activities'
 import { countOpenPolicyCases } from '../production/caseWorkspace'
 import { fetchHouseholdProductionApplications } from '../production/productionApi'
+import { slimLiveCasesByOpportunityId } from '../opportunities/convertOpportunityView'
 import { MANUAL_CONTACT_HOUSEHOLD_EXCLUSION } from '../contacts/exclusions'
 import {
   fetchHouseholdActivityRecords,
@@ -808,7 +809,9 @@ async function fetchOpenOpportunitiesForHousehold(
       title,
       status,
       next_action,
-      stage:pipeline_stages!stage_id ( id, name )
+      stage:pipeline_stages!stage_id ( id, name ),
+      service_vertical:service_verticals!service_vertical_id ( id, code, name ),
+      assigned_advisor:advisor_profiles!assigned_advisor_id ( id, display_name )
     `,
     )
     .eq('household_id', householdId)
@@ -826,8 +829,50 @@ async function fetchOpenOpportunitiesForHousehold(
       status: String(record.status),
       next_action: (record.next_action as string | null) ?? null,
       stage: asSingle<{ id: string; name: string }>(record.stage),
+      service_vertical: asSingle<{ id: string; code: string; name: string }>(
+        record.service_vertical,
+      ),
+      assigned_advisor: asSingle<{ id: string; display_name: string }>(record.assigned_advisor),
+      liveCase: null,
     }
   })
+}
+
+export function attachLiveCasesToOpenOpportunities(
+  opportunities: readonly HouseholdOpenOpportunitySummary[],
+  applications: ReadonlyArray<{
+    id: string
+    opportunity_id: string | null
+    production_stage: string
+    deleted_at?: string | null
+  }>,
+): HouseholdOpenOpportunitySummary[] {
+  const liveCases = slimLiveCasesByOpportunityId(applications)
+  return opportunities.map((opportunity) => ({
+    ...opportunity,
+    liveCase: liveCases.get(opportunity.id) ?? null,
+  }))
+}
+
+function liveCaseFields(
+  applications: ReadonlyArray<{
+    id: string
+    opportunity_id: string | null
+    production_stage: string
+    deleted_at?: string | null
+  }>,
+): Array<{
+  id: string
+  opportunity_id: string | null
+  production_stage: string
+  deleted_at?: string | null
+}> {
+  return applications.map((row) => ({
+    id: row.id,
+    opportunity_id: row.opportunity_id,
+    production_stage: row.production_stage,
+    deleted_at: row.deleted_at,
+  }))
 }
 
 function normalizeAssessmentAnswers(
@@ -1247,7 +1292,10 @@ export async function fetchHouseholdWorkspace(
   return {
     household,
     openTasks: scoringCollections.openTasks,
-    openOpportunities,
+    openOpportunities: attachLiveCasesToOpenOpportunities(
+      openOpportunities,
+      liveCaseFields(productionApplications),
+    ),
     familyAssessment: assessments.familyAssessment,
     businessAssessment: assessments.businessAssessment,
     protectionAssessment: assessments.protectionAssessment,

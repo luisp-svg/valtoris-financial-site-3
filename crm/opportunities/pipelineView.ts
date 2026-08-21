@@ -1,10 +1,12 @@
 /**
  * Phase 1 sales pipeline visibility — filters, attention, and card copy
- * over existing opportunities. No schema, no Case coupling, no new routes.
+ * over existing opportunities. No schema, no Case filter/lifecycle, no new
+ * routes. Case created is a derived informational badge only.
  */
 
 import { formatDateLabel, isDueToday, isOverdue, localDateString } from '../dashboard/dates'
 import { isStaleOpportunity } from '../dashboard/staleOpportunity'
+import { formatCaseCreatedStageLabel } from './convertOpportunityView'
 import {
   getOpportunityHouseholdLabel,
   getOpportunityOwnerLabel,
@@ -294,7 +296,10 @@ export function pipelineCardCopy(
   nextAction: string
   nextActionDue: string
   attention: string[]
+  caseCreated: boolean
+  caseStageLabel: string | null
 } {
+  const live = item.linkedApplication
   return {
     householdName: getOpportunityHouseholdLabel(item),
     primaryProduct: getOpportunityPrimaryProductLabel(item),
@@ -303,5 +308,7 @@ export function pipelineCardCopy(
     nextAction: item.next_action?.trim() || 'No next action',
     nextActionDue: formatOpportunityNextActionDueLabel(item.next_action_due_at),
     attention: formatOpportunityAttentionLabels(opportunityAttentionFlags(item, today)),
+    caseCreated: Boolean(live?.id),
+    caseStageLabel: live ? formatCaseCreatedStageLabel(live.production_stage) : null,
   }
 }
