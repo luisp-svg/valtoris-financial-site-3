@@ -3,12 +3,15 @@ import { formatCents } from '../production/productionApi'
 import { formatSignedCents } from '../production/compensationView'
 import type { CommissionWorkItem } from './commissionWorkView'
 import {
+  defaultChargebackDraft,
   defaultRecordCommissionDraft,
   MANUAL_RECORD_EVENT_TYPES,
 } from './commissionWriteView'
 import { validateRecordCommissionDraft } from './commissionRecordDraft'
 import type { RecordCommissionEventArgs } from './commissionWriteApi'
 import { formatCommissionEventTypeLabel } from '../production/compensationLabels'
+import { CHARGEBACK_LIFECYCLE_NOTE, CHARGEBACK_PAID_HISTORY_NOTE } from './chargebackReview'
+import type { ManualCommissionEventType } from './commissionMoney'
 
 type RecordCommissionEventDialogProps = {
   item: CommissionWorkItem
@@ -17,6 +20,7 @@ type RecordCommissionEventDialogProps = {
   today: string
   submitting: boolean
   error: string | null
+  lockedEventType?: ManualCommissionEventType
   onCancel: () => void
   onConfirm: (args: RecordCommissionEventArgs) => void
 }
@@ -28,12 +32,16 @@ export default function RecordCommissionEventDialog({
   today,
   submitting,
   error,
+  lockedEventType,
   onCancel,
   onConfirm,
 }: RecordCommissionEventDialogProps) {
   const headingId = useId()
   const amountRef = useRef<HTMLInputElement>(null)
-  const [draft, setDraft] = useState(() => defaultRecordCommissionDraft(today))
+  const isChargeback = lockedEventType === 'chargeback'
+  const [draft, setDraft] = useState(() =>
+    isChargeback ? defaultChargebackDraft(today) : defaultRecordCommissionDraft(today),
+  )
   const [showDetails, setShowDetails] = useState(false)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
@@ -58,6 +66,7 @@ export default function RecordCommissionEventDialog({
       idempotencyKey,
       preIssue,
       includeCarrierId: true,
+      lockedEventType,
     })
     if (!result.ok) {
       setFieldErrors(result.errors)
@@ -67,12 +76,18 @@ export default function RecordCommissionEventDialog({
     onConfirm(result.args)
   }
 
-  const title = preIssue ? 'Record pre-issue actual' : 'Record actual commission'
-  const confirmLabel = submitting
-    ? 'Recording…'
+  const title = isChargeback
+    ? 'Record Chargeback'
     : preIssue
       ? 'Record pre-issue actual'
-      : 'Record actual'
+      : 'Record actual commission'
+  const confirmLabel = submitting
+    ? 'Recording…'
+    : isChargeback
+      ? 'Record Chargeback'
+      : preIssue
+        ? 'Record pre-issue actual'
+        : 'Record actual'
 
   return (
     <div className="crm-production-review-overlay crm-commissions-write-overlay">
@@ -89,7 +104,16 @@ export default function RecordCommissionEventDialog({
             Close
           </button>
         </div>
-        {preIssue ? (
+        {isChargeback ? (
+          <>
+            <p className="crm-muted">
+              Posts a writing-advisor chargeback event for this allocation. The original paid
+              commission stays in history.
+            </p>
+            <p className="crm-production-kpi-caption">{CHARGEBACK_LIFECYCLE_NOTE}</p>
+            <p className="crm-production-kpi-caption">{CHARGEBACK_PAID_HISTORY_NOTE}</p>
+          </>
+        ) : preIssue ? (
           <p className="crm-banner crm-banner-warning" role="note">
             Use only when real compensation has already been received before the normal
             issued/in-force posting gate. This does not change Production stage.
@@ -144,7 +168,13 @@ export default function RecordCommissionEventDialog({
           </p>
         ) : null}
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className="crm-commissions-write-form">
+          {isChargeback ? (
+            <p className="crm-field">
+              <span>Event type</span>
+              <strong>Chargeback</strong>
+            </p>
+          ) : (
           <label className="crm-field">
             <span>Event type</span>
             <select
@@ -167,6 +197,7 @@ export default function RecordCommissionEventDialog({
               <span className="crm-field-error">{fieldErrors.eventType}</span>
             ) : null}
           </label>
+          )}
 
           <label className="crm-field">
             <span>Amount</span>
@@ -185,8 +216,9 @@ export default function RecordCommissionEventDialog({
               <span className="crm-field-error">{fieldErrors.amount}</span>
             ) : (
               <span className="crm-muted">
-                Enter a positive dollar amount. Chargebacks are posted as negative cents
-                automatically.
+                {isChargeback
+                  ? 'Enter a positive dollar amount. Chargebacks post as negative cents automatically.'
+                  : 'Enter a positive dollar amount. Chargebacks are posted as negative cents automatically.'}
               </span>
             )}
           </label>

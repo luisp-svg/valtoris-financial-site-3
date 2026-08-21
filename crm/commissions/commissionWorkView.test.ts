@@ -323,6 +323,31 @@ describe('commission metrics', () => {
     expect(rows[0]?.derivedStatus.chargedBack).toBe(true)
   })
 
+  it('keeps gross paid unchanged when a later chargeback reduces net', () => {
+    const expected = expectedRow({
+      id: 'e1',
+      application_id: 'app-1',
+      advisor_id: 'adv-a',
+      expected_compensation_cents: 100000,
+    })
+    const rows = work(
+      [item({ id: 'app-1', production_stage: 'issued', expected_compensations: [expected] })],
+      [
+        event({ id: 'p1', application_id: 'app-1', amount_cents: 100000 }),
+        event({
+          id: 'c1',
+          application_id: 'app-1',
+          event_type: 'chargeback',
+          amount_cents: -40000,
+        }),
+      ],
+    )
+    expect(rows[0]?.paidCents).toBe(100000)
+    expect(rows[0]?.chargebackCents).toBe(-40000)
+    expect(rows[0]?.adjustmentCents).toBe(0)
+    expect(rows[0]?.netPaidCents).toBe(60000)
+  })
+
   it('includes recovery and adjustment in net paid', () => {
     const expected = expectedRow({
       id: 'e1',
@@ -547,6 +572,95 @@ describe('commission queue filters', () => {
         TODAY,
       ),
     ).toHaveLength(1)
+  })
+
+  it('filters ledger activity by paid, adjustment, and chargeback without mixing those types', () => {
+    const paidRow = work(
+      [
+        item({
+          id: 'paid-app',
+          production_stage: 'issued',
+          expected_compensations: [
+            expectedRow({
+              id: 'paid-e',
+              application_id: 'paid-app',
+              advisor_id: 'adv-a',
+              expected_compensation_cents: 100000,
+            }),
+          ],
+        }),
+      ],
+      [event({ id: 'p-only', application_id: 'paid-app', amount_cents: 100000 })],
+    )
+    const chargebackRow = work(
+      [
+        item({
+          id: 'cb-app',
+          production_stage: 'issued',
+          expected_compensations: [
+            expectedRow({
+              id: 'cb-e',
+              application_id: 'cb-app',
+              advisor_id: 'adv-a',
+              expected_compensation_cents: 100000,
+            }),
+          ],
+        }),
+      ],
+      [
+        event({ id: 'p-cb', application_id: 'cb-app', amount_cents: 100000 }),
+        event({
+          id: 'cb-1',
+          application_id: 'cb-app',
+          event_type: 'chargeback',
+          amount_cents: -40000,
+        }),
+      ],
+    )
+    const adjustmentRow = work(
+      [
+        item({
+          id: 'adj-app',
+          production_stage: 'issued',
+          expected_compensations: [
+            expectedRow({
+              id: 'adj-e',
+              application_id: 'adj-app',
+              advisor_id: 'adv-a',
+              expected_compensation_cents: 100000,
+            }),
+          ],
+        }),
+      ],
+      [
+        event({ id: 'p-adj', application_id: 'adj-app', amount_cents: 80000 }),
+        event({
+          id: 'adj-1',
+          application_id: 'adj-app',
+          event_type: 'adjustment',
+          amount_cents: -5000,
+        }),
+      ],
+    )
+    const rows = [...paidRow, ...chargebackRow, ...adjustmentRow]
+    const filters = defaultCommissionQueueFilters()
+    expect(
+      filterCommissionWorkItems(rows, { ...filters, moneyKind: 'chargeback' }, 'lifetime', TODAY).map(
+        (row) => row.applicationId,
+      ),
+    ).toEqual(['cb-app'])
+    expect(
+      filterCommissionWorkItems(rows, { ...filters, moneyKind: 'adjustment' }, 'lifetime', TODAY).map(
+        (row) => row.applicationId,
+      ),
+    ).toEqual(['adj-app'])
+    expect(
+      filterCommissionWorkItems(rows, { ...filters, moneyKind: 'paid' }, 'lifetime', TODAY),
+    ).toHaveLength(3)
+    expect(
+      filterCommissionWorkItems(rows, { ...filters, moneyKind: 'chargeback' }, 'lifetime', TODAY)[0]
+        ?.paidCents,
+    ).toBe(100000)
   })
 
   it('uses expected/application date for this-month membership and payment date for paid activity', () => {

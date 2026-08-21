@@ -20,12 +20,21 @@ export type WritingAttributionTarget = {
   splitLabel: string
 }
 
+export const RECORD_CHARGEBACK_ACTION_LABEL = 'Record Chargeback'
+
 export function canRecordAttributedActual(
   isOwner: boolean,
   item: Pick<CommissionWorkItem, 'kind' | 'allocationId' | 'pendingOnlyStub'>,
 ): boolean {
   if (isPendingOnlyCommissionStub(item)) return false
   return isOwner && item.kind === 'writing_advisor' && Boolean(item.allocationId)
+}
+
+export function canRecordChargeback(
+  isOwner: boolean,
+  item: Pick<CommissionWorkItem, 'kind' | 'allocationId' | 'pendingOnlyStub'>,
+): boolean {
+  return canRecordAttributedActual(isOwner, item)
 }
 
 export function canReverseCommissionEvent(options: {
@@ -126,5 +135,12 @@ export function defaultRecordCommissionDraft(today: string): RecordCommissionDra
     policyReference: '',
     sourceFile: '',
     rawDescription: '',
+  }
+}
+
+export function defaultChargebackDraft(today: string): RecordCommissionDraft {
+  return {
+    ...defaultRecordCommissionDraft(today),
+    eventType: 'chargeback',
   }
 }

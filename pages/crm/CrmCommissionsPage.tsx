@@ -88,6 +88,7 @@ type CommissionWriteFlow =
       item: CommissionWorkItem
       preIssue: boolean
       idempotencyKey: string
+      lockedEventType?: 'chargeback'
     }
   | {
       kind: 'reverse'
@@ -350,7 +351,7 @@ export default function CrmCommissionsPage() {
     setWriteError(null)
   }
 
-  function openRecord(item: CommissionWorkItem, preIssue: boolean) {
+  function openRecord(item: CommissionWorkItem, preIssue: boolean, lockedEventType?: 'chargeback') {
     if (!isOwner || item.pendingOnlyStub) return
     setWriteError(null)
     setWriteFlow({
@@ -358,6 +359,7 @@ export default function CrmCommissionsPage() {
       item,
       preIssue,
       idempotencyKey: createManualCommissionIdempotencyKey(),
+      lockedEventType,
     })
   }
 
@@ -386,6 +388,13 @@ export default function CrmCommissionsPage() {
   async function handleRecord(args: RecordCommissionEventArgs) {
     if (!isOwner || writeSubmitting) return
     if (writeFlow?.kind === 'record' && writeFlow.item.pendingOnlyStub) return
+    if (
+      writeFlow?.kind === 'record' &&
+      writeFlow.lockedEventType &&
+      args.eventType !== writeFlow.lockedEventType
+    ) {
+      return
+    }
     setWriteSubmitting(true)
     setWriteError(null)
     try {
@@ -480,6 +489,7 @@ export default function CrmCommissionsPage() {
       snapshotError={snapshotError}
       onRetry={() => setReloadKey((n) => n + 1)}
       onRecord={(item) => openRecord(item, false)}
+      onChargeback={(item) => openRecord(item, false, 'chargeback')}
       onPreIssue={(item) => openRecord(item, true)}
       onReverse={openReverse}
       onAttribute={openAttribute}
@@ -493,6 +503,7 @@ export default function CrmCommissionsPage() {
         today={today}
         submitting={writeSubmitting}
         error={writeError}
+        lockedEventType={writeFlow.lockedEventType}
         onCancel={closeWriteFlow}
         onConfirm={handleRecord}
       />

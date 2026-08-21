@@ -26,8 +26,11 @@ import CommissionSummary from './CommissionSummary'
 import CommissionWorkItemDetail from './CommissionWorkItemDetail'
 import type { CommissionAdvisorPendingRow } from './commissionPendingRead'
 import {
+  COMMISSION_MONEY_KIND_FILTERS,
+  commissionMoneyKindFilterLabel,
   defaultCommissionQueueFilters,
   hasActiveCommissionFilters,
+  type CommissionMoneyKindFilter,
   type CommissionQueueFilters,
 } from './commissionFilters'
 import {
@@ -73,6 +76,7 @@ type CommissionWorkspaceProps = {
   snapshotError: string | null
   onRetry: () => void
   onRecord: (item: CommissionWorkItem) => void
+  onChargeback: (item: CommissionWorkItem) => void
   onPreIssue: (item: CommissionWorkItem) => void
   onReverse: (item: CommissionWorkItem, event: WritingCommissionEvent) => void
   onAttribute: (item: CommissionWorkItem, event: WritingCommissionEvent) => void
@@ -112,6 +116,7 @@ export default function CommissionWorkspace({
   snapshotError,
   onRetry,
   onRecord,
+  onChargeback,
   onPreIssue,
   onReverse,
   onAttribute,
@@ -342,6 +347,22 @@ export default function CommissionWorkspace({
             ))}
           </select>
         </label>
+        <label className="crm-field">
+          <span>Ledger activity</span>
+          <select
+            value={filters.moneyKind}
+            onChange={(e) =>
+              updateFilter('moneyKind', e.target.value as CommissionMoneyKindFilter)
+            }
+            disabled={loading}
+          >
+            {COMMISSION_MONEY_KIND_FILTERS.map((kind) => (
+              <option key={kind} value={kind}>
+                {commissionMoneyKindFilterLabel(kind)}
+              </option>
+            ))}
+          </select>
+        </label>
         <label className="crm-field crm-production-check-field">
           <span>Needs review</span>
           <input
@@ -404,6 +425,7 @@ export default function CommissionWorkspace({
               isOwner={isOwner}
               onOpenItem={onSelectItem}
               onRecord={onRecord}
+              onChargeback={onChargeback}
               onPreIssue={onPreIssue}
             />
           ) : (
@@ -412,6 +434,7 @@ export default function CommissionWorkspace({
               isOwner={isOwner}
               onOpenItem={onSelectItem}
               onRecord={onRecord}
+              onChargeback={onChargeback}
               onPreIssue={onPreIssue}
             />
           )
@@ -437,6 +460,7 @@ export default function CommissionWorkspace({
           closeOnEscape={!writeDialogOpen}
           onClose={() => onSelectItem(null)}
           onRecord={onRecord}
+          onChargeback={onChargeback}
           onPreIssue={onPreIssue}
           onReverse={onReverse}
           onAttribute={onAttribute}

@@ -8014,7 +8014,9 @@ p { color: var(--muted); line-height: 1.7; }
   }
 
   .crm-policy-lifecycle-actions,
-  .crm-policy-lifecycle-dialog .crm-form-actions {
+  .crm-policy-lifecycle-dialog .crm-form-actions,
+  .crm-commissions-owner-actions,
+  .crm-commissions-write-dialog .crm-form-actions {
     flex-direction: column;
     align-items: stretch;
   }
@@ -8022,8 +8024,21 @@ p { color: var(--muted); line-height: 1.7; }
   .crm-policy-lifecycle-actions .crm-primary-btn,
   .crm-policy-lifecycle-actions .crm-secondary-btn,
   .crm-policy-lifecycle-dialog .crm-form-actions .crm-primary-btn,
-  .crm-policy-lifecycle-dialog .crm-form-actions .crm-secondary-btn {
+  .crm-policy-lifecycle-dialog .crm-form-actions .crm-secondary-btn,
+  .crm-commissions-owner-actions .crm-primary-btn,
+  .crm-commissions-owner-actions .crm-secondary-btn,
+  .crm-commissions-write-dialog .crm-form-actions .crm-primary-btn,
+  .crm-commissions-write-dialog .crm-form-actions .crm-secondary-btn {
     width: 100%;
+  }
+
+  .crm-commissions-page,
+  .crm-commissions-card,
+  .crm-commissions-write-dialog,
+  .crm-commissions-detail-dialog {
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: clip;
   }
 
   .crm-policy-lifecycle-dialog,
@@ -12226,6 +12241,30 @@ button.public-card-diagnostic:disabled {
 .crm-commissions-pending-source h3 {
   margin: 0 0 6px;
   font-size: 1rem;
+}
+
+.crm-commissions-chargeback-review {
+  margin: 16px 0;
+}
+
+.crm-commissions-chargeback-review h3 {
+  margin: 0 0 6px;
+  font-size: 1rem;
+}
+
+.crm-commissions-chargeback-history {
+  margin: 0 0 12px;
+  padding-left: 1.1rem;
+}
+
+.crm-commissions-chargeback-history li {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.crm-commissions-write-form .crm-field strong {
+  display: block;
+  margin-top: 4px;
 }
 
 @media (max-width: 899px) {

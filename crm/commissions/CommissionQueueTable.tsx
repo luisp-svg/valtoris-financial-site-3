@@ -9,6 +9,7 @@ type CommissionQueueTableProps = {
   isOwner: boolean
   onOpenItem: (item: CommissionWorkItem) => void
   onRecord: (item: CommissionWorkItem) => void
+  onChargeback: (item: CommissionWorkItem) => void
   onPreIssue: (item: CommissionWorkItem) => void
 }
 
@@ -17,6 +18,7 @@ export default function CommissionQueueTable({
   isOwner,
   onOpenItem,
   onRecord,
+  onChargeback,
   onPreIssue,
 }: CommissionQueueTableProps) {
   return (
@@ -102,6 +104,7 @@ export default function CommissionQueueTable({
                     isOwner={isOwner}
                     item={item}
                     onRecord={onRecord}
+                    onChargeback={onChargeback}
                     onPreIssue={onPreIssue}
                   />
                 </td>

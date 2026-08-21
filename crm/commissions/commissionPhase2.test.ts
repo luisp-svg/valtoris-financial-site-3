@@ -33,6 +33,7 @@ import { formatCommissionEventSourceLabel } from './commissionEventSource'
 import {
   canAttributeCommissionEvent,
   canRecordAttributedActual,
+  canRecordChargeback,
   canReverseCommissionEvent,
   MANUAL_RECORD_EVENT_TYPES,
   ordinaryRecordRpcName,
@@ -215,6 +216,21 @@ describe('commission Phase 2 record draft', () => {
     })
     expect(chargeback.ok && chargeback.args.amountCents).toBe(-75000)
 
+    const lockedPaidDraft = validateRecordCommissionDraft({
+      item: item({ id: 'app:alloc-a', applicationId: 'app-1' }),
+      draft: { ...draft, eventType: 'paid', amountInput: '400.00' },
+      idempotencyKey: 'manual035:key-cb',
+      preIssue: false,
+      includeCarrierId: true,
+      lockedEventType: 'chargeback',
+    })
+    expect(lockedPaidDraft.ok).toBe(true)
+    if (lockedPaidDraft.ok) {
+      expect(lockedPaidDraft.args.eventType).toBe('chargeback')
+      expect(lockedPaidDraft.args.amountCents).toBe(-40000)
+      expect(lockedPaidDraft.args.preIssue).toBe(false)
+    }
+
     const recovery = validateRecordCommissionDraft({
       item: item({ id: 'app:alloc-a', applicationId: 'app-1' }),
       draft: { ...draft, eventType: 'recovery', amountInput: '25' },
@@ -299,10 +315,16 @@ describe('commission Phase 2 owner/advisor and split-writer isolation', () => {
       advisorName: 'Unattributed',
     })
     expect(canRecordAttributedActual(true, writing)).toBe(true)
+    expect(canRecordChargeback(true, writing)).toBe(true)
     expect(canRecordAttributedActual(false, writing)).toBe(false)
+    expect(canRecordChargeback(false, writing)).toBe(false)
     expect(canRecordAttributedActual(true, unattributed)).toBe(false)
+    expect(canRecordChargeback(true, unattributed)).toBe(false)
     expect(
       canRecordAttributedActual(true, item({ id: 'app:stub', applicationId: 'app-1', pendingOnlyStub: true })),
+    ).toBe(false)
+    expect(
+      canRecordChargeback(true, item({ id: 'app:stub', applicationId: 'app-1', pendingOnlyStub: true })),
     ).toBe(false)
     expect(
       canRecordAttributedActual(
@@ -712,6 +734,7 @@ describe('commission Phase 2 Phase 1 metric refresh from 035 events', () => {
       ],
     })
     const jaredCb = afterChargeback.find((row) => row.allocationId === 'alloc-a')
+    expect(jaredCb?.paidCents).toBe(75000)
     expect(jaredCb?.chargebackCents).toBe(-25000)
     expect(jaredCb?.netPaidCents).toBe(50000)
     expect(jaredCb?.lastFinancialActivity).toBe('2026-08-30')

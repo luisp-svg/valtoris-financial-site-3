@@ -109,6 +109,7 @@ describe('commission Phase 3A contracts', () => {
   it('preserves Phase 1/2 owner actions on the commissions workspace', () => {
     const workspace = readFileSync(join(root, 'crm/commissions/CommissionWorkspace.tsx'), 'utf8')
     expect(workspace).toContain('onRecord')
+    expect(workspace).toContain('onChargeback')
     expect(workspace).toContain('onPreIssue')
     expect(workspace).toContain('onReverse')
     expect(workspace).toContain('onAttribute')

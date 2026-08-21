@@ -29,17 +29,21 @@ export function validateRecordCommissionDraft(options: {
   idempotencyKey: string
   preIssue: boolean
   includeCarrierId: boolean
+  lockedEventType?: ManualCommissionEventType
 }): RecordCommissionDraftResult {
+  const draft = options.lockedEventType
+    ? { ...options.draft, eventType: options.lockedEventType }
+    : options.draft
   const errors: RecordCommissionFieldErrors = {}
   if (
-    !MANUAL_RECORD_EVENT_TYPES.includes(options.draft.eventType as ManualCommissionEventType)
+    !MANUAL_RECORD_EVENT_TYPES.includes(draft.eventType as ManualCommissionEventType)
   ) {
     errors.eventType = 'Choose Paid, Adjustment, Chargeback, or Recovery.'
   }
-  if (options.draft.eventType === 'reversal' as string) {
+  if (draft.eventType === 'reversal' as string) {
     errors.eventType = 'Reversal has its own action.'
   }
-  const parsed = parsePositiveDollarCents(options.draft.amountInput)
+  const parsed = parsePositiveDollarCents(draft.amountInput)
   if (!parsed.ok) {
     errors.amount =
       parsed.reason === 'blank'
@@ -48,10 +52,10 @@ export function validateRecordCommissionDraft(options: {
           ? 'Amount cannot be zero.'
           : 'Enter a valid dollar amount.'
   }
-  if (!isValidDateOnly(options.draft.transactionDate)) {
+  if (!isValidDateOnly(draft.transactionDate)) {
     errors.transactionDate = 'Enter a transaction date.'
   }
-  if (!options.draft.reason.trim()) {
+  if (!draft.reason.trim()) {
     errors.reason = 'Enter a reason or source note.'
   }
   if (!options.item.allocationId) {
@@ -70,9 +74,9 @@ export function validateRecordCommissionDraft(options: {
   }
 
   const signed = signedCentsForManualEvent({
-    eventType: options.draft.eventType,
+    eventType: draft.eventType,
     magnitudeCents: parsed.cents,
-    adjustmentDirection: options.draft.adjustmentDirection as AdjustmentDirection,
+    adjustmentDirection: draft.adjustmentDirection as AdjustmentDirection,
   })
   if (signed == null) {
     return { ok: false, errors: { amount: 'Enter a valid dollar amount.' } }
@@ -82,20 +86,20 @@ export function validateRecordCommissionDraft(options: {
     ok: true,
     args: {
       applicationId: options.item.applicationId,
-      eventType: options.draft.eventType,
+      eventType: draft.eventType,
       amountCents: signed,
-      reason: options.draft.reason.trim(),
+      reason: draft.reason.trim(),
       idempotencyKey: options.idempotencyKey,
       allocationId: options.item.allocationId,
       expectedCompensationId: options.item.expectedRow?.id ?? null,
       carrierId: options.includeCarrierId ? options.item.providerId : null,
-      carrierTransactionId: options.draft.carrierTransactionId,
-      statementIdentifier: options.draft.statementIdentifier,
-      statementDate: options.draft.statementDate,
-      transactionDate: options.draft.transactionDate,
-      policyReference: options.draft.policyReference,
-      sourceFile: options.draft.sourceFile,
-      rawDescription: options.draft.rawDescription,
+      carrierTransactionId: draft.carrierTransactionId,
+      statementIdentifier: draft.statementIdentifier,
+      statementDate: draft.statementDate,
+      transactionDate: draft.transactionDate,
+      policyReference: draft.policyReference,
+      sourceFile: draft.sourceFile,
+      rawDescription: draft.rawDescription,
       preIssue: options.preIssue,
     },
   }

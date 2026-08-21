@@ -6,6 +6,15 @@ import {
   workItemInReportingPeriod,
 } from './commissionWorkView'
 
+export type CommissionMoneyKindFilter = 'all' | 'paid' | 'adjustment' | 'chargeback'
+
+export const COMMISSION_MONEY_KIND_FILTERS = [
+  'all',
+  'paid',
+  'adjustment',
+  'chargeback',
+] as const satisfies readonly CommissionMoneyKindFilter[]
+
 export type CommissionQueueFilters = {
   search: string
   advisorId: 'all' | 'unattributed' | string
@@ -13,6 +22,7 @@ export type CommissionQueueFilters = {
   productLine: 'all' | ProductionProductLine
   productionStage: 'all' | ProductionStage
   derivedStatus: 'all' | CommissionWorkDerivedStatus
+  moneyKind: CommissionMoneyKindFilter
   needsReviewOnly: boolean
 }
 
@@ -24,6 +34,7 @@ export function defaultCommissionQueueFilters(): CommissionQueueFilters {
     productLine: 'all',
     productionStage: 'all',
     derivedStatus: 'all',
+    moneyKind: 'all',
     needsReviewOnly: false,
   }
 }
@@ -36,6 +47,23 @@ function includesNeedle(haystack: string | null | undefined, needle: string): bo
   if (!needle) return true
   if (!haystack) return false
   return haystack.toLowerCase().includes(needle)
+}
+
+export function workItemMatchesMoneyKind(
+  item: Pick<CommissionWorkItem, 'paidCents' | 'adjustmentCents' | 'chargebackCents'>,
+  kind: CommissionMoneyKindFilter,
+): boolean {
+  if (kind === 'all') return true
+  if (kind === 'paid') return item.paidCents !== 0
+  if (kind === 'adjustment') return item.adjustmentCents !== 0
+  return item.chargebackCents !== 0
+}
+
+export function commissionMoneyKindFilterLabel(kind: CommissionMoneyKindFilter): string {
+  if (kind === 'paid') return 'Paid'
+  if (kind === 'adjustment') return 'Adjustments'
+  if (kind === 'chargeback') return 'Chargebacks'
+  return 'All'
 }
 
 export function commissionWorkItemMatchesSearch(item: CommissionWorkItem, search: string): boolean {
@@ -74,6 +102,7 @@ export function filterCommissionWorkItems(
     if (filters.derivedStatus !== 'all' && item.derivedStatus.primary !== filters.derivedStatus) {
       return false
     }
+    if (!workItemMatchesMoneyKind(item, filters.moneyKind)) return false
     if (filters.needsReviewOnly && !item.derivedStatus.needsReview) return false
     return true
   })
@@ -87,6 +116,7 @@ export function hasActiveCommissionFilters(filters: CommissionQueueFilters): boo
     filters.productLine !== 'all' ||
     filters.productionStage !== 'all' ||
     filters.derivedStatus !== 'all' ||
+    filters.moneyKind !== 'all' ||
     filters.needsReviewOnly
   )
 }

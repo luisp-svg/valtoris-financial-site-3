@@ -40,5 +40,7 @@ describe('policy lifecycle commission isolation', () => {
     expect(detail).not.toContain('record_policy_writing_commission_event')
     expect(lifecycleApi).not.toContain('record_policy_writing_commission_event')
     expect(section).not.toContain('record_policy_writing_commission_event')
+    expect(dialog).not.toContain('record_policy_writing_commission_event')
+    expect(dialog).not.toContain('Record Chargeback')
   })
 })

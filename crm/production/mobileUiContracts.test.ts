@@ -136,6 +136,9 @@ describe('CRM mobile responsive cleanup contracts', () => {
     expect(styles).toContain('overflow-x: clip')
     expect(styles).toContain('.crm-policy-lifecycle-actions')
     expect(styles).toContain('.crm-policy-lifecycle-dialog')
+    expect(styles).toContain('.crm-commissions-owner-actions')
+    expect(styles).toContain('.crm-commissions-write-dialog .crm-form-actions')
+    expect(styles).toContain('.crm-commissions-chargeback-history')
     expect(readFileSync(join(here, 'PolicyLifecycleSection.tsx'), 'utf8')).toContain(
       'crm-policy-lifecycle-actions',
     )
