@@ -78,7 +78,7 @@ describe('commission Pending Phase B contracts', () => {
     expect(blob).not.toMatch(/xlsx|exceljs|sheetjs/i)
     expect(blob).not.toMatch(/P&C Commission|Student Loan Commission|Credit Repair Commission/)
     const numbered = readdirSync(migrationsDir).filter((name) => /^\d{3}_/.test(name)).sort()
-    expect(numbered).toHaveLength(48)
+    expect(numbered).toHaveLength(49)
     expect(numbered[0]).toBe('001_extensions_and_enums.sql')
     expect(numbered[43]).toBe('044_policy_application_requirements.sql')
     expect(numbered[44]).toBe('045_policy_post_placement_lifecycle.sql')
@@ -97,7 +97,8 @@ describe('commission Pending Phase B contracts', () => {
     expect(numbered.filter((name) => name.startsWith('048_'))).toEqual([
       '048_student_loan_report_card_ingest.sql',
     ])
-    expect(numbered.filter((name) => name.startsWith('049_'))).toEqual([])
+    expect(numbered.filter((name) => name.startsWith('049_'))).toEqual(['049_specialize_public_report_card_follow_up_copy.sql'])
+    expect(numbered.filter((name) => name.startsWith('050_'))).toEqual([])
     expect(numbered).toContain('040_commission_pending_import.sql')
     expect(numbered).toContain('041_commission_pending_review.sql')
     expect(numbered).toContain('043_public_report_card_ingest.sql')

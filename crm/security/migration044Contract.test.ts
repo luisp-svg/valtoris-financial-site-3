@@ -41,7 +41,8 @@ describe('migration 044 policy application requirements contract', () => {
     expect(files.filter((f) => f.startsWith('048_'))).toEqual([
       '048_student_loan_report_card_ingest.sql',
     ])
-    expect(files.filter((f) => f.startsWith('049_'))).toEqual([])
+    expect(files.filter((f) => f.startsWith('049_'))).toEqual(['049_specialize_public_report_card_follow_up_copy.sql'])
+    expect(files.filter((f) => f.startsWith('050_'))).toEqual([])
     expect(files.filter((f) => Number(f.slice(0, 3)) >= 1 && Number(f.slice(0, 3)) <= 43)).toHaveLength(
       43,
     )

@@ -173,12 +173,13 @@ describe('Student Loan Phase A foundation', () => {
     expect(source('components/assessment/studentLoan/ingestBoundary.ts')).not.toContain('opportunity')
   })
 
-  it('does not add Migration 049 and leaves 047/048 byte-identical', () => {
+  it('does not add Migration 050 and leaves 047/048 byte-identical', () => {
     const files = readdirSync(MIGRATIONS_DIR).filter((name) => name.endsWith('.sql')).sort()
-    expect(files).toHaveLength(48)
+    expect(files).toHaveLength(49)
     expect(files[46]).toBe('047_credit_repair_student_loan_sales_catalog.sql')
     expect(files[47]).toBe('048_student_loan_report_card_ingest.sql')
-    expect(files.some((name) => name.startsWith('049_'))).toBe(false)
+    expect(files[48]).toBe('049_specialize_public_report_card_follow_up_copy.sql')
+    expect(files.some((name) => name.startsWith('050_'))).toBe(false)
     expect(fileSha256('supabase/migrations/047_credit_repair_student_loan_sales_catalog.sql')).toBe(SHA_047)
     expect(fileSha256('supabase/migrations/048_student_loan_report_card_ingest.sql')).toBe(SHA_048)
   })
