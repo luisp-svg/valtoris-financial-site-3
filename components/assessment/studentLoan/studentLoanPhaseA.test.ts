@@ -136,6 +136,7 @@ describe('Student Loan Phase A foundation', () => {
     const model = getStudentLoanResultsModel()
     expect(model.available).toBe(false)
     expect(model.score).toBeNull()
+    expect(model.overallScore).toBeNull()
     expect(model.grade).toBeNull()
     expect(model.categoryScores).toEqual([])
     expect(model.criticalFlags).toEqual([])
@@ -156,8 +157,8 @@ describe('Student Loan Phase A foundation', () => {
     expect(canSubmitStudentLoanToCrm()).toBe(false)
     expect(getStudentLoanSubmitBoundary()).toEqual({
       enabled: false,
-      reason: 'scoring_and_server_validation_required',
-      requires: ['phase_b_scoring', 'phase_c_server_validation', 'publicIngestCatalog'],
+      reason: 'server_validation_required',
+      requires: ['phase_c_server_validation', 'publicIngestCatalog'],
     })
     expect(PUBLIC_REPORT_CARD_ASSESSMENT_TYPES).toEqual(['family', 'business', 'retirement', 'protection'])
     expect(PUBLIC_REPORT_CARD_ASSESSMENT_TYPES).not.toContain('student_loan')
@@ -189,11 +190,13 @@ describe('Student Loan Phase A foundation', () => {
     expect(fileSha256('supabase/migrations/048_student_loan_report_card_ingest.sql')).toBe(SHA_048)
   })
 
-  it('keeps English question copy out of the scoring path by having no scorer', () => {
+  it('keeps English question copy out of the scoring path', () => {
     expect(studentLoanCopy.en?.questions.loan_types).toContain('student loans')
-    expect(source('components/assessment/studentLoan/resultsModel.ts')).not.toContain('scoreStudentLoan')
     expect(existsSync(join(ROOT, 'components/assessment/studentLoan/scoreStudentLoanAssessment.ts'))).toBe(
-      false,
+      true,
+    )
+    expect(source('components/assessment/studentLoan/scoreStudentLoanAssessment.ts')).not.toContain(
+      "from './copy'",
     )
   })
 })

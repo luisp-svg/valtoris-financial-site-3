@@ -12,6 +12,8 @@ import type { SpecializedCopySection, SpecializedField } from '../components/ass
 import {
   diagnosticToAnswerMap,
   answerMapToDiagnostic,
+  isStudentLoanContactComplete,
+  isStudentLoanDiagnosticComplete,
   isStudentLoanStepComplete,
 } from '../components/assessment/studentLoan/completeness'
 import {
@@ -27,6 +29,7 @@ import {
 } from '../components/assessment/studentLoan/constants'
 import { studentLoanCopy } from '../components/assessment/studentLoan/copy'
 import { canSubmitStudentLoanToCrm } from '../components/assessment/studentLoan/ingestBoundary'
+import { buildStudentLoanResultsSession } from '../components/assessment/studentLoan/resultsModel'
 import { STUDENT_LOAN_QUESTIONS } from '../components/assessment/studentLoan/questions'
 import { INITIAL_STUDENT_LOAN_ANSWERS, type StudentLoanAssessmentAnswers, type StudentLoanContactAnswers } from '../components/assessment/studentLoan/types'
 import {
@@ -149,15 +152,16 @@ export default function StudentLoanAssessment() {
 
   function finishWithoutCrm(finalAnswers: StudentLoanAssessmentAnswers) {
     if (ingestSession.status === 'succeeded') {
-      throw new Error('Student Loan CRM ingest must stay disabled in Phase A.')
+      throw new Error('Student Loan CRM ingest must stay disabled until Phase C.')
     }
+    const resultsSession = buildStudentLoanResultsSession(finalAnswers)
     try {
-      sessionStorage.setItem(STUDENT_LOAN_ANSWERS_STORAGE_KEY, JSON.stringify(finalAnswers))
+      sessionStorage.setItem(STUDENT_LOAN_ANSWERS_STORAGE_KEY, JSON.stringify(resultsSession))
     } catch {
       // Non-fatal local cache only.
     }
     navigate(withSpecializedLocale(ROUTES.studentLoanReportCardResults, locale), {
-      state: { answers: finalAnswers, crmSubmitted: false },
+      state: { answers: resultsSession, crmSubmitted: false },
     })
   }
 
@@ -171,7 +175,12 @@ export default function StudentLoanAssessment() {
       return
     }
 
-    if (!canContinue) {
+    if (!canContinue || !isStudentLoanContactComplete(answersRef.current)) {
+      setShowFieldErrors(true)
+      return
+    }
+
+    if (!isStudentLoanDiagnosticComplete(answersRef.current.diagnostic)) {
       setShowFieldErrors(true)
       return
     }
@@ -184,7 +193,7 @@ export default function StudentLoanAssessment() {
     }
 
     if (canSubmitStudentLoanToCrm()) {
-      throw new Error('Student Loan CRM ingest is not enabled in Phase A.')
+      throw new Error('Student Loan CRM ingest is not enabled until Phase C.')
     }
 
     setBoundaryNotice(t('ui', 'ingestUnavailable'))

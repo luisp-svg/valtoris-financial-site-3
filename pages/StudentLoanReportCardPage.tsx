@@ -9,25 +9,25 @@ const WHAT_YOU_RECEIVE = [
     icon: 'grade' as const,
     title: 'Student Loan Health Score',
     description:
-      'A future 0–100 score and letter grade that summarize loan status, repayment strategy, and review priorities. Scoring is not available in this foundation release.',
+      'A 0–100 Student Loan Health Score and letter grade that summarize loan status, repayment strategy, and review priorities. Large balances are not penalized.',
   },
   {
     icon: 'priorities' as const,
     title: 'Review Flags and Top Areas',
     description:
-      'Critical situations such as default or delinquency will be listed separately from the numeric score once scoring ships.',
+      'Critical situations such as default or delinquency appear as review flags, separately from the numeric score.',
   },
   {
     icon: 'strategy' as const,
     title: 'Goal-Aligned Next Step',
     description:
-      'Your primary goal and urgency will frame a later advisor review. This is educational, not an eligibility determination.',
+      'Your primary goal and urgency frame the recommended review. This is educational, not an eligibility determination.',
   },
   {
     icon: 'session' as const,
     title: 'Optional Strategy Conversation',
     description:
-      'When results are available, you can optionally review them in a complimentary conversation. Nothing is created automatically today.',
+      'You can optionally review your results in a complimentary conversation. Completing the assessment does not create a CRM Opportunity.',
   },
 ]
 
@@ -40,7 +40,7 @@ const CATEGORIES = [
   {
     icon: 'credit' as const,
     title: 'Status and Stability',
-    description: 'Repayment, deferment, delinquency, or default status that later scoring can weight carefully.',
+    description: 'Repayment, deferment, delinquency, or default status, weighted for stability — not loan size.',
   },
   {
     icon: 'strategy' as const,
@@ -77,13 +77,13 @@ const HOW_IT_WORKS = [
   },
   {
     step: '3',
-    title: 'Results Come Next',
-    description: 'A score, grade, and flags will appear in a later phase. This release does not invent those numbers.',
+    title: 'See Your Results',
+    description: 'Your score, grade, flags, and top review areas are calculated from your answers on this device.',
   },
   {
     step: '4',
     title: 'Optional Review',
-    description: 'When scoring exists, you will be able to book a complimentary review. No Opportunity is created automatically.',
+    description: 'Book a complimentary review if you want to walk through the results. No Opportunity is created automatically.',
   },
 ]
 
@@ -99,7 +99,7 @@ const FAQS = [
   {
     question: 'Do I get a score today?',
     answer:
-      'Not yet. This foundation collects answers and acknowledgments only. Scoring and CRM submission ship in a later phase.',
+      'Yes. You receive a Student Loan Health Score, grade, flags, and review areas after the 10 questions and acknowledgments. CRM storage is not enabled in this release.',
   },
   {
     question: 'Is this an eligibility or forgiveness approval?',
@@ -116,15 +116,15 @@ const FAQS = [
 function StudentLoanSamplePreview() {
   return (
     <article className="platform-card funnel-preview-card">
-      <p className="platform-eyebrow">Architecture preview</p>
-      <h3 className="diagnostic-receive-title">Results will include</h3>
+      <p className="platform-eyebrow">What you will see</p>
+      <h3 className="diagnostic-receive-title">Your results include</h3>
       <ul className="diagnostic-faq-answer">
-        <li>Student Loan Health Score and grade (not calculated yet)</li>
-        <li>Category scores and critical flags (not calculated yet)</li>
-        <li>Top three review areas and your primary goal</li>
-        <li>An optional booking next step</li>
+        <li>Student Loan Health Score and letter grade</li>
+        <li>Category scores and critical review flags</li>
+        <li>Up to three review areas and your primary goal</li>
+        <li>An optional complimentary review next step</li>
       </ul>
-      <p className="funnel-microcopy">No sample score or letter grade is shown because scoring is not implemented.</p>
+      <p className="funnel-microcopy">No sample score or letter grade is invented on this page.</p>
     </article>
   )
 }
@@ -141,23 +141,23 @@ export default function StudentLoanReportCardPage() {
       title="Get Clarity on Your Student Loans"
       heroCopies={[
         'Take the Valtoris Student Loan Report Card™ to organize your loan types, status, repayment plan, income, and goals.',
-        'This foundation release collects your answers. A score and review flags will be added in a later phase — nothing is invented today.',
+        'See a Student Loan Health Score, review flags, and next-step areas. Results are educational and are not a federal determination.',
       ]}
       ctaLabel={STUDENT_LOAN_CTA}
       ctaTo={assessmentTo}
       heroMicrocopy="10 diagnostic questions. No FSA login. No Social Security number. No cost to start."
-      receiveLead="What this specialized Report Card is being built to deliver."
+      receiveLead="What this specialized Report Card delivers after 10 questions."
       receiveItems={WHAT_YOU_RECEIVE}
       sampleLead="A structural look at the results layout. No fabricated score is shown."
       samplePreview={<StudentLoanSamplePreview />}
       categoriesHeading="What the 10 Questions Cover"
       categoriesLead="Each group counts as one diagnostic question, including grouped follow-ups."
       categories={CATEGORIES}
-      howLead="From your first answers to a later scored report — without creating a CRM Opportunity automatically."
+      howLead="From your first answers to a scored report — without creating a CRM Opportunity automatically."
       howSteps={HOW_IT_WORKS}
       faqs={FAQS}
       closingTitle="Ready to Start Your Student Loan Report Card™?"
-      closingCopy="Answer 10 focused questions. Results scoring and CRM submission are not enabled in this foundation release."
+      closingCopy="Answer 10 focused questions and receive your Student Loan Health Score. CRM submission is not enabled in this release."
       closingMicrocopy="No account numbers. No FSA credentials. Required privacy acknowledgments stay explicit."
     />
   )

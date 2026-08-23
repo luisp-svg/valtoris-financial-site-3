@@ -140,7 +140,7 @@ const STUDENT_LOAN_COPY_EN: SpecializedCopyCatalog = {
     continue: 'Continue',
     contactTitle: 'Contact & Acknowledgments',
     contactBody:
-      'Share how we can reach you. Your answers are saved on this device for now. CRM submission opens after scoring is available.',
+      'Share how we can reach you. Your results are calculated on this device. They are not sent to Valtoris CRM in this release.',
     firstName: 'First Name',
     lastName: 'Last Name',
     email: 'Email',
@@ -152,22 +152,81 @@ const STUDENT_LOAN_COPY_EN: SpecializedCopyCatalog = {
     consentIntro:
       'Your Student Loan Report Card™ is based on the information you shared. Required acknowledgments are marked with an asterisk.',
     ingestUnavailable:
-      'Student Loan Report Card results and CRM submission are not available yet. Your answers were not sent to Valtoris CRM.',
+      'Your results were calculated on this device. They were not sent to Valtoris CRM.',
     resultsUnavailable: 'Your Student Loan Report Card results are not available yet.',
     resultsLead:
-      'A Student Loan Health Score, grade, review flags, and next-step recommendations will appear here after scoring is added.',
+      'Complete the Student Loan Report Card assessment to see your score, grade, and review areas.',
     backToLanding: 'Back to Student Loan Report Card',
     retake: 'Return to assessment',
+    retakeCta: 'Retake Assessment',
+    preparedFor: 'Prepared for',
+    thanks: 'Thanks',
+    informationalBalance: 'Reported balance range',
+    servicer: 'Reported servicer',
+    urgency: 'Review timing',
+    nextStepSupport:
+      'Review your Student Loan Report Card™ with Valtoris. A conversation can check these answers against your actual loan records and current federal rules.',
   },
   results: {
     score: 'Student Loan Health Score',
     grade: 'Grade',
+    status: 'Status',
     categories: 'Category scores',
     flags: 'Critical review flags',
     topAreas: 'Top review areas',
     primaryGoal: 'Primary goal',
-    bookingCta: 'Schedule a complimentary review',
+    bookingCta: 'Review My Results With Valtoris',
+    reviewWithValtoris: 'Review My Results With Valtoris',
     unavailable: 'Your Student Loan Report Card results are not available yet.',
+    disclaimer:
+      'This Student Loan Health Score is a Valtoris educational assessment based on the answers you provided. It is not a federal determination and does not guarantee eligibility, forgiveness, approval, or savings. Actual options depend on your real loan records and current federal rules.',
+    'status.optimized': 'Optimized',
+    'status.strong': 'Strong',
+    'status.opportunities': 'Opportunities Exist',
+    'status.needs_review': 'Needs Review',
+    'status.high_priority': 'High Priority',
+    'category.status_stability': 'Loan Status & Payment Stability',
+    'category.repayment_strategy': 'Repayment Strategy',
+    'category.forgiveness_optimization': 'Forgiveness / Program Optimization',
+    'category.knowledge_structure': 'Loan Knowledge & Structure',
+    'category.goal_alignment': 'Goal Alignment',
+    'flag.immediate_review': 'Immediate Review',
+    'flag.high_priority': 'High Priority',
+    'flag.potential_opportunity': 'Potential Opportunity / Review Recommended',
+    'flag.review_recommended': 'Review Recommended',
+    'review.flag_default.title': 'Default status needs immediate review',
+    'review.flag_default.body':
+      'You reported that your loans are in default. This is a high-urgency situation and should be reviewed against your actual loan records.',
+    'review.flag_delinquent.title': 'Delinquency is a high-priority review',
+    'review.flag_delinquent.body':
+      'You reported that your loans are delinquent. A review can help you understand current status and possible next steps.',
+    'review.flag_difficult_payments.title': 'Current payments appear difficult to afford',
+    'review.flag_difficult_payments.body':
+      'You reported difficulty affording your current payments. This does not determine a new payment amount; it flags the situation for review.',
+    'review.flag_pslf_unreviewed.title': 'Public-service employment without a PSLF review',
+    'review.flag_pslf_unreviewed.body':
+      'You reported public-service employment but no prior PSLF review. This is a review opportunity, not a determination that you qualify.',
+    'review.flag_unknown_loan_type.title': 'Loan type is unclear',
+    'review.flag_unknown_loan_type.body':
+      'Your current loan type is unclear and should be reviewed. Knowing the loan type helps frame later options.',
+    'review.flag_unknown_plan.title': 'Repayment plan is unclear',
+    'review.flag_unknown_plan.body':
+      'Your current repayment plan is unclear and should be reviewed.',
+    'review.category.status_stability.title': 'Payment stability should be reviewed',
+    'review.category.status_stability.body':
+      'Your reported status or recent payment pattern leaves room for a closer look at stability.',
+    'review.category.repayment_strategy.title': 'Repayment strategy should be reviewed',
+    'review.category.repayment_strategy.body':
+      'Your current repayment plan knowledge is incomplete and should be reviewed.',
+    'review.category.forgiveness_optimization.title': 'Program-review awareness can be improved',
+    'review.category.forgiveness_optimization.body':
+      'A review can check whether any program options are relevant. This is not an eligibility finding.',
+    'review.category.knowledge_structure.title': 'Loan details are incomplete',
+    'review.category.knowledge_structure.body':
+      'Some core loan details are unknown. Clearing those up helps a later review stay accurate.',
+    'review.category.goal_alignment.title': 'Goal and current status should be reviewed together',
+    'review.category.goal_alignment.body':
+      'Your stated goal and current loan situation should be reviewed together. This does not predict approval or a specific outcome.',
   },
 }
 

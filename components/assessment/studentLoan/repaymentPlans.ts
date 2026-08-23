@@ -3,6 +3,11 @@ import type { SpecializedOption } from '../specialized/types'
 /**
  * Versioned Student Loan repayment-plan catalog.
  * Federal program names live here — not in schema, not as a DB enum.
+ *
+ * TODO(pre-launch): verify these program names against current federal
+ * repayment programs before public production. Phase B scoring must stay
+ * generic (knows plan / recognized configured plan / other / not sure) and
+ * must not make current-program factual or legal claims.
  */
 export const STUDENT_LOAN_REPAYMENT_PLAN_CATALOG_VERSION = 1
 
