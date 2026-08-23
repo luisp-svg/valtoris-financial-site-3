@@ -41,6 +41,11 @@ export type DiagnosticLandingProps = {
   closingTitle: string
   closingCopy: string
   closingMicrocopy: string
+  headerExtra?: ReactNode
+  receiveHeading?: string
+  sampleHeading?: string
+  howHeading?: string
+  faqHeading?: string
 }
 
 export default function DiagnosticLanding({
@@ -65,11 +70,17 @@ export default function DiagnosticLanding({
   closingTitle,
   closingCopy,
   closingMicrocopy,
+  headerExtra,
+  receiveHeading = "What You'll Receive",
+  sampleHeading = 'Sample Report Preview',
+  howHeading = 'How It Works',
+  faqHeading = 'Frequently Asked Questions',
 }: DiagnosticLandingProps) {
   return (
     <div className={`platform-home diagnostic-landing ${pageClassName}`}>
       <section className="platform-hero diagnostic-hero">
         <div className="container diagnostic-hero-inner">
+          {headerExtra}
           <p className="platform-eyebrow">{eyebrow}</p>
           <h1 className="platform-headline diagnostic-hero-title">{title}</h1>
           {heroCopies.map((copy) => (
@@ -89,7 +100,7 @@ export default function DiagnosticLanding({
       <section className="platform-section platform-tone-blue" aria-labelledby="receive-heading">
         <div className="container platform-section-inner">
           <h2 id="receive-heading" className="platform-section-title">
-            What You&apos;ll Receive
+            {receiveHeading}
           </h2>
           <p className="platform-section-lead">{receiveLead}</p>
           <div className="diagnostic-receive-grid">
@@ -107,7 +118,7 @@ export default function DiagnosticLanding({
       <section className="platform-section platform-tone-white" aria-labelledby="sample-heading">
         <div className="container platform-section-inner funnel-preview-section">
           <h2 id="sample-heading" className="platform-section-title">
-            Sample Report Preview
+            {sampleHeading}
           </h2>
           <p className="platform-section-lead">{sampleLead}</p>
           <div className="funnel-preview-stage">{samplePreview}</div>
@@ -135,7 +146,7 @@ export default function DiagnosticLanding({
       <section className="platform-section platform-tone-blue" aria-labelledby="how-heading">
         <div className="container platform-section-inner">
           <h2 id="how-heading" className="platform-section-title">
-            How It Works
+            {howHeading}
           </h2>
           <p className="platform-section-lead">{howLead}</p>
           <div className="diagnostic-timeline">
@@ -160,7 +171,7 @@ export default function DiagnosticLanding({
       <section className="platform-section platform-tone-white" aria-labelledby="faq-heading">
         <div className="container platform-section-inner">
           <h2 id="faq-heading" className="platform-section-title">
-            Frequently Asked Questions
+            {faqHeading}
           </h2>
           <p className="platform-section-lead">{faqLead}</p>
           <div className="diagnostic-faq-list">

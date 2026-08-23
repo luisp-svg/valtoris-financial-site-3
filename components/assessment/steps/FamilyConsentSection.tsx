@@ -2,6 +2,24 @@ import { Link } from 'react-router-dom'
 import { ROUTES } from '../../../constants/routes'
 import type { FamilyConsentField, FamilyConsentState } from '../../reportCard/familyIngest/familyConsent'
 
+export type FamilyConsentSectionLabels = {
+  heading?: string
+  storage?: string
+  storageHint?: string
+  storageError?: string
+  contact?: string
+  emailMarketing?: string
+  sms?: string
+  smsPhoneNote?: string
+  privacyBefore?: string
+  privacyLink?: string
+  privacyAfter?: string
+  privacyHint?: string
+  privacyError?: string
+  disclaimer?: string
+  honeypot?: string
+}
+
 export type FamilyConsentSectionProps = {
   consent: FamilyConsentState
   phone: string
@@ -15,6 +33,8 @@ export type FamilyConsentSectionProps = {
   /** Stored-result name in the required storage acknowledgment. */
   storageResultName?: string
   intro?: string
+  /** Optional localized labels. Defaults keep existing English Family copy. */
+  labels?: FamilyConsentSectionLabels
 }
 
 /**
@@ -33,10 +53,16 @@ export default function FamilyConsentSection({
   productTitle = 'Family Financial Report Card™',
   storageResultName = 'Initial Financial Diagnostic',
   intro,
+  labels = {},
 }: FamilyConsentSectionProps) {
   const phonePresent = phone.trim().length > 0
   const storageMissing = showErrors && missing.includes('assessmentStorageAcknowledged')
   const privacyMissing = showErrors && missing.includes('privacyAcknowledged')
+  const storageLabel = (labels.storage ??
+    'I understand that Valtoris will use the information I provide to calculate and store my {storageResultName} and related results.').replace(
+    /\{storageResultName\}/g,
+    storageResultName,
+  )
 
   return (
     <section
@@ -44,7 +70,7 @@ export default function FamilyConsentSection({
       aria-labelledby="family-consent-heading"
     >
       <h2 className="family-consent-heading" id="family-consent-heading">
-        Acknowledgments
+        {labels.heading ?? 'Acknowledgments'}
       </h2>
       <p className="family-consent-intro">
         {intro ??
@@ -67,17 +93,16 @@ export default function FamilyConsentSection({
             <span className="family-consent-required-mark" aria-hidden="true">
               *
             </span>
-            I understand that Valtoris will use the information I provide to calculate and store my
-            {` ${storageResultName}`} and related results.
+            {storageLabel}
           </span>
         </label>
         <p id="family-consent-storage-hint" className="visually-hidden">
-          Required acknowledgment to save and calculate your diagnostic.
+          {labels.storageHint ?? 'Required acknowledgment to save and calculate your diagnostic.'}
         </p>
         {storageMissing ? (
           <p id="family-consent-storage-error" className="family-consent-error" role="alert">
-            Please acknowledge that your information will be used to calculate and store your
-            diagnostic.
+            {labels.storageError ??
+              'Please acknowledge that your information will be used to calculate and store your diagnostic.'}
           </p>
         ) : null}
       </div>
@@ -92,7 +117,8 @@ export default function FamilyConsentSection({
             onChange={(event) => onChange('contactPermission', event.target.checked)}
           />
           <span className="assessment-consent-text">
-            I give Valtoris permission to contact me about my results and possible next steps.
+            {labels.contact ??
+              'I give Valtoris permission to contact me about my results and possible next steps.'}
           </span>
         </label>
       </div>
@@ -107,8 +133,8 @@ export default function FamilyConsentSection({
             onChange={(event) => onChange('emailMarketingConsent', event.target.checked)}
           />
           <span className="assessment-consent-text">
-            I agree to receive occasional marketing emails from Valtoris. I can unsubscribe at any
-            time.
+            {labels.emailMarketing ??
+              'I agree to receive occasional marketing emails from Valtoris. I can unsubscribe at any time.'}
           </span>
         </label>
       </div>
@@ -128,13 +154,13 @@ export default function FamilyConsentSection({
             onChange={(event) => onChange('smsMarketingConsent', event.target.checked)}
           />
           <span className="assessment-consent-text">
-            I agree to receive recurring marketing text messages from Valtoris at the number
-            provided. Consent is not a condition of receiving my report. Message and data rates may
-            apply. Reply STOP to opt out.
+            {labels.sms ??
+              'I agree to receive recurring marketing text messages from Valtoris at the number provided. Consent is not a condition of receiving my report. Message and data rates may apply. Reply STOP to opt out.'}
             {!phonePresent ? (
               <span className="family-consent-sms-note">
                 {' '}
-                Add a phone number earlier in the assessment to enable this option.
+                {labels.smsPhoneNote ??
+                  'Add a phone number earlier in the assessment to enable this option.'}
               </span>
             ) : null}
           </span>
@@ -159,7 +185,7 @@ export default function FamilyConsentSection({
             <span className="family-consent-required-mark" aria-hidden="true">
               *
             </span>
-            I acknowledge that I have reviewed the{' '}
+            {labels.privacyBefore ?? 'I acknowledge that I have reviewed the'}{' '}
             <Link
               to={ROUTES.privacy}
               target="_blank"
@@ -167,30 +193,31 @@ export default function FamilyConsentSection({
               className="family-consent-privacy-link"
               onClick={(event) => event.stopPropagation()}
             >
-              Valtoris Privacy Policy
+              {labels.privacyLink ?? 'Valtoris Privacy Policy'}
             </Link>
-            .
+            {labels.privacyAfter ?? '.'}
           </span>
         </label>
         <p id="family-consent-privacy-hint" className="visually-hidden">
-          Required privacy acknowledgment. Opens the Privacy Policy in a new tab.
+          {labels.privacyHint ??
+            'Required privacy acknowledgment. Opens the Privacy Policy in a new tab.'}
         </p>
         {privacyMissing ? (
           <p id="family-consent-privacy-error" className="family-consent-error" role="alert">
-            Please review and acknowledge the Privacy Policy before continuing.
+            {labels.privacyError ??
+              'Please review and acknowledge the Privacy Policy before continuing.'}
           </p>
         ) : null}
       </div>
 
       <p className="family-consent-disclaimer">
-        Results are educational estimates based on self-reported information. They are not
-        financial, legal, tax, investment, credit, or insurance advice, and they are not a
-        guarantee. An advisor review may reach different conclusions.
+        {labels.disclaimer ??
+          'Results are educational estimates based on self-reported information. They are not financial, legal, tax, investment, credit, or insurance advice, and they are not a guarantee. An advisor review may reach different conclusions.'}
       </p>
 
       {/* Honeypot — visually hidden; must stay empty for humans. */}
       <div className="family-consent-honeypot" aria-hidden="true">
-        <label htmlFor="family-consent-website">Company website</label>
+        <label htmlFor="family-consent-website">{labels.honeypot ?? 'Company website'}</label>
         <input
           id="family-consent-website"
           type="text"

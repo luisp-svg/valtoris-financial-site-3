@@ -24,9 +24,25 @@ export function specializedLocaleQuery(locale: SpecializedLocale): string {
   return locale === 'en' ? '' : `?lang=${locale}`
 }
 
-export function withSpecializedLocale(path: string, locale: SpecializedLocale): string {
-  const query = specializedLocaleQuery(locale)
-  return query ? `${path}${query}` : path
+/**
+ * Builds a path with the specialized locale while preserving existing
+ * campaign / card / UTM query params. English omits `lang` (default).
+ */
+export function withSpecializedLocale(
+  path: string,
+  locale: SpecializedLocale,
+  currentSearch = '',
+): string {
+  const raw = currentSearch.startsWith('?') ? currentSearch.slice(1) : currentSearch
+  const params = new URLSearchParams(raw)
+  params.delete('locale')
+  if (locale === 'en') {
+    params.delete('lang')
+  } else {
+    params.set('lang', locale)
+  }
+  const query = params.toString()
+  return query ? `${path}?${query}` : path
 }
 
 export function resolveSpecializedCopy(
@@ -38,6 +54,16 @@ export function resolveSpecializedCopy(
   const primary = catalogs[locale]
   const fallback = catalogs.en
   return primary?.[section][key] ?? fallback?.[section][key] ?? key
+}
+
+export function formatSpecializedTemplate(
+  template: string,
+  values: Record<string, string | number>,
+): string {
+  return template.replace(/\{([a-zA-Z0-9_]+)\}/g, (match, key: string) => {
+    const value = values[key]
+    return value == null ? match : String(value)
+  })
 }
 
 export function catalogForLocale(

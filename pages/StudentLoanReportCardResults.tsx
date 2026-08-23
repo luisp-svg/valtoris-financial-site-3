@@ -1,7 +1,15 @@
 import { Link, useLocation } from 'react-router-dom'
 import AssessmentBrandHeader from '../components/AssessmentBrandHeader'
 import ScheduleReportCardLink from '../components/ScheduleReportCardLink'
-import { readSpecializedLocale, resolveSpecializedCopy, withSpecializedLocale } from '../components/assessment/specialized/locale'
+import SpecializedLocaleSwitcher, {
+  useSpecializedDocumentLang,
+} from '../components/assessment/specialized/SpecializedLocaleSwitcher'
+import {
+  formatSpecializedTemplate,
+  readSpecializedLocale,
+  resolveSpecializedCopy,
+  withSpecializedLocale,
+} from '../components/assessment/specialized/locale'
 import type { SpecializedCopySection } from '../components/assessment/specialized/types'
 import { STUDENT_LOAN_ANSWERS_STORAGE_KEY } from '../components/assessment/studentLoan/constants'
 import { studentLoanCopy } from '../components/assessment/studentLoan/copy'
@@ -56,6 +64,7 @@ function flagBadgeClass(severity: StudentLoanFlagSeverity): string {
 export default function StudentLoanReportCardResults() {
   const location = useLocation()
   const locale = readSpecializedLocale(location.search)
+  useSpecializedDocumentLang(locale)
   const session = loadResultsSession(location.state)
   const results = getStudentLoanResultsModel(session)
   const firstName = session?.firstName.trim() ?? ''
@@ -70,10 +79,16 @@ export default function StudentLoanReportCardResults() {
         <div className="results-container">
           <header className="results-header">
             <AssessmentBrandHeader />
+            <SpecializedLocaleSwitcher
+              locale={locale}
+              groupLabel={t('ui', 'languageGroupLabel')}
+              englishLabel={t('ui', 'languageEnglish')}
+              spanishLabel={t('ui', 'languageSpanish')}
+            />
           </header>
           <section className="question-card" aria-labelledby="student-loan-results-title">
             <h1 className="question-card-title" id="student-loan-results-title">
-              Student Loan Report Card™
+              {t('ui', 'productTitle')}
             </h1>
             <p className="question-card-description" data-testid="student-loan-results-unavailable">
               {t('results', 'unavailable')}
@@ -82,13 +97,13 @@ export default function StudentLoanReportCardResults() {
             <div className="welcome-actions">
               <Link
                 className="platform-btn platform-btn-primary"
-                to={withSpecializedLocale(ROUTES.studentLoanAssessment, locale)}
+                to={withSpecializedLocale(ROUTES.studentLoanAssessment, locale, location.search)}
               >
                 {t('ui', 'retake')}
               </Link>
               <Link
                 className="platform-btn platform-btn-outline"
-                to={withSpecializedLocale(ROUTES.studentLoanReportCard, locale)}
+                to={withSpecializedLocale(ROUTES.studentLoanReportCard, locale, location.search)}
               >
                 {t('ui', 'backToLanding')}
               </Link>
@@ -106,7 +121,13 @@ export default function StudentLoanReportCardResults() {
       <div className="results-container">
         <header className="results-header">
           <AssessmentBrandHeader />
-          <h1 className="visually-hidden">Student Loan Report Card™</h1>
+          <SpecializedLocaleSwitcher
+            locale={locale}
+            groupLabel={t('ui', 'languageGroupLabel')}
+            englishLabel={t('ui', 'languageEnglish')}
+            spanishLabel={t('ui', 'languageSpanish')}
+          />
+          <h1 className="visually-hidden">{t('ui', 'productTitle')}</h1>
           {firstName ? (
             <p className="results-prepared-for">
               {t('ui', 'preparedFor')} {firstName}
@@ -131,7 +152,7 @@ export default function StudentLoanReportCardResults() {
         ) : null}
 
         <section className="results-hero" aria-labelledby="student-loan-score-title">
-          <p className="results-kicker">Student Loan Report Card™</p>
+          <p className="results-kicker">{t('ui', 'productTitle')}</p>
           <h2 className="results-title" id="student-loan-score-title">
             {t('results', 'score')}
           </h2>
@@ -141,7 +162,7 @@ export default function StudentLoanReportCardResults() {
               <span
                 className="results-grade-value"
                 data-testid="student-loan-overall-score"
-                aria-label={`${t('results', 'score')} ${results.overallScore} out of 100`}
+                aria-label={`${t('results', 'score')} ${formatSpecializedTemplate(t('ui', 'scoreOutOf'), { score: results.overallScore })}`}
               >
                 {results.overallScore}
               </span>
@@ -237,7 +258,7 @@ export default function StudentLoanReportCardResults() {
           </ScheduleReportCardLink>
           <Link
             className="results-back-link"
-            to={withSpecializedLocale(ROUTES.studentLoanAssessment, locale)}
+            to={withSpecializedLocale(ROUTES.studentLoanAssessment, locale, location.search)}
           >
             {t('ui', 'retakeCta')}
           </Link>

@@ -1,5 +1,4 @@
 import QuestionCard from '../../QuestionCard'
-import { STUDENT_LOAN_CTA } from '../../../../constants/homepage'
 import type { SpecializedCopyFn } from '../../specialized/renderer'
 
 type StepStudentLoanWelcomeProps = {
@@ -14,7 +13,7 @@ export default function StepStudentLoanWelcome({ t, onBegin, onBack }: StepStude
       <p className="funnel-microcopy assessment-note">{t('ui', 'welcomeNote')}</p>
       <div className="welcome-actions">
         <button type="button" className="platform-btn platform-btn-primary" onClick={onBegin}>
-          {STUDENT_LOAN_CTA}
+          {t('ui', 'startCta')}
         </button>
         {onBack ? (
           <button type="button" className="platform-btn platform-btn-outline" onClick={onBack}>

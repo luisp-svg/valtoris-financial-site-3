@@ -6,7 +6,15 @@ import FamilyConsentSection from '../components/assessment/steps/FamilyConsentSe
 import StepStudentLoanContact from '../components/assessment/steps/studentLoan/StepStudentLoanContact'
 import StepStudentLoanWelcome from '../components/assessment/steps/studentLoan/StepStudentLoanWelcome'
 import { applyFieldChange } from '../components/assessment/specialized/answers'
-import { readSpecializedLocale, resolveSpecializedCopy, withSpecializedLocale } from '../components/assessment/specialized/locale'
+import SpecializedLocaleSwitcher, {
+  useSpecializedDocumentLang,
+} from '../components/assessment/specialized/SpecializedLocaleSwitcher'
+import {
+  formatSpecializedTemplate,
+  readSpecializedLocale,
+  resolveSpecializedCopy,
+  withSpecializedLocale,
+} from '../components/assessment/specialized/locale'
 import SpecializedQuestionRenderer from '../components/assessment/specialized/renderer'
 import type { SpecializedCopySection, SpecializedField } from '../components/assessment/specialized/types'
 import {
@@ -23,8 +31,6 @@ import {
   STUDENT_LOAN_FIRST_DIAGNOSTIC_STEP,
   STUDENT_LOAN_INGEST_SESSION_KEY,
   STUDENT_LOAN_LAST_DIAGNOSTIC_STEP,
-  STUDENT_LOAN_PRODUCT_TITLE,
-  STUDENT_LOAN_STORAGE_RESULT_NAME,
   STUDENT_LOAN_WELCOME_STEP,
 } from '../components/assessment/studentLoan/constants'
 import { studentLoanCopy } from '../components/assessment/studentLoan/copy'
@@ -51,6 +57,7 @@ export default function StudentLoanAssessment() {
   const navigate = useNavigate()
   const location = useLocation()
   const locale = readSpecializedLocale(location.search)
+  useSpecializedDocumentLang(locale)
   const [currentStep, setCurrentStep] = useState(STUDENT_LOAN_WELCOME_STEP)
   const [answers, setAnswers] = useState<StudentLoanAssessmentAnswers>(INITIAL_STUDENT_LOAN_ANSWERS)
   const [consent, setConsent] = useState<FamilyConsentState>(INITIAL_FAMILY_CONSENT_STATE)
@@ -162,7 +169,7 @@ export default function StudentLoanAssessment() {
   function handleBack() {
     if (isSubmitting) return
     if (currentStep === STUDENT_LOAN_WELCOME_STEP) {
-      navigate(withSpecializedLocale(ROUTES.studentLoanReportCard, locale))
+      navigate(withSpecializedLocale(ROUTES.studentLoanReportCard, locale, location.search))
       return
     }
     setShowFieldErrors(false)
@@ -193,8 +200,11 @@ export default function StudentLoanAssessment() {
       if (result.code === 'consent_required') {
         setShowConsentErrors(true)
         setConsentMissing(result.consentMissing ?? [])
+        setSubmitError(t('ui', 'consentRequired'))
+        setIsSubmitting(false)
+        return
       }
-      setSubmitError(result.error)
+      setSubmitError(t('ui', 'submitFailed'))
       setIsSubmitting(false)
       return
     }
@@ -206,7 +216,7 @@ export default function StudentLoanAssessment() {
       // Non-fatal local cache only.
     }
 
-    navigate(withSpecializedLocale(ROUTES.studentLoanReportCardResults, locale), {
+    navigate(withSpecializedLocale(ROUTES.studentLoanReportCardResults, locale, location.search), {
       state: { answers: resultsSession, crmSubmitted: true, submissionId: result.submissionId },
     })
   }
@@ -247,6 +257,18 @@ export default function StudentLoanAssessment() {
     <AssessmentLayout
       currentStep={currentStep}
       totalSteps={STUDENT_LOAN_ASSESSMENT_STEPS}
+      headerExtra={
+        <SpecializedLocaleSwitcher
+          locale={locale}
+          groupLabel={t('ui', 'languageGroupLabel')}
+          englishLabel={t('ui', 'languageEnglish')}
+          spanishLabel={t('ui', 'languageSpanish')}
+        />
+      }
+      stepIndicator={formatSpecializedTemplate(t('ui', 'stepIndicator'), {
+        current: currentStep,
+        total: STUDENT_LOAN_ASSESSMENT_STEPS,
+      })}
       footer={
         currentStep === STUDENT_LOAN_WELCOME_STEP ? null : (
           <NavigationButtons
@@ -254,6 +276,7 @@ export default function StudentLoanAssessment() {
             onContinue={() => {
               void handleContinue()
             }}
+            backLabel={t('ui', 'back')}
             continueDisabled={(!canContinue && currentStep !== STUDENT_LOAN_CONTACT_STEP) || isSubmitting}
             continueLabel={
               isSubmitting
@@ -270,7 +293,7 @@ export default function StudentLoanAssessment() {
         <StepStudentLoanWelcome
           t={t}
           onBegin={handleBegin}
-          onBack={() => navigate(withSpecializedLocale(ROUTES.studentLoanReportCard, locale))}
+          onBack={() => navigate(withSpecializedLocale(ROUTES.studentLoanReportCard, locale, location.search))}
         />
       ) : null}
 
@@ -300,9 +323,26 @@ export default function StudentLoanAssessment() {
             onChange={updateConsent}
             honeypotValue={honeypotWebsite}
             onHoneypotChange={setHoneypotWebsite}
-            productTitle={STUDENT_LOAN_PRODUCT_TITLE}
-            storageResultName={STUDENT_LOAN_STORAGE_RESULT_NAME}
+            productTitle={t('ui', 'productTitle')}
+            storageResultName={t('ui', 'storageResultName')}
             intro={t('ui', 'consentIntro')}
+            labels={{
+              heading: t('ui', 'consentHeading'),
+              storage: t('ui', 'consentStorage'),
+              storageHint: t('ui', 'consentStorageHint'),
+              storageError: t('ui', 'consentStorageError'),
+              contact: t('ui', 'consentContact'),
+              emailMarketing: t('ui', 'consentEmailMarketing'),
+              sms: t('ui', 'consentSms'),
+              smsPhoneNote: t('ui', 'consentSmsPhoneNote'),
+              privacyBefore: t('ui', 'consentPrivacyBefore'),
+              privacyLink: t('ui', 'consentPrivacyLink'),
+              privacyAfter: t('ui', 'consentPrivacyAfter'),
+              privacyHint: t('ui', 'consentPrivacyHint'),
+              privacyError: t('ui', 'consentPrivacyError'),
+              disclaimer: t('ui', 'consentDisclaimer'),
+              honeypot: t('ui', 'consentHoneypot'),
+            }}
           />
           {isSubmitting ? (
             <p className="family-submit-status" role="status" aria-live="polite">

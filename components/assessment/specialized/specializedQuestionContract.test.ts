@@ -92,9 +92,10 @@ describe('specialized question contract', () => {
     const directLabel = resolveSpecializedCopy(studentLoanCopy, 'en', 'answers', 'loan_types.direct')
     expect(directLabel).toBe('Federal Direct Loan')
     expect(directLabel).not.toBe('direct')
-    const spanishFallback = resolveSpecializedCopy(studentLoanCopy, 'es', 'answers', 'loan_types.direct')
-    expect(spanishFallback).toBe(directLabel)
-    expect(studentLoanCopy.es).toBeNull()
+    const spanishLabel = resolveSpecializedCopy(studentLoanCopy, 'es', 'answers', 'loan_types.direct')
+    expect(spanishLabel).toBe('Préstamo Directo Federal')
+    expect(spanishLabel).not.toBe(directLabel)
+    expect(studentLoanCopy.es).not.toBeNull()
   })
 
   it('validates every Student Loan question against the contract', () => {

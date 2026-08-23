@@ -313,6 +313,36 @@ p { color: var(--muted); line-height: 1.7; }
   gap: 16px;
   margin-bottom: 28px;
 }
+.specialized-locale-switcher {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 8px;
+}
+.specialized-locale-option {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  padding: 4px 2px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: inherit;
+  cursor: pointer;
+  text-decoration: none;
+}
+.specialized-locale-option.is-current {
+  color: var(--brand);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.specialized-locale-divider {
+  color: #94a3b8;
+  font-weight: 500;
+}
 .assessment-brand-header {
   display: flex;
   justify-content: center;

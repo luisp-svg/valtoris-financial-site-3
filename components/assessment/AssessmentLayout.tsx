@@ -8,6 +8,8 @@ type AssessmentLayoutProps = {
   totalSteps?: number
   children: ReactNode
   footer?: ReactNode
+  headerExtra?: ReactNode
+  stepIndicator?: string
 }
 
 export default function AssessmentLayout({
@@ -15,14 +17,17 @@ export default function AssessmentLayout({
   totalSteps = DEMO_ASSESSMENT_STEPS,
   children,
   footer,
+  headerExtra,
+  stepIndicator,
 }: AssessmentLayoutProps) {
   return (
     <div className="assessment-shell">
       <div className="assessment-container">
         <header className="assessment-header">
           <AssessmentBrandHeader />
+          {headerExtra}
           <p className="assessment-step-indicator">
-            Step {currentStep} of {totalSteps}
+            {stepIndicator ?? `Step ${currentStep} of ${totalSteps}`}
           </p>
           <ProgressBar currentStep={currentStep} totalSteps={totalSteps} />
         </header>
