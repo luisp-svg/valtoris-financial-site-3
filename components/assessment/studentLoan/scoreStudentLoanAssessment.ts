@@ -362,8 +362,9 @@ export function selectStudentLoanReviewAreas(
     usedCategories.add(flag.categoryId)
   }
 
+  // Perfect categories (score === max) are never filler. Show 0–3 legitimate areas only.
   const lowestCategories = [...categories]
-    .filter((category) => !usedCategories.has(category.id))
+    .filter((category) => !usedCategories.has(category.id) && category.score < category.max)
     .sort((a, b) => {
       const aRatio = a.max === 0 ? 1 : a.score / a.max
       const bRatio = b.max === 0 ? 1 : b.score / b.max

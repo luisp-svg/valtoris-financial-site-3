@@ -232,6 +232,39 @@ describe('Student Loan Phase C server scoring', () => {
     expect(named.overallScore).toBe(unknown.overallScore)
   })
 
+  it('uses the same corrected review areas as the shared scorer', () => {
+    const diagnostic = validStudentLoanDiagnosticFixture({
+      loan_types: ['direct'],
+      total_balance: '50k_100k',
+      loan_status: 'repayment',
+      servicer_mode: 'named',
+      servicer_name: 'QA Phase D Servicer',
+      knows_plan: 'yes',
+      current_plan: 'ibr',
+      income: '75k_125k',
+      household_size: '2',
+      employment_type: 'government',
+      employment_tenure: '5_10',
+      payment_recent: 'consistent',
+      payment_paused: 'no',
+      previous_actions: ['idr'],
+      primary_goal: 'forgiveness_review',
+      urgency: 'within_30_days',
+    })
+    const answers = validStudentLoanAnswersFixture({ diagnostic })
+    const client = scoreStudentLoanAssessment(diagnostic)
+    const server = recalculateStudentLoanReportCardScore(answers)
+    expect(client.overallScore).toBe(96)
+    expect(client.grade).toBe('A')
+    expect(client.scoringVersion).toBe(1)
+    expect(server.scoringVersion).toBe(1)
+    expect(server.overallScore).toBe(client.overallScore)
+    expect(server.overallGrade).toBe(client.grade)
+    expect(server.reviewAreas.map((area) => area.id)).toEqual(['review_flag_pslf_unreviewed'])
+    expect(client.reviewAreas.map((area) => area.id)).toEqual(['review_flag_pslf_unreviewed'])
+    expect(server.priorities).toHaveLength(1)
+  })
+
   it('persists default, delinquent, difficult-payment, and missing-PSLF flags', () => {
     expect(
       scoreStudentLoanAssessment(validStudentLoanDiagnosticFixture({ loan_status: 'default' })).flags.map(

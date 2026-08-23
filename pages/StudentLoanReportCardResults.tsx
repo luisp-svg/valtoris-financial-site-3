@@ -7,6 +7,7 @@ import { STUDENT_LOAN_ANSWERS_STORAGE_KEY } from '../components/assessment/stude
 import { studentLoanCopy } from '../components/assessment/studentLoan/copy'
 import {
   getStudentLoanResultsModel,
+  studentLoanTopReviewAreasHeadingKey,
   type StudentLoanResultsSession,
 } from '../components/assessment/studentLoan/resultsModel'
 import type { StudentLoanFlagSeverity } from '../components/assessment/studentLoan/scoreStudentLoanAssessment'
@@ -169,19 +170,27 @@ export default function StudentLoanReportCardResults() {
           </ul>
         </section>
 
-        <section className="results-priorities" aria-labelledby="student-loan-review-title">
-          <h2 className="results-section-title" id="student-loan-review-title">
-            {t('results', 'topAreas')}
-          </h2>
-          <div className="results-priorities-list">
-            {results.topReviewAreas.map((area) => (
-              <article key={area.id} className={flagCardClass(area.severity)} data-review-id={area.id}>
-                <span className={flagBadgeClass(area.severity)}>{t('results', area.titleKey)}</span>
-                <p className="priority-detail-text">{t('results', area.explanationKey)}</p>
-              </article>
-            ))}
-          </div>
-        </section>
+        {results.topReviewAreas.length === 0 ? (
+          <section className="results-panel" aria-labelledby="student-loan-review-title">
+            <h2 className="results-section-title" id="student-loan-review-title">
+              {t('results', studentLoanTopReviewAreasHeadingKey(0))}
+            </h2>
+          </section>
+        ) : (
+          <section className="results-priorities" aria-labelledby="student-loan-review-title">
+            <h2 className="results-section-title" id="student-loan-review-title">
+              {t('results', studentLoanTopReviewAreasHeadingKey(results.topReviewAreas.length))}
+            </h2>
+            <div className="results-priorities-list">
+              {results.topReviewAreas.map((area) => (
+                <article key={area.id} className={flagCardClass(area.severity)} data-review-id={area.id}>
+                  <span className={flagBadgeClass(area.severity)}>{t('results', area.titleKey)}</span>
+                  <p className="priority-detail-text">{t('results', area.explanationKey)}</p>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
 
         <section className="results-panel">
           <h2>{t('results', 'primaryGoal')}</h2>

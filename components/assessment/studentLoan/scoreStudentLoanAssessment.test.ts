@@ -170,3 +170,91 @@ describe('Student Loan critical flags', () => {
     ])
   })
 })
+
+export function phaseDStudentLoanDiagnostic(): StudentLoanDiagnosticAnswers {
+  return strongDiagnostic({
+    total_balance: '50k_100k',
+    employment_type: 'government',
+    previous_actions: ['idr'],
+    primary_goal: 'forgiveness_review',
+    urgency: 'within_30_days',
+    servicer_name: 'QA Phase D Servicer',
+  })
+}
+
+describe('Student Loan review-area eligibility', () => {
+  it('never manufactures review areas from perfect-score categories', () => {
+    const scored = scoreStudentLoanAssessment(strongDiagnostic())
+    expect(scored.overallScore).toBe(100)
+    expect(scored.grade).toBe('A')
+    expect(scored.scoringVersion).toBe(1)
+    expect(scored.flags).toEqual([])
+    expect(scored.reviewAreas).toEqual([])
+    for (const category of scored.categories) {
+      expect(category.score).toBe(category.max)
+    }
+  })
+
+  it('returns 1, 2, or 3 legitimate areas and never pads to 3', () => {
+    const oneCategory = scoreStudentLoanAssessment(strongDiagnostic({ total_balance: 'not_sure' }))
+    expect(oneCategory.flags).toEqual([])
+    expect(oneCategory.reviewAreas.map((area) => area.id)).toEqual(['review_category_knowledge_structure'])
+    expect(oneCategory.categories.find((category) => category.id === 'knowledge_structure')?.score).toBeLessThan(
+      STUDENT_LOAN_CATEGORY_WEIGHTS.knowledge_structure,
+    )
+
+    const twoCategories = scoreStudentLoanAssessment(
+      strongDiagnostic({ total_balance: 'not_sure', payment_paused: 'not_sure' }),
+    )
+    expect(twoCategories.flags).toEqual([])
+    expect(twoCategories.reviewAreas.map((area) => area.id).sort()).toEqual([
+      'review_category_knowledge_structure',
+      'review_category_status_stability',
+    ])
+
+    const twoFlags = scoreStudentLoanAssessment(
+      strongDiagnostic({
+        employment_type: 'government',
+        previous_actions: ['idr'],
+        loan_types: ['not_sure'],
+      }),
+    )
+    expect(twoFlags.reviewAreas.map((area) => area.id)).toEqual([
+      'review_flag_pslf_unreviewed',
+      'review_flag_unknown_loan_type',
+    ])
+  })
+
+  it('keeps a single public-service flag when every other category is perfect', () => {
+    const scored = scoreStudentLoanAssessment(phaseDStudentLoanDiagnostic())
+    expect(scored.overallScore).toBe(96)
+    expect(scored.grade).toBe('A')
+    expect(scored.scoringVersion).toBe(1)
+    expect(scored.flags.map((flag) => flag.id)).toEqual(['flag_pslf_unreviewed'])
+    expect(scored.reviewAreas.map((area) => area.id)).toEqual(['review_flag_pslf_unreviewed'])
+    expect(scored.categories.find((category) => category.id === 'status_stability')).toEqual({
+      id: 'status_stability',
+      labelKey: 'category.status_stability',
+      score: 30,
+      max: 30,
+    })
+    expect(scored.categories.find((category) => category.id === 'repayment_strategy')).toEqual({
+      id: 'repayment_strategy',
+      labelKey: 'category.repayment_strategy',
+      score: 25,
+      max: 25,
+    })
+    expect(scored.reviewAreas.some((area) => area.id.startsWith('review_category_'))).toBe(false)
+  })
+
+  it('adds a goal review only for a legitimate urgency or status-goal mismatch', () => {
+    const asap = scoreStudentLoanAssessment(strongDiagnostic({ urgency: 'asap' }))
+    expect(asap.overallScore).toBe(100)
+    expect(asap.flags).toEqual([])
+    expect(asap.reviewAreas.map((area) => area.id)).toEqual(['review_goal_alignment'])
+
+    const phaseD = scoreStudentLoanAssessment(phaseDStudentLoanDiagnostic())
+    expect(phaseD.reviewAreas.map((area) => area.id)).toEqual(['review_flag_pslf_unreviewed'])
+    expect(phaseD.reviewAreas.some((area) => area.id === 'review_goal_alignment')).toBe(false)
+  })
+})

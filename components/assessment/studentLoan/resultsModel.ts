@@ -65,6 +65,15 @@ const REVIEW_CTA: StudentLoanBookingCta = {
   href: CALENDLY_REPORT_CARD_URL,
 }
 
+export function studentLoanTopReviewAreasHeadingKey(
+  count: number,
+): 'noReviewAreas' | 'topAreas1' | 'topAreas2' | 'topAreas3' {
+  if (count <= 0) return 'noReviewAreas'
+  if (count === 1) return 'topAreas1'
+  if (count === 2) return 'topAreas2'
+  return 'topAreas3'
+}
+
 export const UNAVAILABLE_STUDENT_LOAN_RESULTS: StudentLoanResultsModel = {
   available: false,
   overallScore: null,

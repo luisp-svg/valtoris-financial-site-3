@@ -11,11 +11,12 @@ import { canSubmitStudentLoanToCrm } from './ingestBoundary'
 import {
   buildStudentLoanResultsSession,
   getStudentLoanResultsModel,
+  studentLoanTopReviewAreasHeadingKey,
   type StudentLoanResultsSession,
 } from './resultsModel'
 import { STUDENT_LOAN_DIAGNOSTIC_QUESTION_IDS } from './constants'
 import { INITIAL_STUDENT_LOAN_ANSWERS, type StudentLoanAssessmentAnswers } from './types'
-import { strongDiagnostic } from './scoreStudentLoanAssessment.test'
+import { phaseDStudentLoanDiagnostic, strongDiagnostic } from './scoreStudentLoanAssessment.test'
 
 function answersFrom(diagnostic = strongDiagnostic()): StudentLoanAssessmentAnswers {
   return {
@@ -125,5 +126,45 @@ describe('Student Loan Phase B results', () => {
 
   it('still has exactly 10 diagnostic questions', () => {
     expect(STUDENT_LOAN_DIAGNOSTIC_QUESTION_IDS).toHaveLength(10)
+  })
+
+  it('uses count-aware review-area headings and a zero-area state without empty cards', () => {
+    expect(studentLoanTopReviewAreasHeadingKey(0)).toBe('noReviewAreas')
+    expect(studentLoanTopReviewAreasHeadingKey(1)).toBe('topAreas1')
+    expect(studentLoanTopReviewAreasHeadingKey(2)).toBe('topAreas2')
+    expect(studentLoanTopReviewAreasHeadingKey(3)).toBe('topAreas3')
+
+    const zero = renderResults({ answers: resultsSessionFrom() })
+    expect(getStudentLoanResultsModel(answersFrom()).topReviewAreas).toEqual([])
+    expect(zero).toContain('No immediate review areas were identified from your answers.')
+    expect(zero).not.toContain('Top Area to Review')
+    expect(zero).not.toContain('data-review-id=')
+
+    const one = renderResults({
+      answers: resultsSessionFrom(phaseDStudentLoanDiagnostic()),
+    })
+    expect(one).toContain('Top Area to Review')
+    expect(one).toContain('data-review-id="review_flag_pslf_unreviewed"')
+    expect(one).not.toContain('data-review-id="review_category_status_stability"')
+    expect(one).not.toContain('Top 3 Areas to Review')
+
+    const two = renderResults({
+      answers: resultsSessionFrom(strongDiagnostic({ total_balance: 'not_sure', payment_paused: 'not_sure' })),
+    })
+    expect(two).toContain('Top 2 Areas to Review')
+    expect(two).toContain('data-review-id="review_category_knowledge_structure"')
+    expect(two).toContain('data-review-id="review_category_status_stability"')
+
+    const three = renderResults({
+      answers: resultsSessionFrom(
+        strongDiagnostic({
+          loan_status: 'default',
+          payment_recent: 'difficult_to_afford',
+          employment_type: 'government',
+          previous_actions: ['none'],
+        }),
+      ),
+    })
+    expect(three).toContain('Top 3 Areas to Review')
   })
 })
