@@ -33,7 +33,10 @@ describe('Phase 1 expose existing Application edit workflow', () => {
     expect(files.filter((name) => name.startsWith('047_'))).toEqual([
       '047_credit_repair_student_loan_sales_catalog.sql',
     ])
-    expect(files.filter((name) => name.startsWith('048_'))).toEqual([])
+    expect(files.filter((name) => name.startsWith('048_'))).toEqual([
+      '048_student_loan_report_card_ingest.sql',
+    ])
+    expect(files.filter((name) => name.startsWith('049_'))).toEqual([])
     expect(existsSync(join(migrationsDir, '045_application_edit.sql'))).toBe(false)
   })
 

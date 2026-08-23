@@ -96,4 +96,5 @@ export const EXPECTED_NUMBERED_MIGRATIONS = [
   '045_policy_post_placement_lifecycle.sql',
   '046_opportunity_case_conversion.sql',
   '047_credit_repair_student_loan_sales_catalog.sql',
+  '048_student_loan_report_card_ingest.sql',
 ] as const

@@ -36,13 +36,17 @@ const pipelineView = readFileSync(join(here, 'pipelineView.ts'), 'utf8')
 const catalog = readFileSync(join(root, 'platform/registry/catalog.ts'), 'utf8')
 
 describe('credit repair / student loan sales catalog contracts', () => {
-  it('adds only the data-only 047 catalog and rejects 048', () => {
+  it('keeps 047 data-only and allows only the 048 ingest enablement file', () => {
     const files = readdirSync(migrationsDir)
       .filter((name) => /^\d{3}_.+\.sql$/.test(name))
       .sort()
-    expect(files).toHaveLength(47)
+    expect(files).toHaveLength(48)
     expect(files[46]).toBe(MIGRATION_047_FILENAME)
-    expect(files.filter((name) => name.startsWith('048_'))).toEqual([])
+    expect(files[47]).toBe('048_student_loan_report_card_ingest.sql')
+    expect(files.filter((name) => name.startsWith('048_'))).toEqual([
+      '048_student_loan_report_card_ingest.sql',
+    ])
+    expect(files.filter((name) => name.startsWith('049_'))).toEqual([])
     expect(existsSync(join(migrationsDir, '048_service_cases.sql'))).toBe(false)
     expect(sql047).not.toContain('CREATE TABLE')
     expect(sql047).not.toContain('ALTER TABLE')

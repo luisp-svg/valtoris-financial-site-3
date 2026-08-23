@@ -62,10 +62,11 @@ const EXPECTED_MIGRATIONS = [
   '045_policy_post_placement_lifecycle.sql',
   '046_opportunity_case_conversion.sql',
   '047_credit_repair_student_loan_sales_catalog.sql',
+  '048_student_loan_report_card_ingest.sql',
 ]
 
 describe('Phase A production dashboard contracts', () => {
-  it('does not add a production dashboard or Case table migration and freezes 001–047', () => {
+  it('does not add a production dashboard or Case table migration and freezes 001–048', () => {
     const files = readdirSync(migrationsDir).filter((name) => name.endsWith('.sql')).sort()
     expect(files).toEqual(EXPECTED_MIGRATIONS)
     expect(existsSync(join(migrationsDir, '044_case_management.sql'))).toBe(false)
@@ -81,7 +82,10 @@ describe('Phase A production dashboard contracts', () => {
     expect(files.filter((name) => name.startsWith('047_'))).toEqual([
       '047_credit_repair_student_loan_sales_catalog.sql',
     ])
-    expect(files.filter((name) => name.startsWith('048_'))).toEqual([])
+    expect(files.filter((name) => name.startsWith('048_'))).toEqual([
+      '048_student_loan_report_card_ingest.sql',
+    ])
+    expect(files.filter((name) => name.startsWith('049_'))).toEqual([])
   })
 
   it('does not introduce drag/drop, pending commission stage, or stage mutation', () => {

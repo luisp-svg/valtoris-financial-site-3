@@ -14,7 +14,7 @@ function read(name: string): string {
 describe('commission Phase 2 contracts', () => {
   it('does not add a commission lifecycle migration and keeps the 001–047 baseline', () => {
     const numbered = readdirSync(migrationsDir).filter((name) => /^\d{3}_/.test(name)).sort()
-    expect(numbered).toHaveLength(47)
+    expect(numbered).toHaveLength(48)
     expect(numbered[0]).toBe('001_extensions_and_enums.sql')
     expect(numbered[43]).toBe('044_policy_application_requirements.sql')
     expect(numbered[44]).toBe('045_policy_post_placement_lifecycle.sql')
@@ -23,13 +23,17 @@ describe('commission Phase 2 contracts', () => {
     ])
     expect(numbered[45]).toBe('046_opportunity_case_conversion.sql')
     expect(numbered[46]).toBe('047_credit_repair_student_loan_sales_catalog.sql')
+    expect(numbered[47]).toBe('048_student_loan_report_card_ingest.sql')
     expect(numbered.filter((name) => name.startsWith('046_'))).toEqual([
       '046_opportunity_case_conversion.sql',
     ])
     expect(numbered.filter((name) => name.startsWith('047_'))).toEqual([
       '047_credit_repair_student_loan_sales_catalog.sql',
     ])
-    expect(numbered.filter((name) => name.startsWith('048_'))).toEqual([])
+    expect(numbered.filter((name) => name.startsWith('048_'))).toEqual([
+      '048_student_loan_report_card_ingest.sql',
+    ])
+    expect(numbered.filter((name) => name.startsWith('049_'))).toEqual([])
     expect(numbered).toContain('040_commission_pending_import.sql')
     expect(numbered).toContain('043_public_report_card_ingest.sql')
     expect(existsSync(join(migrationsDir, '039_commission_lifecycle.sql'))).toBe(false)

@@ -22,7 +22,7 @@ const catalog = readFileSync(join(root, 'platform/registry/catalog.ts'), 'utf8')
 describe('Phase 1 pipeline visibility contracts', () => {
   it('does not add a pipeline-card migration; 046 is opportunity conversion only', () => {
     const files = readdirSync(migrationsDir).filter((name) => name.endsWith('.sql')).sort()
-    expect(files).toHaveLength(47)
+    expect(files).toHaveLength(48)
     expect(files.filter((name) => name.startsWith('045_'))).toEqual([
       '045_policy_post_placement_lifecycle.sql',
     ])
@@ -32,7 +32,10 @@ describe('Phase 1 pipeline visibility contracts', () => {
     expect(files.filter((name) => name.startsWith('047_'))).toEqual([
       '047_credit_repair_student_loan_sales_catalog.sql',
     ])
-    expect(files.filter((name) => name.startsWith('048_'))).toEqual([])
+    expect(files.filter((name) => name.startsWith('048_'))).toEqual([
+      '048_student_loan_report_card_ingest.sql',
+    ])
+    expect(files.filter((name) => name.startsWith('049_'))).toEqual([])
     expect(existsSync(join(migrationsDir, '045_opportunities.sql'))).toBe(false)
   })
 

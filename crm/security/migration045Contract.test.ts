@@ -24,12 +24,13 @@ describe('migration 045 post-placement policy lifecycle contract', () => {
     expect(MIGRATION_045_FILENAME).toBe('045_policy_post_placement_lifecycle.sql')
     const files = numberedMigrations()
     expect(files).toEqual([...EXPECTED_NUMBERED_MIGRATIONS])
-    expect(files).toHaveLength(47)
+    expect(files).toHaveLength(48)
     expect(files[0]).toBe('001_extensions_and_enums.sql')
     expect(files[43]).toBe(MIGRATION_044_FILENAME)
     expect(files[44]).toBe(MIGRATION_045_FILENAME)
     expect(files[45]).toBe('046_opportunity_case_conversion.sql')
     expect(files[46]).toBe('047_credit_repair_student_loan_sales_catalog.sql')
+    expect(files[47]).toBe('048_student_loan_report_card_ingest.sql')
     expect(files.filter((f) => f.startsWith('045_'))).toEqual([MIGRATION_045_FILENAME])
     expect(files.filter((f) => f.startsWith('046_'))).toEqual([
       '046_opportunity_case_conversion.sql',
@@ -37,7 +38,10 @@ describe('migration 045 post-placement policy lifecycle contract', () => {
     expect(files.filter((f) => f.startsWith('047_'))).toEqual([
       '047_credit_repair_student_loan_sales_catalog.sql',
     ])
-    expect(files.filter((f) => f.startsWith('048_'))).toEqual([])
+    expect(files.filter((f) => f.startsWith('048_'))).toEqual([
+      '048_student_loan_report_card_ingest.sql',
+    ])
+    expect(files.filter((f) => f.startsWith('049_'))).toEqual([])
   })
 
   it('adds termination facts, linked status check, owner RPC, audit, and a narrow link-guard context', () => {
