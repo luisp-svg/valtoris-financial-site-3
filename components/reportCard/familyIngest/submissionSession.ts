@@ -7,6 +7,7 @@ export const FAMILY_INGEST_SESSION_KEY = 'valtoris-family-ingest-session'
 export const BUSINESS_INGEST_SESSION_KEY = 'valtoris-business-ingest-session'
 export const RETIREMENT_INGEST_SESSION_KEY = 'valtoris-retirement-ingest-session'
 export const PROTECTION_INGEST_SESSION_KEY = 'valtoris-protection-ingest-session'
+export const STUDENT_LOAN_INGEST_SESSION_KEY = 'valtoris-student-loan-ingest-session'
 
 export type FamilyUtmSnapshot = {
   utmSource: string | null

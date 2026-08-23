@@ -10,6 +10,7 @@ type TextInputProps = {
   required?: boolean
   min?: number
   max?: number
+  maxLength?: number
 }
 
 export default function TextInput({
@@ -22,6 +23,7 @@ export default function TextInput({
   required = false,
   min,
   max,
+  maxLength,
 }: TextInputProps) {
   return (
     <FieldShell label={label} name={name} required={required}>
@@ -35,6 +37,7 @@ export default function TextInput({
         placeholder={placeholder}
         min={min}
         max={max}
+        maxLength={maxLength}
         required={required}
       />
     </FieldShell>
