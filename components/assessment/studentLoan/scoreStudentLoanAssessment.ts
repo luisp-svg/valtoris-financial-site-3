@@ -9,7 +9,7 @@
  * Reverify federal repayment terminology before future launches or major edits.
  */
 
-import { STUDENT_LOAN_REPAYMENT_PLAN_VALUES } from './repaymentPlans'
+import { STUDENT_LOAN_REPAYMENT_PLAN_VALUES } from './repaymentPlans.js'
 import type { StudentLoanDiagnosticAnswers } from './types'
 
 export const STUDENT_LOAN_SCORING_VERSION = 1

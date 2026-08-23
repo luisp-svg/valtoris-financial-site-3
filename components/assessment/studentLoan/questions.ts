@@ -1,6 +1,6 @@
 import type { SpecializedOption, SpecializedQuestion } from '../specialized/types'
-import { STUDENT_LOAN_DIAGNOSTIC_QUESTION_IDS, STUDENT_LOAN_SERVICER_MAX_LENGTH } from './constants'
-import { STUDENT_LOAN_REPAYMENT_PLAN_OPTIONS } from './repaymentPlans'
+import { STUDENT_LOAN_DIAGNOSTIC_QUESTION_IDS, STUDENT_LOAN_SERVICER_MAX_LENGTH } from './constants.js'
+import { STUDENT_LOAN_REPAYMENT_PLAN_OPTIONS } from './repaymentPlans.js'
 
 function options(prefix: string, values: readonly string[]): SpecializedOption[] {
   return values.map((value) => ({ value, labelKey: `${prefix}.${value}` }))

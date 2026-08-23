@@ -27,7 +27,7 @@ export const STUDENT_LOAN_ASSESSMENT_STEPS = 12
 export const STUDENT_LOAN_SERVICER_MAX_LENGTH = 80
 
 export const STUDENT_LOAN_ANSWERS_STORAGE_KEY = 'valtoris-student-loan-answers'
-export { STUDENT_LOAN_INGEST_SESSION_KEY } from '../../reportCard/familyIngest/submissionSession'
+export { STUDENT_LOAN_INGEST_SESSION_KEY } from '../../reportCard/familyIngest/submissionSession.js'
 
 export const STUDENT_LOAN_PRODUCT_TITLE = 'Student Loan Report Card™'
 export const STUDENT_LOAN_STORAGE_RESULT_NAME = 'Student Loan Report Card'
