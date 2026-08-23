@@ -28,6 +28,7 @@ import {
 import {
   STUDENT_LOAN_REPAYMENT_PLAN_CATALOG_VERSION,
   STUDENT_LOAN_REPAYMENT_PLAN_VALUES,
+  STUDENT_LOAN_REPAYMENT_TERMINOLOGY_VERIFIED_ON,
 } from './repaymentPlans'
 import { studentLoanCopy } from './copy'
 import { canSubmitStudentLoanToCrm } from './ingestBoundary'
@@ -39,6 +40,7 @@ const ROOT = process.cwd()
 const MIGRATIONS_DIR = join(ROOT, 'supabase/migrations')
 const SHA_047 = '96e82cc9c307df0785bbc6786c4642432972e8df5a0962e492931b1bfe4a03c9'
 const SHA_048 = 'b60a9c112b99a8b5442b9c95f3fb79c600823787320d2037843d43f5202bfb1e'
+const SHA_049 = 'd42dcfb153970e7c9fa7cf804991f57568e6d21e7866f62fab4014b31145a792'
 
 function fileSha256(relativePath: string): string {
   return createHash('sha256').update(readFileSync(join(ROOT, relativePath))).digest('hex')
@@ -110,10 +112,20 @@ describe('Student Loan Phase A foundation', () => {
   })
 
   it('keeps repayment plans in app config, not schema', () => {
-    expect(STUDENT_LOAN_REPAYMENT_PLAN_CATALOG_VERSION).toBe(1)
-    expect(STUDENT_LOAN_REPAYMENT_PLAN_VALUES).toContain('standard')
-    expect(STUDENT_LOAN_REPAYMENT_PLAN_VALUES).toContain('other')
-    expect(STUDENT_LOAN_REPAYMENT_PLAN_VALUES).toContain('not_sure')
+    expect(STUDENT_LOAN_REPAYMENT_PLAN_CATALOG_VERSION).toBe(2)
+    expect(STUDENT_LOAN_REPAYMENT_TERMINOLOGY_VERIFIED_ON).toBe('2026-08-22')
+    expect(STUDENT_LOAN_REPAYMENT_PLAN_VALUES).toEqual([
+      'rap',
+      'tiered_standard',
+      'standard',
+      'ibr',
+      'paye',
+      'icr',
+      'save',
+      'repaye',
+      'other',
+      'not_sure',
+    ])
     const migrations = readdirSync(MIGRATIONS_DIR).join('\n')
     expect(migrations).not.toMatch(/repayment_plan/)
     expect(source('supabase/migrations/048_student_loan_report_card_ingest.sql')).not.toContain('repaye')
@@ -182,6 +194,7 @@ describe('Student Loan Phase A foundation', () => {
     expect(files.some((name) => name.startsWith('050_'))).toBe(false)
     expect(fileSha256('supabase/migrations/047_credit_repair_student_loan_sales_catalog.sql')).toBe(SHA_047)
     expect(fileSha256('supabase/migrations/048_student_loan_report_card_ingest.sql')).toBe(SHA_048)
+    expect(fileSha256('supabase/migrations/049_specialize_public_report_card_follow_up_copy.sql')).toBe(SHA_049)
   })
 
   it('keeps English question copy out of the scoring path', () => {

@@ -70,14 +70,20 @@ describe('specialized question renderer', () => {
 
   it('hides conditional follow-ups until the parent value matches', () => {
     const hidden = renderQuestion(question('repayment_plan'), { knows_plan: 'no', current_plan: '' })
-    expect(hidden).toContain('Are you on a specific repayment plan?')
-    expect(hidden).not.toContain('Current repayment plan')
+    expect(hidden).toContain('What repayment plan are you on, if you know it?')
+    expect(hidden).not.toContain('Current or recent repayment plan')
     expect(hidden).not.toContain('SAVE')
 
     const shown = renderQuestion(question('repayment_plan'), { knows_plan: 'yes', current_plan: '' })
-    expect(shown).toContain('Current repayment plan')
-    expect(shown).toContain('SAVE')
+    expect(shown).toContain('Current or recent repayment plan')
+    expect(shown).toContain('Repayment Assistance Plan (RAP)')
+    expect(shown).toContain('Tiered Standard')
+    expect(shown).toContain('SAVE (legacy / transitioning)')
+    expect(shown).toContain('REPAYE (legacy plan)')
+    expect(shown).toContain('value="rap"')
+    expect(shown).toContain('value="tiered_standard"')
     expect(shown).toContain('value="save"')
+    expect(shown).not.toMatch(/enroll in SAVE|apply for SAVE|available SAVE/i)
   })
 
   it('exposes validation state without scoring copy', () => {

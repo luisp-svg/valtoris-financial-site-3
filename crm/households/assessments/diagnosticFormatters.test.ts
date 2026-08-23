@@ -141,6 +141,15 @@ describe('diagnostic formatters', () => {
     expect(answers.some((item) => item.id === 'urgency')).toBe(true)
     expect(JSON.stringify(answers)).not.toMatch(/firstName|lastName|alex@example.com|555-333-4444/)
 
+    const rapAnswers = extractStudentLoanSubmittedAnswers({
+      diagnostic: { ...validStudentLoanAnswersFixture().diagnostic, current_plan: 'rap' },
+    })
+    const saveAnswers = extractStudentLoanSubmittedAnswers({
+      diagnostic: { ...validStudentLoanAnswersFixture().diagnostic, current_plan: 'save' },
+    })
+    expect(rapAnswers.some((item) => item.value === 'Repayment Assistance Plan (RAP)')).toBe(true)
+    expect(saveAnswers.some((item) => item.value === 'SAVE (legacy / transitioning)')).toBe(true)
+
     const flags = extractDiagnosticFlags({
       criticalFlags: [{ id: 'flag_default', label: 'Immediate Review', severity: 'immediate_review' }],
     })

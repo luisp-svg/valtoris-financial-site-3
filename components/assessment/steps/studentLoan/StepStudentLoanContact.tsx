@@ -6,50 +6,97 @@ import type { StudentLoanContactAnswers } from '../../studentLoan/types'
 type StepStudentLoanContactProps = {
   contact: StudentLoanContactAnswers
   t: SpecializedCopyFn
+  showErrors?: boolean
   onChange: (field: keyof StudentLoanContactAnswers, value: string) => void
+}
+
+function ContactField({
+  label,
+  name,
+  value,
+  type,
+  placeholder,
+  showErrors,
+  requiredMessage,
+  onChange,
+}: {
+  label: string
+  name: string
+  value: string
+  type?: 'text' | 'email' | 'tel'
+  placeholder: string
+  showErrors: boolean
+  requiredMessage: string
+  onChange: (value: string) => void
+}) {
+  const invalid = showErrors && value.trim() === ''
+  return (
+    <div>
+      <TextInput
+        label={label}
+        name={name}
+        value={value}
+        type={type}
+        onChange={onChange}
+        placeholder={placeholder}
+        required
+      />
+      {invalid ? (
+        <p className="assessment-validation-message" role="alert">
+          {requiredMessage}
+        </p>
+      ) : null}
+    </div>
+  )
 }
 
 export default function StepStudentLoanContact({
   contact,
   t,
+  showErrors = false,
   onChange,
 }: StepStudentLoanContactProps) {
+  const requiredMessage = t('validation', 'required')
   return (
     <QuestionCard title={t('ui', 'contactTitle')} description={t('ui', 'contactBody')}>
       <form className="assessment-form" onSubmit={(event) => event.preventDefault()}>
-        <TextInput
+        <ContactField
           label={t('ui', 'firstName')}
           name="firstName"
           value={contact.firstName}
-          onChange={(value) => onChange('firstName', value)}
           placeholder={t('ui', 'firstNamePlaceholder')}
-          required
+          showErrors={showErrors}
+          requiredMessage={requiredMessage}
+          onChange={(value) => onChange('firstName', value)}
         />
-        <TextInput
+        <ContactField
           label={t('ui', 'lastName')}
           name="lastName"
           value={contact.lastName}
-          onChange={(value) => onChange('lastName', value)}
           placeholder={t('ui', 'lastNamePlaceholder')}
-          required
+          showErrors={showErrors}
+          requiredMessage={requiredMessage}
+          onChange={(value) => onChange('lastName', value)}
         />
-        <TextInput
+        <ContactField
           label={t('ui', 'email')}
           name="email"
-          type="email"
           value={contact.email}
-          onChange={(value) => onChange('email', value)}
+          type="email"
           placeholder={t('ui', 'emailPlaceholder')}
-          required
+          showErrors={showErrors}
+          requiredMessage={requiredMessage}
+          onChange={(value) => onChange('email', value)}
         />
-        <TextInput
+        <ContactField
           label={t('ui', 'phone')}
           name="phone"
-          type="tel"
           value={contact.phone}
-          onChange={(value) => onChange('phone', value)}
+          type="tel"
           placeholder={t('ui', 'phonePlaceholder')}
-          required
+          showErrors={showErrors}
+          requiredMessage={requiredMessage}
+          onChange={(value) => onChange('phone', value)}
         />
       </form>
     </QuestionCard>

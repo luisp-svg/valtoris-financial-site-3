@@ -2,6 +2,9 @@ import { SCHEDULE_CTA } from './homepage.js'
 
 export const CALENDLY_REPORT_CARD_URL = 'https://calendly.com/valtoris/reportcard'
 
+/** Official Federal Student Aid site. Not a Valtoris property or partnership. */
+export const STUDENTAID_GOV_URL = 'https://studentaid.gov'
+
 export const CALENDLY_REPORT_CARD_BUTTON_LABEL = SCHEDULE_CTA
 
 export const GOOGLE_SHEETS_CALCULATOR_WEBHOOK_URL =

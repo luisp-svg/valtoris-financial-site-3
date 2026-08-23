@@ -1,12 +1,12 @@
 /**
- * Deterministic Student Loan Health Score.
+ * Deterministic Valtoris Student Loan Report Card Score.
  * Uses canonical answer values only. Never reads translated labels.
  * Does not infer federal eligibility, payment, forgiveness, or savings.
  *
- * TODO(pre-launch): verify configured repayment-plan names against current
- * federal programs before public production. Scoring treats plans only as
- * recognized-configured / other / not-sure. Do not add plan-specific legal
- * or financial conclusions here.
+ * Plan scoring is plan-neutral: recognized configured plan / other / not sure.
+ * Adding rap or tiered_standard only expands the recognized-configured set.
+ * Do not award or deduct points because one federal plan is "better."
+ * Reverify federal repayment terminology before future launches or major edits.
  */
 
 import { STUDENT_LOAN_REPAYMENT_PLAN_VALUES } from './repaymentPlans'

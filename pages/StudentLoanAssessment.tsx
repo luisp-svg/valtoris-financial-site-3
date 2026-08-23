@@ -286,7 +286,12 @@ export default function StudentLoanAssessment() {
 
       {currentStep === STUDENT_LOAN_CONTACT_STEP ? (
         <>
-          <StepStudentLoanContact contact={answers.contact} t={t} onChange={updateContact} />
+          <StepStudentLoanContact
+            contact={answers.contact}
+            t={t}
+            showErrors={showFieldErrors}
+            onChange={updateContact}
+          />
           <FamilyConsentSection
             consent={consent}
             phone={answers.contact.phone}

@@ -39,6 +39,7 @@ import { validateFamilyReportCardIngestRequest } from '../../../server/ingest/fa
 const ROOT = process.cwd()
 const SHA_047 = '96e82cc9c307df0785bbc6786c4642432972e8df5a0962e492931b1bfe4a03c9'
 const SHA_048 = 'b60a9c112b99a8b5442b9c95f3fb79c600823787320d2037843d43f5202bfb1e'
+const SHA_049 = 'd42dcfb153970e7c9fa7cf804991f57568e6d21e7866f62fab4014b31145a792'
 
 function fileSha256(relativePath: string): string {
   return createHash('sha256').update(readFileSync(join(ROOT, relativePath))).digest('hex')
@@ -121,6 +122,22 @@ describe('Student Loan Phase C validation', () => {
     )
     expect(result.ok).toBe(false)
     if (!result.ok) expect(result.code).toBe('unknown_student_loan_field')
+  })
+
+  it('accepts RAP and Tiered Standard as current-plan values', () => {
+    const answers = validStudentLoanAnswersFixture()
+    const rap = validateFamilyReportCardIngestRequest(
+      validStudentLoanIngestRequestBodyFixture({
+        answers: { ...answers, diagnostic: { ...answers.diagnostic, current_plan: 'rap' } },
+      }),
+    )
+    const tiered = validateFamilyReportCardIngestRequest(
+      validStudentLoanIngestRequestBodyFixture({
+        answers: { ...answers, diagnostic: { ...answers.diagnostic, current_plan: 'tiered_standard' } },
+      }),
+    )
+    expect(rap.ok).toBe(true)
+    expect(tiered.ok).toBe(true)
   })
 
   it('rejects invalid enum values', () => {
@@ -443,5 +460,6 @@ describe('Student Loan Phase C CRM display and boundaries', () => {
     expect(files.some((name) => name.startsWith('050_'))).toBe(false)
     expect(fileSha256('supabase/migrations/047_credit_repair_student_loan_sales_catalog.sql')).toBe(SHA_047)
     expect(fileSha256('supabase/migrations/048_student_loan_report_card_ingest.sql')).toBe(SHA_048)
+    expect(fileSha256('supabase/migrations/049_specialize_public_report_card_follow_up_copy.sql')).toBe(SHA_049)
   })
 })

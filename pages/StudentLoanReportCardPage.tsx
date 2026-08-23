@@ -7,9 +7,9 @@ import { readSpecializedLocale, withSpecializedLocale } from '../components/asse
 const WHAT_YOU_RECEIVE = [
   {
     icon: 'grade' as const,
-    title: 'Student Loan Health Score',
+    title: 'Student Loan Report Card Score',
     description:
-      'A 0–100 Student Loan Health Score and letter grade that summarize loan status, repayment strategy, and review priorities. Large balances are not penalized.',
+      'A 0–100 Valtoris Student Loan Report Card Score and letter grade that summarize loan status, repayment strategy, and review priorities. Large balances are not penalized.',
   },
   {
     icon: 'priorities' as const,
@@ -45,7 +45,8 @@ const CATEGORIES = [
   {
     icon: 'strategy' as const,
     title: 'Repayment Strategy',
-    description: 'Whether you know your plan, using a maintainable program list rather than a database enum.',
+    description:
+      'Whether you know your current or recent repayment plan, using current federal plan names plus legacy options borrowers may still report.',
   },
   {
     icon: 'cashflow' as const,
@@ -99,7 +100,7 @@ const FAQS = [
   {
     question: 'Do I get a score today?',
     answer:
-      'Yes. You receive a Student Loan Health Score, grade, flags, and review areas after the 10 questions and acknowledgments. CRM storage is not enabled in this release.',
+      'Yes. You receive a Valtoris Student Loan Report Card Score, grade, flags, and review areas after the 10 questions and acknowledgments.',
   },
   {
     question: 'Is this an eligibility or forgiveness approval?',
@@ -109,7 +110,7 @@ const FAQS = [
   {
     question: 'Will someone contact me automatically?',
     answer:
-      'Only if you later submit through the official ingest path and grant contact permission. Completing these questions today does not create a CRM lead.',
+      'No automatic messages are sent. If you finish the assessment and agree to be contacted, Valtoris may follow up about your results. Completing the questions does not enroll you in a federal program.',
   },
 ]
 
@@ -119,7 +120,7 @@ function StudentLoanSamplePreview() {
       <p className="platform-eyebrow">What you will see</p>
       <h3 className="diagnostic-receive-title">Your results include</h3>
       <ul className="diagnostic-faq-answer">
-        <li>Student Loan Health Score and letter grade</li>
+        <li>Student Loan Report Card Score and letter grade</li>
         <li>Category scores and critical review flags</li>
         <li>Up to three review areas and your primary goal</li>
         <li>An optional complimentary review next step</li>
@@ -141,7 +142,7 @@ export default function StudentLoanReportCardPage() {
       title="Get Clarity on Your Student Loans"
       heroCopies={[
         'Take the Valtoris Student Loan Report Card™ to organize your loan types, status, repayment plan, income, and goals.',
-        'See a Student Loan Health Score, review flags, and next-step areas. Results are educational and are not a federal determination.',
+        'See a Valtoris Student Loan Report Card Score, review flags, and next-step areas. Results are educational and are not a government determination.',
       ]}
       ctaLabel={STUDENT_LOAN_CTA}
       ctaTo={assessmentTo}
@@ -157,7 +158,7 @@ export default function StudentLoanReportCardPage() {
       howSteps={HOW_IT_WORKS}
       faqs={FAQS}
       closingTitle="Ready to Start Your Student Loan Report Card™?"
-      closingCopy="Answer 10 focused questions and receive your Student Loan Health Score. CRM submission is not enabled in this release."
+      closingCopy="Answer 10 focused questions and receive your Valtoris Student Loan Report Card Score."
       closingMicrocopy="No account numbers. No FSA credentials. Required privacy acknowledgments stay explicit."
     />
   )

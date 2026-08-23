@@ -84,6 +84,20 @@ describe('scoreStudentLoanAssessment', () => {
     expect(named.overallScore).toBe(otherName.overallScore)
   })
 
+  it('treats RAP, Tiered Standard, and legacy SAVE as plan-neutral recognized plans', () => {
+    const ibr = scoreStudentLoanAssessment(strongDiagnostic({ current_plan: 'ibr' }))
+    const rap = scoreStudentLoanAssessment(strongDiagnostic({ current_plan: 'rap' }))
+    const tiered = scoreStudentLoanAssessment(strongDiagnostic({ current_plan: 'tiered_standard' }))
+    const save = scoreStudentLoanAssessment(strongDiagnostic({ current_plan: 'save' }))
+    const other = scoreStudentLoanAssessment(strongDiagnostic({ current_plan: 'other' }))
+    expect(rap.overallScore).toBe(ibr.overallScore)
+    expect(tiered.overallScore).toBe(ibr.overallScore)
+    expect(save.overallScore).toBe(ibr.overallScore)
+    expect(other.overallScore).toBeLessThan(ibr.overallScore)
+    expect(rap.scoringVersion).toBe(1)
+    expect(rap.categories.find((category) => category.id === 'repayment_strategy')?.score).toBe(25)
+  })
+
   it('uses canonical values and does not import display copy', () => {
     const source = readFileSync(
       join(process.cwd(), 'components/assessment/studentLoan/scoreStudentLoanAssessment.ts'),

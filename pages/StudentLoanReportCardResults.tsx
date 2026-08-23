@@ -13,6 +13,7 @@ import {
 import type { StudentLoanFlagSeverity } from '../components/assessment/studentLoan/scoreStudentLoanAssessment'
 import type { StudentLoanDiagnosticAnswers } from '../components/assessment/studentLoan/types'
 import { ROUTES } from '../constants/routes'
+import { STUDENTAID_GOV_URL } from '../constants/urls'
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object'
@@ -105,6 +106,7 @@ export default function StudentLoanReportCardResults() {
       <div className="results-container">
         <header className="results-header">
           <AssessmentBrandHeader />
+          <h1 className="visually-hidden">Student Loan Report Card™</h1>
           {firstName ? (
             <p className="results-prepared-for">
               {t('ui', 'preparedFor')} {firstName}
@@ -130,13 +132,17 @@ export default function StudentLoanReportCardResults() {
 
         <section className="results-hero" aria-labelledby="student-loan-score-title">
           <p className="results-kicker">Student Loan Report Card™</p>
-          <h1 className="results-title" id="student-loan-score-title">
+          <h2 className="results-title" id="student-loan-score-title">
             {t('results', 'score')}
-          </h1>
+          </h2>
           <div className="results-grade-card">
             <div className="results-grade-block">
               <span className="results-grade-label">{t('results', 'score')}</span>
-              <span className="results-grade-value" data-testid="student-loan-overall-score">
+              <span
+                className="results-grade-value"
+                data-testid="student-loan-overall-score"
+                aria-label={`${t('results', 'score')} ${results.overallScore} out of 100`}
+              >
                 {results.overallScore}
               </span>
             </div>
@@ -215,6 +221,13 @@ export default function StudentLoanReportCardResults() {
         </section>
 
         <p className="family-results-disclaimer">{t('results', 'disclaimer')}</p>
+        <p className="family-results-disclaimer" data-testid="student-loan-official-resource">
+          {t('results', 'officialResourceLead')}{' '}
+          <a href={STUDENTAID_GOV_URL} target="_blank" rel="noopener noreferrer">
+            {t('results', 'officialResourceLink')}
+          </a>
+          {t('results', 'officialResourceAfter')}
+        </p>
 
         <section className="results-cta">
           <h2 className="results-cta-headline">{t('results', 'reviewWithValtoris')}</h2>
