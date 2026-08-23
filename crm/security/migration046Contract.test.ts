@@ -8,6 +8,7 @@ import {
   MIGRATION_046_FORBIDDEN_MARKERS,
   MIGRATION_046_RPC,
 } from './migration046Contract'
+import { MIGRATION_047_FILENAME } from './migration047Contract'
 
 const root = resolve(process.cwd())
 const migrationsDir = resolve(root, 'supabase/migrations')
@@ -20,18 +21,22 @@ function numberedMigrations(): string[] {
 }
 
 describe('migration 046 opportunity case conversion contract', () => {
-  it('is the only 046 file, follows 045, and rejects 047', () => {
+  it('is the only 046 file, follows 045, and is followed by 047 sales catalog', () => {
     expect(MIGRATION_046_FILENAME).toBe('046_opportunity_case_conversion.sql')
     expect(MIGRATION_046_RPC).toBe('convert_opportunity_to_policy_application')
     const files = numberedMigrations()
     expect(files).toEqual([...EXPECTED_NUMBERED_MIGRATIONS])
-    expect(files).toHaveLength(46)
+    expect(files).toHaveLength(47)
     expect(files[0]).toBe('001_extensions_and_enums.sql')
     expect(files[44]).toBe(MIGRATION_045_FILENAME)
     expect(files[45]).toBe(MIGRATION_046_FILENAME)
+    expect(files[46]).toBe(MIGRATION_047_FILENAME)
     expect(files.filter((f) => f.startsWith('045_'))).toEqual([MIGRATION_045_FILENAME])
     expect(files.filter((f) => f.startsWith('046_'))).toEqual([MIGRATION_046_FILENAME])
-    expect(files.filter((f) => f.startsWith('047_'))).toEqual([])
+    expect(files.filter((f) => f.startsWith('047_'))).toEqual([
+      '047_credit_repair_student_loan_sales_catalog.sql',
+    ])
+    expect(files.filter((f) => f.startsWith('048_'))).toEqual([])
   })
 
   it('adds the live opportunity unique index and the conversion RPC with audit and grants', () => {

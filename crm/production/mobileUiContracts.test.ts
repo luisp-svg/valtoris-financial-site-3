@@ -27,7 +27,10 @@ describe('CRM mobile responsive cleanup contracts', () => {
     expect(files.filter((name) => name.startsWith('046_'))).toEqual([
       '046_opportunity_case_conversion.sql',
     ])
-    expect(files.filter((name) => name.startsWith('047_'))).toEqual([])
+    expect(files.filter((name) => name.startsWith('047_'))).toEqual([
+      '047_credit_repair_student_loan_sales_catalog.sql',
+    ])
+    expect(files.filter((name) => name.startsWith('048_'))).toEqual([])
     expect(existsSync(join(migrationsDir, '044_case_management.sql'))).toBe(false)
   })
 

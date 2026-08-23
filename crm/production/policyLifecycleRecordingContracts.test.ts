@@ -29,14 +29,17 @@ const sql045 = readFileSync(join(migrationsDir, '045_policy_post_placement_lifec
 describe('post-placement recording UI contracts', () => {
   it('does not add Migration 047 and keeps 045 as the only lifecycle writer', () => {
     const files = readdirSync(migrationsDir).filter((name) => name.endsWith('.sql')).sort()
-    expect(files).toHaveLength(46)
+    expect(files).toHaveLength(47)
     expect(files.filter((name) => name.startsWith('045_'))).toEqual([
       '045_policy_post_placement_lifecycle.sql',
     ])
     expect(files.filter((name) => name.startsWith('046_'))).toEqual([
       '046_opportunity_case_conversion.sql',
     ])
-    expect(files.filter((name) => name.startsWith('047_'))).toEqual([])
+    expect(files.filter((name) => name.startsWith('047_'))).toEqual([
+      '047_credit_repair_student_loan_sales_catalog.sql',
+    ])
+    expect(files.filter((name) => name.startsWith('048_'))).toEqual([])
     expect(existsSync(join(migrationsDir, '047_policy_lifecycle_recording.sql'))).toBe(false)
     expect(sql045).toContain('CREATE OR REPLACE FUNCTION public.record_policy_post_placement_outcome')
     expect(POLICY_LIFECYCLE_RPC).toBe('record_policy_post_placement_outcome')

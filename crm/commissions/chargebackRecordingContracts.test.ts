@@ -12,10 +12,13 @@ function read(name: string): string {
 }
 
 describe('chargeback recording contracts', () => {
-  it('reuses the existing 035 writer and does not add Migration 047', () => {
+  it('reuses the existing 035 writer and does not add a chargeback Migration 048', () => {
     const numbered = readdirSync(migrationsDir).filter((name) => /^\d{3}_/.test(name)).sort()
-    expect(numbered).toHaveLength(46)
-    expect(numbered.filter((name) => name.startsWith('047_'))).toEqual([])
+    expect(numbered).toHaveLength(47)
+    expect(numbered.filter((name) => name.startsWith('047_'))).toEqual([
+      '047_credit_repair_student_loan_sales_catalog.sql',
+    ])
+    expect(numbered.filter((name) => name.startsWith('048_'))).toEqual([])
     expect(existsSync(join(migrationsDir, '047_commission_chargeback.sql'))).toBe(false)
     const page = readFileSync(join(root, 'pages/crm/CrmCommissionsPage.tsx'), 'utf8')
     const api = read('commissionWriteApi.ts')

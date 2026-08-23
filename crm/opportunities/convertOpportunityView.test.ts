@@ -20,6 +20,8 @@ describe('opportunity case conversion eligibility', () => {
     expect(conversionProductLinesForVertical('retirement')).toEqual(['fia'])
     expect(conversionProductLinesForVertical('pc')).toEqual([])
     expect(conversionProductLinesForVertical('wills_trusts')).toEqual([])
+    expect(conversionProductLinesForVertical('credit_repair')).toEqual([])
+    expect(conversionProductLinesForVertical('student_loans')).toEqual([])
     expect(
       opportunityAllowsCreateCase({ status: 'open', service_vertical: { code: 'life' } }),
     ).toBe(true)
@@ -34,6 +36,12 @@ describe('opportunity case conversion eligibility', () => {
     ).toBe(false)
     expect(
       opportunityAllowsCreateCase({ status: 'open', service_vertical: { code: 'pc' } }),
+    ).toBe(false)
+    expect(
+      opportunityAllowsCreateCase({ status: 'open', service_vertical: { code: 'credit_repair' } }),
+    ).toBe(false)
+    expect(
+      opportunityAllowsCreateCase({ status: 'won', service_vertical: { code: 'student_loans' } }),
     ).toBe(false)
   })
 
