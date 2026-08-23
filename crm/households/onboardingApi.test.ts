@@ -375,6 +375,7 @@ describe('workspace assessment selection vs onboarding', () => {
       'business',
       'retirement',
       'protection',
+      'student_loan',
     ])
     expect(WORKSPACE_ASSESSMENT_TYPES).not.toContain('household_onboarding')
   })

@@ -3,11 +3,13 @@ import {
   extractDiagnosticCategories,
   extractDiagnosticFlags,
   extractDiagnosticPriorities,
+  extractStudentLoanSubmittedAnswers,
   extractSubmittedDiagnosticSnapshot,
   extractTopPriorityTitles,
   mapPublicFamilyDiagnosticDetail,
   mapPublicFamilyDiagnosticListItem,
 } from './diagnosticFormatters'
+import { validStudentLoanAnswersFixture } from '../../../server/ingest/familyReportCard/testFixtures'
 import {
   countPublicFamilyDiagnostics,
   fetchPublicFamilyDiagnosticDetail,
@@ -120,6 +122,29 @@ describe('diagnostic formatters', () => {
     expect(snapshot.email).toBe('jamie@example.com')
     expect(snapshot.totalDebt).toBe('25000')
     expect(snapshot.submittedGoals).toEqual(['Reduce debt'])
+  })
+
+  it('does not read Student Loan contact PII from assessment answers', () => {
+    const persisted = { diagnostic: validStudentLoanAnswersFixture().diagnostic }
+    const snapshot = extractSubmittedDiagnosticSnapshot({
+      ...persisted,
+      contact: { firstName: 'Alex', lastName: 'Nguyen', email: 'alex@example.com', phone: '555-333-4444' },
+    })
+    expect(snapshot.firstName).toBeNull()
+    expect(snapshot.lastName).toBeNull()
+    expect(snapshot.email).toBeNull()
+    expect(snapshot.phone).toBeNull()
+
+    const answers = extractStudentLoanSubmittedAnswers(persisted)
+    expect(answers.some((item) => item.id === 'loan_status')).toBe(true)
+    expect(answers.some((item) => item.id === 'primary_goal')).toBe(true)
+    expect(answers.some((item) => item.id === 'urgency')).toBe(true)
+    expect(JSON.stringify(answers)).not.toMatch(/firstName|lastName|alex@example.com|555-333-4444/)
+
+    const flags = extractDiagnosticFlags({
+      criticalFlags: [{ id: 'flag_default', label: 'Immediate Review', severity: 'immediate_review' }],
+    })
+    expect(flags.some((flag) => flag.id === 'flag_default' && flag.label === 'Immediate Review')).toBe(true)
   })
 
   it('maps list and detail without exposing raw capture_channel text', () => {
@@ -298,10 +323,18 @@ describe('public report-card history mapping for all four types', () => {
       { householdId: 'hh-1', isLatest: false },
     )
 
+    const studentLoan = mapPublicFamilyDiagnosticListItem(
+      { ...publicRow, id: 'sl-1', assessment_type: 'student_loan', overall_score: 88, overall_grade: 'B' },
+      { householdId: 'hh-1', isLatest: false },
+    )
+
     expect(business?.productLabel).toBe('Business Report Card')
     expect(business?.assessmentType).toBe('business')
     expect(retirement?.productLabel).toBe('Retirement Report Card')
     expect(protection?.productLabel).toBe('Protection Gap')
+    expect(studentLoan?.productLabel).toBe('Student Loan Report Card')
+    expect(studentLoan?.assessmentType).toBe('student_loan')
+    expect(studentLoan?.productLabel).not.toBe('Initial Financial Diagnostic')
     expect(protection?.overallScore).toBeNull()
     expect(protection?.overallGrade).toBeNull()
     expect(protection?.protectionGapFormatted).toBe('$1,200,000')

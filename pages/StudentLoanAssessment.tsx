@@ -32,6 +32,7 @@ import { canSubmitStudentLoanToCrm } from '../components/assessment/studentLoan/
 import { buildStudentLoanResultsSession } from '../components/assessment/studentLoan/resultsModel'
 import { STUDENT_LOAN_QUESTIONS } from '../components/assessment/studentLoan/questions'
 import { INITIAL_STUDENT_LOAN_ANSWERS, type StudentLoanAssessmentAnswers, type StudentLoanContactAnswers } from '../components/assessment/studentLoan/types'
+import { completePublicReportCardCrmSubmission } from '../components/reportCard/familyIngest/completeFamilyReportCardSubmission'
 import {
   applyPhoneChangeToConsent,
   INITIAL_FAMILY_CONSENT_STATE,
@@ -59,7 +60,8 @@ export default function StudentLoanAssessment() {
   const [consentMissing, setConsentMissing] = useState<
     Array<'assessmentStorageAcknowledged' | 'privacyAcknowledged'>
   >([])
-  const [boundaryNotice, setBoundaryNotice] = useState<string | null>(null)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [ingestSession, setIngestSession] = useState<FamilyIngestSession>(() =>
     ensureFamilyIngestSession({
       search: location.search,
@@ -68,10 +70,25 @@ export default function StudentLoanAssessment() {
     }),
   )
   const answersRef = useRef(answers)
+  const consentRef = useRef(consent)
+  const sessionRef = useRef(ingestSession)
+  const honeypotRef = useRef(honeypotWebsite)
 
   useEffect(() => {
     answersRef.current = answers
   }, [answers])
+
+  useEffect(() => {
+    consentRef.current = consent
+  }, [consent])
+
+  useEffect(() => {
+    sessionRef.current = ingestSession
+  }, [ingestSession])
+
+  useEffect(() => {
+    honeypotRef.current = honeypotWebsite
+  }, [honeypotWebsite])
 
   function t(section: SpecializedCopySection, key: string): string {
     return resolveSpecializedCopy(studentLoanCopy, locale, section, key)
@@ -122,7 +139,7 @@ export default function StudentLoanAssessment() {
     })
     setShowConsentErrors(false)
     setConsentMissing([])
-    setBoundaryNotice(null)
+    setSubmitError(null)
   }
 
   function handleBegin() {
@@ -137,11 +154,13 @@ export default function StudentLoanAssessment() {
     setShowFieldErrors(false)
     setShowConsentErrors(false)
     setConsentMissing([])
-    setBoundaryNotice(null)
+    setSubmitError(null)
+    setIsSubmitting(false)
     setCurrentStep(STUDENT_LOAN_FIRST_DIAGNOSTIC_STEP)
   }
 
   function handleBack() {
+    if (isSubmitting) return
     if (currentStep === STUDENT_LOAN_WELCOME_STEP) {
       navigate(withSpecializedLocale(ROUTES.studentLoanReportCard, locale))
       return
@@ -150,23 +169,51 @@ export default function StudentLoanAssessment() {
     setCurrentStep((step) => step - 1)
   }
 
-  function finishWithoutCrm(finalAnswers: StudentLoanAssessmentAnswers) {
-    if (ingestSession.status === 'succeeded') {
-      throw new Error('Student Loan CRM ingest must stay disabled until Phase C.')
+  async function completeStudentLoanAssessment(finalAnswers: StudentLoanAssessmentAnswers) {
+    setSubmitError(null)
+
+    if (!canSubmitStudentLoanToCrm()) {
+      setSubmitError(t('ui', 'ingestUnavailable'))
+      setIsSubmitting(false)
+      return
     }
+
+    const { result, session } = await completePublicReportCardCrmSubmission({
+      assessmentType: 'student_loan',
+      answers: finalAnswers,
+      consent: consentRef.current,
+      session: sessionRef.current,
+      honeypotWebsite: honeypotRef.current,
+      storageKey: STUDENT_LOAN_INGEST_SESSION_KEY,
+      phone: finalAnswers.contact.phone,
+    })
+    setIngestSession(session)
+
+    if (!result.ok) {
+      if (result.code === 'consent_required') {
+        setShowConsentErrors(true)
+        setConsentMissing(result.consentMissing ?? [])
+      }
+      setSubmitError(result.error)
+      setIsSubmitting(false)
+      return
+    }
+
     const resultsSession = buildStudentLoanResultsSession(finalAnswers)
     try {
       sessionStorage.setItem(STUDENT_LOAN_ANSWERS_STORAGE_KEY, JSON.stringify(resultsSession))
     } catch {
       // Non-fatal local cache only.
     }
+
     navigate(withSpecializedLocale(ROUTES.studentLoanReportCardResults, locale), {
-      state: { answers: resultsSession, crmSubmitted: false },
+      state: { answers: resultsSession, crmSubmitted: true, submissionId: result.submissionId },
     })
   }
 
-  function handleContinue() {
+  async function handleContinue() {
     if (currentStep < STUDENT_LOAN_CONTACT_STEP) {
+      if (isSubmitting) return
       if (!canContinue) {
         setShowFieldErrors(true)
         return
@@ -175,7 +222,7 @@ export default function StudentLoanAssessment() {
       return
     }
 
-    if (!canContinue || !isStudentLoanContactComplete(answersRef.current)) {
+    if (!canContinue || !isStudentLoanContactComplete(answersRef.current) || isSubmitting) {
       setShowFieldErrors(true)
       return
     }
@@ -192,12 +239,8 @@ export default function StudentLoanAssessment() {
       return
     }
 
-    if (canSubmitStudentLoanToCrm()) {
-      throw new Error('Student Loan CRM ingest is not enabled until Phase C.')
-    }
-
-    setBoundaryNotice(t('ui', 'ingestUnavailable'))
-    finishWithoutCrm(answersRef.current)
+    setIsSubmitting(true)
+    await completeStudentLoanAssessment(answersRef.current)
   }
 
   return (
@@ -208,9 +251,17 @@ export default function StudentLoanAssessment() {
         currentStep === STUDENT_LOAN_WELCOME_STEP ? null : (
           <NavigationButtons
             onBack={handleBack}
-            onContinue={handleContinue}
-            continueDisabled={!canContinue && currentStep !== STUDENT_LOAN_CONTACT_STEP}
-            continueLabel={t('ui', 'continue')}
+            onContinue={() => {
+              void handleContinue()
+            }}
+            continueDisabled={(!canContinue && currentStep !== STUDENT_LOAN_CONTACT_STEP) || isSubmitting}
+            continueLabel={
+              isSubmitting
+                ? t('ui', 'saving')
+                : currentStep === STUDENT_LOAN_CONTACT_STEP
+                  ? t('ui', 'viewResults')
+                  : t('ui', 'continue')
+            }
           />
         )
       }
@@ -248,9 +299,14 @@ export default function StudentLoanAssessment() {
             storageResultName={STUDENT_LOAN_STORAGE_RESULT_NAME}
             intro={t('ui', 'consentIntro')}
           />
-          {boundaryNotice ? (
-            <p className="family-submit-status" role="status">
-              {boundaryNotice}
+          {isSubmitting ? (
+            <p className="family-submit-status" role="status" aria-live="polite">
+              {t('ui', 'saving')}
+            </p>
+          ) : null}
+          {submitError ? (
+            <p className="family-submit-error" role="alert">
+              {submitError}
             </p>
           ) : null}
         </>

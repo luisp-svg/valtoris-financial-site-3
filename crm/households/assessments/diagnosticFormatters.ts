@@ -11,11 +11,14 @@ import type {
   DiagnosticLeadSummary,
   DiagnosticPriorityItem,
   DiagnosticSourceAttribution,
+  DiagnosticSubmittedAnswer,
   PublicFamilyDiagnosticDetail,
   PublicFamilyDiagnosticListItem,
   SubmittedDiagnosticSnapshot,
 } from './types'
 import { crmProductLabelForAssessment, isPublicReportCardAssessmentType } from '../../../modules/reportCard/publicIngestCatalog'
+import { studentLoanCopy } from '../../../components/assessment/studentLoan/copy'
+import { STUDENT_LOAN_QUESTIONS } from '../../../components/assessment/studentLoan/questions'
 
 function asRecord(value: unknown): Record<string, unknown> {
   if (value && typeof value === 'object' && !Array.isArray(value)) {
@@ -150,6 +153,20 @@ export function extractDiagnosticFlags(derivedMetrics: unknown): DiagnosticFlagI
     })
   }
 
+  const critical = Array.isArray(derived.criticalFlags) ? derived.criticalFlags : []
+  for (const flag of critical) {
+    if (!flag || typeof flag !== 'object') continue
+    const row = flag as Record<string, unknown>
+    const id = asTrimmedString(row.id)
+    const label = asTrimmedString(row.label) ?? asTrimmedString(row.severity)
+    if (!id && !label) continue
+    flags.push({
+      id: id ?? 'flag',
+      label: label ?? id ?? 'Flag',
+      detail: asTrimmedString(row.detail) ?? id,
+    })
+  }
+
   return flags
 }
 
@@ -197,6 +214,46 @@ export function extractSubmittedDiagnosticSnapshot(answers: unknown): SubmittedD
     guardianDocumented: asTrimmedString(protection.guardianDocumented),
     submittedGoals: selected,
   }
+}
+
+function studentLoanDisplayText(section: 'fields' | 'answers', key: string): string {
+  return studentLoanCopy.en?.[section][key] ?? key
+}
+
+function formatStudentLoanFieldValue(fieldId: string, raw: unknown): string | null {
+  if (Array.isArray(raw)) {
+    const labels = raw
+      .map((item) => (typeof item === 'string' && item.trim() ? studentLoanDisplayText('answers', `${fieldId}.${item}`) : null))
+      .filter((item): item is string => Boolean(item))
+    return labels.length > 0 ? labels.join(', ') : null
+  }
+  if (typeof raw !== 'string' || raw.trim() === '') return null
+  if (fieldId === 'servicer_name') return raw.trim()
+  const prefixed = studentLoanCopy.en?.answers[`${fieldId}.${raw}`]
+  if (prefixed) return prefixed
+  const shared = studentLoanCopy.en?.answers[raw]
+  if (shared) return shared
+  return raw
+}
+
+/**
+ * Student Loan assessment JSONB is diagnostic-only. Contact PII is not read here.
+ */
+export function extractStudentLoanSubmittedAnswers(answers: unknown): DiagnosticSubmittedAnswer[] {
+  const diagnostic = asRecord(asRecord(answers).diagnostic)
+  const items: DiagnosticSubmittedAnswer[] = []
+  for (const question of STUDENT_LOAN_QUESTIONS) {
+    for (const field of question.fields) {
+      const value = formatStudentLoanFieldValue(field.id, diagnostic[field.id])
+      if (!value) continue
+      items.push({
+        id: field.id,
+        label: studentLoanDisplayText('fields', field.id),
+        value,
+      })
+    }
+  }
+  return items
 }
 
 function safeHostFromReferrer(value: unknown): string | null {
@@ -320,6 +377,8 @@ export function mapPublicFamilyDiagnosticDetail(
     priorities: extractDiagnosticPriorities(row.priorities, row.answers),
     flags: extractDiagnosticFlags(row.derived_metrics),
     submittedSnapshot: extractSubmittedDiagnosticSnapshot(row.answers),
+    submittedAnswers:
+      row.assessment_type === 'student_loan' ? extractStudentLoanSubmittedAnswers(row.answers) : [],
     consent: leadSummary?.consent ?? null,
     lead: leadSummary,
   }

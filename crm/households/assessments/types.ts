@@ -40,6 +40,12 @@ export type DiagnosticFlagItem = {
   detail: string | null
 }
 
+export type DiagnosticSubmittedAnswer = {
+  id: string
+  label: string
+  value: string
+}
+
 export type SubmittedDiagnosticSnapshot = {
   firstName: string | null
   lastName: string | null
@@ -121,6 +127,7 @@ export type PublicFamilyDiagnosticDetail = {
   priorities: DiagnosticPriorityItem[]
   flags: DiagnosticFlagItem[]
   submittedSnapshot: SubmittedDiagnosticSnapshot
+  submittedAnswers: DiagnosticSubmittedAnswer[]
   consent: IntakeConsentSummary | null
   lead: DiagnosticLeadSummary | null
 }

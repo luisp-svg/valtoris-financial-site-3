@@ -7,7 +7,7 @@ import { describe, expect, it } from 'vitest'
 import { CALENDLY_REPORT_CARD_URL } from '../../../constants/urls'
 import StudentLoanReportCardResults from '../../../pages/StudentLoanReportCardResults'
 import { PUBLIC_REPORT_CARD_ASSESSMENT_TYPES } from '../../../modules/reportCard/publicIngestCatalog'
-import { canSubmitStudentLoanToCrm, getStudentLoanSubmitBoundary } from './ingestBoundary'
+import { canSubmitStudentLoanToCrm } from './ingestBoundary'
 import {
   buildStudentLoanResultsSession,
   getStudentLoanResultsModel,
@@ -112,14 +112,13 @@ describe('Student Loan Phase B results', () => {
     expect(assessment).not.toContain('JSON.stringify(finalAnswers)')
   })
 
-  it('keeps CRM ingest disabled and does not auto-create Opportunities', () => {
-    expect(canSubmitStudentLoanToCrm()).toBe(false)
-    expect(getStudentLoanSubmitBoundary().enabled).toBe(false)
-    expect(PUBLIC_REPORT_CARD_ASSESSMENT_TYPES).not.toContain('student_loan')
+  it('uses existing CRM ingest and does not auto-create Opportunities', () => {
+    expect(canSubmitStudentLoanToCrm()).toBe(true)
+    expect(PUBLIC_REPORT_CARD_ASSESSMENT_TYPES).toContain('student_loan')
     const assessment = readFileSync(join(process.cwd(), 'pages/StudentLoanAssessment.tsx'), 'utf8')
     const results = readFileSync(join(process.cwd(), 'pages/StudentLoanReportCardResults.tsx'), 'utf8')
-    expect(assessment).not.toContain('completePublicReportCardCrmSubmission')
-    expect(assessment).not.toContain('/api/ingest-family-report-card')
+    expect(assessment).toContain('completePublicReportCardCrmSubmission')
+    expect(assessment).not.toContain('/api/ingest-student-loan')
     expect(results).not.toContain('/api/ingest-family-report-card')
     expect(`${assessment}\n${results}`.toLowerCase()).not.toContain('create opportunity')
   })

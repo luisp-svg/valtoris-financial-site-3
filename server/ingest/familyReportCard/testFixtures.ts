@@ -1,4 +1,9 @@
 import type { DemoAssessmentAnswers } from '../../../components/assessment/types'
+import {
+  INITIAL_STUDENT_LOAN_ANSWERS,
+  type StudentLoanAssessmentAnswers,
+  type StudentLoanDiagnosticAnswers,
+} from '../../../components/assessment/studentLoan/types'
 import type { CalculatorAnswers } from '../../../components/calculator/types'
 import { DEMO_BUSINESS_ANSWERS } from '../../../components/reportCard/businessReportCardData'
 import { DEMO_RETIREMENT_ANSWERS } from '../../../components/reportCard/retirementReportCardData'
@@ -137,6 +142,58 @@ export function validRetirementIngestRequestBodyFixture(
     assessmentType: 'retirement',
     answers: DEMO_RETIREMENT_ANSWERS,
     sourcePage: '/retirement-report-card',
+    ...overrides,
+  })
+}
+
+export function validStudentLoanDiagnosticFixture(
+  overrides?: Partial<StudentLoanDiagnosticAnswers>,
+): StudentLoanDiagnosticAnswers {
+  return {
+    ...INITIAL_STUDENT_LOAN_ANSWERS.diagnostic,
+    loan_types: ['direct'],
+    total_balance: 'over_100k',
+    loan_status: 'repayment',
+    servicer_mode: 'named',
+    servicer_name: 'MOHELA',
+    knows_plan: 'yes',
+    current_plan: 'ibr',
+    income: '75k_125k',
+    household_size: '2',
+    employment_type: 'private',
+    employment_tenure: '5_10',
+    payment_recent: 'consistent',
+    payment_paused: 'no',
+    previous_actions: ['idr'],
+    primary_goal: 'understand_options',
+    urgency: 'within_3_months',
+    ...overrides,
+  }
+}
+
+export function validStudentLoanAnswersFixture(
+  overrides?: Partial<StudentLoanAssessmentAnswers>,
+): StudentLoanAssessmentAnswers {
+  return {
+    diagnostic: validStudentLoanDiagnosticFixture(),
+    contact: {
+      firstName: 'Jamie',
+      lastName: 'Rivera',
+      email: 'jamie.rivera@example.com',
+      phone: '555-201-4488',
+    },
+    ...overrides,
+  }
+}
+
+export function validStudentLoanIngestRequestBodyFixture(
+  overrides?: Record<string, unknown>,
+): Record<string, unknown> {
+  return validIngestRequestBodyFixture({
+    submissionId: '550e8400-e29b-41d4-a716-446655440004',
+    assessmentType: 'student_loan',
+    answers: validStudentLoanAnswersFixture(),
+    sourcePage: '/student-loan-assessment',
     ...overrides,
   })
 }

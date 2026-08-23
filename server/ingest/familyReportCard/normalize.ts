@@ -1,6 +1,7 @@
 import { normalizeEmail, normalizePhone } from '../../../crm/households/normalizeContact.js'
 import type { BusinessAssessmentAnswers } from '../../../components/assessment/business/types.js'
 import type { RetirementAssessmentAnswers } from '../../../components/assessment/retirement/types.js'
+import type { StudentLoanAssessmentAnswers } from '../../../components/assessment/studentLoan/types.js'
 import type { DemoAssessmentAnswers } from '../../../components/assessment/types.js'
 import type { CalculatorAnswers } from '../../../components/calculator/types.js'
 import type { PublicReportCardAssessmentType } from '../../../modules/reportCard/publicIngestCatalog.js'
@@ -101,6 +102,12 @@ export function normalizeProtectionContact(answers: CalculatorAnswers): Normaliz
   return fromContactFields(answers.family)
 }
 
+export function normalizeStudentLoanContact(
+  answers: StudentLoanAssessmentAnswers,
+): NormalizedSubmittedContact {
+  return fromContactFields(answers.contact)
+}
+
 export function normalizePublicReportCardContact(
   assessmentType: PublicReportCardAssessmentType,
   answers: PublicReportCardAnswers,
@@ -114,5 +121,7 @@ export function normalizePublicReportCardContact(
       return normalizeRetirementContact(answers as RetirementAssessmentAnswers)
     case 'protection':
       return normalizeProtectionContact(answers as CalculatorAnswers)
+    case 'student_loan':
+      return normalizeStudentLoanContact(answers as StudentLoanAssessmentAnswers)
   }
 }

@@ -1,5 +1,6 @@
 import type { BusinessAssessmentAnswers } from '../../../components/assessment/business/types.js'
 import type { RetirementAssessmentAnswers } from '../../../components/assessment/retirement/types.js'
+import type { StudentLoanAssessmentAnswers } from '../../../components/assessment/studentLoan/types.js'
 import type { DemoAssessmentAnswers } from '../../../components/assessment/types.js'
 import type { CalculatorAnswers } from '../../../components/calculator/types.js'
 import {
@@ -22,6 +23,7 @@ export const FAMILY_REPORT_CARD_SCORING_VERSION = PUBLIC_REPORT_CARD_SCORING_VER
 export const BUSINESS_REPORT_CARD_SCORING_VERSION = PUBLIC_REPORT_CARD_SCORING_VERSION.business
 export const RETIREMENT_REPORT_CARD_SCORING_VERSION = PUBLIC_REPORT_CARD_SCORING_VERSION.retirement
 export const PROTECTION_GAP_RESULT_VERSION = PUBLIC_REPORT_CARD_SCORING_VERSION.protection
+export const STUDENT_LOAN_REPORT_CARD_SCORING_VERSION = PUBLIC_REPORT_CARD_SCORING_VERSION.student_loan
 
 export type { PublicReportCardAssessmentType }
 
@@ -58,6 +60,7 @@ export type PublicReportCardAnswers =
   | BusinessAssessmentAnswers
   | RetirementAssessmentAnswers
   | CalculatorAnswers
+  | StudentLoanAssessmentAnswers
 
 /** Fully validated + typed public ingest request body. */
 export type FamilyReportCardIngestRequest = {

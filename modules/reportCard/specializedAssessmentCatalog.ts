@@ -1,7 +1,6 @@
 /**
  * App-side product identity for specialized public assessments.
- * This is NOT the public CRM ingest allowlist — see publicIngestCatalog.ts.
- * Phase A lists student_loan for shells only. Do not persist through ingest here.
+ * Public CRM ingest allowlist lives in publicIngestCatalog.ts.
  */
 
 export const SPECIALIZED_ASSESSMENT_PRODUCTS = ['student_loan'] as const

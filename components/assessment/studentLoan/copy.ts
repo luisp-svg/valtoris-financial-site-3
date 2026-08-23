@@ -138,9 +138,10 @@ const STUDENT_LOAN_COPY_EN: SpecializedCopyCatalog = {
       'We will never ask for your Social Security number, FSA login, date of birth, or loan account number.',
     backToOverview: 'Back to Overview',
     continue: 'Continue',
+    viewResults: 'View My Student Loan Report Card',
+    saving: 'Saving your Student Loan Report Card…',
     contactTitle: 'Contact & Acknowledgments',
-    contactBody:
-      'Share how we can reach you. Your results are calculated on this device. They are not sent to Valtoris CRM in this release.',
+    contactBody: 'Share how we can reach you. Required acknowledgments are marked with an asterisk.',
     firstName: 'First Name',
     lastName: 'Last Name',
     email: 'Email',

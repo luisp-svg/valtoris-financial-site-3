@@ -1,10 +1,13 @@
 import { scoreBusinessAssessment } from '../../assessment/scoring/scoreBusinessAssessment'
 import { scoreFamilyAssessment } from '../../assessment/scoring/scoreFamilyAssessment'
 import { scoreRetirementAssessment } from '../../assessment/scoring/scoreRetirementAssessment'
+import { scoreStudentLoanAssessment } from '../../assessment/studentLoan/scoreStudentLoanAssessment'
 import type { BusinessAssessmentAnswers } from '../../assessment/business/types'
 import type { RetirementAssessmentAnswers } from '../../assessment/retirement/types'
+import type { StudentLoanAssessmentAnswers } from '../../assessment/studentLoan/types'
 import type { DemoAssessmentAnswers } from '../../assessment/types'
 import type { CalculatorAnswers } from '../../calculator/types'
+import type { PublicReportCardAssessmentType } from '../../../modules/reportCard/publicIngestCatalog'
 import { getSourcePage } from '../../../utils/submitLeadToGoogleSheets'
 import { ROUTES } from '../../../constants/routes'
 import {
@@ -47,8 +50,13 @@ export type FamilySubmitOrchestrationResult =
   | FamilySubmitOrchestrationFailure
 
 export async function completePublicReportCardCrmSubmission(input: {
-  assessmentType: 'family' | 'business' | 'retirement' | 'protection'
-  answers: DemoAssessmentAnswers | BusinessAssessmentAnswers | RetirementAssessmentAnswers | CalculatorAnswers
+  assessmentType: PublicReportCardAssessmentType
+  answers:
+    | DemoAssessmentAnswers
+    | BusinessAssessmentAnswers
+    | RetirementAssessmentAnswers
+    | CalculatorAnswers
+    | StudentLoanAssessmentAnswers
   consent: FamilyConsentState
   session: FamilyIngestSession
   honeypotWebsite?: string
@@ -100,6 +108,10 @@ export async function completePublicReportCardCrmSubmission(input: {
     const scored = scoreRetirementAssessment(input.answers as RetirementAssessmentAnswers)
     clientReportedScore = scored.overallScore
     clientReportedGrade = scored.overallGrade
+  } else if (input.assessmentType === 'student_loan') {
+    const scored = scoreStudentLoanAssessment((input.answers as StudentLoanAssessmentAnswers).diagnostic)
+    clientReportedScore = scored.overallScore
+    clientReportedGrade = scored.grade
   }
 
   const consentSnapshot = buildFamilyConsentSnapshot({
@@ -115,7 +127,9 @@ export async function completePublicReportCardCrmSubmission(input: {
         ? ROUTES.businessAssessment
         : input.assessmentType === 'retirement'
           ? ROUTES.retirementAssessment
-          : ROUTES.protectionGap
+          : input.assessmentType === 'student_loan'
+            ? ROUTES.studentLoanAssessment
+            : ROUTES.protectionGap
 
   const payload = buildFamilyReportCardIngestPayload({
     submissionId,

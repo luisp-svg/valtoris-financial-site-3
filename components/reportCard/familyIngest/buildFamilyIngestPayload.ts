@@ -1,11 +1,12 @@
 import type { DemoAssessmentAnswers } from '../../assessment/types'
+import type { PublicReportCardAssessmentType } from '../../../modules/reportCard/publicIngestCatalog'
 import type { FamilyConsentSnapshot } from './familyConsent'
 import type { FamilyIngestSession } from './submissionSession'
 
 /** Client request body for POST /api/ingest-family-report-card (unified report-card contract). */
 export type FamilyReportCardClientIngestBody = {
   submissionId: string
-  assessmentType: 'family' | 'business' | 'retirement' | 'protection'
+  assessmentType: PublicReportCardAssessmentType
   assessmentVersion: number
   answers: DemoAssessmentAnswers | unknown
   sourcePage: string | null

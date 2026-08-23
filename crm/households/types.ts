@@ -32,6 +32,7 @@ export type AssessmentType =
   | 'business'
   | 'retirement'
   | 'protection'
+  | 'student_loan'
   | 'household_onboarding'
 
 /**
@@ -43,6 +44,7 @@ export type WorkspaceAssessmentType =
   | 'business'
   | 'retirement'
   | 'protection'
+  | 'student_loan'
 
 /** `public.assessment_status` lifecycle values. */
 export type AssessmentLifecycleStatus = 'draft' | 'completed'

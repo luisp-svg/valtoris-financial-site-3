@@ -1,12 +1,18 @@
 import { parseAmount } from '../../../components/calculator/calculations.js'
 import type { BusinessAssessmentAnswers } from '../../../components/assessment/business/types.js'
 import type { RetirementAssessmentAnswers } from '../../../components/assessment/retirement/types.js'
+import type { StudentLoanAssessmentAnswers } from '../../../components/assessment/studentLoan/types.js'
 import type { DemoAssessmentAnswers } from '../../../components/assessment/types.js'
 import type { CalculatorAnswers } from '../../../components/calculator/types.js'
 import { GOOGLE_SHEETS_CALCULATOR_WEBHOOK_URL } from '../../../constants/urls.js'
 import { buildMasterLeadPayload } from '../../../utils/masterLeadPayload.js'
 import type { LeadSubmissionPayload } from '../../../utils/submitLeadToGoogleSheets.js'
-import type { FamilyReportCardServerScore, GradedReportCardServerScore, ProtectionGapServerResult } from './score.js'
+import type {
+  FamilyReportCardServerScore,
+  GradedReportCardServerScore,
+  ProtectionGapServerResult,
+  StudentLoanReportCardServerScore,
+} from './score.js'
 import type { SheetsErrorCategory, SheetsSyncStatus } from './types.js'
 
 export type SheetsWriteResult = {
@@ -147,6 +153,33 @@ export function buildRetirementReportCardSheetsPayload(input: {
     topPriority1: score.priorities[0]?.title ?? '',
     topPriority2: score.priorities[1]?.title ?? '',
     topPriority3: score.priorities[2]?.title ?? '',
+    sourcePage: input.sourcePage ?? '',
+    rawAnswers: JSON.stringify(answers),
+    submittedAt: input.submittedAt ?? undefined,
+  })
+}
+
+export function buildStudentLoanReportCardSheetsPayload(input: {
+  answers: StudentLoanAssessmentAnswers
+  score: StudentLoanReportCardServerScore
+  sourcePage?: string | null
+  submittedAt?: string | null
+}): LeadSubmissionPayload {
+  const { answers, score } = input
+  const firstName = answers.contact.firstName.trim()
+  const lastName = answers.contact.lastName.trim()
+  return buildMasterLeadPayload({
+    firstName,
+    lastName,
+    fullName: [firstName, lastName].filter(Boolean).join(' '),
+    email: answers.contact.email.trim(),
+    phone: answers.contact.phone.trim(),
+    overallScore: score.overallScore,
+    overallGrade: score.overallGrade,
+    topPriority1: score.priorities[0]?.title ?? '',
+    topPriority2: score.priorities[1]?.title ?? '',
+    topPriority3: score.priorities[2]?.title ?? '',
+    notes: 'Student Loan Report Card',
     sourcePage: input.sourcePage ?? '',
     rawAnswers: JSON.stringify(answers),
     submittedAt: input.submittedAt ?? undefined,

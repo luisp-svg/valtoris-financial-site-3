@@ -30,7 +30,7 @@ import {
   STUDENT_LOAN_REPAYMENT_PLAN_VALUES,
 } from './repaymentPlans'
 import { studentLoanCopy } from './copy'
-import { canSubmitStudentLoanToCrm, getStudentLoanSubmitBoundary } from './ingestBoundary'
+import { canSubmitStudentLoanToCrm } from './ingestBoundary'
 import { getStudentLoanResultsModel } from './resultsModel'
 import { isStudentLoanContactComplete, isStudentLoanDiagnosticComplete } from './completeness'
 import { INITIAL_STUDENT_LOAN_ANSWERS } from './types'
@@ -153,29 +153,22 @@ describe('Student Loan Phase A foundation', () => {
     expect(html).not.toContain('data-score')
   })
 
-  it('leaves CRM ingest explicitly disabled and rejects student_loan at the existing server validator', () => {
-    expect(canSubmitStudentLoanToCrm()).toBe(false)
-    expect(getStudentLoanSubmitBoundary()).toEqual({
-      enabled: false,
-      reason: 'server_validation_required',
-      requires: ['phase_c_server_validation', 'publicIngestCatalog'],
-    })
-    expect(PUBLIC_REPORT_CARD_ASSESSMENT_TYPES).toEqual(['family', 'business', 'retirement', 'protection'])
-    expect(PUBLIC_REPORT_CARD_ASSESSMENT_TYPES).not.toContain('student_loan')
+  it('keeps specialized product identity separate from Family and does not create Opportunities', () => {
+    expect(canSubmitStudentLoanToCrm()).toBe(true)
+    expect(PUBLIC_REPORT_CARD_ASSESSMENT_TYPES).toContain('student_loan')
     expect(SPECIALIZED_ASSESSMENT_PRODUCTS).toEqual(['student_loan'])
     expect(STUDENT_LOAN_ASSESSMENT_TYPE).toBe('student_loan')
-    expect(WORKSPACE_ASSESSMENT_TYPES).not.toContain('student_loan')
+    expect(WORKSPACE_ASSESSMENT_TYPES).toContain('student_loan')
 
     const rejected = validateFamilyReportCardIngestRequest(
-      validIngestRequestBodyFixture({ assessmentType: 'student_loan' }),
+      validIngestRequestBodyFixture({ assessmentType: 'household_onboarding' }),
     )
     expect(rejected.ok).toBe(false)
     if (!rejected.ok) expect(rejected.code).toBe('invalid_assessment_type')
 
     const assessmentSource = source('pages/StudentLoanAssessment.tsx')
-    expect(assessmentSource).not.toContain('completePublicReportCardCrmSubmission')
-    expect(assessmentSource).not.toContain('completeFamilyReportCardCrmSubmission')
-    expect(assessmentSource).not.toContain('/api/ingest-family-report-card')
+    expect(assessmentSource).toContain('completePublicReportCardCrmSubmission')
+    expect(assessmentSource).not.toContain('/api/ingest-student-loan')
     expect(assessmentSource.toLowerCase()).not.toContain('create opportunity')
     expect(source('components/assessment/studentLoan/ingestBoundary.ts')).not.toContain('opportunity')
   })

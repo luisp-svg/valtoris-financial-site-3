@@ -1,4 +1,5 @@
 import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js'
+import { PUBLIC_REPORT_CARD_ASSESSMENT_TYPES } from '../../../modules/reportCard/publicIngestCatalog'
 import {
   isPublicSelfReportAssessment,
   normalizeWorkspaceAssessment,
@@ -105,7 +106,7 @@ export async function fetchPublicFamilyDiagnosticHistory(
     .from('assessments')
     .select(PUBLIC_FAMILY_SELECT)
     .eq('household_id', householdId)
-    .in('assessment_type', ['family', 'business', 'retirement', 'protection'])
+    .in('assessment_type', [...PUBLIC_REPORT_CARD_ASSESSMENT_TYPES])
     .eq('capture_channel', 'public_self_report')
     .eq('status', 'completed')
     .not('completed_at', 'is', null)
@@ -189,7 +190,7 @@ export async function fetchPublicFamilyDiagnosticDetail(
     .select(PUBLIC_FAMILY_SELECT)
     .eq('id', assessmentId)
     .eq('household_id', householdId)
-    .in('assessment_type', ['family', 'business', 'retirement', 'protection'])
+    .in('assessment_type', [...PUBLIC_REPORT_CARD_ASSESSMENT_TYPES])
     .eq('capture_channel', 'public_self_report')
     .eq('status', 'completed')
     .is('deleted_at', null)

@@ -36,6 +36,7 @@ import type {
   WorkspaceAssessmentType,
   WorkspaceLoadResult,
 } from './types'
+import { isPublicReportCardAssessmentType } from '../../modules/reportCard/publicIngestCatalog'
 
 /**
  * households has two FKs to advisor_profiles (assigned + original) — pin assigned_advisor_id.
@@ -183,6 +184,7 @@ export const WORKSPACE_ASSESSMENT_TYPES: readonly WorkspaceAssessmentType[] = [
   'business',
   'retirement',
   'protection',
+  'student_loan',
 ] as const
 
 const WORKSPACE_ASSESSMENT_TYPE_SET = new Set<string>(WORKSPACE_ASSESSMENT_TYPES)
@@ -233,10 +235,7 @@ export function isPublicSelfReportAssessment(
 ): boolean {
   return (
     assessment.capture_channel === 'public_self_report' &&
-    (assessment.assessment_type === 'family' ||
-      assessment.assessment_type === 'business' ||
-      assessment.assessment_type === 'retirement' ||
-      assessment.assessment_type === 'protection')
+    isPublicReportCardAssessmentType(assessment.assessment_type)
   )
 }
 

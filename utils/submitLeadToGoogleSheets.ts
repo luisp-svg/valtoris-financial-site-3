@@ -5,6 +5,7 @@ export type LeadType =
   | 'Family Report Card'
   | 'Business Report Card'
   | 'Retirement Report Card'
+  | 'Student Loan Report Card'
 
 export type LeadPayloadValue = string | number | boolean | null | undefined
 
