@@ -167,11 +167,13 @@ const CREDIT_COPY_EN: SpecializedCopyCatalog = {
       'Your answers were reviewed on this device. They were not sent to Valtoris CRM.',
     resultsUnavailable: 'Your Credit Report Card results are not available yet.',
     resultsLead:
-      'Complete the Credit Report Card assessment to prepare your answers. A Credit Report Card Score is not calculated in this foundation phase.',
+      'Complete the Credit Report Card assessment to see your educational score, grade, and review areas.',
     backToLanding: 'Back to Credit Report Card',
     retake: 'Return to assessment',
     retakeCta: 'Retake Assessment',
     preparedFor: 'Prepared for',
+    scoreOutOf: '{score} out of 100',
+    nextStepSupport: 'Optional. This does not enroll you in credit-repair servicing or create a CRM Opportunity.',
     startCta: 'Get My Credit Report Card',
     productTitle: 'Credit Report Card',
     storageResultName: 'Credit Report Card',
@@ -212,7 +214,7 @@ const CREDIT_COPY_EN: SpecializedCopyCatalog = {
     landingReceiveLead: 'What this specialized Report Card is designed to deliver.',
     landingReceiveScoreTitle: 'Credit Report Card Score',
     landingReceiveScoreDescription:
-      'A reserved Valtoris Credit Report Card Score — an educational 0–100 diagnostic, not a bureau score. Scoring is not enabled in this foundation phase.',
+      'A Valtoris Credit Report Card Score — an educational 0–100 diagnostic based on your answers, not a bureau score.',
     landingReceiveFlagsTitle: 'Credit-Health Review Areas',
     landingReceiveFlagsDescription:
       'Meaningful areas that may deserve attention, based on your answers — without deletion or approval promises.',
@@ -254,9 +256,9 @@ const CREDIT_COPY_EN: SpecializedCopyCatalog = {
       'Share self-reported credit details and your goal. Contact information is collected after the diagnostic.',
     landingHow2Title: 'Acknowledge Privacy',
     landingHow2Description: 'Required storage and privacy acknowledgments use the existing public consent controls.',
-    landingHow3Title: 'Prepare Your Answers',
+    landingHow3Title: 'See Your Results',
     landingHow3Description:
-      'This foundation phase stores a local diagnostic summary only. A Credit Report Card Score is not calculated yet.',
+      'You receive a Credit Report Card Score, grade, flags, and up to three review areas based on your answers. This is educational, not a bureau score.',
     landingHow4Title: 'Optional Review',
     landingHow4Description:
       'A later conversation can review actual credit reports before any repair recommendation. No Opportunity is created automatically.',
@@ -289,12 +291,99 @@ const CREDIT_COPY_EN: SpecializedCopyCatalog = {
     categories: 'Category scores',
     flags: 'Critical review flags',
     topAreas: 'Top review areas',
+    topAreas1: 'Top Area to Review',
+    topAreas2: 'Top 2 Areas to Review',
+    topAreas3: 'Top 3 Areas to Review',
+    noReviewAreas: 'No immediate review areas were identified from your answers.',
     primaryGoal: 'Primary goal',
     bookingCta: 'Review My Results With Valtoris',
     reviewWithValtoris: 'Review My Results With Valtoris',
     unavailable: 'Your Credit Report Card results are not available yet.',
     disclaimer:
-      'This Credit Report Card is a Valtoris educational assessment based on the answers you provided. It is not a FICO® score, VantageScore®, or any credit-bureau score, and it is not a lending decision. It does not guarantee that any item can be removed, that your score will increase, or that you will be approved for credit.',
+      'This Credit Report Card Score is a Valtoris educational assessment based on the answers you provided. It is not a FICO® score, VantageScore®, or any credit-bureau score, and it is not a lending decision. It does not guarantee that any item can be removed, that your score will increase, or that you will be approved for credit.',
+    'status.strong': 'Strong',
+    'status.solid': 'Solid',
+    'status.review_recommended': 'Review Recommended',
+    'status.needs_review': 'Needs Review',
+    'status.high_priority': 'High Priority',
+    'category.payment_history': 'Payment History',
+    'category.negative_items': 'Negative Items',
+    'category.utilization': 'Revolving Utilization',
+    'category.financial_stability': 'Payment Manageability',
+    'category.credit_structure': 'Credit Structure',
+    'category.recent_credit': 'Recent Credit Activity',
+    'category.report_review': 'Report Awareness',
+    'category.self_reported_score': 'Self-Reported Range',
+    'flag.immediate_review': 'Immediate Review',
+    'flag.high_priority': 'High Priority',
+    'flag.potential_opportunity': 'Potential Opportunity',
+    'flag.review_recommended': 'Review Recommended',
+    'review.flag_past_due.title': 'An account may currently be past due',
+    'review.flag_past_due.body':
+      'You reported that payments are currently behind or past due. This is a high-urgency review area based on your answers, not a lending decision.',
+    'review.flag_severe_lates.title': 'Recent late payments deserve a closer look',
+    'review.flag_severe_lates.body':
+      'You reported a recent 60-day or 90+ day late payment. A review can help organize what to look at next on your actual reports.',
+    'review.flag_recent_lates.title': 'Recent payment misses should be reviewed',
+    'review.flag_recent_lates.body':
+      'You reported a recent 30-day late payment or some missed payments. This flags the pattern for review.',
+    'review.flag_severe_negatives.title': 'Serious negative items were reported',
+    'review.flag_severe_negatives.body':
+      'You reported repossession, foreclosure, or bankruptcy. These items deserve immediate review against your actual credit reports.',
+    'review.flag_negative_items.title': 'Collections or charge-offs were reported',
+    'review.flag_negative_items.body':
+      'You reported collections or charge-offs. A review can help you understand which accounts to look at — without promising deletion or a score increase.',
+    'review.flag_other_derogatory.title': 'Other derogatory items were reported',
+    'review.flag_other_derogatory.body':
+      'You reported other derogatory items. A review can help you identify what appears on your reports.',
+    'review.flag_unknown_negatives.title': 'Negative-item status is unclear',
+    'review.flag_unknown_negatives.body':
+      'You are not sure whether negative items appear on your reports. Confirming that from the reports themselves is a useful next step.',
+    'review.flag_high_utilization.title': 'Revolving utilization appears high',
+    'review.flag_high_utilization.body':
+      'You reported using a large share of available revolving credit. High utilization is a common review area and is not a bureau calculation.',
+    'review.flag_elevated_utilization.title': 'Utilization may be elevated',
+    'review.flag_elevated_utilization.body':
+      'You reported revolving use in the 50–75% range. This is worth reviewing; it is not a predicted score change.',
+    'review.flag_recent_applications.title': 'Recent applications or new accounts stand out',
+    'review.flag_recent_applications.body':
+      'You reported several hard inquiries or several recently opened accounts. Recent activity can be a useful review topic.',
+    'review.flag_report_uncertainty.title': 'Credit-report awareness is limited',
+    'review.flag_report_uncertainty.body':
+      'You have not recently reviewed your credit reports, or you are not sure when you last did. Pulling your reports is a practical next step.',
+    'review.flag_report_concern.title': 'A report-detail concern was noted',
+    'review.flag_report_concern.body':
+      'You believe something on your reports may need a closer look. This is a review opportunity, not a finding that any item is removable.',
+    'review.flag_payment_strain.title': 'Minimum payments feel difficult',
+    'review.flag_payment_strain.body':
+      'You reported that minimum payments are currently a struggle. This is about manageability, not a lending decision.',
+    'review.category.payment_history.title': 'Payment history should be reviewed',
+    'review.category.payment_history.body':
+      'Your reported late-payment or consistency details leave room for a closer look at payment history.',
+    'review.category.negative_items.title': 'Negative items should be reviewed',
+    'review.category.negative_items.body':
+      'Your reported derogatory-item details should be checked against your actual reports.',
+    'review.category.utilization.title': 'Utilization should be reviewed',
+    'review.category.utilization.body':
+      'Your reported revolving use leaves room to review balances relative to limits.',
+    'review.category.financial_stability.title': 'Payment manageability should be reviewed',
+    'review.category.financial_stability.body':
+      'Your reported minimum-payment comfort or current status should be reviewed together.',
+    'review.category.credit_structure.title': 'Account structure should be reviewed',
+    'review.category.credit_structure.body':
+      'Your mix of open revolving accounts or account age leaves room for a structural review.',
+    'review.category.recent_credit.title': 'Recent credit activity should be reviewed',
+    'review.category.recent_credit.body':
+      'Recent inquiries or newly opened accounts should be reviewed against your reports.',
+    'review.category.report_review.title': 'Report-review habits should be strengthened',
+    'review.category.report_review.body':
+      'More recent or more certain report review would make later recommendations more grounded.',
+    'review.category.self_reported_score.title': 'Self-reported range is only context',
+    'review.category.self_reported_score.body':
+      'The range you reported is self-reported context only. It is not a FICO, Vantage, or bureau score.',
+    'review.goal_timing.title': 'Your timing and goal should be reviewed together',
+    'review.goal_timing.body':
+      'You want a review soon for a time-sensitive goal. That timing is context for a conversation, not an approval or funding prediction.',
   },
 }
 

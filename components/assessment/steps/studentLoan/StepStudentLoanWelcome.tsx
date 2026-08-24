@@ -10,7 +10,6 @@ type StepStudentLoanWelcomeProps = {
 export default function StepStudentLoanWelcome({ t, onBegin, onBack }: StepStudentLoanWelcomeProps) {
   return (
     <QuestionCard title={t('ui', 'welcomeTitle')} description={t('ui', 'welcomeBody')}>
-      <p className="funnel-microcopy assessment-note">{t('ui', 'welcomeNote')}</p>
       <div className="welcome-actions">
         <button type="button" className="platform-btn platform-btn-primary" onClick={onBegin}>
           {t('ui', 'startCta')}

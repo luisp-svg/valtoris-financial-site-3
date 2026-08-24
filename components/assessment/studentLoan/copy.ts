@@ -138,8 +138,6 @@ const STUDENT_LOAN_COPY_EN: SpecializedCopyCatalog = {
     welcomeTitle: 'Start Your Student Loan Report Card™',
     welcomeBody:
       'Answer 10 focused questions about your loans, payments, and goals. Contact details come after the questions and are not part of the diagnostic.',
-    welcomeNote:
-      'We will never ask for your Social Security number, FSA login, date of birth, or loan account number.',
     backToOverview: 'Back to Overview',
     back: 'Back',
     continue: 'Continue',
@@ -493,8 +491,6 @@ const STUDENT_LOAN_COPY_ES: SpecializedCopyCatalog = {
     welcomeTitle: 'Comience su Reporte de Préstamos Estudiantiles™',
     welcomeBody:
       'Responda 10 preguntas concretas sobre sus préstamos, pagos y metas. Los datos de contacto se piden después y no forman parte del diagnóstico.',
-    welcomeNote:
-      'Nunca le pediremos su número de Seguro Social, acceso a FSA, fecha de nacimiento ni número de cuenta del préstamo.',
     backToOverview: 'Volver al resumen',
     back: 'Atrás',
     continue: 'Continuar',

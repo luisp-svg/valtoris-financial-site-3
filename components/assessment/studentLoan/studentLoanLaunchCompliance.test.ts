@@ -7,6 +7,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 import { STUDENTAID_GOV_URL } from '../../../constants/urls'
 import StepStudentLoanContact from '../steps/studentLoan/StepStudentLoanContact'
+import StepStudentLoanWelcome from '../steps/studentLoan/StepStudentLoanWelcome'
 import { INITIAL_STUDENT_LOAN_CONTACT } from './types'
 import StudentLoanReportCardPage from '../../../pages/StudentLoanReportCardPage'
 import StudentLoanReportCardResults from '../../../pages/StudentLoanReportCardResults'
@@ -215,6 +216,21 @@ describe('Student Loan launch compliance', () => {
       }),
     )
     expect(html.match(/This field is required\./g)?.length).toBe(4)
+  })
+
+  it('does not show an SSN or DOB disclaimer on the first Student Loan step', () => {
+    const html = renderToStaticMarkup(
+      createElement(StepStudentLoanWelcome, {
+        t,
+        onBegin: () => undefined,
+      }),
+    )
+    expect(html).toContain(t('ui', 'welcomeTitle'))
+    expect(html).toContain(t('ui', 'welcomeBody'))
+    expect(html.toLowerCase()).not.toMatch(/social security|ssn|date of birth|fsa login|loan account number/)
+    expect(studentLoanCopy.en?.ui.welcomeNote).toBeUndefined()
+    expect(studentLoanCopy.es?.ui.welcomeNote).toBeUndefined()
+    expect(source('components/assessment/studentLoan/questions.ts')).not.toMatch(/\bssn\b|date_of_birth|\bdob\b/i)
   })
 
   it('leaves 047–049 byte-identical and does not add Migration 051', () => {

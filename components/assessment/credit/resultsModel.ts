@@ -1,9 +1,18 @@
+import { CALENDLY_REPORT_CARD_URL } from '../../../constants/urls'
+import { isCreditDiagnosticComplete } from './completeness'
+import {
+  scoreCreditAssessment,
+  type CreditCategoryPoints,
+  type CreditCriticalFlag,
+  type CreditGradeLetter,
+  type CreditReviewArea,
+} from './scoreCreditAssessment'
 import type { CreditAssessmentAnswers, CreditDiagnosticAnswers } from './types'
 
 /**
  * Browser-local results handoff only.
- * firstName is the only contact field kept — lastName, email, phone, consent,
- * and honeypot must not be stored.
+ * firstName is the only contact field kept — the results page greets the person.
+ * lastName, email, phone, consent, and honeypot must not be stored.
  */
 export type CreditResultsSession = {
   readonly diagnostic: CreditDiagnosticAnswers
@@ -17,18 +26,43 @@ export function buildCreditResultsSession(answers: CreditAssessmentAnswers): Cre
   }
 }
 
+export type CreditCategoryScore = CreditCategoryPoints
+
+export type CreditFlag = CreditCriticalFlag
+
+export type { CreditReviewArea }
+
+export type CreditBookingCta = {
+  readonly labelKey: string
+  readonly href: string
+}
+
 export type CreditResultsModel = {
   readonly available: boolean
   readonly overallScore: number | null
   readonly score: number | null
-  readonly grade: string | null
+  readonly grade: CreditGradeLetter | null
   readonly statusLabelKey: string | null
-  readonly categoryScores: readonly unknown[]
-  readonly criticalFlags: readonly unknown[]
-  readonly topReviewAreas: readonly unknown[]
+  readonly categoryScores: readonly CreditCategoryScore[]
+  readonly criticalFlags: readonly CreditFlag[]
+  readonly topReviewAreas: readonly CreditReviewArea[]
   readonly primaryGoal: string | null
-  readonly recommendedNextStep: null
-  readonly bookingCta: null
+  readonly recommendedNextStep: CreditBookingCta | null
+  readonly bookingCta: CreditBookingCta | null
+}
+
+const REVIEW_CTA: CreditBookingCta = {
+  labelKey: 'reviewWithValtoris',
+  href: CALENDLY_REPORT_CARD_URL,
+}
+
+export function creditTopReviewAreasHeadingKey(
+  count: number,
+): 'noReviewAreas' | 'topAreas1' | 'topAreas2' | 'topAreas3' {
+  if (count <= 0) return 'noReviewAreas'
+  if (count === 1) return 'topAreas1'
+  if (count === 2) return 'topAreas2'
+  return 'topAreas3'
 }
 
 export const UNAVAILABLE_CREDIT_RESULTS: CreditResultsModel = {
@@ -45,10 +79,26 @@ export const UNAVAILABLE_CREDIT_RESULTS: CreditResultsModel = {
   bookingCta: null,
 }
 
-/**
- * Phase A has no Credit scorer. Always return the unavailable placeholder.
- * Reserved slots stay null/empty so later Phase B can fill them.
- */
-export function getCreditResultsModel(_session?: CreditResultsSession | null): CreditResultsModel {
-  return UNAVAILABLE_CREDIT_RESULTS
+export function getCreditResultsModel(
+  session?: Pick<CreditResultsSession, 'diagnostic'> | CreditAssessmentAnswers | null,
+): CreditResultsModel {
+  const diagnostic = session && 'diagnostic' in session ? session.diagnostic : null
+  if (!diagnostic || !isCreditDiagnosticComplete(diagnostic)) {
+    return UNAVAILABLE_CREDIT_RESULTS
+  }
+
+  const scored = scoreCreditAssessment(diagnostic)
+  return {
+    available: true,
+    overallScore: scored.overallScore,
+    score: scored.overallScore,
+    grade: scored.grade,
+    statusLabelKey: scored.statusLabelKey,
+    categoryScores: scored.categories,
+    criticalFlags: scored.flags,
+    topReviewAreas: scored.reviewAreas,
+    primaryGoal: diagnostic.credit_goal,
+    recommendedNextStep: REVIEW_CTA,
+    bookingCta: REVIEW_CTA,
+  }
 }

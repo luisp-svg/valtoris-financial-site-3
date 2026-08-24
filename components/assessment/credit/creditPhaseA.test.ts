@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto'
-import { existsSync, readFileSync, readdirSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
@@ -268,7 +268,6 @@ describe('Credit Report Card Phase A foundation', () => {
     expect(model.topReviewAreas).toEqual([])
     expect(model.primaryGoal).toBeNull()
     expect(model.bookingCta).toBeNull()
-    expect(existsSync(join(ROOT, 'components/assessment/credit/scoreCreditAssessment.ts'))).toBe(false)
 
     const html = renderToStaticMarkup(
       createElement(
