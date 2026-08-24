@@ -18,7 +18,7 @@ const editPage = readFileSync(join(here, '../../pages/crm/CrmProductionEditPage.
 describe('Phase 2 Case Operations contracts', () => {
   it('does not add a Case Operations migration; 045 is policy lifecycle only', () => {
     const files = readdirSync(migrationsDir).filter((name) => name.endsWith('.sql')).sort()
-    expect(files).toHaveLength(49)
+    expect(files).toHaveLength(50)
     expect(files.filter((name) => name.startsWith('045_'))).toEqual([
       '045_policy_post_placement_lifecycle.sql',
     ])
@@ -32,7 +32,8 @@ describe('Phase 2 Case Operations contracts', () => {
       '048_student_loan_report_card_ingest.sql',
     ])
     expect(files.filter((name) => name.startsWith('049_'))).toEqual(['049_specialize_public_report_card_follow_up_copy.sql'])
-    expect(files.filter((name) => name.startsWith('050_'))).toEqual([])
+    expect(files.filter((name) => name.startsWith('050_'))).toEqual(['050_credit_report_card_ingest.sql'])
+    expect(files.filter((name) => name.startsWith('051_'))).toEqual([])
     expect(existsSync(join(migrationsDir, '045_case_operations.sql'))).toBe(false)
     expect(updateSql).toContain('CREATE OR REPLACE FUNCTION public.update_policy_application(p_id uuid, p_payload jsonb)')
     expect(updateSql).toContain("WHEN v_app.production_stage = 'issued' THEN ARRAY[")

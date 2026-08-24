@@ -14,7 +14,7 @@ function read(name: string): string {
 describe('chargeback recording contracts', () => {
   it('reuses the existing 035 writer and does not add a chargeback Migration 048', () => {
     const numbered = readdirSync(migrationsDir).filter((name) => /^\d{3}_/.test(name)).sort()
-    expect(numbered).toHaveLength(49)
+    expect(numbered).toHaveLength(50)
     expect(numbered.filter((name) => name.startsWith('047_'))).toEqual([
       '047_credit_repair_student_loan_sales_catalog.sql',
     ])
@@ -22,7 +22,8 @@ describe('chargeback recording contracts', () => {
       '048_student_loan_report_card_ingest.sql',
     ])
     expect(numbered.filter((name) => name.startsWith('049_'))).toEqual(['049_specialize_public_report_card_follow_up_copy.sql'])
-    expect(numbered.filter((name) => name.startsWith('050_'))).toEqual([])
+    expect(numbered.filter((name) => name.startsWith('050_'))).toEqual(['050_credit_report_card_ingest.sql'])
+    expect(numbered.filter((name) => name.startsWith('051_'))).toEqual([])
     expect(existsSync(join(migrationsDir, '047_commission_chargeback.sql'))).toBe(false)
     const page = readFileSync(join(root, 'pages/crm/CrmCommissionsPage.tsx'), 'utf8')
     const api = read('commissionWriteApi.ts')
