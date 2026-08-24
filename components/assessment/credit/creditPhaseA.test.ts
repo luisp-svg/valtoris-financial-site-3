@@ -35,7 +35,6 @@ import {
 } from './constants'
 import { creditCopy } from './copy'
 import {
-  CREDIT_CRM_INGEST_DISABLED_REASON,
   CREDIT_CRM_INGEST_ENABLED,
   canSubmitCreditToCrm,
 } from './ingestBoundary'
@@ -237,21 +236,19 @@ describe('Credit Report Card Phase A foundation', () => {
     expect(app).not.toContain('/es/credit')
     expect(isSpecializedAssessmentProduct('credit')).toBe(true)
     expect(SPECIALIZED_ASSESSMENT_PRODUCTS).toEqual(['student_loan', 'credit'])
-    expect(PUBLIC_REPORT_CARD_ASSESSMENT_TYPES).not.toContain('credit')
+    expect(PUBLIC_REPORT_CARD_ASSESSMENT_TYPES).toContain('credit')
   })
 
-  it('keeps CRM ingest disabled and does not POST or auto-create Opportunities', () => {
-    expect(CREDIT_CRM_INGEST_ENABLED).toBe(false)
-    expect(canSubmitCreditToCrm()).toBe(false)
-    expect(CREDIT_CRM_INGEST_DISABLED_REASON).toBe('credit_scoring_and_server_validation_required')
+  it('uses the existing public ingest path and does not auto-create Opportunities', () => {
+    expect(CREDIT_CRM_INGEST_ENABLED).toBe(true)
+    expect(canSubmitCreditToCrm()).toBe(true)
     const assessmentSource = source('pages/CreditAssessment.tsx')
-    expect(assessmentSource).not.toContain('completePublicReportCardCrmSubmission')
-    expect(assessmentSource).not.toContain('/api/ingest-family-report-card')
+    expect(assessmentSource).toContain('completePublicReportCardCrmSubmission')
     expect(assessmentSource).not.toContain('/api/ingest-credit')
     expect(assessmentSource.toLowerCase()).not.toContain('create opportunity')
     expect(source('components/assessment/credit/ingestBoundary.ts')).not.toContain('opportunity')
     const rejected = validateFamilyReportCardIngestRequest(
-      validIngestRequestBodyFixture({ assessmentType: 'credit' as never }),
+      validIngestRequestBodyFixture({ assessmentType: 'household_onboarding' }),
     )
     expect(rejected.ok).toBe(false)
     if (!rejected.ok) expect(rejected.code).toBe('invalid_assessment_type')

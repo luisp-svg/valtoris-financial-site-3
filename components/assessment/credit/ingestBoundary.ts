@@ -1,11 +1,9 @@
 /**
- * Migration 050 enables the credit assessment_type in CRM.
- * Public Credit ingest stays closed until scoring and server validation exist.
+ * Credit public ingest uses the existing Report Card CRM path.
+ * Server validation and score recalculation are required before persistence.
  */
 
-export const CREDIT_CRM_INGEST_ENABLED = false
-
-export const CREDIT_CRM_INGEST_DISABLED_REASON = 'credit_scoring_and_server_validation_required'
+export const CREDIT_CRM_INGEST_ENABLED = true
 
 export function canSubmitCreditToCrm(): boolean {
   return CREDIT_CRM_INGEST_ENABLED

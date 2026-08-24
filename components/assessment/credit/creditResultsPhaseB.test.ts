@@ -143,14 +143,14 @@ describe('Credit Report Card Phase B results', () => {
     expect(assessment).not.toContain('JSON.stringify(finalAnswers)')
   })
 
-  it('keeps CRM ingest disabled and does not auto-create Opportunities', () => {
-    expect(CREDIT_CRM_INGEST_ENABLED).toBe(false)
-    expect(canSubmitCreditToCrm()).toBe(false)
-    expect(PUBLIC_REPORT_CARD_ASSESSMENT_TYPES).not.toContain('credit')
+  it('uses the existing public ingest path and does not auto-create Opportunities', () => {
+    expect(CREDIT_CRM_INGEST_ENABLED).toBe(true)
+    expect(canSubmitCreditToCrm()).toBe(true)
+    expect(PUBLIC_REPORT_CARD_ASSESSMENT_TYPES).toContain('credit')
     const assessment = readFileSync(join(process.cwd(), 'pages/CreditAssessment.tsx'), 'utf8')
     const results = readFileSync(join(process.cwd(), 'pages/CreditReportCardResults.tsx'), 'utf8')
-    expect(assessment).not.toContain('completePublicReportCardCrmSubmission')
-    expect(assessment).not.toContain('/api/ingest-family-report-card')
+    expect(assessment).toContain('completePublicReportCardCrmSubmission')
+    expect(assessment).not.toContain('/api/ingest-credit')
     expect(`${assessment}\n${results}`.toLowerCase()).not.toContain('create opportunity')
   })
 

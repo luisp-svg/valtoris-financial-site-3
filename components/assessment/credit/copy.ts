@@ -165,6 +165,8 @@ const CREDIT_COPY_EN: SpecializedCopyCatalog = {
       'Your Credit Report Card is based on the information you shared. Required acknowledgments are marked with an asterisk.',
     ingestUnavailable:
       'Your answers were reviewed on this device. They were not sent to Valtoris CRM.',
+    saving: 'Saving your Credit Report Card…',
+    submitFailed: 'We could not save your Credit Report Card. Please try again.',
     resultsUnavailable: 'Your Credit Report Card results are not available yet.',
     resultsLead:
       'Complete the Credit Report Card assessment to see your educational score, grade, and review areas.',
@@ -277,7 +279,7 @@ const CREDIT_COPY_EN: SpecializedCopyCatalog = {
       'No. This diagnostic does not guarantee deletion, a score increase, approval, or a successful dispute. Accurate negative information may remain.',
     landingFaq5: 'Will someone contact me automatically?',
     landingFaqA5:
-      'No automatic messages are sent from this foundation phase, and answers are not sent to CRM yet. Completing the questions does not enroll you in credit-repair servicing.',
+      'No automatic messages are sent. If you finish the assessment and agree to be contacted, Valtoris may follow up about your results. Completing the questions does not enroll you in credit-repair servicing.',
     landingClosingTitle: 'Ready to Start Your Credit Report Card?',
     landingClosingCopy:
       'Answer 10 focused questions to see which areas of your credit profile may deserve attention.',

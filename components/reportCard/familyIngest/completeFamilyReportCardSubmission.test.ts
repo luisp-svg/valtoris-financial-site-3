@@ -5,6 +5,7 @@ import { DEMO_RETIREMENT_ANSWERS } from '../retirementReportCardData'
 import {
   validFamilyAnswersFixture,
   validProtectionAnswersFixture,
+  validCreditAnswersFixture,
   validStudentLoanAnswersFixture,
 } from '../../../server/ingest/familyReportCard/testFixtures'
 import { validateFamilyReportCardIngestRequest } from '../../../server/ingest/familyReportCard/validation'
@@ -320,7 +321,7 @@ describe('completePublicReportCardCrmSubmission wire contract', () => {
   it('sends numeric formStartedAt for Business, Retirement, and Protection', async () => {
     const startedIso = '2026-07-28T20:00:00.000Z'
     const cases: Array<{
-      assessmentType: 'business' | 'retirement' | 'protection' | 'student_loan'
+      assessmentType: 'business' | 'retirement' | 'protection' | 'student_loan' | 'credit'
       answers: unknown
       phone: string
     }> = [
@@ -339,6 +340,11 @@ describe('completePublicReportCardCrmSubmission wire contract', () => {
         assessmentType: 'student_loan',
         answers: validStudentLoanAnswersFixture(),
         phone: validStudentLoanAnswersFixture().contact.phone,
+      },
+      {
+        assessmentType: 'credit',
+        answers: validCreditAnswersFixture(),
+        phone: validCreditAnswersFixture().contact.phone,
       },
     ]
 

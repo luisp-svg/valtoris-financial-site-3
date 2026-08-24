@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { BusinessAssessmentAnswers } from '../../../components/assessment/business/types.js'
 import type { RetirementAssessmentAnswers } from '../../../components/assessment/retirement/types.js'
+import type { CreditAssessmentAnswers } from '../../../components/assessment/credit/types.js'
 import type { StudentLoanAssessmentAnswers } from '../../../components/assessment/studentLoan/types.js'
 import type { DemoAssessmentAnswers } from '../../../components/assessment/types.js'
 import type { CalculatorAnswers } from '../../../components/calculator/types.js'
@@ -23,6 +24,7 @@ import {
   recalculateFamilyReportCardScore,
   recalculateProtectionGapResult,
   recalculateRetirementReportCardScore,
+  recalculateCreditReportCardScore,
   recalculateStudentLoanReportCardScore,
 } from './score.js'
 import {
@@ -30,6 +32,7 @@ import {
   buildFamilyReportCardSheetsPayload,
   buildProtectionGapSheetsPayload,
   buildRetirementReportCardSheetsPayload,
+  buildCreditReportCardSheetsPayload,
   buildStudentLoanReportCardSheetsPayload,
   writePublicReportCardToSheets,
 } from './sheets.js'
@@ -71,9 +74,17 @@ function normalizeSheetsSyncStatus(value: string | null): SheetsSyncStatus {
 function persistableAssessmentAnswers(
   assessmentType: PublicReportCardAssessmentType,
   answers: PublicReportCardAnswers,
-): PublicReportCardAnswers | { diagnostic: StudentLoanAssessmentAnswers['diagnostic'] } {
-  if (assessmentType !== 'student_loan') return answers
-  return { diagnostic: (answers as StudentLoanAssessmentAnswers).diagnostic }
+):
+  | PublicReportCardAnswers
+  | { diagnostic: StudentLoanAssessmentAnswers['diagnostic'] }
+  | { diagnostic: CreditAssessmentAnswers['diagnostic'] } {
+  if (assessmentType === 'student_loan') {
+    return { diagnostic: (answers as StudentLoanAssessmentAnswers).diagnostic }
+  }
+  if (assessmentType === 'credit') {
+    return { diagnostic: (answers as CreditAssessmentAnswers).diagnostic }
+  }
+  return answers
 }
 
 type CanonicalResult = {
@@ -206,6 +217,37 @@ function buildCanonicalResult(
     }
   }
 
+  if (assessmentType === 'credit') {
+    const serverScore = recalculateCreditReportCardScore(answers as CreditAssessmentAnswers)
+    const scoreComparison = compareClientScore({
+      clientReportedScore,
+      clientReportedGrade,
+      server: { overallScore: serverScore.overallScore, overallGrade: serverScore.overallGrade },
+    })
+    return {
+      overallScore: serverScore.overallScore,
+      overallGrade: serverScore.overallGrade,
+      scoringVersion: serverScore.scoringVersion,
+      priorities: serverScore.priorities,
+      derivedMetrics: {
+        categories: serverScore.categories,
+        criticalFlags: serverScore.flags,
+        topReviewAreas: serverScore.reviewAreas,
+        primaryGoal: serverScore.primaryGoal,
+        urgency: serverScore.urgency,
+        statusLabelKey: serverScore.statusLabelKey,
+        statusLabel: serverScore.statusLabel,
+        scoreComparison,
+      },
+      sheetsPayload: buildCreditReportCardSheetsPayload({
+        answers: answers as CreditAssessmentAnswers,
+        score: serverScore,
+        sourcePage,
+        submittedAt,
+      }),
+    }
+  }
+
   const gap = recalculateProtectionGapResult(answers as CalculatorAnswers)
   return {
     overallScore: null,
@@ -229,7 +271,7 @@ function buildCanonicalResult(
 }
 
 /**
- * Orchestrates public Report Card ingest for family, business, retirement, protection, and student_loan:
+ * Orchestrates public Report Card ingest for family, business, retirement, protection, student_loan, and credit:
  * validate → resolve optional Digital Identity card attribution → normalize →
  * recalculate score/gap server-side → find CRM candidates → classify identity
  * match → persist atomically via RPC → secondary Sheets write → follow-up task.

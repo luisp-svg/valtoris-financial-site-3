@@ -1,5 +1,10 @@
 import type { DemoAssessmentAnswers } from '../../../components/assessment/types'
 import {
+  INITIAL_CREDIT_ANSWERS,
+  type CreditAssessmentAnswers,
+  type CreditDiagnosticAnswers,
+} from '../../../components/assessment/credit/types'
+import {
   INITIAL_STUDENT_LOAN_ANSWERS,
   type StudentLoanAssessmentAnswers,
   type StudentLoanDiagnosticAnswers,
@@ -194,6 +199,58 @@ export function validStudentLoanIngestRequestBodyFixture(
     assessmentType: 'student_loan',
     answers: validStudentLoanAnswersFixture(),
     sourcePage: '/student-loan-assessment',
+    ...overrides,
+  })
+}
+
+export function validCreditDiagnosticFixture(
+  overrides?: Partial<CreditDiagnosticAnswers>,
+): CreditDiagnosticAnswers {
+  return {
+    ...INITIAL_CREDIT_ANSWERS.diagnostic,
+    credit_goal: 'general_health',
+    self_reported_score: '740_plus',
+    last_reviewed: 'last_30_days',
+    inaccuracy_belief: 'no',
+    late_recent: 'none',
+    payment_consistency: 'on_time',
+    negative_items: ['none'],
+    utilization: 'under_10',
+    open_revolving: '3_5',
+    oldest_account: '10_plus',
+    hard_inquiries: 'none',
+    new_accounts: 'none',
+    minimums: 'comfortable',
+    current_status: 'current',
+    urgency: 'just_exploring',
+    prior_actions: ['none'],
+    ...overrides,
+  }
+}
+
+export function validCreditAnswersFixture(
+  overrides?: Partial<CreditAssessmentAnswers>,
+): CreditAssessmentAnswers {
+  return {
+    diagnostic: validCreditDiagnosticFixture(),
+    contact: {
+      firstName: 'Jamie',
+      lastName: 'Rivera',
+      email: 'jamie.rivera@example.com',
+      phone: '555-201-4488',
+    },
+    ...overrides,
+  }
+}
+
+export function validCreditIngestRequestBodyFixture(
+  overrides?: Record<string, unknown>,
+): Record<string, unknown> {
+  return validIngestRequestBodyFixture({
+    submissionId: '550e8400-e29b-41d4-a716-446655440005',
+    assessmentType: 'credit',
+    answers: validCreditAnswersFixture(),
+    sourcePage: '/credit-assessment',
     ...overrides,
   })
 }

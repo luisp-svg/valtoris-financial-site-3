@@ -1,6 +1,7 @@
 import { parseAmount } from '../../../components/calculator/calculations.js'
 import type { BusinessAssessmentAnswers } from '../../../components/assessment/business/types.js'
 import type { RetirementAssessmentAnswers } from '../../../components/assessment/retirement/types.js'
+import type { CreditAssessmentAnswers } from '../../../components/assessment/credit/types.js'
 import type { StudentLoanAssessmentAnswers } from '../../../components/assessment/studentLoan/types.js'
 import type { DemoAssessmentAnswers } from '../../../components/assessment/types.js'
 import type { CalculatorAnswers } from '../../../components/calculator/types.js'
@@ -11,6 +12,7 @@ import type {
   FamilyReportCardServerScore,
   GradedReportCardServerScore,
   ProtectionGapServerResult,
+  CreditReportCardServerScore,
   StudentLoanReportCardServerScore,
 } from './score.js'
 import type { SheetsErrorCategory, SheetsSyncStatus } from './types.js'
@@ -180,6 +182,33 @@ export function buildStudentLoanReportCardSheetsPayload(input: {
     topPriority2: score.priorities[1]?.title ?? '',
     topPriority3: score.priorities[2]?.title ?? '',
     notes: 'Student Loan Report Card',
+    sourcePage: input.sourcePage ?? '',
+    rawAnswers: JSON.stringify(answers),
+    submittedAt: input.submittedAt ?? undefined,
+  })
+}
+
+export function buildCreditReportCardSheetsPayload(input: {
+  answers: CreditAssessmentAnswers
+  score: CreditReportCardServerScore
+  sourcePage?: string | null
+  submittedAt?: string | null
+}): LeadSubmissionPayload {
+  const { answers, score } = input
+  const firstName = answers.contact.firstName.trim()
+  const lastName = answers.contact.lastName.trim()
+  return buildMasterLeadPayload({
+    firstName,
+    lastName,
+    fullName: [firstName, lastName].filter(Boolean).join(' '),
+    email: answers.contact.email.trim(),
+    phone: answers.contact.phone.trim(),
+    overallScore: score.overallScore,
+    overallGrade: score.overallGrade,
+    topPriority1: score.priorities[0]?.title ?? '',
+    topPriority2: score.priorities[1]?.title ?? '',
+    topPriority3: score.priorities[2]?.title ?? '',
+    notes: 'Credit Report Card',
     sourcePage: input.sourcePage ?? '',
     rawAnswers: JSON.stringify(answers),
     submittedAt: input.submittedAt ?? undefined,

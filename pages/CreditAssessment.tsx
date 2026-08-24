@@ -38,6 +38,7 @@ import { canSubmitCreditToCrm } from '../components/assessment/credit/ingestBoun
 import { buildCreditResultsSession } from '../components/assessment/credit/resultsModel'
 import { CREDIT_QUESTIONS } from '../components/assessment/credit/questions'
 import { INITIAL_CREDIT_ANSWERS, type CreditAssessmentAnswers, type CreditContactAnswers } from '../components/assessment/credit/types'
+import { completePublicReportCardCrmSubmission } from '../components/reportCard/familyIngest/completeFamilyReportCardSubmission'
 import {
   applyPhoneChangeToConsent,
   INITIAL_FAMILY_CONSENT_STATE,
@@ -66,7 +67,9 @@ export default function CreditAssessment() {
   const [consentMissing, setConsentMissing] = useState<
     Array<'assessmentStorageAcknowledged' | 'privacyAcknowledged'>
   >([])
-  const [, setIngestSession] = useState<FamilyIngestSession>(() =>
+  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [ingestSession, setIngestSession] = useState<FamilyIngestSession>(() =>
     ensureFamilyIngestSession({
       search: location.search,
       referrer: typeof document === 'undefined' ? null : document.referrer || null,
@@ -75,6 +78,8 @@ export default function CreditAssessment() {
   )
   const answersRef = useRef(answers)
   const consentRef = useRef(consent)
+  const sessionRef = useRef(ingestSession)
+  const honeypotRef = useRef(honeypotWebsite)
 
   useEffect(() => {
     answersRef.current = answers
@@ -83,6 +88,14 @@ export default function CreditAssessment() {
   useEffect(() => {
     consentRef.current = consent
   }, [consent])
+
+  useEffect(() => {
+    sessionRef.current = ingestSession
+  }, [ingestSession])
+
+  useEffect(() => {
+    honeypotRef.current = honeypotWebsite
+  }, [honeypotWebsite])
 
   function t(section: SpecializedCopySection, key: string): string {
     return resolveSpecializedCopy(creditCopy, locale, section, key)
@@ -130,6 +143,7 @@ export default function CreditAssessment() {
     })
     setShowConsentErrors(false)
     setConsentMissing([])
+    setSubmitError(null)
   }
 
   function handleBegin() {
@@ -144,10 +158,13 @@ export default function CreditAssessment() {
     setShowFieldErrors(false)
     setShowConsentErrors(false)
     setConsentMissing([])
+    setSubmitError(null)
+    setIsSubmitting(false)
     setCurrentStep(CREDIT_FIRST_DIAGNOSTIC_STEP)
   }
 
   function handleBack() {
+    if (isSubmitting) return
     if (currentStep === CREDIT_WELCOME_STEP) {
       navigate(withSpecializedLocale(ROUTES.creditReportCard, locale, location.search))
       return
@@ -156,7 +173,39 @@ export default function CreditAssessment() {
     setCurrentStep((step) => step - 1)
   }
 
-  function completeLocalCreditAssessment(finalAnswers: CreditAssessmentAnswers) {
+  async function completeCreditAssessment(finalAnswers: CreditAssessmentAnswers) {
+    setSubmitError(null)
+
+    if (!canSubmitCreditToCrm()) {
+      setSubmitError(t('ui', 'ingestUnavailable'))
+      setIsSubmitting(false)
+      return
+    }
+
+    const { result, session } = await completePublicReportCardCrmSubmission({
+      assessmentType: 'credit',
+      answers: finalAnswers,
+      consent: consentRef.current,
+      session: sessionRef.current,
+      honeypotWebsite: honeypotRef.current,
+      storageKey: CREDIT_INGEST_SESSION_KEY,
+      phone: finalAnswers.contact.phone,
+    })
+    setIngestSession(session)
+
+    if (!result.ok) {
+      if (result.code === 'consent_required') {
+        setShowConsentErrors(true)
+        setConsentMissing(result.consentMissing ?? [])
+        setSubmitError(t('ui', 'consentRequired'))
+        setIsSubmitting(false)
+        return
+      }
+      setSubmitError(t('ui', 'submitFailed'))
+      setIsSubmitting(false)
+      return
+    }
+
     const resultsSession = buildCreditResultsSession(finalAnswers)
     try {
       sessionStorage.setItem(CREDIT_ANSWERS_STORAGE_KEY, JSON.stringify(resultsSession))
@@ -165,16 +214,13 @@ export default function CreditAssessment() {
     }
 
     navigate(withSpecializedLocale(ROUTES.creditReportCardResults, locale, location.search), {
-      state: {
-        answers: resultsSession,
-        crmSubmitted: false,
-        ingestEnabled: canSubmitCreditToCrm(),
-      },
+      state: { answers: resultsSession, crmSubmitted: true, submissionId: result.submissionId },
     })
   }
 
-  function handleContinue() {
+  async function handleContinue() {
     if (currentStep < CREDIT_CONTACT_STEP) {
+      if (isSubmitting) return
       if (!canContinue) {
         setShowFieldErrors(true)
         return
@@ -183,7 +229,7 @@ export default function CreditAssessment() {
       return
     }
 
-    if (!canContinue || !isCreditContactComplete(answersRef.current)) {
+    if (!canContinue || !isCreditContactComplete(answersRef.current) || isSubmitting) {
       setShowFieldErrors(true)
       return
     }
@@ -200,7 +246,8 @@ export default function CreditAssessment() {
       return
     }
 
-    completeLocalCreditAssessment(answersRef.current)
+    setIsSubmitting(true)
+    await completeCreditAssessment(answersRef.current)
   }
 
   return (
@@ -223,11 +270,17 @@ export default function CreditAssessment() {
         currentStep === CREDIT_WELCOME_STEP ? null : (
           <NavigationButtons
             onBack={handleBack}
-            onContinue={handleContinue}
+            onContinue={() => {
+              void handleContinue()
+            }}
             backLabel={t('ui', 'back')}
-            continueDisabled={!canContinue && currentStep !== CREDIT_CONTACT_STEP}
+            continueDisabled={(!canContinue && currentStep !== CREDIT_CONTACT_STEP) || isSubmitting}
             continueLabel={
-              currentStep === CREDIT_CONTACT_STEP ? t('ui', 'viewResults') : t('ui', 'continue')
+              isSubmitting
+                ? t('ui', 'saving')
+                : currentStep === CREDIT_CONTACT_STEP
+                  ? t('ui', 'viewResults')
+                  : t('ui', 'continue')
             }
           />
         )
@@ -288,6 +341,16 @@ export default function CreditAssessment() {
               honeypot: t('ui', 'consentHoneypot'),
             }}
           />
+          {isSubmitting ? (
+            <p className="family-submit-status" role="status" aria-live="polite">
+              {t('ui', 'saving')}
+            </p>
+          ) : null}
+          {submitError ? (
+            <p className="family-submit-error" role="alert">
+              {submitError}
+            </p>
+          ) : null}
         </>
       ) : null}
     </AssessmentLayout>

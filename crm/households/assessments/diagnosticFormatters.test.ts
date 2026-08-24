@@ -336,6 +336,10 @@ describe('public report-card history mapping for all four types', () => {
       { ...publicRow, id: 'sl-1', assessment_type: 'student_loan', overall_score: 88, overall_grade: 'B' },
       { householdId: 'hh-1', isLatest: false },
     )
+    const credit = mapPublicFamilyDiagnosticListItem(
+      { ...publicRow, id: 'cr-1', assessment_type: 'credit', overall_score: 74, overall_grade: 'C' },
+      { householdId: 'hh-1', isLatest: false },
+    )
 
     expect(business?.productLabel).toBe('Business Report Card')
     expect(business?.assessmentType).toBe('business')
@@ -344,6 +348,9 @@ describe('public report-card history mapping for all four types', () => {
     expect(studentLoan?.productLabel).toBe('Student Loan Report Card')
     expect(studentLoan?.assessmentType).toBe('student_loan')
     expect(studentLoan?.productLabel).not.toBe('Initial Financial Diagnostic')
+    expect(credit?.productLabel).toBe('Credit Report Card')
+    expect(credit?.assessmentType).toBe('credit')
+    expect(credit?.productLabel).not.toBe('Initial Financial Diagnostic')
     expect(protection?.overallScore).toBeNull()
     expect(protection?.overallGrade).toBeNull()
     expect(protection?.protectionGapFormatted).toBe('$1,200,000')

@@ -29,4 +29,15 @@ describe('server ESM import contract (api/** graph)', () => {
     expect(visited).toContain('components/assessment/studentLoan/questions.ts')
     expect(visited).toContain('components/assessment/studentLoan/constants.ts')
   })
+
+  it('includes the Credit ingest validator/scorer graph', () => {
+    const { visited, violations } = findExtensionlessServerImports()
+    expect(violations).toEqual([])
+    expect(visited).toContain('api/ingest-family-report-card.ts')
+    expect(visited).toContain('server/ingest/familyReportCard/validateCreditAnswers.ts')
+    expect(visited).toContain('server/ingest/familyReportCard/score.ts')
+    expect(visited).toContain('components/assessment/credit/scoreCreditAssessment.ts')
+    expect(visited).toContain('components/assessment/credit/questions.ts')
+    expect(visited).toContain('components/assessment/credit/constants.ts')
+  })
 })

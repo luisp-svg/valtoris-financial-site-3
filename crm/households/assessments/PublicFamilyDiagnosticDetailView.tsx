@@ -156,16 +156,26 @@ export default function PublicFamilyDiagnosticDetailView({ detail }: Props) {
 
       <section className="crm-panel crm-ifd-detail-section" aria-labelledby="crm-ifd-snapshot-heading">
         <h2 id="crm-ifd-snapshot-heading">
-          {detail.assessmentType === 'student_loan' ? 'Submitted Student Loan answers' : 'Submitted household snapshot'}
+          {detail.assessmentType === 'student_loan'
+            ? 'Submitted Student Loan answers'
+            : detail.assessmentType === 'credit'
+              ? 'Submitted Credit Report Card answers'
+              : 'Submitted household snapshot'}
         </h2>
         <p className="crm-muted">
           {detail.assessmentType === 'student_loan'
             ? 'Diagnostic answers stored on this Student Loan Report Card. Contact details live on the household, member, and lead records.'
-            : 'Information submitted at the time of this diagnostic. This is not the household’s current canonical CRM record.'}
+            : detail.assessmentType === 'credit'
+              ? 'Diagnostic answers stored on this Credit Report Card. Contact details live on the household, member, and lead records.'
+              : 'Information submitted at the time of this diagnostic. This is not the household’s current canonical CRM record.'}
         </p>
-        {detail.assessmentType === 'student_loan' ? (
+        {detail.assessmentType === 'student_loan' || detail.assessmentType === 'credit' ? (
           detail.submittedAnswers.length === 0 ? (
-            <p className="crm-muted">No Student Loan diagnostic answers were stored.</p>
+            <p className="crm-muted">
+              {detail.assessmentType === 'credit'
+                ? 'No Credit diagnostic answers were stored.'
+                : 'No Student Loan diagnostic answers were stored.'}
+            </p>
           ) : (
             <dl className="crm-client-workspace-info-list">
               {detail.submittedAnswers.map((item) => (

@@ -1,6 +1,9 @@
 import { scoreBusinessAssessment } from '../../../components/assessment/scoring/scoreBusinessAssessment.js'
 import { scoreFamilyAssessment } from '../../../components/assessment/scoring/scoreFamilyAssessment.js'
 import { scoreRetirementAssessment } from '../../../components/assessment/scoring/scoreRetirementAssessment.js'
+import { creditCopy } from '../../../components/assessment/credit/copy.js'
+import { scoreCreditAssessment } from '../../../components/assessment/credit/scoreCreditAssessment.js'
+import type { CreditAssessmentAnswers } from '../../../components/assessment/credit/types.js'
 import { studentLoanCopy } from '../../../components/assessment/studentLoan/copy.js'
 import { scoreStudentLoanAssessment } from '../../../components/assessment/studentLoan/scoreStudentLoanAssessment.js'
 import type { StudentLoanAssessmentAnswers } from '../../../components/assessment/studentLoan/types.js'
@@ -18,6 +21,7 @@ import {
   FAMILY_REPORT_CARD_SCORING_VERSION,
   PROTECTION_GAP_RESULT_VERSION,
   RETIREMENT_REPORT_CARD_SCORING_VERSION,
+  CREDIT_REPORT_CARD_SCORING_VERSION,
   STUDENT_LOAN_REPORT_CARD_SCORING_VERSION,
 } from './types.js'
 
@@ -327,6 +331,78 @@ export function recalculateStudentLoanReportCardScore(
       timeline: 'Advisor review',
     })),
     primaryGoal: answers.diagnostic.primary_goal,
+    urgency: answers.diagnostic.urgency,
+  }
+}
+
+function creditEnglish(key: string): string {
+  return creditCopy.en?.results[key] ?? key
+}
+
+export type CreditReportCardServerScore = {
+  overallScore: number
+  overallGrade: string
+  scoringVersion: number
+  statusLabelKey: string
+  statusLabel: string
+  categories: Array<{ id: string; title: string; score: number; max: number }>
+  flags: Array<{ id: string; severity: string; label: string; categoryId: string }>
+  reviewAreas: Array<{
+    id: string
+    title: string
+    why: string
+    severity: string
+    categoryId: string
+  }>
+  priorities: FamilyReportCardPrioritySummary[]
+  primaryGoal: string
+  urgency: string
+}
+
+/**
+ * Server-authoritative Credit score. Reuses the Phase B pure scorer.
+ * Client-reported scores are never used here.
+ */
+export function recalculateCreditReportCardScore(
+  answers: CreditAssessmentAnswers,
+): CreditReportCardServerScore {
+  const result = scoreCreditAssessment(answers.diagnostic)
+  const categories = result.categories.map((category) => ({
+    id: category.id,
+    title: creditEnglish(category.labelKey),
+    score: category.score,
+    max: category.max,
+  }))
+  const flags = result.flags.map((flag) => ({
+    id: flag.id,
+    severity: flag.severity,
+    label: creditEnglish(flag.labelKey),
+    categoryId: flag.categoryId,
+  }))
+  const reviewAreas = result.reviewAreas.map((area) => ({
+    id: area.id,
+    title: creditEnglish(area.titleKey),
+    why: creditEnglish(area.explanationKey),
+    severity: area.severity,
+    categoryId: area.categoryId,
+  }))
+
+  return {
+    overallScore: result.overallScore,
+    overallGrade: result.grade,
+    scoringVersion: CREDIT_REPORT_CARD_SCORING_VERSION,
+    statusLabelKey: result.statusLabelKey,
+    statusLabel: creditEnglish(result.statusLabelKey),
+    categories,
+    flags,
+    reviewAreas,
+    priorities: reviewAreas.map((area) => ({
+      level: area.severity,
+      title: area.title,
+      why: area.why,
+      timeline: 'Advisor review',
+    })),
+    primaryGoal: answers.diagnostic.credit_goal,
     urgency: answers.diagnostic.urgency,
   }
 }

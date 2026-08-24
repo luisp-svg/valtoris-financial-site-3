@@ -10,6 +10,7 @@ export const PUBLIC_REPORT_CARD_ASSESSMENT_TYPES = [
   'retirement',
   'protection',
   'student_loan',
+  'credit',
 ] as const
 
 export type PublicReportCardAssessmentType = (typeof PUBLIC_REPORT_CARD_ASSESSMENT_TYPES)[number]
@@ -20,6 +21,7 @@ export const PUBLIC_REPORT_CARD_LEAD_TYPES = [
   'Retirement Report Card',
   'Protection Gap',
   'Student Loan Report Card',
+  'Credit Report Card',
 ] as const
 
 export type PublicReportCardLeadType = (typeof PUBLIC_REPORT_CARD_LEAD_TYPES)[number]
@@ -30,6 +32,7 @@ export const LEAD_TYPE_BY_ASSESSMENT = {
   retirement: 'Retirement Report Card',
   protection: 'Protection Gap',
   student_loan: 'Student Loan Report Card',
+  credit: 'Credit Report Card',
 } as const satisfies Record<PublicReportCardAssessmentType, PublicReportCardLeadType>
 
 export const HOUSEHOLD_LEAD_SOURCE_BY_ASSESSMENT = {
@@ -38,6 +41,7 @@ export const HOUSEHOLD_LEAD_SOURCE_BY_ASSESSMENT = {
   retirement: 'retirement_report_card',
   protection: 'protection_gap',
   student_loan: 'student_loan_report_card',
+  credit: 'credit_report_card',
 } as const satisfies Record<PublicReportCardAssessmentType, string>
 
 export const REPORT_PATH_BY_ASSESSMENT = {
@@ -46,6 +50,7 @@ export const REPORT_PATH_BY_ASSESSMENT = {
   retirement: '/retirement-results',
   protection: '/protection-results',
   student_loan: '/student-loan-results',
+  credit: '/credit-results',
 } as const satisfies Record<PublicReportCardAssessmentType, string>
 
 /** CRM display labels. Family keeps the established Initial Financial Diagnostic name. */
@@ -55,6 +60,7 @@ export const CRM_PRODUCT_LABEL_BY_ASSESSMENT = {
   retirement: 'Retirement Report Card',
   protection: 'Protection Gap',
   student_loan: 'Student Loan Report Card',
+  credit: 'Credit Report Card',
 } as const satisfies Record<PublicReportCardAssessmentType, string>
 
 export const PUBLIC_REPORT_CARD_SCORING_VERSION = {
@@ -63,6 +69,7 @@ export const PUBLIC_REPORT_CARD_SCORING_VERSION = {
   retirement: 1,
   protection: 1,
   student_loan: 1,
+  credit: 1,
 } as const satisfies Record<PublicReportCardAssessmentType, number>
 
 export const PUBLIC_REPORT_CARD_ASSESSMENT_VERSION = 1
@@ -75,7 +82,8 @@ export function isPublicReportCardAssessmentType(
     value === 'business' ||
     value === 'retirement' ||
     value === 'protection' ||
-    value === 'student_loan'
+    value === 'student_loan' ||
+    value === 'credit'
   )
 }
 
@@ -97,6 +105,7 @@ export function crmProductLabelForLeadType(leadType: string): string {
   if (leadType === 'Retirement Report Card') return CRM_PRODUCT_LABEL_BY_ASSESSMENT.retirement
   if (leadType === 'Protection Gap') return CRM_PRODUCT_LABEL_BY_ASSESSMENT.protection
   if (leadType === 'Student Loan Report Card') return CRM_PRODUCT_LABEL_BY_ASSESSMENT.student_loan
+  if (leadType === 'Credit Report Card') return CRM_PRODUCT_LABEL_BY_ASSESSMENT.credit
   return leadType
 }
 
@@ -108,5 +117,6 @@ export function assessmentTypeForLeadType(
   if (leadType === 'Retirement Report Card') return 'retirement'
   if (leadType === 'Protection Gap') return 'protection'
   if (leadType === 'Student Loan Report Card') return 'student_loan'
+  if (leadType === 'Credit Report Card') return 'credit'
   return null
 }

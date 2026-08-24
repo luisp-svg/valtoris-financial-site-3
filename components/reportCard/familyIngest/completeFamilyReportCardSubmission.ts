@@ -1,8 +1,10 @@
 import { scoreBusinessAssessment } from '../../assessment/scoring/scoreBusinessAssessment'
 import { scoreFamilyAssessment } from '../../assessment/scoring/scoreFamilyAssessment'
 import { scoreRetirementAssessment } from '../../assessment/scoring/scoreRetirementAssessment'
+import { scoreCreditAssessment } from '../../assessment/credit/scoreCreditAssessment'
 import { scoreStudentLoanAssessment } from '../../assessment/studentLoan/scoreStudentLoanAssessment'
 import type { BusinessAssessmentAnswers } from '../../assessment/business/types'
+import type { CreditAssessmentAnswers } from '../../assessment/credit/types'
 import type { RetirementAssessmentAnswers } from '../../assessment/retirement/types'
 import type { StudentLoanAssessmentAnswers } from '../../assessment/studentLoan/types'
 import type { DemoAssessmentAnswers } from '../../assessment/types'
@@ -57,6 +59,7 @@ export async function completePublicReportCardCrmSubmission(input: {
     | RetirementAssessmentAnswers
     | CalculatorAnswers
     | StudentLoanAssessmentAnswers
+    | CreditAssessmentAnswers
   consent: FamilyConsentState
   session: FamilyIngestSession
   honeypotWebsite?: string
@@ -112,6 +115,10 @@ export async function completePublicReportCardCrmSubmission(input: {
     const scored = scoreStudentLoanAssessment((input.answers as StudentLoanAssessmentAnswers).diagnostic)
     clientReportedScore = scored.overallScore
     clientReportedGrade = scored.grade
+  } else if (input.assessmentType === 'credit') {
+    const scored = scoreCreditAssessment((input.answers as CreditAssessmentAnswers).diagnostic)
+    clientReportedScore = scored.overallScore
+    clientReportedGrade = scored.grade
   }
 
   const consentSnapshot = buildFamilyConsentSnapshot({
@@ -129,7 +136,9 @@ export async function completePublicReportCardCrmSubmission(input: {
           ? ROUTES.retirementAssessment
           : input.assessmentType === 'student_loan'
             ? ROUTES.studentLoanAssessment
-            : ROUTES.protectionGap
+            : input.assessmentType === 'credit'
+              ? ROUTES.creditAssessment
+              : ROUTES.protectionGap
 
   const payload = buildFamilyReportCardIngestPayload({
     submissionId,

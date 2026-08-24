@@ -185,6 +185,7 @@ export const WORKSPACE_ASSESSMENT_TYPES: readonly WorkspaceAssessmentType[] = [
   'retirement',
   'protection',
   'student_loan',
+  'credit',
 ] as const
 
 const WORKSPACE_ASSESSMENT_TYPE_SET = new Set<string>(WORKSPACE_ASSESSMENT_TYPES)

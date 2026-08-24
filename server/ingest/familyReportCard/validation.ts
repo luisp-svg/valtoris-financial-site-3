@@ -30,6 +30,7 @@ import {
 } from '../../../modules/reportCard/publicIngestCatalog.js'
 import { normalizeConsentSnapshot } from './consent.js'
 import type { ConsentSnapshot, FamilyReportCardIngestRequest, PublicReportCardAnswers } from './types.js'
+import { validateCreditAnswers } from './validateCreditAnswers.js'
 import { validateStudentLoanAnswers } from './validateStudentLoanAnswers.js'
 
 export type ValidationOk<T> = { ok: true; value: T }
@@ -299,6 +300,7 @@ function validateAnswersForType(
   if (assessmentType === 'business') return validateBusinessAnswers(value)
   if (assessmentType === 'retirement') return validateRetirementAnswers(value)
   if (assessmentType === 'student_loan') return validateStudentLoanAnswers(value)
+  if (assessmentType === 'credit') return validateCreditAnswers(value)
   return validateProtectionAnswers(value)
 }
 
@@ -324,7 +326,7 @@ export type ValidationOptions = {
  * Strict, allow-listed validation for the public Report Card ingest
  * request body. No schema library is used (matches the rest of the project) —
  * every field is checked explicitly and unknown top-level keys are rejected.
- * assessmentType is allowlisted to family | business | retirement | protection | student_loan.
+ * assessmentType is allowlisted to family | business | retirement | protection | student_loan | credit.
  */
 export function validateFamilyReportCardIngestRequest(
   rawBody: unknown,
@@ -389,7 +391,7 @@ export function validateFamilyReportCardIngestRequest(
     if (!isPublicReportCardAssessmentType(rawBody.assessmentType)) {
       return fail(
         'invalid_assessment_type',
-        'assessmentType must be family, business, retirement, protection, or student_loan.',
+        'assessmentType must be family, business, retirement, protection, student_loan, or credit.',
       )
     }
     assessmentType = rawBody.assessmentType

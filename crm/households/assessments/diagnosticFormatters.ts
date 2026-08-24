@@ -17,6 +17,8 @@ import type {
   SubmittedDiagnosticSnapshot,
 } from './types'
 import { crmProductLabelForAssessment, isPublicReportCardAssessmentType } from '../../../modules/reportCard/publicIngestCatalog'
+import { creditCopy } from '../../../components/assessment/credit/copy'
+import { CREDIT_QUESTIONS } from '../../../components/assessment/credit/questions'
 import { studentLoanCopy } from '../../../components/assessment/studentLoan/copy'
 import { STUDENT_LOAN_QUESTIONS } from '../../../components/assessment/studentLoan/questions'
 
@@ -256,6 +258,45 @@ export function extractStudentLoanSubmittedAnswers(answers: unknown): Diagnostic
   return items
 }
 
+function creditDisplayText(section: 'fields' | 'answers', key: string): string {
+  return creditCopy.en?.[section][key] ?? key
+}
+
+function formatCreditFieldValue(fieldId: string, raw: unknown): string | null {
+  if (Array.isArray(raw)) {
+    const labels = raw
+      .map((item) => (typeof item === 'string' && item.trim() ? creditDisplayText('answers', `${fieldId}.${item}`) : null))
+      .filter((item): item is string => Boolean(item))
+    return labels.length > 0 ? labels.join(', ') : null
+  }
+  if (typeof raw !== 'string' || raw.trim() === '') return null
+  const prefixed = creditCopy.en?.answers[`${fieldId}.${raw}`]
+  if (prefixed) return prefixed
+  const shared = creditCopy.en?.answers[raw]
+  if (shared) return shared
+  return raw
+}
+
+/**
+ * Credit assessment JSONB is diagnostic-only. Contact PII is not read here.
+ */
+export function extractCreditSubmittedAnswers(answers: unknown): DiagnosticSubmittedAnswer[] {
+  const diagnostic = asRecord(asRecord(answers).diagnostic)
+  const items: DiagnosticSubmittedAnswer[] = []
+  for (const question of CREDIT_QUESTIONS) {
+    for (const field of question.fields) {
+      const value = formatCreditFieldValue(field.id, diagnostic[field.id])
+      if (!value) continue
+      items.push({
+        id: field.id,
+        label: creditDisplayText('fields', field.id),
+        value,
+      })
+    }
+  }
+  return items
+}
+
 function safeHostFromReferrer(value: unknown): string | null {
   const raw = asTrimmedString(value)
   if (!raw) return null
@@ -378,7 +419,11 @@ export function mapPublicFamilyDiagnosticDetail(
     flags: extractDiagnosticFlags(row.derived_metrics),
     submittedSnapshot: extractSubmittedDiagnosticSnapshot(row.answers),
     submittedAnswers:
-      row.assessment_type === 'student_loan' ? extractStudentLoanSubmittedAnswers(row.answers) : [],
+      row.assessment_type === 'student_loan'
+        ? extractStudentLoanSubmittedAnswers(row.answers)
+        : row.assessment_type === 'credit'
+          ? extractCreditSubmittedAnswers(row.answers)
+          : [],
     consent: leadSummary?.consent ?? null,
     lead: leadSummary,
   }
