@@ -217,10 +217,11 @@ describe('Student Loan launch compliance', () => {
     expect(html.match(/This field is required\./g)?.length).toBe(4)
   })
 
-  it('does not add Migration 050 and leaves 047–049 byte-identical', () => {
+  it('leaves 047–049 byte-identical and does not add Migration 051', () => {
     const files = readdirSync(join(ROOT, 'supabase/migrations')).filter((name) => name.endsWith('.sql')).sort()
-    expect(files).toHaveLength(49)
-    expect(files.some((name) => name.startsWith('050_'))).toBe(false)
+    expect(files).toHaveLength(50)
+    expect(files[49]).toBe('050_credit_report_card_ingest.sql')
+    expect(files.some((name) => name.startsWith('051_'))).toBe(false)
     expect(fileSha256('supabase/migrations/047_credit_repair_student_loan_sales_catalog.sql')).toBe(SHA_047)
     expect(fileSha256('supabase/migrations/048_student_loan_report_card_ingest.sql')).toBe(SHA_048)
     expect(fileSha256('supabase/migrations/049_specialize_public_report_card_follow_up_copy.sql')).toBe(SHA_049)

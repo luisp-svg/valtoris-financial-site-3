@@ -26,7 +26,7 @@ describe('migration 046 opportunity case conversion contract', () => {
     expect(MIGRATION_046_RPC).toBe('convert_opportunity_to_policy_application')
     const files = numberedMigrations()
     expect(files).toEqual([...EXPECTED_NUMBERED_MIGRATIONS])
-    expect(files).toHaveLength(49)
+    expect(files).toHaveLength(50)
     expect(files[0]).toBe('001_extensions_and_enums.sql')
     expect(files[44]).toBe(MIGRATION_045_FILENAME)
     expect(files[45]).toBe(MIGRATION_046_FILENAME)
@@ -41,7 +41,8 @@ describe('migration 046 opportunity case conversion contract', () => {
       '048_student_loan_report_card_ingest.sql',
     ])
     expect(files.filter((f) => f.startsWith('049_'))).toEqual(['049_specialize_public_report_card_follow_up_copy.sql'])
-    expect(files.filter((f) => f.startsWith('050_'))).toEqual([])
+    expect(files.filter((f) => f.startsWith('050_'))).toEqual(['050_credit_report_card_ingest.sql'])
+    expect(files.filter((f) => f.startsWith('051_'))).toEqual([])
   })
 
   it('adds the live opportunity unique index and the conversion RPC with audit and grants', () => {
