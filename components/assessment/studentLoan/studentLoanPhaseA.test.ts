@@ -168,7 +168,7 @@ describe('Student Loan Phase A foundation', () => {
   it('keeps specialized product identity separate from Family and does not create Opportunities', () => {
     expect(canSubmitStudentLoanToCrm()).toBe(true)
     expect(PUBLIC_REPORT_CARD_ASSESSMENT_TYPES).toContain('student_loan')
-    expect(SPECIALIZED_ASSESSMENT_PRODUCTS).toEqual(['student_loan'])
+    expect(SPECIALIZED_ASSESSMENT_PRODUCTS).toEqual(['student_loan', 'credit'])
     expect(STUDENT_LOAN_ASSESSMENT_TYPE).toBe('student_loan')
     expect(WORKSPACE_ASSESSMENT_TYPES).toContain('student_loan')
 
