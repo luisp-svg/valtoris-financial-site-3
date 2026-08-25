@@ -36,6 +36,9 @@ export function withPublicLocale(
   locale: PublicLocale,
   currentSearch = '',
 ): string {
+  const hashIndex = path.indexOf('#')
+  const hash = hashIndex >= 0 ? path.slice(hashIndex) : ''
+  const pathOnly = hashIndex >= 0 ? path.slice(0, hashIndex) : path
   const raw = currentSearch.startsWith('?') ? currentSearch.slice(1) : currentSearch
   const params = new URLSearchParams(raw)
   params.delete('locale')
@@ -45,5 +48,5 @@ export function withPublicLocale(
     params.set('lang', locale)
   }
   const query = params.toString()
-  return query ? `${path}?${query}` : path
+  return `${pathOnly}${query ? `?${query}` : ''}${hash}`
 }

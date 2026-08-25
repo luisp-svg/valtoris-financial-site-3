@@ -10,17 +10,18 @@ const footer = readFileSync(join(here, 'SiteFooter.tsx'), 'utf8')
 const app = readFileSync(join(here, '../src/App.tsx'), 'utf8')
 const middleware = readFileSync(join(here, '../lib/supabase/middleware.ts'), 'utf8')
 const routes = readFileSync(join(here, '../constants/routes.ts'), 'utf8')
+const chrome = readFileSync(join(here, 'publicSite/chromeCopy.ts'), 'utf8')
 const home = readFileSync(join(here, '../pages/HomePage.tsx'), 'utf8')
 
 describe('Phase B.5 public Advisor Login contracts', () => {
   it('adds Advisor Login in desktop and wrapping mobile nav to /crm/login', () => {
     expect(ROUTES.crmLogin).toBe('/crm/login')
-    expect(header).toContain('Advisor Login')
+    expect(chrome).toContain("advisorLogin: 'Advisor Login'")
     expect(header).toContain('ROUTES.crmLogin')
-    expect(header).toContain('nav-advisor-login')
-    expect(header).toContain('aria-label="Primary"')
-    expect(footer).toContain('Advisor Login')
+    expect(header).toContain('copy.advisorLogin')
+    expect(header).toContain('SiteMobileNav')
     expect(footer).toContain('ROUTES.crmLogin')
+    expect(footer).toContain('site-footer-advisor')
   })
 
   it('does not create an alternate auth route or put CRM data in public navigation', () => {
@@ -36,9 +37,11 @@ describe('Phase B.5 public Advisor Login contracts', () => {
   })
 
   it('keeps consumer CTAs on the public home page', () => {
-    expect(home).toContain('platform-btn-primary')
-    expect(home).toContain('Family Financial Report Card™')
-    expect(header).toContain('Family Report Card™')
-    expect(header).toContain('Solutions')
+    const hero = readFileSync(join(here, 'publicSite/home/HomeHero.tsx'), 'utf8')
+    expect(home).toContain('site-home')
+    expect(hero).toContain('platform-btn-primary')
+    expect(hero).toContain('ROUTES.solutions')
+    expect(hero).toContain('ROUTES.schedule')
+    expect(header).toContain('ROUTES.crmLogin')
   })
 })

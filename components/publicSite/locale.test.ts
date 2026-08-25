@@ -48,6 +48,16 @@ describe('public site locale', () => {
     ).toBe('/credit-report-card?card=crc&utm_campaign=qa')
   })
 
+  it('keeps homepage anchors after the query string', () => {
+    expect(
+      withPublicLocale(
+        '/#home-diagnostics',
+        'es',
+        '?utm_source=qa&utm_campaign=sitefoundation&card=test-card',
+      ),
+    ).toBe('/?utm_source=qa&utm_campaign=sitefoundation&card=test-card&lang=es#home-diagnostics')
+  })
+
   it('is the same implementation used by specialized Student Loan / Credit locale helpers', () => {
     expect(readSpecializedLocale).toBe(readPublicLocale)
     expect(withSpecializedLocale).toBe(withPublicLocale)
