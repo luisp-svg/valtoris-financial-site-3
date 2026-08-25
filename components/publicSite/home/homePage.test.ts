@@ -142,6 +142,9 @@ describe('service-led bilingual homepage', () => {
       `href="${ROUTES.protectionAnalysis}?utm_source=qa&amp;utm_campaign=home&amp;card=test-card"`,
     )
     expect(html).toContain(
+      `href="${ROUTES.insurance}?utm_source=qa&amp;utm_campaign=home&amp;card=test-card"`,
+    )
+    expect(html).toContain(
       `href="/?utm_source=qa&amp;utm_campaign=home&amp;card=test-card#home-diagnostics"`,
     )
     for (const path of FUTURE_UNBUILT_PUBLIC_PATHS) {

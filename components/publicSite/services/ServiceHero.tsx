@@ -1,14 +1,14 @@
 import { useLocation } from 'react-router-dom'
 import PublicLink from '../PublicLink'
-import { ROUTES } from '../../../constants/routes'
 import type { ServiceCopy } from './copy'
 
 type ServiceHeroProps = {
   copy: ServiceCopy
-  diagnosticTo: string
+  primaryTo: string
+  secondaryTo: string
 }
 
-export default function ServiceHero({ copy, diagnosticTo }: ServiceHeroProps) {
+export default function ServiceHero({ copy, primaryTo, secondaryTo }: ServiceHeroProps) {
   const location = useLocation()
 
   return (
@@ -20,10 +20,10 @@ export default function ServiceHero({ copy, diagnosticTo }: ServiceHeroProps) {
         </h1>
         <p className="site-home-hero-support">{copy.heroSupport}</p>
         <div className="site-home-hero-actions">
-          <PublicLink className="platform-btn platform-btn-primary" to={diagnosticTo}>
+          <PublicLink className="platform-btn platform-btn-primary" to={primaryTo}>
             {copy.heroPrimaryCta}
           </PublicLink>
-          <PublicLink className="platform-btn platform-btn-secondary" to={ROUTES.schedule}>
+          <PublicLink className="platform-btn platform-btn-secondary" to={secondaryTo}>
             {copy.heroSecondaryCta}
           </PublicLink>
         </div>

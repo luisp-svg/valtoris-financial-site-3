@@ -77,7 +77,7 @@ export const HOME_SERVICE_CARDS: readonly HomeLinkItem[] = [
   },
   {
     id: 'insurance',
-    to: ROUTES.solutions,
+    to: ROUTES.insurance,
     titleKey: 'serviceInsuranceTitle',
     bodyKey: 'serviceInsuranceBody',
   },

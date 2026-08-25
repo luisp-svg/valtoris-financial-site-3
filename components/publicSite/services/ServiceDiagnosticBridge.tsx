@@ -1,14 +1,14 @@
 import PublicLink from '../PublicLink'
-import { ROUTES } from '../../../constants/routes'
 import type { ServiceCopy } from './copy'
 import SiteHomeSection from '../home/SiteHomeSection'
 
 type ServiceDiagnosticBridgeProps = {
   copy: ServiceCopy
-  diagnosticTo: string
+  primaryTo: string
+  secondaryTo: string
 }
 
-export default function ServiceDiagnosticBridge({ copy, diagnosticTo }: ServiceDiagnosticBridgeProps) {
+export default function ServiceDiagnosticBridge({ copy, primaryTo, secondaryTo }: ServiceDiagnosticBridgeProps) {
   return (
     <SiteHomeSection
       tone="blue"
@@ -18,10 +18,10 @@ export default function ServiceDiagnosticBridge({ copy, diagnosticTo }: ServiceD
       lead={copy.bridgeBody}
     >
       <div className="site-home-hero-actions">
-        <PublicLink className="platform-btn platform-btn-primary" to={diagnosticTo}>
+        <PublicLink className="platform-btn platform-btn-primary" to={primaryTo}>
           {copy.bridgePrimaryCta}
         </PublicLink>
-        <PublicLink className="platform-btn platform-btn-secondary" to={ROUTES.schedule}>
+        <PublicLink className="platform-btn platform-btn-secondary" to={secondaryTo}>
           {copy.bridgeSecondaryCta}
         </PublicLink>
       </div>

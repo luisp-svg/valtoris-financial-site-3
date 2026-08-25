@@ -1,13 +1,13 @@
 import PublicLink from '../PublicLink'
-import { ROUTES } from '../../../constants/routes'
 import type { ServiceCopy } from './copy'
 
 type ServiceFinalCtaProps = {
   copy: ServiceCopy
-  diagnosticTo: string
+  primaryTo: string
+  secondaryTo: string
 }
 
-export default function ServiceFinalCta({ copy, diagnosticTo }: ServiceFinalCtaProps) {
+export default function ServiceFinalCta({ copy, primaryTo, secondaryTo }: ServiceFinalCtaProps) {
   return (
     <section className="site-home-final" aria-labelledby="service-final-heading">
       <div className="container site-home-final-inner">
@@ -16,10 +16,10 @@ export default function ServiceFinalCta({ copy, diagnosticTo }: ServiceFinalCtaP
         </h2>
         <p className="site-home-final-copy">{copy.finalLead}</p>
         <div className="site-home-final-actions">
-          <PublicLink className="platform-btn platform-btn-secondary" to={diagnosticTo}>
+          <PublicLink className="platform-btn platform-btn-secondary" to={primaryTo}>
             {copy.finalPrimaryCta}
           </PublicLink>
-          <PublicLink className="site-home-final-text" to={ROUTES.schedule}>
+          <PublicLink className="site-home-final-text" to={secondaryTo}>
             {copy.finalSecondaryCta}
           </PublicLink>
         </div>

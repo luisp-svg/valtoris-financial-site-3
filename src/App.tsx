@@ -18,6 +18,9 @@ import RetirementAssessment from '../pages/RetirementAssessment'
 import RetirementReportCardResults from '../pages/RetirementReportCardResults'
 import StudentLoanServicePage from '../pages/StudentLoanServicePage'
 import CreditServicePage from '../pages/CreditServicePage'
+import InsuranceServicePage from '../pages/InsuranceServicePage'
+import HealthDisabilityServicePage from '../pages/HealthDisabilityServicePage'
+import BusinessFormationServicePage from '../pages/BusinessFormationServicePage'
 import StudentLoanReportCardPage from '../pages/StudentLoanReportCardPage'
 import StudentLoanAssessment from '../pages/StudentLoanAssessment'
 import StudentLoanReportCardResults from '../pages/StudentLoanReportCardResults'
@@ -164,6 +167,30 @@ export default function App() {
         element={
           <SiteLayout>
             <CreditServicePage />
+          </SiteLayout>
+        }
+      />
+      <Route
+        path={ROUTES.insurance}
+        element={
+          <SiteLayout>
+            <InsuranceServicePage />
+          </SiteLayout>
+        }
+      />
+      <Route
+        path={ROUTES.healthDisability}
+        element={
+          <SiteLayout>
+            <HealthDisabilityServicePage />
+          </SiteLayout>
+        }
+      />
+      <Route
+        path={ROUTES.businessFormation}
+        element={
+          <SiteLayout>
+            <BusinessFormationServicePage />
           </SiteLayout>
         }
       />

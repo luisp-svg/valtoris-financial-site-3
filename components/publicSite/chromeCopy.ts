@@ -21,6 +21,9 @@ export type ChromeCopyKey =
   | 'servicesRetirement'
   | 'servicesCredit'
   | 'servicesStudentLoans'
+  | 'servicesInsurance'
+  | 'servicesHealth'
+  | 'servicesBusinessFormation'
   | 'servicesViewSolutions'
   | 'toolsFamily'
   | 'toolsBusiness'
@@ -60,6 +63,9 @@ export const chromeCopy: Record<PublicLocale, ChromeCopyCatalog> = {
     servicesRetirement: 'Retirement',
     servicesCredit: 'Credit',
     servicesStudentLoans: 'Student Loans',
+    servicesInsurance: 'Insurance & Risk Management',
+    servicesHealth: 'Health & Disability',
+    servicesBusinessFormation: 'Business Formation',
     servicesViewSolutions: 'View Solutions',
     toolsFamily: 'Family Report Card™',
     toolsBusiness: 'Business Report Card™',
@@ -97,6 +103,9 @@ export const chromeCopy: Record<PublicLocale, ChromeCopyCatalog> = {
     servicesRetirement: 'Jubilación',
     servicesCredit: 'Crédito',
     servicesStudentLoans: 'Préstamos estudiantiles',
+    servicesInsurance: 'Seguros y gestión de riesgo',
+    servicesHealth: 'Salud y discapacidad',
+    servicesBusinessFormation: 'Constitución de negocio',
     servicesViewSolutions: 'Ver soluciones',
     toolsFamily: 'Family Report Card™',
     toolsBusiness: 'Business Report Card™',

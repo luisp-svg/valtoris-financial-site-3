@@ -1,4 +1,5 @@
 import type { ServiceCopy } from './copy'
+import type { ServiceLinks } from './serviceLinks'
 import ServiceAudience from './ServiceAudience'
 import ServiceCompliance from './ServiceCompliance'
 import ServiceDiagnosticBridge from './ServiceDiagnosticBridge'
@@ -10,21 +11,25 @@ import { useServiceDocumentMeta } from './useServiceDocumentMeta'
 
 type ServicePageProps = {
   copy: ServiceCopy
-  diagnosticTo: string
+  links: ServiceLinks
 }
 
-export default function ServicePage({ copy, diagnosticTo }: ServicePageProps) {
+export default function ServicePage({ copy, links }: ServicePageProps) {
   useServiceDocumentMeta(copy)
 
   return (
     <div className="platform-home site-home site-service-page">
-      <ServiceHero copy={copy} diagnosticTo={diagnosticTo} />
+      <ServiceHero copy={copy} primaryTo={links.primaryTo} secondaryTo={links.secondaryTo} />
       <ServiceAudience copy={copy} />
       <ServiceReviewAreas copy={copy} />
       <ServiceProcess copy={copy} />
-      <ServiceDiagnosticBridge copy={copy} diagnosticTo={diagnosticTo} />
+      <ServiceDiagnosticBridge
+        copy={copy}
+        primaryTo={links.bridgePrimaryTo}
+        secondaryTo={links.bridgeSecondaryTo}
+      />
       <ServiceCompliance copy={copy} />
-      <ServiceFinalCta copy={copy} diagnosticTo={diagnosticTo} />
+      <ServiceFinalCta copy={copy} primaryTo={links.finalPrimaryTo} secondaryTo={links.finalSecondaryTo} />
     </div>
   )
 }
