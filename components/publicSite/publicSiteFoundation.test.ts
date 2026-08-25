@@ -69,9 +69,11 @@ const EXISTING_PUBLIC_PATHS = new Set<string>([
   ROUTES.retirementReportCard,
   ROUTES.retirementAssessment,
   ROUTES.retirementReportCardResults,
+  ROUTES.studentLoans,
   ROUTES.studentLoanReportCard,
   ROUTES.studentLoanAssessment,
   ROUTES.studentLoanReportCardResults,
+  ROUTES.credit,
   ROUTES.creditReportCard,
   ROUTES.creditAssessment,
   ROUTES.creditReportCardResults,
@@ -101,8 +103,8 @@ describe('public site foundation chrome', () => {
       ROUTES.solutions,
       ROUTES.protectionAnalysis,
       ROUTES.retirementReportCard,
-      ROUTES.creditReportCard,
-      ROUTES.studentLoanReportCard,
+      ROUTES.credit,
+      ROUTES.studentLoans,
       ROUTES.solutions,
     ])
     expect(TOOLS_NAV_LINKS.map((item) => item.to)).toEqual([
@@ -117,10 +119,12 @@ describe('public site foundation chrome', () => {
 
   it('makes Student Loan and Credit discoverable in nav and footer', () => {
     const html = renderChrome('/')
+    expect(html).toContain(ROUTES.studentLoans)
+    expect(html).toContain(ROUTES.credit)
     expect(html).toContain(ROUTES.studentLoanReportCard)
     expect(html).toContain(ROUTES.creditReportCard)
-    expect(FAMILIES_FOOTER_LINKS.some((item) => item.to === ROUTES.studentLoanReportCard)).toBe(true)
-    expect(FAMILIES_FOOTER_LINKS.some((item) => item.to === ROUTES.creditReportCard)).toBe(true)
+    expect(FAMILIES_FOOTER_LINKS.some((item) => item.to === ROUTES.studentLoans)).toBe(true)
+    expect(FAMILIES_FOOTER_LINKS.some((item) => item.to === ROUTES.credit)).toBe(true)
     expect(TOOLS_NAV_LINKS.some((item) => item.to === ROUTES.studentLoanReportCard)).toBe(true)
     expect(TOOLS_NAV_LINKS.some((item) => item.to === ROUTES.creditReportCard)).toBe(true)
   })
@@ -257,9 +261,11 @@ describe('public site foundation chrome', () => {
       'ROUTES.protectionAnalysis',
       'ROUTES.protectionGap',
       'ROUTES.protectionResults',
+      'ROUTES.studentLoans',
       'ROUTES.studentLoanReportCard',
       'ROUTES.studentLoanAssessment',
       'ROUTES.studentLoanReportCardResults',
+      'ROUTES.credit',
       'ROUTES.creditReportCard',
       'ROUTES.creditAssessment',
       'ROUTES.creditReportCardResults',

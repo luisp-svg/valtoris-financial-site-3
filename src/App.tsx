@@ -16,6 +16,8 @@ import BusinessReportCardResults from '../pages/BusinessReportCardResults'
 import RetirementReportCardPage from '../pages/RetirementReportCardPage'
 import RetirementAssessment from '../pages/RetirementAssessment'
 import RetirementReportCardResults from '../pages/RetirementReportCardResults'
+import StudentLoanServicePage from '../pages/StudentLoanServicePage'
+import CreditServicePage from '../pages/CreditServicePage'
 import StudentLoanReportCardPage from '../pages/StudentLoanReportCardPage'
 import StudentLoanAssessment from '../pages/StudentLoanAssessment'
 import StudentLoanReportCardResults from '../pages/StudentLoanReportCardResults'
@@ -142,10 +144,26 @@ export default function App() {
         }
       />
       <Route
+        path={ROUTES.studentLoans}
+        element={
+          <SiteLayout>
+            <StudentLoanServicePage />
+          </SiteLayout>
+        }
+      />
+      <Route
         path={ROUTES.studentLoanReportCard}
         element={
           <SiteLayout>
             <StudentLoanReportCardPage />
+          </SiteLayout>
+        }
+      />
+      <Route
+        path={ROUTES.credit}
+        element={
+          <SiteLayout>
+            <CreditServicePage />
           </SiteLayout>
         }
       />

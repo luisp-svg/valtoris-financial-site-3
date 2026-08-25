@@ -3,7 +3,7 @@ import type { ChromeCopyKey } from './chromeCopy'
 
 /**
  * Phase 1 public navigation.
- * Destinations are existing routes only — no placeholder service pages.
+ * Service destinations use real pages where they exist.
  * About children stay empty until /about, /about/process, and /about/team exist.
  */
 
@@ -18,8 +18,8 @@ export const SERVICES_NAV_LINKS: readonly PublicNavLink[] = [
   { id: 'business', to: ROUTES.solutions, labelKey: 'servicesBusiness' },
   { id: 'protection', to: ROUTES.protectionAnalysis, labelKey: 'servicesProtection' },
   { id: 'retirement', to: ROUTES.retirementReportCard, labelKey: 'servicesRetirement' },
-  { id: 'credit', to: ROUTES.creditReportCard, labelKey: 'servicesCredit' },
-  { id: 'studentLoans', to: ROUTES.studentLoanReportCard, labelKey: 'servicesStudentLoans' },
+  { id: 'credit', to: ROUTES.credit, labelKey: 'servicesCredit' },
+  { id: 'studentLoans', to: ROUTES.studentLoans, labelKey: 'servicesStudentLoans' },
   { id: 'viewSolutions', to: ROUTES.solutions, labelKey: 'servicesViewSolutions' },
 ]
 
@@ -68,8 +68,8 @@ export const FAMILIES_FOOTER_LINKS: readonly PublicNavLink[] = [
   { id: 'families', to: ROUTES.solutions, labelKey: 'servicesFamilies' },
   { id: 'protection', to: ROUTES.protectionAnalysis, labelKey: 'servicesProtection' },
   { id: 'retirement', to: ROUTES.retirementReportCard, labelKey: 'servicesRetirement' },
-  { id: 'credit', to: ROUTES.creditReportCard, labelKey: 'servicesCredit' },
-  { id: 'studentLoans', to: ROUTES.studentLoanReportCard, labelKey: 'servicesStudentLoans' },
+  { id: 'credit', to: ROUTES.credit, labelKey: 'servicesCredit' },
+  { id: 'studentLoans', to: ROUTES.studentLoans, labelKey: 'servicesStudentLoans' },
 ]
 
 export const BUSINESS_FOOTER_LINKS: readonly PublicNavLink[] = [

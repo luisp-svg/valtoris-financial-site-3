@@ -124,6 +124,12 @@ describe('service-led bilingual homepage', () => {
       `href="${ROUTES.businessReportCard}?utm_source=qa&amp;utm_campaign=home&amp;card=test-card"`,
     )
     expect(html).toContain(
+      `href="${ROUTES.studentLoans}?utm_source=qa&amp;utm_campaign=home&amp;card=test-card"`,
+    )
+    expect(html).toContain(
+      `href="${ROUTES.credit}?utm_source=qa&amp;utm_campaign=home&amp;card=test-card"`,
+    )
+    expect(html).toContain(
       `href="${ROUTES.studentLoanReportCard}?utm_source=qa&amp;utm_campaign=home&amp;card=test-card"`,
     )
     expect(html).toContain(
@@ -145,8 +151,8 @@ describe('service-led bilingual homepage', () => {
     expect(HOME_AUDIENCE_PATHS.map((item) => item.to)).toEqual([
       ROUTES.solutions,
       ROUTES.solutions,
-      ROUTES.studentLoanReportCard,
-      ROUTES.creditReportCard,
+      ROUTES.studentLoans,
+      ROUTES.credit,
     ])
     expect(HOME_FEATURED_DIAGNOSTICS.map((item) => item.to)).toEqual([
       ROUTES.reportCard,

@@ -30,14 +30,14 @@ export const HOME_AUDIENCE_PATHS: readonly HomeLinkItem[] = [
   },
   {
     id: 'studentLoans',
-    to: ROUTES.studentLoanReportCard,
+    to: ROUTES.studentLoans,
     titleKey: 'audienceStudentTitle',
     bodyKey: 'audienceStudentBody',
     ctaKey: 'audienceStudentCta',
   },
   {
     id: 'credit',
-    to: ROUTES.creditReportCard,
+    to: ROUTES.credit,
     titleKey: 'audienceCreditTitle',
     bodyKey: 'audienceCreditBody',
     ctaKey: 'audienceCreditCta',
@@ -59,13 +59,13 @@ export const HOME_SERVICE_CARDS: readonly HomeLinkItem[] = [
   },
   {
     id: 'credit',
-    to: ROUTES.creditReportCard,
+    to: ROUTES.credit,
     titleKey: 'serviceCreditTitle',
     bodyKey: 'serviceCreditBody',
   },
   {
     id: 'studentLoans',
-    to: ROUTES.studentLoanReportCard,
+    to: ROUTES.studentLoans,
     titleKey: 'serviceStudentTitle',
     bodyKey: 'serviceStudentBody',
   },
