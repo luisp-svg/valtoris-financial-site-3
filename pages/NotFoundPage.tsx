@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom'
 import BrandWordmark from '../components/BrandWordmark'
+import PublicLink from '../components/publicSite/PublicLink'
 import { ROUTES } from '../constants/routes'
 
 export default function NotFoundPage() {
@@ -12,12 +12,12 @@ export default function NotFoundPage() {
           The page you&apos;re looking for may have moved or no longer exists.
         </p>
         <div className="not-found-actions">
-          <Link className="platform-btn platform-btn-primary" to={ROUTES.home}>
+          <PublicLink className="platform-btn platform-btn-primary" to={ROUTES.home}>
             Return Home
-          </Link>
-          <Link className="platform-btn platform-btn-outline" to={`${ROUTES.home}#diagnostics`}>
-            Explore Diagnostics
-          </Link>
+          </PublicLink>
+          <PublicLink className="platform-btn platform-btn-outline" to={ROUTES.solutions}>
+            Explore Solutions
+          </PublicLink>
         </div>
       </div>
     </section>

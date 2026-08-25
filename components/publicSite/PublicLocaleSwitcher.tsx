@@ -1,33 +1,35 @@
 import { useLocation, useNavigate } from 'react-router-dom'
-import { usePublicDocumentLang } from '../../publicSite/usePublicDocumentLang'
-import { withSpecializedLocale } from './locale'
-import type { SpecializedLocale } from './types'
+import { withPublicLocale, type PublicLocale } from './locale'
 
-export const useSpecializedDocumentLang = usePublicDocumentLang
-
-type SpecializedLocaleSwitcherProps = {
-  locale: SpecializedLocale
+type PublicLocaleSwitcherProps = {
+  locale: PublicLocale
   groupLabel: string
   englishLabel: string
   spanishLabel: string
+  className?: string
 }
 
-export default function SpecializedLocaleSwitcher({
+export default function PublicLocaleSwitcher({
   locale,
   groupLabel,
   englishLabel,
   spanishLabel,
-}: SpecializedLocaleSwitcherProps) {
+  className,
+}: PublicLocaleSwitcherProps) {
   const location = useLocation()
   const navigate = useNavigate()
 
-  function selectLocale(next: SpecializedLocale) {
+  function selectLocale(next: PublicLocale) {
     if (next === locale) return
-    navigate(withSpecializedLocale(location.pathname, next, location.search), { replace: true })
+    navigate(withPublicLocale(location.pathname, next, location.search), { replace: true })
   }
 
   return (
-    <div className="specialized-locale-switcher" role="group" aria-label={groupLabel}>
+    <div
+      className={`specialized-locale-switcher${className ? ` ${className}` : ''}`}
+      role="group"
+      aria-label={groupLabel}
+    >
       <button
         type="button"
         className={`specialized-locale-option${locale === 'en' ? ' is-current' : ''}`}

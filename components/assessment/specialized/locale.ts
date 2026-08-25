@@ -1,49 +1,23 @@
 import type {
   SpecializedCopyCatalog,
   SpecializedCopySection,
-  SpecializedLocale,
   SpecializedProductCopy,
 } from './types'
 import { SPECIALIZED_LOCALES } from './types'
+import {
+  isPublicLocale,
+  publicLocaleQuery,
+  readPublicLocale,
+  withPublicLocale,
+  type PublicLocale,
+} from '../../publicSite/locale'
 
-export function isSpecializedLocale(value: unknown): value is SpecializedLocale {
-  return value === 'en' || value === 'es'
-}
+export type SpecializedLocale = PublicLocale
 
-/**
- * Locale may later be chosen by `?lang=` / `?locale=` or a UI selector.
- * Spanish copy is a content-only fill-in; missing keys fall back to English.
- */
-export function readSpecializedLocale(search: string): SpecializedLocale {
-  const params = new URLSearchParams(search.startsWith('?') ? search : `?${search}`)
-  const raw = params.get('lang') ?? params.get('locale')
-  return isSpecializedLocale(raw) ? raw : 'en'
-}
-
-export function specializedLocaleQuery(locale: SpecializedLocale): string {
-  return locale === 'en' ? '' : `?lang=${locale}`
-}
-
-/**
- * Builds a path with the specialized locale while preserving existing
- * campaign / card / UTM query params. English omits `lang` (default).
- */
-export function withSpecializedLocale(
-  path: string,
-  locale: SpecializedLocale,
-  currentSearch = '',
-): string {
-  const raw = currentSearch.startsWith('?') ? currentSearch.slice(1) : currentSearch
-  const params = new URLSearchParams(raw)
-  params.delete('locale')
-  if (locale === 'en') {
-    params.delete('lang')
-  } else {
-    params.set('lang', locale)
-  }
-  const query = params.toString()
-  return query ? `${path}?${query}` : path
-}
+export const isSpecializedLocale = isPublicLocale
+export const readSpecializedLocale = readPublicLocale
+export const specializedLocaleQuery = publicLocaleQuery
+export const withSpecializedLocale = withPublicLocale
 
 export function resolveSpecializedCopy(
   catalogs: SpecializedProductCopy,
