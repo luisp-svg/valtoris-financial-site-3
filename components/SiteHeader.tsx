@@ -13,7 +13,7 @@ import {
   ABOUT_NAV_LINKS,
   BOOK_NAV,
   HOME_NAV,
-  SERVICES_NAV_LINKS,
+  SERVICES_NAV_GROUPS,
   TOOLS_NAV_LINKS,
 } from './publicSite/navConfig'
 
@@ -34,9 +34,13 @@ export default function SiteHeader() {
     setOpenMenu(null)
   }, [location.pathname])
 
-  const serviceItems = SERVICES_NAV_LINKS.map((item) => ({
-    to: item.to,
-    label: copy[item.labelKey],
+  const serviceGroups = SERVICES_NAV_GROUPS.map((group) => ({
+    id: group.id,
+    heading: copy[group.headingKey],
+    items: group.links.map((item) => ({
+      to: item.to,
+      label: copy[item.labelKey],
+    })),
   }))
   const toolItems = TOOLS_NAV_LINKS.map((item) => ({
     to: item.to,
@@ -57,7 +61,7 @@ export default function SiteHeader() {
             </PublicLink>
             <SiteNavDropdown
               label={copy.navServices}
-              items={serviceItems}
+              groups={serviceGroups}
               open={openMenu === 'services'}
               onOpenChange={setServicesOpen}
             />

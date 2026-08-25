@@ -80,6 +80,8 @@ const EXISTING_PUBLIC_PATHS = new Set<string>([
   ROUTES.insurance,
   ROUTES.healthDisability,
   ROUTES.businessFormation,
+  ROUTES.estateLegacy,
+  ROUTES.taxStrategy,
   ROUTES.checkup,
   ROUTES.schedule,
   ROUTES.privacy,
@@ -91,7 +93,7 @@ describe('public site foundation chrome', () => {
     expect(VISIBLE_TOP_LEVEL_NAV_IDS).toEqual(['home', 'services', 'tools'])
     expect(ABOUT_NAV_LINKS).toEqual([])
     const header = source('components/SiteHeader.tsx')
-    expect(header).toContain('SERVICES_NAV_LINKS')
+    expect(header).toContain('SERVICES_NAV_GROUPS')
     expect(header).toContain('TOOLS_NAV_LINKS')
     expect(header).not.toContain('copy.navContact')
     expect(header).not.toContain('to={ROUTES.reportCard}')
@@ -102,15 +104,16 @@ describe('public site foundation chrome', () => {
 
   it('maps Services and Tools menus to existing landing destinations', () => {
     expect(SERVICES_NAV_LINKS.map((item) => item.to)).toEqual([
-      ROUTES.solutions,
-      ROUTES.solutions,
       ROUTES.protectionAnalysis,
       ROUTES.retirementReportCard,
       ROUTES.insurance,
       ROUTES.healthDisability,
       ROUTES.credit,
       ROUTES.studentLoans,
+      ROUTES.estateLegacy,
       ROUTES.businessFormation,
+      ROUTES.taxStrategy,
+      ROUTES.solutions,
       ROUTES.solutions,
     ])
     expect(TOOLS_NAV_LINKS.map((item) => item.to)).toEqual([
@@ -278,6 +281,8 @@ describe('public site foundation chrome', () => {
       'ROUTES.insurance',
       'ROUTES.healthDisability',
       'ROUTES.businessFormation',
+      'ROUTES.estateLegacy',
+      'ROUTES.taxStrategy',
       'ROUTES.checkup',
       'ROUTES.schedule',
       'ROUTES.privacy',

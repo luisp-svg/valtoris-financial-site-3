@@ -241,6 +241,27 @@ main { flex: 1 0 auto; }
 .site-nav-dropdown.is-open .site-nav-menu {
   display: grid;
 }
+.site-nav-dropdown.is-open .site-nav-menu--grouped {
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  align-items: start;
+  gap: 8px 20px;
+  min-width: min(560px, calc(100vw - 48px));
+  max-height: min(70vh, 640px);
+}
+.site-nav-menu-group {
+  display: grid;
+  gap: 2px;
+}
+.site-nav-menu-group-heading {
+  margin: 0;
+  padding: 8px 12px 4px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
 .site-nav-menu[hidden] {
   display: none;
 }
@@ -507,6 +528,19 @@ main { flex: 1 0 auto; }
   .site-mobile-accordion-panel .site-mobile-link {
     font-weight: 600;
     color: var(--muted);
+  }
+  .site-mobile-nav-group {
+    display: grid;
+    gap: 2px;
+    margin: 0 0 10px;
+  }
+  .site-mobile-nav-group-heading {
+    margin: 8px 0 2px;
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
   }
   .site-mobile-advisor {
     color: var(--muted);
@@ -5287,7 +5321,40 @@ p { color: var(--muted); line-height: 1.7; }
 .site-service-compliance-copy {
   margin: 0;
   color: var(--platform-muted);
-  line-height: 1.6;
+  line-height: 1.55;
+}
+.site-service-partner,
+.site-service-related {
+  padding: 8px 0 28px;
+}
+.site-service-partner-panel {
+  max-width: 760px;
+  padding: 22px 24px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+}
+.site-service-partner-title {
+  margin: 8px 0 6px;
+  color: var(--brand);
+  font-size: 1.2rem;
+  line-height: 1.3;
+}
+.site-service-partner-name {
+  margin: 0 0 10px;
+  color: var(--brand);
+  font-weight: 700;
+}
+.site-service-partner-copy {
+  margin: 0;
+  color: var(--platform-muted);
+  line-height: 1.55;
+}
+.site-service-related .site-home-text-link {
+  display: inline-flex;
+  min-height: 44px;
+  margin-top: 12px;
+  align-items: center;
 }
 
 @media (max-width: 1100px) {

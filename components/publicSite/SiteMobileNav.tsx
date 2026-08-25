@@ -9,8 +9,9 @@ import {
   BOOK_NAV,
   COMPANY_FOOTER_LINKS,
   HOME_NAV,
-  SERVICES_NAV_LINKS,
+  SERVICES_NAV_GROUPS,
   TOOLS_NAV_LINKS,
+  type PublicNavGroup,
   type PublicNavLink,
 } from './navConfig'
 
@@ -25,12 +26,14 @@ function MobileAccordion({
   id,
   label,
   items,
+  groups,
   copy,
   onNavigate,
 }: {
   id: string
   label: string
-  items: readonly PublicNavLink[]
+  items?: readonly PublicNavLink[]
+  groups?: readonly PublicNavGroup[]
   copy: ChromeCopyCatalog
   onNavigate: () => void
 }) {
@@ -38,16 +41,32 @@ function MobileAccordion({
     <details className="site-mobile-accordion">
       <summary className="site-mobile-accordion-trigger">{label}</summary>
       <div className="site-mobile-accordion-panel" id={id}>
-        {items.map((item) => (
-          <PublicLink
-            key={`${item.id}-${item.to}`}
-            className="site-mobile-link"
-            to={item.to}
-            onClick={onNavigate}
-          >
-            {copy[item.labelKey]}
-          </PublicLink>
-        ))}
+        {groups
+          ? groups.map((group) => (
+              <div key={group.id} className="site-mobile-nav-group">
+                <p className="site-mobile-nav-group-heading">{copy[group.headingKey]}</p>
+                {group.links.map((item) => (
+                  <PublicLink
+                    key={`${item.id}-${item.to}`}
+                    className="site-mobile-link"
+                    to={item.to}
+                    onClick={onNavigate}
+                  >
+                    {copy[item.labelKey]}
+                  </PublicLink>
+                ))}
+              </div>
+            ))
+          : items?.map((item) => (
+              <PublicLink
+                key={`${item.id}-${item.to}`}
+                className="site-mobile-link"
+                to={item.to}
+                onClick={onNavigate}
+              >
+                {copy[item.labelKey]}
+              </PublicLink>
+            ))}
       </div>
     </details>
   )
@@ -147,7 +166,7 @@ export default function SiteMobileNav({ open, onClose, locale, copy }: SiteMobil
           <MobileAccordion
             id="site-mobile-services"
             label={copy.navServices}
-            items={SERVICES_NAV_LINKS}
+            groups={SERVICES_NAV_GROUPS}
             copy={copy}
             onNavigate={onClose}
           />

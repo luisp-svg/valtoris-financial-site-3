@@ -21,6 +21,8 @@ import CreditServicePage from '../pages/CreditServicePage'
 import InsuranceServicePage from '../pages/InsuranceServicePage'
 import HealthDisabilityServicePage from '../pages/HealthDisabilityServicePage'
 import BusinessFormationServicePage from '../pages/BusinessFormationServicePage'
+import EstateLegacyServicePage from '../pages/EstateLegacyServicePage'
+import TaxStrategyServicePage from '../pages/TaxStrategyServicePage'
 import StudentLoanReportCardPage from '../pages/StudentLoanReportCardPage'
 import StudentLoanAssessment from '../pages/StudentLoanAssessment'
 import StudentLoanReportCardResults from '../pages/StudentLoanReportCardResults'
@@ -191,6 +193,22 @@ export default function App() {
         element={
           <SiteLayout>
             <BusinessFormationServicePage />
+          </SiteLayout>
+        }
+      />
+      <Route
+        path={ROUTES.estateLegacy}
+        element={
+          <SiteLayout>
+            <EstateLegacyServicePage />
+          </SiteLayout>
+        }
+      />
+      <Route
+        path={ROUTES.taxStrategy}
+        element={
+          <SiteLayout>
+            <TaxStrategyServicePage />
           </SiteLayout>
         }
       />

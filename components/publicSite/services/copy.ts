@@ -42,6 +42,14 @@ export type ServiceCopy = {
   finalLead: string
   finalPrimaryCta: string
   finalSecondaryCta: string
+  partnerKicker?: string
+  partnerTitle?: string
+  partnerName?: string
+  partnerBody?: string
+  relatedKicker?: string
+  relatedTitle?: string
+  relatedBody?: string
+  relatedCta?: string
 }
 
 export const studentLoanServiceCopy: Record<PublicLocale, ServiceCopy> = {

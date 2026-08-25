@@ -103,6 +103,11 @@ export const businessFormationServiceCopy: Record<PublicLocale, ServiceCopy> = {
       'Book a business setup review, or explore broader business solutions first. The Business Report Card™ is available if you want a structured company diagnostic.',
     finalPrimaryCta: 'Book a Business Setup Review',
     finalSecondaryCta: 'Explore Business Solutions',
+    relatedKicker: 'Related planning',
+    relatedTitle: 'Tax Strategy Coordination',
+    relatedBody:
+      'Entity setup often raises tax-structure questions. Valtoris can help organize those questions and coordinate with qualified tax resources. Valtoris does not provide tax advice.',
+    relatedCta: 'Explore Tax Strategy',
   },
   es: {
     metaTitle: 'Constitución de negocio y LLC | Valtoris Financial',
@@ -205,5 +210,10 @@ export const businessFormationServiceCopy: Record<PublicLocale, ServiceCopy> = {
       'Agende una revisión de constitución, o explore primero las soluciones empresariales más amplias. El Business Report Card™ está disponible si quiere un diagnóstico estructurado de la empresa.',
     finalPrimaryCta: 'Agendar una revisión de constitución',
     finalSecondaryCta: 'Explorar soluciones para negocios',
+    relatedKicker: 'Planificación relacionada',
+    relatedTitle: 'Coordinación de estrategia fiscal',
+    relatedBody:
+      'La constitución de una entidad a menudo plantea preguntas de estructura fiscal. Valtoris puede ayudar a organizar esas preguntas y coordinarlas con recursos fiscales calificados. Valtoris no ofrece asesoría fiscal.',
+    relatedCta: 'Explorar estrategia fiscal',
   },
 }

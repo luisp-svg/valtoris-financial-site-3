@@ -83,13 +83,13 @@ export const HOME_SERVICE_CARDS: readonly HomeLinkItem[] = [
   },
   {
     id: 'estate',
-    to: ROUTES.solutions,
+    to: ROUTES.estateLegacy,
     titleKey: 'serviceEstateTitle',
     bodyKey: 'serviceEstateBody',
   },
   {
     id: 'tax',
-    to: ROUTES.solutions,
+    to: ROUTES.taxStrategy,
     titleKey: 'serviceTaxTitle',
     bodyKey: 'serviceTaxBody',
   },

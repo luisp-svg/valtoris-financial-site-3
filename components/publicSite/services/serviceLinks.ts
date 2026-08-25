@@ -7,6 +7,7 @@ export type ServiceLinks = {
   readonly bridgeSecondaryTo: string
   readonly finalPrimaryTo: string
   readonly finalSecondaryTo: string
+  readonly relatedTo?: string
 }
 
 export function reportCardServiceLinks(diagnosticTo: string): ServiceLinks {

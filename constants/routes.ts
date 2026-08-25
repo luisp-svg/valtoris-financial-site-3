@@ -21,6 +21,8 @@ export const ROUTES = {
   insurance: '/insurance',
   healthDisability: '/health-disability',
   businessFormation: '/business-formation',
+  estateLegacy: '/estate-legacy',
+  taxStrategy: '/tax-strategy',
   creditReportCard: '/credit-report-card',
   creditAssessment: '/credit-assessment',
   creditReportCardResults: '/credit-results',

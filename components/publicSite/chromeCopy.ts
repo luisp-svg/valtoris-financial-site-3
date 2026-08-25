@@ -24,6 +24,10 @@ export type ChromeCopyKey =
   | 'servicesInsurance'
   | 'servicesHealth'
   | 'servicesBusinessFormation'
+  | 'servicesEstate'
+  | 'servicesTax'
+  | 'servicesGroupIndividuals'
+  | 'servicesGroupBusiness'
   | 'servicesViewSolutions'
   | 'toolsFamily'
   | 'toolsBusiness'
@@ -66,6 +70,10 @@ export const chromeCopy: Record<PublicLocale, ChromeCopyCatalog> = {
     servicesInsurance: 'Insurance & Risk Management',
     servicesHealth: 'Health & Disability',
     servicesBusinessFormation: 'Business Formation',
+    servicesEstate: 'Estate & Legacy',
+    servicesTax: 'Tax Strategy',
+    servicesGroupIndividuals: 'Individuals & Families',
+    servicesGroupBusiness: 'Business',
     servicesViewSolutions: 'View Solutions',
     toolsFamily: 'Family Report Card™',
     toolsBusiness: 'Business Report Card™',
@@ -106,6 +114,10 @@ export const chromeCopy: Record<PublicLocale, ChromeCopyCatalog> = {
     servicesInsurance: 'Seguros y gestión de riesgo',
     servicesHealth: 'Salud y discapacidad',
     servicesBusinessFormation: 'Constitución de negocio',
+    servicesEstate: 'Patrimonio y legado',
+    servicesTax: 'Estrategia fiscal',
+    servicesGroupIndividuals: 'Personas y familias',
+    servicesGroupBusiness: 'Negocios',
     servicesViewSolutions: 'Ver soluciones',
     toolsFamily: 'Family Report Card™',
     toolsBusiness: 'Business Report Card™',

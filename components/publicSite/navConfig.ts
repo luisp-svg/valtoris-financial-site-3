@@ -13,18 +13,41 @@ export type PublicNavLink = {
   readonly labelKey: ChromeCopyKey
 }
 
-export const SERVICES_NAV_LINKS: readonly PublicNavLink[] = [
-  { id: 'families', to: ROUTES.solutions, labelKey: 'servicesFamilies' },
-  { id: 'business', to: ROUTES.solutions, labelKey: 'servicesBusiness' },
-  { id: 'protection', to: ROUTES.protectionAnalysis, labelKey: 'servicesProtection' },
-  { id: 'retirement', to: ROUTES.retirementReportCard, labelKey: 'servicesRetirement' },
-  { id: 'insurance', to: ROUTES.insurance, labelKey: 'servicesInsurance' },
-  { id: 'health', to: ROUTES.healthDisability, labelKey: 'servicesHealth' },
-  { id: 'credit', to: ROUTES.credit, labelKey: 'servicesCredit' },
-  { id: 'studentLoans', to: ROUTES.studentLoans, labelKey: 'servicesStudentLoans' },
-  { id: 'businessFormation', to: ROUTES.businessFormation, labelKey: 'servicesBusinessFormation' },
-  { id: 'viewSolutions', to: ROUTES.solutions, labelKey: 'servicesViewSolutions' },
+export type PublicNavGroup = {
+  readonly id: string
+  readonly headingKey: ChromeCopyKey
+  readonly links: readonly PublicNavLink[]
+}
+
+export const SERVICES_NAV_GROUPS: readonly PublicNavGroup[] = [
+  {
+    id: 'individuals',
+    headingKey: 'servicesGroupIndividuals',
+    links: [
+      { id: 'protection', to: ROUTES.protectionAnalysis, labelKey: 'servicesProtection' },
+      { id: 'retirement', to: ROUTES.retirementReportCard, labelKey: 'servicesRetirement' },
+      { id: 'insurance', to: ROUTES.insurance, labelKey: 'servicesInsurance' },
+      { id: 'health', to: ROUTES.healthDisability, labelKey: 'servicesHealth' },
+      { id: 'credit', to: ROUTES.credit, labelKey: 'servicesCredit' },
+      { id: 'studentLoans', to: ROUTES.studentLoans, labelKey: 'servicesStudentLoans' },
+      { id: 'estate', to: ROUTES.estateLegacy, labelKey: 'servicesEstate' },
+    ],
+  },
+  {
+    id: 'business',
+    headingKey: 'servicesGroupBusiness',
+    links: [
+      { id: 'businessFormation', to: ROUTES.businessFormation, labelKey: 'servicesBusinessFormation' },
+      { id: 'tax', to: ROUTES.taxStrategy, labelKey: 'servicesTax' },
+      { id: 'business', to: ROUTES.solutions, labelKey: 'servicesBusiness' },
+      { id: 'viewSolutions', to: ROUTES.solutions, labelKey: 'servicesViewSolutions' },
+    ],
+  },
 ]
+
+export const SERVICES_NAV_LINKS: readonly PublicNavLink[] = SERVICES_NAV_GROUPS.flatMap(
+  (group) => group.links,
+)
 
 export const TOOLS_NAV_LINKS: readonly PublicNavLink[] = [
   { id: 'family', to: ROUTES.reportCard, labelKey: 'toolsFamily' },
@@ -75,11 +98,13 @@ export const FAMILIES_FOOTER_LINKS: readonly PublicNavLink[] = [
   { id: 'health', to: ROUTES.healthDisability, labelKey: 'servicesHealth' },
   { id: 'credit', to: ROUTES.credit, labelKey: 'servicesCredit' },
   { id: 'studentLoans', to: ROUTES.studentLoans, labelKey: 'servicesStudentLoans' },
+  { id: 'estate', to: ROUTES.estateLegacy, labelKey: 'servicesEstate' },
 ]
 
 export const BUSINESS_FOOTER_LINKS: readonly PublicNavLink[] = [
   { id: 'businessOwners', to: ROUTES.solutions, labelKey: 'servicesBusiness' },
   { id: 'businessFormation', to: ROUTES.businessFormation, labelKey: 'servicesBusinessFormation' },
+  { id: 'tax', to: ROUTES.taxStrategy, labelKey: 'servicesTax' },
   { id: 'businessReportCard', to: ROUTES.businessReportCard, labelKey: 'toolsBusiness' },
 ]
 

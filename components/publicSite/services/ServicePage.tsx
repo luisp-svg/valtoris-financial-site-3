@@ -5,7 +5,9 @@ import ServiceCompliance from './ServiceCompliance'
 import ServiceDiagnosticBridge from './ServiceDiagnosticBridge'
 import ServiceFinalCta from './ServiceFinalCta'
 import ServiceHero from './ServiceHero'
+import ServicePartner from './ServicePartner'
 import ServiceProcess from './ServiceProcess'
+import ServiceRelated from './ServiceRelated'
 import ServiceReviewAreas from './ServiceReviewAreas'
 import { useServiceDocumentMeta } from './useServiceDocumentMeta'
 
@@ -22,6 +24,8 @@ export default function ServicePage({ copy, links }: ServicePageProps) {
       <ServiceHero copy={copy} primaryTo={links.primaryTo} secondaryTo={links.secondaryTo} />
       <ServiceAudience copy={copy} />
       <ServiceReviewAreas copy={copy} />
+      <ServicePartner copy={copy} />
+      <ServiceRelated copy={copy} to={links.relatedTo} />
       <ServiceProcess copy={copy} />
       <ServiceDiagnosticBridge
         copy={copy}

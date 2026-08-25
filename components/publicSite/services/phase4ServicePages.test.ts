@@ -112,15 +112,16 @@ describe('Phase 4 insurance, health, and business formation service pages', () =
 
   it('points Services at the new pages and leaves Tools on the six diagnostics', () => {
     expect(SERVICES_NAV_LINKS.map((item) => item.id)).toEqual([
-      'families',
-      'business',
       'protection',
       'retirement',
       'insurance',
       'health',
       'credit',
       'studentLoans',
+      'estate',
       'businessFormation',
+      'tax',
+      'business',
       'viewSolutions',
     ])
     expect(SERVICES_NAV_LINKS.find((item) => item.id === 'insurance')?.to).toBe(ROUTES.insurance)

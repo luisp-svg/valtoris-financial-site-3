@@ -2,22 +2,21 @@ import { useLocation } from 'react-router-dom'
 import { ROUTES } from '../constants/routes'
 import { readPublicLocale } from '../components/publicSite/locale'
 import ServicePage from '../components/publicSite/services/ServicePage'
-import { businessFormationServiceCopy } from '../components/publicSite/services/businessFormationCopy'
+import { estateServiceCopy } from '../components/publicSite/services/estateCopy'
 import type { ServiceLinks } from '../components/publicSite/services/serviceLinks'
 
-const FORMATION_LINKS: ServiceLinks = {
+const ESTATE_LINKS: ServiceLinks = {
   primaryTo: ROUTES.schedule,
   secondaryTo: ROUTES.solutions,
-  bridgePrimaryTo: ROUTES.businessReportCard,
-  bridgeSecondaryTo: ROUTES.schedule,
+  bridgePrimaryTo: ROUTES.reportCard,
+  bridgeSecondaryTo: ROUTES.protectionAnalysis,
   finalPrimaryTo: ROUTES.schedule,
   finalSecondaryTo: ROUTES.solutions,
-  relatedTo: ROUTES.taxStrategy,
 }
 
-export default function BusinessFormationServicePage() {
+export default function EstateLegacyServicePage() {
   const location = useLocation()
   const locale = readPublicLocale(location.search)
 
-  return <ServicePage copy={businessFormationServiceCopy[locale]} links={FORMATION_LINKS} />
+  return <ServicePage copy={estateServiceCopy[locale]} links={ESTATE_LINKS} />
 }
