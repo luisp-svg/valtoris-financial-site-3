@@ -16,6 +16,8 @@ function CategoryAccordionItem({
   statusLabels,
   statusMetricLabel,
   recommendationsSubhead,
+  currentScoreLabel,
+  letterGradeLabel,
 }: {
   category: CategoryScore
   isOpen: boolean
@@ -23,6 +25,8 @@ function CategoryAccordionItem({
   statusLabels: ReportDashboardData['statusLabels']
   statusMetricLabel?: string
   recommendationsSubhead: string
+  currentScoreLabel: string
+  letterGradeLabel: string
 }) {
   const statusLabel =
     category.status === 'strength'
@@ -61,10 +65,10 @@ function CategoryAccordionItem({
         <div className="rd-accordion-panel-inner">
           <div className="rd-accordion-metrics">
             <span className="rd-accordion-metric">
-              Current Score <strong>{category.score}</strong>/100
+              {currentScoreLabel} <strong>{category.score}</strong>/100
             </span>
             <span className="rd-accordion-metric">
-              Letter Grade <strong>{category.grade}</strong>
+              {letterGradeLabel} <strong>{category.grade}</strong>
             </span>
             {statusMetricLabel ? (
               <span className="rd-accordion-metric">
@@ -90,6 +94,9 @@ function CategoryAccordionItem({
 }
 
 export default function ReportDashboard({ data }: ReportDashboardProps) {
+  const chrome = data.chrome ?? {}
+  const currentScoreLabel = chrome.currentScore ?? 'Current Score'
+  const letterGradeLabel = chrome.letterGrade ?? 'Letter Grade'
   const [openCategories, setOpenCategories] = useState<string[]>([data.defaultOpenCategory])
 
   function toggleCategory(id: string) {
@@ -143,7 +150,7 @@ export default function ReportDashboard({ data }: ReportDashboardProps) {
       <section className="rd-section" aria-labelledby="rd-glance-title">
         <div className="rd-section-head">
           <h2 id="rd-glance-title" className="rd-section-title">
-            At a Glance
+            {chrome.atAGlance ?? 'At a Glance'}
           </h2>
           <p className="rd-section-lead">{data.glanceLead}</p>
         </div>
@@ -175,16 +182,19 @@ export default function ReportDashboard({ data }: ReportDashboardProps) {
         <section className="rd-section" aria-labelledby="rd-insights-title">
           <div className="rd-section-head">
             <h2 id="rd-insights-title" className="rd-section-title">
-              Strengths &amp; Opportunities
+              {chrome.insightsTitle ?? 'Strengths & Opportunities'}
             </h2>
             <p className="rd-section-lead">
-              Where your family is strongest today and where the highest-impact improvements live.
+              {chrome.insightsLead ??
+                'Where your family is strongest today and where the highest-impact improvements live.'}
             </p>
           </div>
 
           <div className="rd-insights-grid">
             <article className="rd-insight-panel rd-insight-panel-strengths">
-              <h3 className="rd-insight-panel-title">Greatest Strengths</h3>
+              <h3 className="rd-insight-panel-title">
+                {chrome.greatestStrengths ?? 'Greatest Strengths'}
+              </h3>
               <ul className="rd-insight-list">
                 {data.strengths.map((item) => (
                   <li key={item}>{item}</li>
@@ -193,7 +203,9 @@ export default function ReportDashboard({ data }: ReportDashboardProps) {
             </article>
 
             <article className="rd-insight-panel rd-insight-panel-opportunities">
-              <h3 className="rd-insight-panel-title">Biggest Opportunities</h3>
+              <h3 className="rd-insight-panel-title">
+                {chrome.biggestOpportunities ?? 'Biggest Opportunities'}
+              </h3>
               <ul className="rd-insight-list">
                 {data.opportunities.map((item) => (
                   <li key={item}>{item}</li>
@@ -208,10 +220,11 @@ export default function ReportDashboard({ data }: ReportDashboardProps) {
         <section className="rd-section" aria-labelledby="rd-protection-title">
           <div className="rd-section-head">
             <h2 id="rd-protection-title" className="rd-section-title">
-              Protection Analysis
+              {chrome.protectionTitle ?? 'Protection Analysis'}
             </h2>
             <p className="rd-section-lead">
-              How well your current coverage protects your family&apos;s income and lifestyle.
+              {chrome.protectionLead ??
+                "How well your current coverage protects your family's income and lifestyle."}
             </p>
           </div>
 
@@ -243,6 +256,16 @@ export default function ReportDashboard({ data }: ReportDashboardProps) {
                 rank={index + 1}
                 featured={index === 0}
                 impactLabel={data.impactLabel}
+                whyLabel={chrome.whyThisMatters}
+                timelineLabel={chrome.recommendedTimeline}
+                rankLabel={chrome.priorityRank}
+                levelLabel={
+                  priority.level === 'Critical'
+                    ? chrome.levelCritical
+                    : priority.level === 'Important'
+                      ? chrome.levelImportant
+                      : chrome.levelLongTerm
+                }
               />
             </div>
           ))}
@@ -260,9 +283,9 @@ export default function ReportDashboard({ data }: ReportDashboardProps) {
         <div className="rd-plan-grid">
           {(
             [
-              { key: 'immediate', label: 'Immediate', items: data.actionPlan.immediate },
-              { key: 'thirtyDay', label: '30 Days', items: data.actionPlan.thirtyDay },
-              { key: 'ninetyDay', label: '90 Days', items: data.actionPlan.ninetyDay },
+              { key: 'immediate', label: chrome.immediate ?? 'Immediate', items: data.actionPlan.immediate },
+              { key: 'thirtyDay', label: chrome.thirtyDays ?? '30 Days', items: data.actionPlan.thirtyDay },
+              { key: 'ninetyDay', label: chrome.ninetyDays ?? '90 Days', items: data.actionPlan.ninetyDay },
             ] as const
           ).map((column, index) => (
             <article key={column.key} className="rd-plan-column">
@@ -303,6 +326,8 @@ export default function ReportDashboard({ data }: ReportDashboardProps) {
               statusLabels={data.statusLabels}
               statusMetricLabel={data.statusMetricLabel}
               recommendationsSubhead={data.recommendationsSubhead}
+              currentScoreLabel={currentScoreLabel}
+              letterGradeLabel={letterGradeLabel}
             />
           ))}
         </div>

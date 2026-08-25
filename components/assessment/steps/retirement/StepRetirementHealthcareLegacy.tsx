@@ -2,6 +2,7 @@ import CurrencyInput from '../../CurrencyInput'
 import OptionGroup from '../../../calculator/OptionGroup'
 import QuestionCard from '../../QuestionCard'
 import YesNoInput from '../../YesNoInput'
+import { localizedOptions, type ReportCardCopyFn } from '../../reportCardLocale'
 import {
   LEGACY_INTENT_OPTIONS,
   LONG_TERM_CARE_OPTIONS,
@@ -10,6 +11,7 @@ import {
 import { RetirementEstateAnswers, RetirementHealthcareAnswers } from '../../retirement/types'
 
 type StepRetirementHealthcareLegacyProps = {
+  t: ReportCardCopyFn
   healthcare: RetirementHealthcareAnswers
   estate: RetirementEstateAnswers
   onHealthcareChange: (field: keyof RetirementHealthcareAnswers, value: string) => void
@@ -17,76 +19,85 @@ type StepRetirementHealthcareLegacyProps = {
 }
 
 export default function StepRetirementHealthcareLegacy({
+  t,
   healthcare,
   estate,
   onHealthcareChange,
   onEstateChange,
 }: StepRetirementHealthcareLegacyProps) {
+  const yesLabel = t('answers', 'yes')
+  const noLabel = t('answers', 'no')
+
   return (
-    <QuestionCard
-      title="Healthcare, Protection & Legacy"
-      description="Review healthcare readiness and the documents that protect your family and legacy goals."
-    >
+    <QuestionCard title={t('ui', 'step8Title')} description={t('helpers', 'step8')}>
       <form className="assessment-form" onSubmit={(event) => event.preventDefault()}>
-        <h3 className="assessment-section-heading">Healthcare & Long-Term Care</h3>
+        <h3 className="assessment-section-heading">{t('fields', 'healthcareHeading')}</h3>
         <OptionGroup
-          label="How prepared are you for Medicare enrollment and planning?"
+          label={t('fields', 'medicareReadiness')}
           name="medicareReadiness"
-          options={MEDICARE_READINESS_OPTIONS}
+          options={localizedOptions(MEDICARE_READINESS_OPTIONS, t, 'medicareReadiness')}
           value={healthcare.medicareReadiness}
           onChange={(value) => onHealthcareChange('medicareReadiness', value)}
           required
         />
         <OptionGroup
-          label="What is your long-term-care funding approach?"
+          label={t('fields', 'longTermCarePlan')}
           name="longTermCarePlan"
-          options={LONG_TERM_CARE_OPTIONS}
+          options={localizedOptions(LONG_TERM_CARE_OPTIONS, t, 'longTermCarePlan')}
           value={healthcare.longTermCarePlan}
           onChange={(value) => onHealthcareChange('longTermCarePlan', value)}
           required
         />
         <CurrencyInput
-          label="Current HSA Balance"
+          label={t('fields', 'hsaBalance')}
           name="hsaBalance"
           value={healthcare.hsaBalance}
           onChange={(value) => onHealthcareChange('hsaBalance', value)}
-          placeholder="8,000"
+          placeholder={t('placeholders', 'hsa')}
           required
         />
 
-        <h3 className="assessment-section-heading">Estate, Beneficiaries & Legacy</h3>
+        <h3 className="assessment-section-heading">{t('fields', 'estateHeading')}</h3>
         <YesNoInput
-          label="Do you have a will?"
+          label={t('fields', 'hasWill')}
           name="hasWill"
           value={estate.hasWill}
           onChange={(value) => onEstateChange('hasWill', value)}
+          yesLabel={yesLabel}
+          noLabel={noLabel}
           required
         />
         <YesNoInput
-          label="Do you have a trust?"
+          label={t('fields', 'hasTrust')}
           name="hasTrust"
           value={estate.hasTrust}
           onChange={(value) => onEstateChange('hasTrust', value)}
+          yesLabel={yesLabel}
+          noLabel={noLabel}
           required
         />
         <YesNoInput
-          label="Have you reviewed beneficiaries on major accounts in the last 2–3 years?"
+          label={t('fields', 'beneficiariesReviewed')}
           name="beneficiariesReviewed"
           value={estate.beneficiariesReviewed}
           onChange={(value) => onEstateChange('beneficiariesReviewed', value)}
+          yesLabel={yesLabel}
+          noLabel={noLabel}
           required
         />
         <YesNoInput
-          label="Do you have a durable power of attorney?"
+          label={t('fields', 'hasPowerOfAttorney')}
           name="hasPowerOfAttorney"
           value={estate.hasPowerOfAttorney}
           onChange={(value) => onEstateChange('hasPowerOfAttorney', value)}
+          yesLabel={yesLabel}
+          noLabel={noLabel}
           required
         />
         <OptionGroup
-          label="How would you describe your legacy / inheritance intent?"
+          label={t('fields', 'legacyIntent')}
           name="legacyIntent"
-          options={LEGACY_INTENT_OPTIONS}
+          options={localizedOptions(LEGACY_INTENT_OPTIONS, t, 'legacyIntent')}
           value={estate.legacyIntent}
           onChange={(value) => onEstateChange('legacyIntent', value)}
           required

@@ -1,6 +1,7 @@
 import ChoiceGroup from '../../ChoiceGroup'
 import OptionGroup from '../../../calculator/OptionGroup'
 import QuestionCard from '../../QuestionCard'
+import { localizedOptions, type ReportCardCopyFn } from '../../reportCardLocale'
 import {
   ALLOCATION_REVIEW_OPTIONS,
   DIVERSIFICATION_OPTIONS,
@@ -12,6 +13,7 @@ import {
 import { RetirementInvestmentAnswers, RetirementTaxAnswers } from '../../retirement/types'
 
 type StepRetirementInvestmentsTaxProps = {
+  t: ReportCardCopyFn
   investments: RetirementInvestmentAnswers
   tax: RetirementTaxAnswers
   onInvestmentsChange: (field: keyof RetirementInvestmentAnswers, value: string) => void
@@ -20,6 +22,7 @@ type StepRetirementInvestmentsTaxProps = {
 }
 
 export default function StepRetirementInvestmentsTax({
+  t,
   investments,
   tax,
   onInvestmentsChange,
@@ -27,58 +30,55 @@ export default function StepRetirementInvestmentsTax({
   onAccountTypesChange,
 }: StepRetirementInvestmentsTaxProps) {
   return (
-    <QuestionCard
-      title="Investments & Taxes"
-      description="Share how you invest today and how your accounts are structured for tax flexibility."
-    >
+    <QuestionCard title={t('ui', 'step7Title')} description={t('helpers', 'step7')}>
       <form className="assessment-form" onSubmit={(event) => event.preventDefault()}>
-        <h3 className="assessment-section-heading">Investment Risk & Diversification</h3>
+        <h3 className="assessment-section-heading">{t('fields', 'investmentsHeading')}</h3>
         <OptionGroup
-          label="How would you describe your investment risk tolerance?"
+          label={t('fields', 'riskTolerance')}
           name="riskTolerance"
-          options={RISK_TOLERANCE_OPTIONS}
+          options={localizedOptions(RISK_TOLERANCE_OPTIONS, t, 'riskTolerance')}
           value={investments.riskTolerance}
           onChange={(value) => onInvestmentsChange('riskTolerance', value)}
           required
         />
         <OptionGroup
-          label="How diversified are your retirement investments?"
+          label={t('fields', 'diversification')}
           name="diversification"
-          options={DIVERSIFICATION_OPTIONS}
+          options={localizedOptions(DIVERSIFICATION_OPTIONS, t, 'diversification')}
           value={investments.diversification}
           onChange={(value) => onInvestmentsChange('diversification', value)}
           required
         />
         <OptionGroup
-          label="When did you last formally review your allocation?"
+          label={t('fields', 'allocationReview')}
           name="allocationReview"
-          options={ALLOCATION_REVIEW_OPTIONS}
+          options={localizedOptions(ALLOCATION_REVIEW_OPTIONS, t, 'allocationReview')}
           value={investments.allocationReview}
           onChange={(value) => onInvestmentsChange('allocationReview', value)}
           required
         />
 
-        <h3 className="assessment-section-heading">Tax Diversification & Efficiency</h3>
+        <h3 className="assessment-section-heading">{t('fields', 'taxHeading')}</h3>
         <ChoiceGroup
-          label="Which retirement account types do you currently use?"
+          label={t('fields', 'accountTypes')}
           name="accountTypes"
-          options={RETIREMENT_ACCOUNT_TYPE_OPTIONS}
+          options={localizedOptions(RETIREMENT_ACCOUNT_TYPE_OPTIONS, t, 'accountTypes')}
           selected={tax.accountTypes}
           onChange={onAccountTypesChange}
           required
         />
         <OptionGroup
-          label="How would you describe your tax planning for retirement?"
+          label={t('fields', 'taxPlanning')}
           name="taxPlanning"
-          options={TAX_PLANNING_OPTIONS}
+          options={localizedOptions(TAX_PLANNING_OPTIONS, t, 'taxPlanning')}
           value={tax.taxPlanning}
           onChange={(value) => onTaxChange('taxPlanning', value)}
           required
         />
         <OptionGroup
-          label="How actively do you use Roth contributions or conversions?"
+          label={t('fields', 'rothUsage')}
           name="rothUsage"
-          options={ROTH_USAGE_OPTIONS}
+          options={localizedOptions(ROTH_USAGE_OPTIONS, t, 'rothUsage')}
           value={tax.rothUsage}
           onChange={(value) => onTaxChange('rothUsage', value)}
           required

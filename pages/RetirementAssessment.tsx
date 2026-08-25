@@ -4,6 +4,10 @@ import { ROUTES } from '../constants/routes'
 import AssessmentLayout from '../components/assessment/AssessmentLayout'
 import NavigationButtons from '../components/assessment/NavigationButtons'
 import FamilyConsentSection from '../components/assessment/steps/FamilyConsentSection'
+import { retirementCopy } from '../components/assessment/retirement/copy'
+import { useReportCardCopy } from '../components/assessment/reportCardLocale'
+import { formatSpecializedTemplate } from '../components/assessment/specialized/locale'
+import SpecializedLocaleSwitcher from '../components/assessment/specialized/SpecializedLocaleSwitcher'
 import {
   RETIREMENT_ANSWERS_STORAGE_KEY,
   RETIREMENT_ASSESSMENT_STEPS,
@@ -38,6 +42,7 @@ import StepRetirementContact from '../components/assessment/steps/retirement/Ste
 
 export default function RetirementAssessment() {
   const navigate = useNavigate()
+  const { locale, t, withLocale } = useReportCardCopy(retirementCopy)
   const [currentStep, setCurrentStep] = useState(1)
   const [answers, setAnswers] = useState<RetirementAssessmentAnswers>(INITIAL_RETIREMENT_ANSWERS)
   const [consent, setConsent] = useState<FamilyConsentState>(INITIAL_FAMILY_CONSENT_STATE)
@@ -193,7 +198,7 @@ export default function RetirementAssessment() {
 
   function handleBack() {
     if (currentStep === 1) {
-      navigate(ROUTES.retirementReportCard)
+      navigate(withLocale(ROUTES.retirementReportCard))
       return
     }
     setCurrentStep((step) => step - 1)
@@ -256,7 +261,7 @@ export default function RetirementAssessment() {
       return
     }
 
-    navigate(ROUTES.retirementReportCardResults, {
+    navigate(withLocale(ROUTES.retirementReportCardResults), {
       state: { answers: finalAnswers, submissionSaved: true, submissionId: result.submissionId },
     })
   }
@@ -273,22 +278,42 @@ export default function RetirementAssessment() {
     await completeRetirementAssessment(answersRef.current)
   }
 
+  const displayError =
+    submitError === 'Please confirm the required acknowledgments before viewing your report.'
+      ? t('validation', 'consentRequired')
+      : submitError
+        ? t('validation', 'submitFailed')
+        : null
+
   return (
     <AssessmentLayout
       currentStep={currentStep}
       totalSteps={RETIREMENT_ASSESSMENT_STEPS}
+      stepIndicator={formatSpecializedTemplate(t('ui', 'stepIndicator'), {
+        current: currentStep,
+        total: RETIREMENT_ASSESSMENT_STEPS,
+      })}
+      headerExtra={
+        <SpecializedLocaleSwitcher
+          locale={locale}
+          groupLabel={t('ui', 'languageGroupLabel')}
+          englishLabel={t('ui', 'languageEnglish')}
+          spanishLabel={t('ui', 'languageSpanish')}
+        />
+      }
       footer={
         currentStep === 1 ? null : (
           <NavigationButtons
             onBack={handleBack}
             onContinue={handleContinue}
             continueDisabled={!canContinue || isSubmitting}
+            backLabel={t('ui', 'back')}
             continueLabel={
               isSubmitting
-                ? 'Saving your Retirement Report Card…'
+                ? t('ui', 'saving')
                 : currentStep === RETIREMENT_ASSESSMENT_STEPS
-                  ? 'View My Retirement Report Card'
-                  : 'Continue'
+                  ? t('ui', 'viewResults')
+                  : t('ui', 'continue')
             }
           />
         )
@@ -296,12 +321,14 @@ export default function RetirementAssessment() {
     >
       {currentStep === 1 && (
         <StepRetirementWelcome
+          t={t}
           onBegin={handleBegin}
-          onBack={() => navigate(ROUTES.retirementReportCard)}
+          onBack={() => navigate(withLocale(ROUTES.retirementReportCard))}
         />
       )}
       {currentStep === 2 && (
         <StepRetirementHousehold
+          t={t}
           household={answers.household}
           vision={answers.vision}
           onHouseholdChange={updateHousehold}
@@ -309,13 +336,14 @@ export default function RetirementAssessment() {
         />
       )}
       {currentStep === 3 && (
-        <StepRetirementSpending lifestyle={answers.lifestyle} onChange={updateLifestyle} />
+        <StepRetirementSpending t={t} lifestyle={answers.lifestyle} onChange={updateLifestyle} />
       )}
       {currentStep === 4 && (
-        <StepRetirementSavings savings={answers.savings} onChange={updateSavings} />
+        <StepRetirementSavings t={t} savings={answers.savings} onChange={updateSavings} />
       )}
       {currentStep === 5 && (
         <StepRetirementIncomeSources
+          t={t}
           household={answers.household}
           incomeSources={answers.incomeSources}
           onChange={updateIncomeSources}
@@ -323,6 +351,7 @@ export default function RetirementAssessment() {
       )}
       {currentStep === 6 && (
         <StepRetirementSustainability
+          t={t}
           goals={answers.goals}
           incomeSources={answers.incomeSources}
           onGoalsChange={updateGoals}
@@ -331,6 +360,7 @@ export default function RetirementAssessment() {
       )}
       {currentStep === 7 && (
         <StepRetirementInvestmentsTax
+          t={t}
           investments={answers.investments}
           tax={answers.tax}
           onInvestmentsChange={updateInvestments}
@@ -340,6 +370,7 @@ export default function RetirementAssessment() {
       )}
       {currentStep === 8 && (
         <StepRetirementHealthcareLegacy
+          t={t}
           healthcare={answers.healthcare}
           estate={answers.estate}
           onHealthcareChange={updateHealthcare}
@@ -349,6 +380,7 @@ export default function RetirementAssessment() {
       {currentStep === 9 && (
         <>
           <StepRetirementContact
+            t={t}
             household={answers.household}
             leadDetails={answers.leadDetails}
             onHouseholdChange={updateHousehold}
@@ -362,18 +394,35 @@ export default function RetirementAssessment() {
             onChange={updateConsent}
             honeypotValue={honeypotWebsite}
             onHoneypotChange={setHoneypotWebsite}
-            productTitle="Retirement Report Card™"
-            storageResultName="Retirement Report Card"
-            intro="Your Retirement Report Card™ is based on the information you shared. Required acknowledgments are marked with an asterisk."
+            productTitle={t('ui', 'productTitle')}
+            storageResultName={t('ui', 'storageResultName')}
+            intro={t('ui', 'consentIntro')}
+            labels={{
+              heading: t('ui', 'consentHeading'),
+              storage: t('ui', 'consentStorage'),
+              storageHint: t('ui', 'consentStorageHint'),
+              storageError: t('ui', 'consentStorageError'),
+              contact: t('ui', 'consentContact'),
+              emailMarketing: t('ui', 'consentEmailMarketing'),
+              sms: t('ui', 'consentSms'),
+              smsPhoneNote: t('ui', 'consentSmsPhoneNote'),
+              privacyBefore: t('ui', 'consentPrivacyBefore'),
+              privacyLink: t('ui', 'consentPrivacyLink'),
+              privacyAfter: t('ui', 'consentPrivacyAfter'),
+              privacyHint: t('ui', 'consentPrivacyHint'),
+              privacyError: t('ui', 'consentPrivacyError'),
+              disclaimer: t('ui', 'consentDisclaimer'),
+              honeypot: t('ui', 'consentHoneypot'),
+            }}
           />
           {isSubmitting ? (
             <p className="family-submit-status" role="status" aria-live="polite">
-              Saving your Retirement Report Card…
+              {t('ui', 'saving')}
             </p>
           ) : null}
-          {submitError ? (
+          {displayError ? (
             <p className="family-submit-error" role="alert">
-              {submitError}
+              {displayError}
             </p>
           ) : null}
         </>

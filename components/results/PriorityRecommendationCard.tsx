@@ -12,6 +12,10 @@ type PriorityRecommendationCardProps = PriorityRecommendation & {
   rank?: number
   featured?: boolean
   impactLabel?: string
+  whyLabel?: string
+  timelineLabel?: string
+  rankLabel?: string
+  levelLabel?: string
 }
 
 export default function PriorityRecommendationCard({
@@ -23,6 +27,10 @@ export default function PriorityRecommendationCard({
   rank,
   featured = false,
   impactLabel = 'Expected impact',
+  whyLabel = 'Why this matters',
+  timelineLabel = 'Recommended timeline',
+  rankLabel = 'Priority #{rank}',
+  levelLabel,
 }: PriorityRecommendationCardProps) {
   const levelClass = level.toLowerCase().replace('-', '')
 
@@ -30,11 +38,13 @@ export default function PriorityRecommendationCard({
     <article
       className={`priority-card priority-card-${levelClass}${featured ? ' priority-card-featured' : ''}`}
     >
-      {rank ? <span className="priority-rank-label">Priority #{rank}</span> : null}
-      <span className={`priority-badge priority-badge-${levelClass}`}>{level}</span>
+      {rank ? (
+        <span className="priority-rank-label">{rankLabel.replace('{rank}', String(rank))}</span>
+      ) : null}
+      <span className={`priority-badge priority-badge-${levelClass}`}>{levelLabel ?? level}</span>
       <h3 className="priority-title">{title}</h3>
       <div className="priority-detail">
-        <span className="priority-detail-label">Why this matters</span>
+        <span className="priority-detail-label">{whyLabel}</span>
         <p className="priority-detail-text">{why}</p>
       </div>
       {impact ? (
@@ -44,7 +54,7 @@ export default function PriorityRecommendationCard({
         </div>
       ) : null}
       <div className="priority-detail">
-        <span className="priority-detail-label">Recommended timeline</span>
+        <span className="priority-detail-label">{timelineLabel}</span>
         <p className="priority-timeline">{timeline}</p>
       </div>
     </article>

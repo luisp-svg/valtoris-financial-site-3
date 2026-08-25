@@ -1,6 +1,7 @@
 import OptionGroup from '../../../calculator/OptionGroup'
 import QuestionCard from '../../QuestionCard'
 import YesNoInput from '../../YesNoInput'
+import { localizedOptions, type ReportCardCopyFn } from '../../reportCardLocale'
 import {
   CARD_SALES_PERCENTAGE_OPTIONS,
   ESTIMATED_PROCESSING_RATE_OPTIONS,
@@ -16,72 +17,76 @@ import { CashFlowTaxAnswers } from '../../business/types'
 type StepCashFlowTaxProps = {
   answers: CashFlowTaxAnswers
   onChange: (field: keyof CashFlowTaxAnswers, value: string) => void
+  t: ReportCardCopyFn
 }
 
-export default function StepCashFlowTax({ answers, onChange }: StepCashFlowTaxProps) {
+export default function StepCashFlowTax({ answers, onChange, t }: StepCashFlowTaxProps) {
   const acceptsCards = answers.acceptsCardPayments === 'yes'
 
   return (
-    <QuestionCard
-      title="Cash Flow & Tax Strategy"
-      description="Operating liquidity, payment processing awareness, and tax planning."
-    >
+    <QuestionCard title={t('ui', 'step4Title')} description={t('helpers', 'step4')}>
       <form className="assessment-form" onSubmit={(event) => event.preventDefault()}>
         <OptionGroup
-          label="How would you describe your business operating cash flow?"
+          label={t('fields', 'operatingCashFlow')}
           name="operatingCashFlow"
-          options={OPERATING_CASH_FLOW_OPTIONS}
+          options={localizedOptions(OPERATING_CASH_FLOW_OPTIONS, t, 'operatingCashFlow')}
           value={answers.operatingCashFlow}
           onChange={(value) => onChange('operatingCashFlow', value)}
           required
         />
         <OptionGroup
-          label="How many months of operating expenses do you keep in business reserves?"
+          label={t('fields', 'reserveMonths')}
           name="reserveMonths"
-          options={RESERVE_MONTHS_OPTIONS}
+          options={localizedOptions(RESERVE_MONTHS_OPTIONS, t, 'reserveMonths')}
           value={answers.reserveMonths}
           onChange={(value) => onChange('reserveMonths', value)}
           required
         />
         <OptionGroup
-          label="How predictable is your revenue?"
+          label={t('fields', 'revenuePredictability')}
           name="revenuePredictability"
-          options={REVENUE_PREDICTABILITY_OPTIONS}
+          options={localizedOptions(REVENUE_PREDICTABILITY_OPTIONS, t, 'revenuePredictability')}
           value={answers.revenuePredictability}
           onChange={(value) => onChange('revenuePredictability', value)}
           required
         />
 
         <YesNoInput
-          label="Does your business accept credit or debit card payments?"
+          label={t('fields', 'acceptsCardPayments')}
           name="acceptsCardPayments"
           value={answers.acceptsCardPayments}
           onChange={(value) => onChange('acceptsCardPayments', value)}
+          yesLabel={t('answers', 'yes')}
+          noLabel={t('answers', 'no')}
           required
         />
 
         {acceptsCards ? (
           <div className="assessment-subsection">
             <OptionGroup
-              label="Approximately what percentage of your sales are paid by card?"
+              label={t('fields', 'cardSalesPercentage')}
               name="cardSalesPercentage"
-              options={CARD_SALES_PERCENTAGE_OPTIONS}
+              options={localizedOptions(CARD_SALES_PERCENTAGE_OPTIONS, t, 'cardSalesPercentage')}
               value={answers.cardSalesPercentage}
               onChange={(value) => onChange('cardSalesPercentage', value)}
               required
             />
             <OptionGroup
-              label="What is your estimated effective credit card processing rate?"
+              label={t('fields', 'estimatedProcessingRate')}
               name="estimatedProcessingRate"
-              options={ESTIMATED_PROCESSING_RATE_OPTIONS}
+              options={localizedOptions(
+                ESTIMATED_PROCESSING_RATE_OPTIONS,
+                t,
+                'estimatedProcessingRate',
+              )}
               value={answers.estimatedProcessingRate}
               onChange={(value) => onChange('estimatedProcessingRate', value)}
               required
             />
             <OptionGroup
-              label="When was your last credit card processing statement review?"
+              label={t('fields', 'lastProcessingReview')}
               name="lastProcessingReview"
-              options={LAST_PROCESSING_REVIEW_OPTIONS}
+              options={localizedOptions(LAST_PROCESSING_REVIEW_OPTIONS, t, 'lastProcessingReview')}
               value={answers.lastProcessingReview}
               onChange={(value) => onChange('lastProcessingReview', value)}
               required
@@ -90,17 +95,17 @@ export default function StepCashFlowTax({ answers, onChange }: StepCashFlowTaxPr
         ) : null}
 
         <OptionGroup
-          label="How would you describe your business tax planning?"
+          label={t('fields', 'taxPlanning')}
           name="taxPlanning"
-          options={TAX_PLANNING_OPTIONS}
+          options={localizedOptions(TAX_PLANNING_OPTIONS, t, 'taxPlanning')}
           value={answers.taxPlanning}
           onChange={(value) => onChange('taxPlanning', value)}
           required
         />
         <OptionGroup
-          label="Do you use retirement or benefit strategies to reduce business taxes?"
+          label={t('fields', 'taxBenefitStrategies')}
           name="taxBenefitStrategies"
-          options={TAX_BENEFIT_STRATEGIES_OPTIONS}
+          options={localizedOptions(TAX_BENEFIT_STRATEGIES_OPTIONS, t, 'taxBenefitStrategies')}
           value={answers.taxBenefitStrategies}
           onChange={(value) => onChange('taxBenefitStrategies', value)}
           required

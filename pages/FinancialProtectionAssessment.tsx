@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ROUTES } from '../constants/routes'
+import { familyCopy } from '../components/assessment/family/copy'
+import { useReportCardCopy } from '../components/assessment/reportCardLocale'
+import { formatSpecializedTemplate } from '../components/assessment/specialized/locale'
+import SpecializedLocaleSwitcher from '../components/assessment/specialized/SpecializedLocaleSwitcher'
 import AssessmentLayout from '../components/assessment/AssessmentLayout'
 import NavigationButtons from '../components/assessment/NavigationButtons'
 import { DEMO_ANSWERS_STORAGE_KEY, DEMO_ASSESSMENT_STEPS } from '../components/assessment/constants'
@@ -50,6 +54,7 @@ function readBrowserReferrer(): string | null {
 
 export default function FinancialProtectionAssessment() {
   const navigate = useNavigate()
+  const { locale, t, withLocale } = useReportCardCopy(familyCopy)
   const [currentStep, setCurrentStep] = useState(1)
   const [protectionSubStep, setProtectionSubStep] = useState<1 | 2>(1)
   const [answers, setAnswers] = useState<DemoAssessmentAnswers>(INITIAL_DEMO_ANSWERS)
@@ -180,7 +185,7 @@ export default function FinancialProtectionAssessment() {
     }
 
     if (currentStep === 1) {
-      navigate(ROUTES.reportCard)
+      navigate(withLocale(ROUTES.reportCard))
       return
     }
     setCurrentStep((step) => step - 1)
@@ -216,7 +221,7 @@ export default function FinancialProtectionAssessment() {
 
     // CRM success (Sheets may have failed server-side) → results.
     // Do not surface Sheets sync errors to the visitor.
-    navigate(ROUTES.reportCardResults, {
+    navigate(withLocale(ROUTES.reportCardResults), {
       state: {
         answers: finalAnswers,
         submissionSaved: true,
@@ -248,22 +253,42 @@ export default function FinancialProtectionAssessment() {
     await completeFamilyAssessment(answersRef.current)
   }
 
+  const displayError =
+    submitError === 'Please confirm the required acknowledgments before viewing your report.'
+      ? t('validation', 'consentRequired')
+      : submitError
+        ? t('validation', 'submitFailed')
+        : null
+
   return (
     <AssessmentLayout
       currentStep={currentStep}
       totalSteps={DEMO_ASSESSMENT_STEPS}
+      stepIndicator={formatSpecializedTemplate(t('ui', 'stepIndicator'), {
+        current: currentStep,
+        total: DEMO_ASSESSMENT_STEPS,
+      })}
+      headerExtra={
+        <SpecializedLocaleSwitcher
+          locale={locale}
+          groupLabel={t('ui', 'languageGroupLabel')}
+          englishLabel={t('ui', 'languageEnglish')}
+          spanishLabel={t('ui', 'languageSpanish')}
+        />
+      }
       footer={
         currentStep === 1 ? null : (
           <NavigationButtons
             onBack={handleBack}
             onContinue={handleContinue}
             continueDisabled={!canContinue || isSubmitting}
+            backLabel={t('ui', 'back')}
             continueLabel={
               isSubmitting
-                ? 'Saving your Initial Financial Diagnostic…'
+                ? t('ui', 'saving')
                 : currentStep === DEMO_ASSESSMENT_STEPS
-                  ? 'View My Report Card'
-                  : 'Continue'
+                  ? t('ui', 'viewResults')
+                  : t('ui', 'continue')
             }
           />
         )
@@ -271,23 +296,24 @@ export default function FinancialProtectionAssessment() {
     >
       {currentStep === 1 && (
         <StepWelcome
+          t={t}
           onBegin={handleBeginAssessment}
-          onBack={() => navigate(ROUTES.reportCard)}
+          onBack={() => navigate(withLocale(ROUTES.reportCard))}
         />
       )}
-      {currentStep === 2 && <StepTwoFamily answers={answers.family} onChange={updateFamily} />}
+      {currentStep === 2 && <StepTwoFamily t={t} answers={answers.family} onChange={updateFamily} />}
       {currentStep === 3 && (
-        <StepThreeFinancial answers={answers.financial} onChange={updateFinancial} />
+        <StepThreeFinancial t={t} answers={answers.financial} onChange={updateFinancial} />
       )}
       {currentStep === 4 && protectionSubStep === 1 && (
-        <StepFourProtection answers={answers.protection} onChange={updateProtection} />
+        <StepFourProtection t={t} answers={answers.protection} onChange={updateProtection} />
       )}
       {currentStep === 4 && protectionSubStep === 2 && (
-        <StepFourGuardian answers={answers.protection} onChange={updateProtection} />
+        <StepFourGuardian t={t} answers={answers.protection} onChange={updateProtection} />
       )}
       {currentStep === 5 && (
         <>
-          <StepFiveGoals answers={answers.goals} onChange={updateGoals} />
+          <StepFiveGoals t={t} answers={answers.goals} onChange={updateGoals} />
           <FamilyConsentSection
             consent={consent}
             phone={answers.family.phone}
@@ -296,13 +322,33 @@ export default function FinancialProtectionAssessment() {
             onChange={updateConsent}
             honeypotValue={honeypotWebsite}
             onHoneypotChange={setHoneypotWebsite}
+            productTitle={t('ui', 'productTitle')}
+            storageResultName={t('ui', 'storageResultName')}
+            intro={t('ui', 'consentIntro')}
+            labels={{
+              heading: t('ui', 'consentHeading'),
+              storage: t('ui', 'consentStorage'),
+              storageHint: t('ui', 'consentStorageHint'),
+              storageError: t('ui', 'consentStorageError'),
+              contact: t('ui', 'consentContact'),
+              emailMarketing: t('ui', 'consentEmailMarketing'),
+              sms: t('ui', 'consentSms'),
+              smsPhoneNote: t('ui', 'consentSmsPhoneNote'),
+              privacyBefore: t('ui', 'consentPrivacyBefore'),
+              privacyLink: t('ui', 'consentPrivacyLink'),
+              privacyAfter: t('ui', 'consentPrivacyAfter'),
+              privacyHint: t('ui', 'consentPrivacyHint'),
+              privacyError: t('ui', 'consentPrivacyError'),
+              disclaimer: t('ui', 'consentDisclaimer'),
+              honeypot: t('ui', 'consentHoneypot'),
+            }}
           />
           {isSubmitting ? (
             <p className="family-submit-status" role="status" aria-live="polite">
-              Saving your Initial Financial Diagnostic…
+              {t('ui', 'saving')}
             </p>
           ) : null}
-          {submitError ? (
+          {displayError ? (
             <div className="family-submit-error-panel">
               <p
                 ref={statusRegionRef}
@@ -310,7 +356,7 @@ export default function FinancialProtectionAssessment() {
                 role="alert"
                 tabIndex={-1}
               >
-                {submitError}
+                {displayError}
               </p>
               <button
                 type="button"
@@ -318,7 +364,7 @@ export default function FinancialProtectionAssessment() {
                 onClick={handleRetrySubmit}
                 disabled={isSubmitting}
               >
-                Try again
+                {t('validation', 'retry')}
               </button>
             </div>
           ) : null}

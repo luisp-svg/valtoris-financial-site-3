@@ -4,6 +4,10 @@ import { ROUTES } from '../constants/routes'
 import AssessmentLayout from '../components/assessment/AssessmentLayout'
 import NavigationButtons from '../components/assessment/NavigationButtons'
 import FamilyConsentSection from '../components/assessment/steps/FamilyConsentSection'
+import SpecializedLocaleSwitcher from '../components/assessment/specialized/SpecializedLocaleSwitcher'
+import { businessCopy } from '../components/assessment/business/copy'
+import { useReportCardCopy } from '../components/assessment/reportCardLocale'
+import { formatSpecializedTemplate } from '../components/assessment/specialized/locale'
 import { BUSINESS_ASSESSMENT_STEPS } from '../components/assessment/business/constants'
 import {
   BusinessAssessmentAnswers,
@@ -46,6 +50,7 @@ function readBrowserReferrer(): string | null {
 
 export default function BusinessFinancialAssessment() {
   const navigate = useNavigate()
+  const { locale, t, withLocale } = useReportCardCopy(businessCopy)
   const [currentStep, setCurrentStep] = useState(1)
   const [answers, setAnswers] = useState<BusinessAssessmentAnswers>(INITIAL_BUSINESS_ANSWERS)
   const [consent, setConsent] = useState<FamilyConsentState>(INITIAL_FAMILY_CONSENT_STATE)
@@ -84,6 +89,12 @@ export default function BusinessFinancialAssessment() {
   useEffect(() => {
     honeypotRef.current = honeypotWebsite
   }, [honeypotWebsite])
+
+  useEffect(() => {
+    if (submitError && statusRegionRef.current) {
+      statusRegionRef.current.focus()
+    }
+  }, [submitError])
 
   const canContinue = useMemo(
     () => isBusinessStepComplete(currentStep, answers),
@@ -155,7 +166,7 @@ export default function BusinessFinancialAssessment() {
 
   function handleBack() {
     if (currentStep === 1) {
-      navigate(ROUTES.businessReportCard)
+      navigate(withLocale(ROUTES.businessReportCard))
       return
     }
     setCurrentStep((step) => step - 1)
@@ -222,7 +233,7 @@ export default function BusinessFinancialAssessment() {
       return
     }
 
-    navigate(ROUTES.businessReportCardResults, {
+    navigate(withLocale(ROUTES.businessReportCardResults), {
       state: { answers: finalAnswers, submissionSaved: true, submissionId: result.submissionId },
     })
   }
@@ -239,22 +250,47 @@ export default function BusinessFinancialAssessment() {
     await completeBusinessAssessment(answersRef.current)
   }
 
+  async function handleRetrySubmit() {
+    if (isSubmitting) return
+    setIsSubmitting(true)
+    await completeBusinessAssessment(answersRef.current)
+  }
+
+  const displayError = submitError
+    ? submitError === 'Please confirm the required acknowledgments before viewing your report.'
+      ? t('validation', 'consentRequired')
+      : t('validation', 'submitFailed')
+    : null
+
   return (
     <AssessmentLayout
       currentStep={currentStep}
       totalSteps={BUSINESS_ASSESSMENT_STEPS}
+      stepIndicator={formatSpecializedTemplate(t('ui', 'stepIndicator'), {
+        current: currentStep,
+        total: BUSINESS_ASSESSMENT_STEPS,
+      })}
+      headerExtra={
+        <SpecializedLocaleSwitcher
+          locale={locale}
+          groupLabel={t('ui', 'languageGroupLabel')}
+          englishLabel={t('ui', 'languageEnglish')}
+          spanishLabel={t('ui', 'languageSpanish')}
+        />
+      }
       footer={
         currentStep === 1 ? null : (
           <NavigationButtons
             onBack={handleBack}
             onContinue={handleContinue}
             continueDisabled={!canContinue || isSubmitting}
+            backLabel={t('ui', 'back')}
             continueLabel={
               isSubmitting
-                ? 'Saving your Business Report Card…'
+                ? t('ui', 'saving')
                 : currentStep === BUSINESS_ASSESSMENT_STEPS
-                  ? 'View My Report Card'
-                  : 'Continue'
+                  ? t('ui', 'viewResults')
+                  : t('ui', 'continue')
             }
           />
         )
@@ -262,12 +298,14 @@ export default function BusinessFinancialAssessment() {
     >
       {currentStep === 1 && (
         <StepBusinessWelcome
+          t={t}
           onBegin={handleBegin}
-          onBack={() => navigate(ROUTES.businessReportCard)}
+          onBack={() => navigate(withLocale(ROUTES.businessReportCard))}
         />
       )}
       {currentStep === 2 && (
         <StepBusinessInformation
+          t={t}
           owner={answers.owner}
           business={answers.business}
           onOwnerChange={updateOwner}
@@ -275,17 +313,18 @@ export default function BusinessFinancialAssessment() {
         />
       )}
       {currentStep === 3 && (
-        <StepBusinessFoundation answers={answers.foundation} onChange={updateFoundation} />
+        <StepBusinessFoundation t={t} answers={answers.foundation} onChange={updateFoundation} />
       )}
       {currentStep === 4 && (
-        <StepCashFlowTax answers={answers.cashFlowTax} onChange={updateCashFlowTax} />
+        <StepCashFlowTax t={t} answers={answers.cashFlowTax} onChange={updateCashFlowTax} />
       )}
       {currentStep === 5 && (
-        <StepProtectionRisk answers={answers.protectionRisk} onChange={updateProtectionRisk} />
+        <StepProtectionRisk t={t} answers={answers.protectionRisk} onChange={updateProtectionRisk} />
       )}
       {currentStep === 6 && (
         <>
           <StepRetirementFundingExit
+            t={t}
             answers={answers.retirementFundingExit}
             goals={answers.goals}
             onChange={updateRetirementFundingExit}
@@ -299,19 +338,51 @@ export default function BusinessFinancialAssessment() {
             onChange={updateConsent}
             honeypotValue={honeypotWebsite}
             onHoneypotChange={setHoneypotWebsite}
-            productTitle="Business Report Card™"
-            storageResultName="Business Report Card"
-            intro="Your Business Report Card™ is based on the information you shared. Required acknowledgments are marked with an asterisk."
+            productTitle={t('ui', 'productTitle')}
+            storageResultName={t('ui', 'storageResultName')}
+            intro={t('ui', 'consentIntro')}
+            labels={{
+              heading: t('ui', 'consentHeading'),
+              storage: t('ui', 'consentStorage'),
+              storageHint: t('ui', 'consentStorageHint'),
+              storageError: t('ui', 'consentStorageError'),
+              contact: t('ui', 'consentContact'),
+              emailMarketing: t('ui', 'consentEmailMarketing'),
+              sms: t('ui', 'consentSms'),
+              smsPhoneNote: t('ui', 'consentSmsPhoneNote'),
+              privacyBefore: t('ui', 'consentPrivacyBefore'),
+              privacyLink: t('ui', 'consentPrivacyLink'),
+              privacyAfter: t('ui', 'consentPrivacyAfter'),
+              privacyHint: t('ui', 'consentPrivacyHint'),
+              privacyError: t('ui', 'consentPrivacyError'),
+              disclaimer: t('ui', 'consentDisclaimer'),
+              honeypot: t('ui', 'consentHoneypot'),
+            }}
           />
           {isSubmitting ? (
             <p className="family-submit-status" role="status" aria-live="polite">
-              Saving your Business Report Card…
+              {t('ui', 'saving')}
             </p>
           ) : null}
-          {submitError ? (
-            <p ref={statusRegionRef} className="family-submit-error" role="alert" tabIndex={-1}>
-              {submitError}
-            </p>
+          {displayError ? (
+            <div className="family-submit-error-panel">
+              <p
+                ref={statusRegionRef}
+                className="family-submit-error"
+                role="alert"
+                tabIndex={-1}
+              >
+                {displayError}
+              </p>
+              <button
+                type="button"
+                className="platform-btn platform-btn-outline family-submit-retry"
+                onClick={handleRetrySubmit}
+                disabled={isSubmitting}
+              >
+                {t('validation', 'retry')}
+              </button>
+            </div>
           ) : null}
         </>
       )}

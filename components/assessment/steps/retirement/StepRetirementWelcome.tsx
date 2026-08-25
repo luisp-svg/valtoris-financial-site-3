@@ -1,28 +1,27 @@
 import QuestionCard from '../../QuestionCard'
-import { RETIREMENT_CTA } from '../../../../constants/homepage'
+import type { ReportCardCopyFn } from '../../reportCardLocale'
 
 type StepRetirementWelcomeProps = {
+  t: ReportCardCopyFn
   onBegin: () => void
   onBack?: () => void
 }
 
-export default function StepRetirementWelcome({ onBegin, onBack }: StepRetirementWelcomeProps) {
+export default function StepRetirementWelcome({
+  t,
+  onBegin,
+  onBack,
+}: StepRetirementWelcomeProps) {
   return (
-    <QuestionCard
-      title="Start Your Retirement Report Card™"
-      description="Answer a focused set of questions about your timeline, savings, income sources, investments, taxes, healthcare, and legacy planning. Most people finish in about 4–6 minutes."
-    >
-      <p className="funnel-microcopy assessment-note">
-        Results are educational estimates based on the information you provide and standard planning
-        assumptions. They do not guarantee retirement outcomes.
-      </p>
+    <QuestionCard title={t('ui', 'welcomeTitle')} description={t('helpers', 'welcome')}>
+      <p className="funnel-microcopy assessment-note">{t('helpers', 'welcomeNote')}</p>
       <div className="welcome-actions">
         <button type="button" className="platform-btn platform-btn-primary" onClick={onBegin}>
-          {RETIREMENT_CTA}
+          {t('ui', 'startCta')}
         </button>
         {onBack ? (
           <button type="button" className="platform-btn platform-btn-outline" onClick={onBack}>
-            Back to Overview
+            {t('ui', 'backToOverview')}
           </button>
         ) : null}
       </div>

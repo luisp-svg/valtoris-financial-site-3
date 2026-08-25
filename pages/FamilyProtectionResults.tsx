@@ -2,14 +2,17 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import AssessmentBrandHeader from '../components/AssessmentBrandHeader'
 import ScheduleReportCardLink from '../components/ScheduleReportCardLink'
 import AnimatedCurrency from '../components/calculator/AnimatedCurrency'
+import { useReportCardCopy } from '../components/assessment/reportCardLocale'
+import { formatSpecializedTemplate } from '../components/assessment/specialized/locale'
+import SpecializedLocaleSwitcher from '../components/assessment/specialized/SpecializedLocaleSwitcher'
 import {
   calculateSelectedNeed,
   parseAmount,
 } from '../components/calculator/calculations'
 import ProtectionSummaryBreakdown from '../components/calculator/ProtectionSummaryBreakdown'
 import { CALCULATOR_STORAGE_KEY } from '../components/calculator/constants'
+import { protectionCopy } from '../components/calculator/protectionCopy'
 import { CalculatorAnswers, INITIAL_CALCULATOR_ANSWERS } from '../components/calculator/types'
-import { FAMILY_REPORT_CARD_LEARN_CTA, RESTART_ASSESSMENT_CTA, SCHEDULE_CTA } from '../constants/homepage'
 import { ROUTES } from '../constants/routes'
 
 function loadAnswers(state: unknown): CalculatorAnswers {
@@ -30,6 +33,7 @@ function loadAnswers(state: unknown): CalculatorAnswers {
 export default function FamilyProtectionResults() {
   const location = useLocation()
   const navigate = useNavigate()
+  const { locale, t, withLocale } = useReportCardCopy(protectionCopy)
   const answers = loadAnswers(location.state)
   const submissionWarning =
     location.state &&
@@ -39,8 +43,8 @@ export default function FamilyProtectionResults() {
       : ''
   const firstName = answers.family.firstName.trim()
   const headline = firstName
-    ? `${firstName}, here's your Family Protection Analysis™`
-    : 'Your Family Protection Analysis™'
+    ? formatSpecializedTemplate(t('results', 'headlineNamed'), { name: firstName })
+    : t('results', 'headline')
 
   const breakdown = calculateSelectedNeed(answers)
   const existingCoverage = parseAmount(answers.coverage.currentLifeInsurance)
@@ -50,6 +54,12 @@ export default function FamilyProtectionResults() {
       <div className="protection-results-container">
         <header className="protection-results-header protection-report-fade">
           <AssessmentBrandHeader />
+          <SpecializedLocaleSwitcher
+            locale={locale}
+            groupLabel={t('ui', 'languageGroupLabel')}
+            englishLabel={t('ui', 'languageEnglish')}
+            spanishLabel={t('ui', 'languageSpanish')}
+          />
         </header>
 
         {submissionWarning ? (
@@ -60,10 +70,7 @@ export default function FamilyProtectionResults() {
 
         <section className="protection-report-intro protection-report-fade">
           <h1 className="protection-analysis-headline">{headline}</h1>
-          <p className="protection-report-subheading">
-            Based on the information you provided, we&apos;ve estimated the amount of life
-            insurance your family may need to help protect their financial future.
-          </p>
+          <p className="protection-report-subheading">{t('results', 'subheading')}</p>
         </section>
 
         <section
@@ -71,15 +78,13 @@ export default function FamilyProtectionResults() {
           aria-labelledby="recommended-coverage-title"
         >
           <h2 id="recommended-coverage-title" className="protection-hero-title">
-            Recommended Life Insurance Coverage™
+            {t('results', 'recommendedTitle')}
           </h2>
           <AnimatedCurrency
             value={breakdown.total}
             className="protection-hero-amount"
           />
-          <p className="protection-hero-subtitle">
-            Estimated amount needed to help protect your family&apos;s financial future.
-          </p>
+          <p className="protection-hero-subtitle">{t('results', 'recommendedSubtitle')}</p>
         </section>
 
         <section
@@ -87,11 +92,25 @@ export default function FamilyProtectionResults() {
           aria-labelledby="protection-breakdown-title"
         >
           <h2 id="protection-breakdown-title" className="protection-breakdown-title">
-            Protection Breakdown
+            {t('results', 'breakdownTitle')}
           </h2>
           <ProtectionSummaryBreakdown
             breakdown={breakdown}
             existingCoverage={existingCoverage}
+            labels={{
+              incomeLabel: t('results', 'row.income.label'),
+              incomeDescription: t('results', 'row.income.description'),
+              housingLabel: t('results', 'row.housing.label'),
+              housingDescription: t('results', 'row.housing.description'),
+              debtLabel: t('results', 'row.debt.label'),
+              debtDescription: t('results', 'row.debt.description'),
+              educationLabel: t('results', 'row.education.label'),
+              educationDescription: t('results', 'row.education.description'),
+              finalExpensesLabel: t('results', 'row.finalExpenses.label'),
+              finalExpensesDescription: t('results', 'row.finalExpenses.description'),
+              existingCoverageLabel: t('results', 'row.existingCoverage.label'),
+              existingCoverageDescription: t('results', 'row.existingCoverage.description'),
+            }}
           />
         </section>
 
@@ -100,16 +119,13 @@ export default function FamilyProtectionResults() {
           aria-labelledby="protection-gap-title"
         >
           <h2 id="protection-gap-title" className="protection-gap-headline">
-            Estimated Protection Gap™
+            {t('results', 'gapTitle')}
           </h2>
           <AnimatedCurrency
             value={breakdown.netNeed}
             className="protection-gap-amount"
           />
-          <p className="protection-gap-copy">
-            This represents the estimated additional protection your family may still need after
-            considering your current life insurance.
-          </p>
+          <p className="protection-gap-copy">{t('results', 'gapCopy')}</p>
         </section>
 
         <section
@@ -117,41 +133,34 @@ export default function FamilyProtectionResults() {
           aria-labelledby="what-this-means-title"
         >
           <h2 id="what-this-means-title" className="protection-means-title">
-            What This Means
+            {t('results', 'meansTitle')}
           </h2>
-          <p className="protection-means-copy">
-            This calculator provides an educational estimate based on the information you entered.
-            It is not an insurance quote or financial recommendation. Your Family Financial Report
-            Card™ will provide a personalized analysis and recommendations.
-          </p>
+          <p className="protection-means-copy">{t('results', 'meansCopy')}</p>
         </section>
 
         <section className="protection-results-cta protection-report-fade protection-report-fade-delay-5">
-          <h2>{SCHEDULE_CTA}</h2>
-          <p>
-            Review your Family Protection Analysis™ with a Valtoris Financial Advisor and receive
-            personalized recommendations.
-          </p>
+          <h2>{t('results', 'scheduleTitle')}</h2>
+          <p>{t('results', 'scheduleCopy')}</p>
           <div className="protection-results-actions">
             <ScheduleReportCardLink className="platform-btn platform-btn-primary">
-              {SCHEDULE_CTA}
+              {t('results', 'scheduleCta')}
             </ScheduleReportCardLink>
-            <Link className="platform-btn platform-btn-outline" to={ROUTES.reportCard}>
-              {FAMILY_REPORT_CARD_LEARN_CTA}
+            <Link className="platform-btn platform-btn-outline" to={withLocale(ROUTES.reportCard)}>
+              {t('results', 'learnMoreCta')}
             </Link>
             <button
               type="button"
               className="platform-btn platform-btn-outline"
-              onClick={() => navigate(ROUTES.protectionGap)}
+              onClick={() => navigate(withLocale(ROUTES.protectionGap))}
             >
-              {RESTART_ASSESSMENT_CTA}
+              {t('results', 'restartCta')}
             </button>
           </div>
         </section>
 
         <footer className="protection-report-footer protection-report-fade protection-report-fade-delay-6">
-          <p>Powered by Valtoris Financial™</p>
-          <p>Helping Families Become Legacy Ready™</p>
+          <p>{t('results', 'footer1')}</p>
+          <p>{t('results', 'footer2')}</p>
         </footer>
       </div>
     </div>

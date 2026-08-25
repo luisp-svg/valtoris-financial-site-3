@@ -1,24 +1,25 @@
 import QuestionCard from '../QuestionCard'
 import YesNoInput from '../YesNoInput'
+import type { ReportCardCopyFn } from '../reportCardLocale'
 import { ProtectionAnswers } from '../types'
 
 type StepFourGuardianProps = {
   answers: ProtectionAnswers
   onChange: (field: keyof ProtectionAnswers, value: string) => void
+  t: ReportCardCopyFn
 }
 
-export default function StepFourGuardian({ answers, onChange }: StepFourGuardianProps) {
+export default function StepFourGuardian({ answers, onChange, t }: StepFourGuardianProps) {
   return (
-    <QuestionCard
-      title="Guardianship Planning"
-      description="Because you reported dependents, we need one more estate planning detail."
-    >
+    <QuestionCard title={t('ui', 'step4GuardianTitle')} description={t('helpers', 'step4Guardian')}>
       <form className="assessment-form" onSubmit={(event) => event.preventDefault()}>
         <YesNoInput
-          label="Have you documented guardianship preferences for your children in your estate plan?"
+          label={t('fields', 'guardianDocumented')}
           name="guardianDocumented"
           value={answers.guardianDocumented}
           onChange={(value) => onChange('guardianDocumented', value)}
+          yesLabel={t('answers', 'yes')}
+          noLabel={t('answers', 'no')}
           required
         />
       </form>

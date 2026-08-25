@@ -1,24 +1,22 @@
 import QuestionCard from '../../QuestionCard'
-import { BUSINESS_CTA } from '../../../../constants/homepage'
+import type { ReportCardCopyFn } from '../../reportCardLocale'
 
 type StepBusinessWelcomeProps = {
   onBegin: () => void
   onBack?: () => void
+  t: ReportCardCopyFn
 }
 
-export default function StepBusinessWelcome({ onBegin, onBack }: StepBusinessWelcomeProps) {
+export default function StepBusinessWelcome({ onBegin, onBack, t }: StepBusinessWelcomeProps) {
   return (
-    <QuestionCard
-      title="Start Your Business Financial Report Card™"
-      description="Answer a focused set of questions so we can diagnose where your business is strong, exposed, and what to fix first."
-    >
+    <QuestionCard title={t('ui', 'welcomeTitle')} description={t('ui', 'welcomeBody')}>
       <div className="welcome-actions">
         <button type="button" className="platform-btn platform-btn-primary" onClick={onBegin}>
-          {BUSINESS_CTA}
+          {t('ui', 'startCta')}
         </button>
         {onBack ? (
           <button type="button" className="platform-btn platform-btn-outline" onClick={onBack}>
-            Back to Overview
+            {t('ui', 'backToOverview')}
           </button>
         ) : null}
       </div>

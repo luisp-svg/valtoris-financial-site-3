@@ -1,23 +1,22 @@
 import ChoiceGroup from '../ChoiceGroup'
 import QuestionCard from '../QuestionCard'
 import { GOAL_OPTIONS } from '../constants'
+import { localizedOptions, type ReportCardCopyFn } from '../reportCardLocale'
 import { GoalsAnswers } from '../types'
 
 type StepFiveGoalsProps = {
   answers: GoalsAnswers
   onChange: (selected: string[]) => void
+  t: ReportCardCopyFn
 }
 
-export default function StepFiveGoals({ answers, onChange }: StepFiveGoalsProps) {
+export default function StepFiveGoals({ answers, onChange, t }: StepFiveGoalsProps) {
   return (
-    <QuestionCard
-      title="Goals"
-      description="Select all the goals that matter most to your family right now."
-    >
+    <QuestionCard title={t('ui', 'step5Title')} description={t('helpers', 'step5')}>
       <ChoiceGroup
-        label="What are you working toward?"
+        label={t('fields', 'goals')}
         name="goals"
-        options={GOAL_OPTIONS}
+        options={localizedOptions(GOAL_OPTIONS, t, 'goals')}
         selected={answers.selected}
         onChange={onChange}
         required

@@ -2,6 +2,7 @@ import CurrencyInput from '../../CurrencyInput'
 import OptionGroup from '../../../calculator/OptionGroup'
 import QuestionCard from '../../QuestionCard'
 import TextInput from '../../TextInput'
+import { localizedOptions, type ReportCardCopyFn } from '../../reportCardLocale'
 import {
   EXPECTS_PART_TIME_OPTIONS,
   YES_NO_NA_UNSURE_OPTIONS,
@@ -14,127 +15,119 @@ import {
 } from '../../retirement/types'
 
 type StepRetirementIncomeSourcesProps = {
+  t: ReportCardCopyFn
   household: RetirementHouseholdAnswers
   incomeSources: RetirementIncomeSourceAnswers
   onChange: (field: keyof RetirementIncomeSourceAnswers, value: string) => void
 }
 
 export default function StepRetirementIncomeSources({
+  t,
   household,
   incomeSources,
   onChange,
 }: StepRetirementIncomeSourcesProps) {
   const married = isMarried(household)
   const expectsPartTime = incomeSources.expectsPartTimeWork === 'yes'
+  const yesNoUnsure = localizedOptions(YES_NO_UNSURE_OPTIONS, t, 'yesNoUnsure')
+  const yesNoNaUnsure = localizedOptions(YES_NO_NA_UNSURE_OPTIONS, t, 'yesNoNaUnsure')
 
   return (
-    <QuestionCard
-      title="Retirement Income Sources"
-      description="Estimate the monthly income you expect in retirement (today’s dollars). Guaranteed sources are weighted more heavily than other or temporary income."
-    >
+    <QuestionCard title={t('ui', 'step5Title')} description={t('helpers', 'step5')}>
       <form className="assessment-form" onSubmit={(event) => event.preventDefault()}>
-        <h3 className="assessment-section-heading">Guaranteed Income</h3>
-        <p className="funnel-microcopy assessment-note">
-          Social Security, pension, and annuity income that is expected to continue for life (or a
-          long contractual period).
-        </p>
+        <h3 className="assessment-section-heading">{t('fields', 'guaranteedIncomeHeading')}</h3>
+        <p className="funnel-microcopy assessment-note">{t('helpers', 'guaranteedIncome')}</p>
         <CurrencyInput
-          label="Estimated Monthly Social Security"
+          label={t('fields', 'socialSecurityMonthly')}
           name="socialSecurityMonthly"
           value={incomeSources.socialSecurityMonthly}
           onChange={(value) => onChange('socialSecurityMonthly', value)}
-          placeholder="2,300"
+          placeholder={t('placeholders', 'socialSecurity')}
           required
         />
         {married ? (
           <CurrencyInput
-            label="Spouse Estimated Monthly Social Security (optional)"
+            label={t('fields', 'spouseSocialSecurityMonthly')}
             name="spouseSocialSecurityMonthly"
             value={incomeSources.spouseSocialSecurityMonthly}
             onChange={(value) => onChange('spouseSocialSecurityMonthly', value)}
-            placeholder="1,500"
+            placeholder={t('placeholders', 'spouseSocialSecurity')}
           />
         ) : null}
         <CurrencyInput
-          label="Estimated Monthly Pension"
+          label={t('fields', 'pensionMonthly')}
           name="pensionMonthly"
           value={incomeSources.pensionMonthly}
           onChange={(value) => onChange('pensionMonthly', value)}
-          placeholder="0"
+          placeholder={t('placeholders', 'zero')}
           required
         />
         <CurrencyInput
-          label="Estimated Monthly Annuity Income"
+          label={t('fields', 'annuityMonthly')}
           name="annuityMonthly"
           value={incomeSources.annuityMonthly}
           onChange={(value) => onChange('annuityMonthly', value)}
-          placeholder="0"
+          placeholder={t('placeholders', 'zero')}
           required
         />
         <OptionGroup
-          label="Have you reviewed an official Social Security estimate?"
+          label={t('fields', 'socialSecurityEstimateReviewed')}
           name="socialSecurityEstimateReviewed"
-          options={YES_NO_UNSURE_OPTIONS}
+          options={yesNoUnsure}
           value={incomeSources.socialSecurityEstimateReviewed}
           onChange={(value) => onChange('socialSecurityEstimateReviewed', value)}
           required
         />
         <OptionGroup
-          label="Do you understand your pension election options?"
+          label={t('fields', 'pensionElectionUnderstood')}
           name="pensionElectionUnderstood"
-          options={YES_NO_NA_UNSURE_OPTIONS}
+          options={yesNoNaUnsure}
           value={incomeSources.pensionElectionUnderstood}
           onChange={(value) => onChange('pensionElectionUnderstood', value)}
           required
         />
         <OptionGroup
-          label="Is survivor continuation coverage in place or planned?"
+          label={t('fields', 'survivorContinuation')}
           name="survivorContinuation"
-          options={YES_NO_NA_UNSURE_OPTIONS}
+          options={yesNoNaUnsure}
           value={incomeSources.survivorContinuation}
           onChange={(value) => onChange('survivorContinuation', value)}
           required
         />
 
-        <h3 className="assessment-section-heading">Other Expected Income</h3>
-        <p className="funnel-microcopy assessment-note">
-          Recurring income that may support retirement but is generally less guaranteed than Social
-          Security, pension, or annuity payments.
-        </p>
+        <h3 className="assessment-section-heading">{t('fields', 'otherIncomeHeading')}</h3>
+        <p className="funnel-microcopy assessment-note">{t('helpers', 'otherIncome')}</p>
         <CurrencyInput
-          label="Estimated Monthly Rental Income"
+          label={t('fields', 'rentalIncomeMonthly')}
           name="rentalIncomeMonthly"
           value={incomeSources.rentalIncomeMonthly}
           onChange={(value) => onChange('rentalIncomeMonthly', value)}
-          placeholder="0"
+          placeholder={t('placeholders', 'zero')}
           required
         />
         <CurrencyInput
-          label="Estimated Monthly Business Income"
+          label={t('fields', 'businessIncomeMonthly')}
           name="businessIncomeMonthly"
           value={incomeSources.businessIncomeMonthly}
           onChange={(value) => onChange('businessIncomeMonthly', value)}
-          placeholder="0"
+          placeholder={t('placeholders', 'zero')}
           required
         />
         <CurrencyInput
-          label="Other Recurring Monthly Income"
+          label={t('fields', 'otherRecurringIncomeMonthly')}
           name="otherRecurringIncomeMonthly"
           value={incomeSources.otherRecurringIncomeMonthly}
           onChange={(value) => onChange('otherRecurringIncomeMonthly', value)}
-          placeholder="0"
+          placeholder={t('placeholders', 'zero')}
           required
         />
 
-        <h3 className="assessment-section-heading">Temporary / Part-Time Income</h3>
-        <p className="funnel-microcopy assessment-note">
-          Part-time or consulting income is treated as temporary and is not counted as lifetime
-          guaranteed coverage when estimating required nest egg.
-        </p>
+        <h3 className="assessment-section-heading">{t('fields', 'partTimeIncomeHeading')}</h3>
+        <p className="funnel-microcopy assessment-note">{t('helpers', 'partTimeIncome')}</p>
         <OptionGroup
-          label="Do you expect temporary part-time or consulting income in retirement?"
+          label={t('fields', 'expectsPartTimeWork')}
           name="expectsPartTimeWork"
-          options={EXPECTS_PART_TIME_OPTIONS}
+          options={localizedOptions(EXPECTS_PART_TIME_OPTIONS, t, 'expectsPartTime')}
           value={incomeSources.expectsPartTimeWork}
           onChange={(value) => onChange('expectsPartTimeWork', value)}
           required
@@ -142,20 +135,20 @@ export default function StepRetirementIncomeSources({
         {expectsPartTime ? (
           <>
             <CurrencyInput
-              label="Estimated Monthly Part-Time Income"
+              label={t('fields', 'estimatedMonthlyPartTimeIncome')}
               name="estimatedMonthlyPartTimeIncome"
               value={incomeSources.estimatedMonthlyPartTimeIncome}
               onChange={(value) => onChange('estimatedMonthlyPartTimeIncome', value)}
-              placeholder="800"
+              placeholder={t('placeholders', 'partTimeIncome')}
               required
             />
             <TextInput
-              label="Expected Years of Part-Time Work"
+              label={t('fields', 'expectedPartTimeWorkYears')}
               name="expectedPartTimeWorkYears"
               type="number"
               value={incomeSources.expectedPartTimeWorkYears}
               onChange={(value) => onChange('expectedPartTimeWorkYears', value)}
-              placeholder="3"
+              placeholder={t('placeholders', 'partTimeYears')}
               min={0}
               max={40}
               required

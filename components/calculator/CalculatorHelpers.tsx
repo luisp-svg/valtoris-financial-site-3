@@ -1,3 +1,4 @@
+import { type ReactNode } from 'react'
 import QuestionCard from '../assessment/QuestionCard'
 
 type FormulaNoteProps = {
@@ -28,4 +29,18 @@ export function TotalDisplay({ label, value }: TotalDisplayProps) {
   )
 }
 
-export { QuestionCard as CalculatorQuestionCard }
+export function CalculatorQuestionCard({
+  title,
+  description,
+  children,
+}: {
+  title: string
+  description?: string
+  children: ReactNode
+}) {
+  return (
+    <QuestionCard title={title} description={description} titleAs="h2">
+      {children}
+    </QuestionCard>
+  )
+}

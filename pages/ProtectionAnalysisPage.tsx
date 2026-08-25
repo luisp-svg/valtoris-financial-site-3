@@ -1,157 +1,91 @@
 import DiagnosticLanding from '../components/home/DiagnosticLanding'
 import ProtectionSampleResultsPreview from '../components/home/ProtectionSampleResultsPreview'
-import { PROTECTION_CTA } from '../constants/homepage'
+import SpecializedLocaleSwitcher from '../components/assessment/specialized/SpecializedLocaleSwitcher'
+import { useReportCardCopy } from '../components/assessment/reportCardLocale'
+import { protectionCopy } from '../components/calculator/protectionCopy'
 import { ROUTES } from '../constants/routes'
 
-const WHAT_YOU_RECEIVE = [
-  {
-    icon: 'grade' as const,
-    title: 'Recommended Coverage',
-    description: 'An estimated life insurance amount designed to help protect your household.',
-  },
-  {
-    icon: 'protection' as const,
-    title: 'Protection Gap',
-    description: 'The difference between what your family may need and what you already have.',
-  },
-  {
-    icon: 'priorities' as const,
-    title: 'Needs Analysis',
-    description: 'A clear breakdown across income, housing, debt, education, and final expenses.',
-  },
-  {
-    icon: 'blueprint' as const,
-    title: 'Action Recommendations',
-    description: 'Focused next steps so you know where protection planning should begin.',
-  },
-]
-
-const CATEGORIES = [
-  {
-    icon: 'cashflow' as const,
-    title: 'Income Protection',
-    description: 'Replacement income to help your family maintain their standard of living.',
-  },
-  {
-    icon: 'emergency' as const,
-    title: 'Mortgage / Rent Protection',
-    description: 'Housing payment support to preserve stability at home.',
-  },
-  {
-    icon: 'debt' as const,
-    title: 'Debt Payoff',
-    description: 'Outstanding consumer debt and liabilities your family would inherit.',
-  },
-  {
-    icon: 'estate' as const,
-    title: 'Child Education',
-    description: 'Future education funding considerations for each child in your household.',
-  },
-  {
-    icon: 'session' as const,
-    title: 'Final Expenses',
-    description: 'End-of-life costs so your family is not burdened unexpectedly.',
-  },
-  {
-    icon: 'credit' as const,
-    title: 'Existing Coverage',
-    description: 'Current life insurance applied as a deduction from total need.',
-  },
-  {
-    icon: 'protection' as const,
-    title: 'Protection Gap™',
-    description: 'The remaining difference between estimated need and current coverage.',
-  },
-  {
-    icon: 'strategy' as const,
-    title: 'Coverage Recommendation',
-    description: 'A clear total estimate of protection that may be appropriate for your family.',
-  },
-]
-
-const HOW_IT_WORKS = [
-  {
-    step: '1',
-    title: 'Answer Questions',
-    description: 'Share focused details about income, housing, debt, education, and coverage.',
-  },
-  {
-    step: '2',
-    title: 'Receive Results',
-    description: 'Get recommended coverage, a needs breakdown, and your estimated Protection Gap™.',
-  },
-  {
-    step: '3',
-    title: 'Review Blueprint',
-    description: 'See which protection priorities deserve attention first.',
-  },
-  {
-    step: '4',
-    title: 'Schedule Strategy Session',
-    description: 'Optionally review your analysis in a complimentary strategy conversation.',
-  },
-]
-
-const FAQS = [
-  {
-    question: 'How long does the Family Protection Analysis take?',
-    answer: 'Most households finish in under two minutes.',
-  },
-  {
-    question: 'Is it free?',
-    answer: 'Yes. The Valtoris Family Protection Analysis™ is complimentary and educational.',
-  },
-  {
-    question: 'Are the estimates guaranteed?',
-    answer:
-      'No. Results are educational estimates based on your answers. They do not guarantee coverage amounts, underwriting outcomes, or product availability.',
-  },
-  {
-    question: 'Do I have to purchase anything?',
-    answer: 'No. You can review your results with no purchase required.',
-  },
-  {
-    question: 'Will someone contact me?',
-    answer:
-      'Only if you choose to schedule a follow-up conversation. Completing the analysis alone does not create a sales commitment.',
-  },
-  {
-    question: 'Is my information secure?',
-    answer:
-      'Your answers are used to generate your protection estimate and are handled with care for educational planning purposes.',
-  },
-  {
-    question: 'Can I retake it later?',
-    answer: 'Yes. Retake the analysis anytime your income, coverage, or family situation changes.',
-  },
-]
-
 export default function ProtectionAnalysisPage() {
+  const { locale, t, withLocale } = useReportCardCopy(protectionCopy)
+
   return (
     <DiagnosticLanding
       pageClassName="protection-analysis-page"
-      eyebrow="VALTORIS FAMILY PROTECTION ANALYSIS™"
-      title="Is Your Family Financially Protected?"
-      heroCopies={[
-        'Take the complimentary Valtoris Family Protection Analysis™ to evaluate income replacement, housing protection, debt payoff, education funding, final expenses, and your current life insurance coverage.',
-        'See your estimated Protection Gap™, what may leave your household exposed, and what to address next.',
+      headerExtra={
+        <SpecializedLocaleSwitcher
+          locale={locale}
+          groupLabel={t('ui', 'languageGroupLabel')}
+          englishLabel={t('ui', 'languageEnglish')}
+          spanishLabel={t('ui', 'languageSpanish')}
+        />
+      }
+      eyebrow={t('ui', 'landingEyebrow')}
+      title={t('ui', 'landingTitle')}
+      heroCopies={[t('ui', 'landingHero1'), t('ui', 'landingHero2')]}
+      ctaLabel={t('ui', 'startCta')}
+      ctaTo={withLocale(ROUTES.protectionGap)}
+      heroMicrocopy={t('ui', 'landingMicrocopy')}
+      receiveHeading={t('ui', 'landingReceiveHeading')}
+      receiveLead={t('ui', 'landingReceiveLead')}
+      receiveItems={[
+        { icon: 'grade', title: t('ui', 'landingReceive1Title'), description: t('ui', 'landingReceive1Description') },
+        { icon: 'protection', title: t('ui', 'landingReceive2Title'), description: t('ui', 'landingReceive2Description') },
+        { icon: 'priorities', title: t('ui', 'landingReceive3Title'), description: t('ui', 'landingReceive3Description') },
+        { icon: 'blueprint', title: t('ui', 'landingReceive4Title'), description: t('ui', 'landingReceive4Description') },
       ]}
-      ctaLabel={PROTECTION_CTA}
-      ctaTo={ROUTES.protectionGap}
-      heroMicrocopy="Takes under two minutes. No cost. No obligation. Results are estimates, not guarantees."
-      receiveLead="Four deliverables that turn a short calculator into clearer protection direction."
-      receiveItems={WHAT_YOU_RECEIVE}
-      sampleLead="An illustrative look at coverage need, current coverage, Protection Gap™, and priority recommendations."
-      samplePreview={<ProtectionSampleResultsPreview />}
-      categoriesHeading="Categories Evaluated"
-      categoriesLead="Your Protection Analysis reviews the planning inputs that shape estimated coverage need."
-      categories={CATEGORIES}
-      howLead="From your first answers to a clearer next step in four focused stages."
-      howSteps={HOW_IT_WORKS}
-      faqs={FAQS}
-      closingTitle="Know Your Gap Before It Becomes a Risk"
-      closingCopy="Start with a focused protection estimate and leave with clearer next-step direction."
-      closingMicrocopy="Takes under two minutes. No cost. No obligation. Results are estimates, not guarantees."
+      sampleHeading={t('ui', 'landingSampleHeading')}
+      sampleLead={t('ui', 'landingSampleLead')}
+      samplePreview={
+        <ProtectionSampleResultsPreview
+          ariaLabel={t('ui', 'landingSampleAriaLabel')}
+          badge={t('ui', 'landingSampleBadge')}
+          coverageLabel={t('ui', 'landingSampleCoverageLabel')}
+          currentCoverageLabel={t('ui', 'landingSampleCurrentLabel')}
+          gapLabel={t('ui', 'landingSampleGapLabel')}
+          gapNote={t('ui', 'landingSampleGapNote')}
+          prioritiesTitle={t('ui', 'landingSamplePrioritiesTitle')}
+          priorities={[
+            t('ui', 'landingSamplePriority1'),
+            t('ui', 'landingSamplePriority2'),
+            t('ui', 'landingSamplePriority3'),
+          ]}
+          disclaimer={t('ui', 'landingSampleDisclaimer')}
+        />
+      }
+      categoriesHeading={t('ui', 'landingCategoriesHeading')}
+      categoriesLead={t('ui', 'landingCategoriesLead')}
+      categories={[
+        { icon: 'cashflow', title: t('ui', 'landingCategory1Title'), description: t('ui', 'landingCategory1Description') },
+        { icon: 'emergency', title: t('ui', 'landingCategory2Title'), description: t('ui', 'landingCategory2Description') },
+        { icon: 'debt', title: t('ui', 'landingCategory3Title'), description: t('ui', 'landingCategory3Description') },
+        { icon: 'estate', title: t('ui', 'landingCategory4Title'), description: t('ui', 'landingCategory4Description') },
+        { icon: 'session', title: t('ui', 'landingCategory5Title'), description: t('ui', 'landingCategory5Description') },
+        { icon: 'credit', title: t('ui', 'landingCategory6Title'), description: t('ui', 'landingCategory6Description') },
+        { icon: 'protection', title: t('ui', 'landingCategory7Title'), description: t('ui', 'landingCategory7Description') },
+        { icon: 'strategy', title: t('ui', 'landingCategory8Title'), description: t('ui', 'landingCategory8Description') },
+      ]}
+      howHeading={t('ui', 'landingHowHeading')}
+      howLead={t('ui', 'landingHowLead')}
+      howSteps={[
+        { step: '1', title: t('ui', 'landingHow1Title'), description: t('ui', 'landingHow1Description') },
+        { step: '2', title: t('ui', 'landingHow2Title'), description: t('ui', 'landingHow2Description') },
+        { step: '3', title: t('ui', 'landingHow3Title'), description: t('ui', 'landingHow3Description') },
+        { step: '4', title: t('ui', 'landingHow4Title'), description: t('ui', 'landingHow4Description') },
+      ]}
+      faqHeading={t('ui', 'landingFaqHeading')}
+      faqLead={t('ui', 'landingFaqLead')}
+      faqs={[
+        { question: t('ui', 'landingFaq1'), answer: t('ui', 'landingFaqA1') },
+        { question: t('ui', 'landingFaq2'), answer: t('ui', 'landingFaqA2') },
+        { question: t('ui', 'landingFaq3'), answer: t('ui', 'landingFaqA3') },
+        { question: t('ui', 'landingFaq4'), answer: t('ui', 'landingFaqA4') },
+        { question: t('ui', 'landingFaq5'), answer: t('ui', 'landingFaqA5') },
+        { question: t('ui', 'landingFaq6'), answer: t('ui', 'landingFaqA6') },
+        { question: t('ui', 'landingFaq7'), answer: t('ui', 'landingFaqA7') },
+      ]}
+      closingTitle={t('ui', 'landingClosingTitle')}
+      closingCopy={t('ui', 'landingClosingCopy')}
+      closingMicrocopy={t('ui', 'landingClosingMicrocopy')}
     />
   )
 }

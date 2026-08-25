@@ -1,5 +1,6 @@
 import OptionGroup from '../../../calculator/OptionGroup'
 import QuestionCard from '../../QuestionCard'
+import { localizedOptions, type ReportCardCopyFn } from '../../reportCardLocale'
 import {
   CONTINUITY_PLAN_OPTIONS,
   CORE_INSURANCE_OPTIONS,
@@ -11,43 +12,41 @@ import { ProtectionRiskAnswers } from '../../business/types'
 type StepProtectionRiskProps = {
   answers: ProtectionRiskAnswers
   onChange: (field: keyof ProtectionRiskAnswers, value: string) => void
+  t: ReportCardCopyFn
 }
 
-export default function StepProtectionRisk({ answers, onChange }: StepProtectionRiskProps) {
+export default function StepProtectionRisk({ answers, onChange, t }: StepProtectionRiskProps) {
   return (
-    <QuestionCard
-      title="Protection & Risk"
-      description="Let's assess how well your business protects key people, revenue, and operations."
-    >
+    <QuestionCard title={t('ui', 'step5Title')} description={t('helpers', 'step5')}>
       <form className="assessment-form" onSubmit={(event) => event.preventDefault()}>
         <OptionGroup
-          label="Do you have key person insurance or funded buy-sell agreements?"
+          label={t('fields', 'keyPersonBuySell')}
           name="keyPersonBuySell"
-          options={KEY_PERSON_BUYSELL_OPTIONS}
+          options={localizedOptions(KEY_PERSON_BUYSELL_OPTIONS, t, 'keyPersonBuySell')}
           value={answers.keyPersonBuySell}
           onChange={(value) => onChange('keyPersonBuySell', value)}
           required
         />
         <OptionGroup
-          label="If a key owner were unavailable for 90 days, could operations continue without major disruption?"
+          label={t('fields', 'continuityPlan')}
           name="continuityPlan"
-          options={CONTINUITY_PLAN_OPTIONS}
+          options={localizedOptions(CONTINUITY_PLAN_OPTIONS, t, 'continuityPlan')}
           value={answers.continuityPlan}
           onChange={(value) => onChange('continuityPlan', value)}
           required
         />
         <OptionGroup
-          label="Do you carry adequate general liability and property insurance?"
+          label={t('fields', 'coreInsurance')}
           name="coreInsurance"
-          options={CORE_INSURANCE_OPTIONS}
+          options={localizedOptions(CORE_INSURANCE_OPTIONS, t, 'coreInsurance')}
           value={answers.coreInsurance}
           onChange={(value) => onChange('coreInsurance', value)}
           required
         />
         <OptionGroup
-          label="Have you reviewed cyber, E&O, or umbrella coverage relative to your operations?"
+          label={t('fields', 'specializedCoverage')}
           name="specializedCoverage"
-          options={SPECIALIZED_COVERAGE_OPTIONS}
+          options={localizedOptions(SPECIALIZED_COVERAGE_OPTIONS, t, 'specializedCoverage')}
           value={answers.specializedCoverage}
           onChange={(value) => onChange('specializedCoverage', value)}
           required

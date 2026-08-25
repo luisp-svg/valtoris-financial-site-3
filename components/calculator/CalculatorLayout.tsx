@@ -7,25 +7,37 @@ type CalculatorLayoutProps = {
   currentStep: number
   children: ReactNode
   footer?: ReactNode
+  /** Optional localized chrome. Defaults keep the existing English copy. */
+  title?: string
+  subtitle?: string
+  disclaimer?: string
+  stepIndicator?: string
+  headerExtra?: ReactNode
 }
 
-export default function CalculatorLayout({ currentStep, children, footer }: CalculatorLayoutProps) {
+export default function CalculatorLayout({
+  currentStep,
+  children,
+  footer,
+  title = 'Family Protection Analysis™',
+  subtitle = 'Find out how much life insurance your family may need in less than 2 minutes.',
+  disclaimer = 'This calculator provides an educational estimate and is not an insurance quote.',
+  stepIndicator,
+  headerExtra,
+}: CalculatorLayoutProps) {
   return (
     <div className="calculator-shell">
       <div className="calculator-container">
         <header className="calculator-header">
           <AssessmentBrandHeader />
+          {headerExtra}
           <div className="calculator-intro">
-            <h1 className="calculator-title">Family Protection Analysis™</h1>
-            <p className="calculator-subtitle">
-              Find out how much life insurance your family may need in less than 2 minutes.
-            </p>
-            <p className="calculator-disclaimer">
-              This calculator provides an educational estimate and is not an insurance quote.
-            </p>
+            <h1 className="calculator-title">{title}</h1>
+            <p className="calculator-subtitle">{subtitle}</p>
+            <p className="calculator-disclaimer">{disclaimer}</p>
           </div>
           <p className="calculator-step-indicator">
-            Step {currentStep} of {CALCULATOR_TOTAL_STEPS}
+            {stepIndicator ?? `Step ${currentStep} of ${CALCULATOR_TOTAL_STEPS}`}
           </p>
           <ProgressBar currentStep={currentStep} totalSteps={CALCULATOR_TOTAL_STEPS} />
         </header>

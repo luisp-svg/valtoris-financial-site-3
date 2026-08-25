@@ -3,9 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import { ROUTES } from '../constants/routes'
 import NavigationButtons from '../components/assessment/NavigationButtons'
 import FamilyConsentSection from '../components/assessment/steps/FamilyConsentSection'
+import { useReportCardCopy } from '../components/assessment/reportCardLocale'
+import { formatSpecializedTemplate } from '../components/assessment/specialized/locale'
+import SpecializedLocaleSwitcher from '../components/assessment/specialized/SpecializedLocaleSwitcher'
 import CalculatorLayout from '../components/calculator/CalculatorLayout'
 import { CALCULATOR_STORAGE_KEY, CALCULATOR_TOTAL_STEPS } from '../components/calculator/constants'
-import { PROTECTION_CTA } from '../constants/homepage'
+import { protectionCopy } from '../components/calculator/protectionCopy'
 import CalcStepFiveEducation from '../components/calculator/steps/CalcStepFiveEducation'
 import CalcStepFourDebt from '../components/calculator/steps/CalcStepFourDebt'
 import CalcStepOneFamily from '../components/calculator/steps/CalcStepOneFamily'
@@ -34,6 +37,7 @@ import {
 
 export default function FamilyProtectionCalculator() {
   const navigate = useNavigate()
+  const { locale, t, withLocale } = useReportCardCopy(protectionCopy)
   const [currentStep, setCurrentStep] = useState(1)
   const [answers, setAnswers] = useState<CalculatorAnswers>(INITIAL_CALCULATOR_ANSWERS)
   const [consent, setConsent] = useState<FamilyConsentState>(INITIAL_FAMILY_CONSENT_STATE)
@@ -114,7 +118,7 @@ export default function FamilyProtectionCalculator() {
 
   function handleBack() {
     if (currentStep === 1) {
-      navigate(ROUTES.protectionAnalysis)
+      navigate(withLocale(ROUTES.protectionAnalysis))
       return
     }
     setCurrentStep((step) => step - 1)
@@ -153,51 +157,78 @@ export default function FamilyProtectionCalculator() {
       return
     }
 
-    navigate(ROUTES.protectionResults, {
+    navigate(withLocale(ROUTES.protectionResults), {
       state: { answers, submissionSaved: true, submissionId: result.submissionId },
     })
   }
 
+  const displayError =
+    submitError === 'Please confirm the required acknowledgments before viewing your report.'
+      ? t('validation', 'consentRequired')
+      : submitError
+        ? t('validation', 'submitFailed')
+        : null
+
   return (
     <CalculatorLayout
       currentStep={currentStep}
+      title={t('ui', 'calculatorTitle')}
+      subtitle={t('ui', 'calculatorSubtitle')}
+      disclaimer={t('ui', 'calculatorDisclaimer')}
+      stepIndicator={formatSpecializedTemplate(t('ui', 'stepIndicator'), {
+        current: currentStep,
+        total: CALCULATOR_TOTAL_STEPS,
+      })}
+      headerExtra={
+        <SpecializedLocaleSwitcher
+          locale={locale}
+          groupLabel={t('ui', 'languageGroupLabel')}
+          englishLabel={t('ui', 'languageEnglish')}
+          spanishLabel={t('ui', 'languageSpanish')}
+        />
+      }
       footer={
         <NavigationButtons
           onBack={handleBack}
           onContinue={handleContinue}
+          backLabel={t('ui', 'back')}
           continueDisabled={!canContinue || isSubmitting}
           continueLabel={
             isSubmitting
-              ? 'Saving your Protection Gap…'
+              ? t('ui', 'saving')
               : currentStep === CALCULATOR_TOTAL_STEPS
-                ? 'View My Protection Analysis'
+                ? t('ui', 'viewResults')
                 : currentStep === 1
-                  ? PROTECTION_CTA
-                  : 'Continue'
+                  ? t('ui', 'startCta')
+                  : t('ui', 'continue')
           }
         />
       }
     >
       {currentStep === 1 && (
         <CalcStepOneFamily
+          t={t}
           answers={answers.family}
           onChange={(field, value) => updateSection('family', field, value)}
         />
       )}
       {currentStep === 2 && (
         <CalcStepTwoIncome
+          t={t}
           answers={answers.income}
           onChange={(field, value) => updateSection('income', field, value)}
         />
       )}
       {currentStep === 3 && (
         <CalcStepThreeHousing
+          t={t}
           answers={answers.housing}
           onChange={(field, value) => updateSection('housing', field, value)}
         />
       )}
       {currentStep === 4 && (
         <CalcStepFourDebt
+          t={t}
           answers={answers.debt}
           allAnswers={answers}
           onChange={(field, value) => updateSection('debt', field, value)}
@@ -205,12 +236,14 @@ export default function FamilyProtectionCalculator() {
       )}
       {currentStep === 5 && (
         <CalcStepFiveEducation
+          t={t}
           answers={answers.education}
           onChange={(field, value) => updateSection('education', field, value)}
         />
       )}
       {currentStep === 6 && (
         <CalcStepSixFinalExpenses
+          t={t}
           answers={answers.finalExpenses}
           onChange={(field, value) => updateSection('finalExpenses', field, value)}
         />
@@ -218,6 +251,7 @@ export default function FamilyProtectionCalculator() {
       {currentStep === 7 && (
         <>
           <CalcStepSevenCoverage
+            t={t}
             answers={answers.coverage}
             onChange={(field, value) => updateSection('coverage', field, value)}
           />
@@ -239,18 +273,35 @@ export default function FamilyProtectionCalculator() {
             }}
             honeypotValue={honeypotWebsite}
             onHoneypotChange={setHoneypotWebsite}
-            productTitle="Protection Gap™"
-            storageResultName="Protection Gap"
-            intro="Your Protection Gap™ estimate is based on the information you shared. Required acknowledgments are marked with an asterisk."
+            productTitle={t('ui', 'productTitle')}
+            storageResultName={t('ui', 'storageResultName')}
+            intro={t('ui', 'consentIntro')}
+            labels={{
+              heading: t('ui', 'consentHeading'),
+              storage: t('ui', 'consentStorage'),
+              storageHint: t('ui', 'consentStorageHint'),
+              storageError: t('ui', 'consentStorageError'),
+              contact: t('ui', 'consentContact'),
+              emailMarketing: t('ui', 'consentEmailMarketing'),
+              sms: t('ui', 'consentSms'),
+              smsPhoneNote: t('ui', 'consentSmsPhoneNote'),
+              privacyBefore: t('ui', 'consentPrivacyBefore'),
+              privacyLink: t('ui', 'consentPrivacyLink'),
+              privacyAfter: t('ui', 'consentPrivacyAfter'),
+              privacyHint: t('ui', 'consentPrivacyHint'),
+              privacyError: t('ui', 'consentPrivacyError'),
+              disclaimer: t('ui', 'consentDisclaimer'),
+              honeypot: t('ui', 'consentHoneypot'),
+            }}
           />
           {isSubmitting ? (
             <p className="family-submit-status" role="status" aria-live="polite">
-              Saving your Protection Gap…
+              {t('ui', 'saving')}
             </p>
           ) : null}
-          {submitError ? (
+          {displayError ? (
             <p className="family-submit-error" role="alert">
-              {submitError}
+              {displayError}
             </p>
           ) : null}
         </>

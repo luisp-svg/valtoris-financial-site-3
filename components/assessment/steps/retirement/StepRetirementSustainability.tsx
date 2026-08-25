@@ -1,6 +1,7 @@
 import ChoiceGroup from '../../ChoiceGroup'
 import OptionGroup from '../../../calculator/OptionGroup'
 import QuestionCard from '../../QuestionCard'
+import { localizedOptions, type ReportCardCopyFn } from '../../reportCardLocale'
 import {
   RETIREMENT_GOAL_OPTIONS,
   RETIREMENT_PROJECTION_ASSUMPTIONS,
@@ -12,6 +13,7 @@ import {
 } from '../../retirement/types'
 
 type StepRetirementSustainabilityProps = {
+  t: ReportCardCopyFn
   goals: RetirementGoalsAnswers
   incomeSources: RetirementIncomeSourceAnswers
   onGoalsChange: (selected: string[]) => void
@@ -25,6 +27,7 @@ function formatPercent(rate: number) {
 }
 
 export default function StepRetirementSustainability({
+  t,
   goals,
   incomeSources,
   onGoalsChange,
@@ -39,45 +42,47 @@ export default function StepRetirementSustainability({
   }
 
   return (
-    <QuestionCard
-      title="Income Sustainability"
-      description="Review the default projection assumptions used in your report, then select your top retirement priorities."
-    >
-      <div className="retirement-assumption-list" aria-label="Projection assumptions">
-        <h3 className="assessment-section-heading">Default Projection Assumptions</h3>
+    <QuestionCard title={t('ui', 'step6Title')} description={t('helpers', 'step6')}>
+      <div className="retirement-assumption-list" aria-label={t('fields', 'assumptionsHeading')}>
+        <h3 className="assessment-section-heading">{t('fields', 'assumptionsHeading')}</h3>
         <ul>
-          <li>Inflation: {formatPercent(RETIREMENT_PROJECTION_ASSUMPTIONS.inflation)}</li>
           <li>
-            Pre-retirement growth:{' '}
+            {t('results', 'assumption.inflation')}:{' '}
+            {formatPercent(RETIREMENT_PROJECTION_ASSUMPTIONS.inflation)}
+          </li>
+          <li>
+            {t('results', 'assumption.preRetirementGrowth')}:{' '}
             {formatPercent(RETIREMENT_PROJECTION_ASSUMPTIONS.preRetirementGrowth)}
           </li>
           <li>
-            Retirement return: {formatPercent(RETIREMENT_PROJECTION_ASSUMPTIONS.retirementReturn)}
+            {t('results', 'assumption.retirementReturn')}:{' '}
+            {formatPercent(RETIREMENT_PROJECTION_ASSUMPTIONS.retirementReturn)}
           </li>
-          <li>Withdrawal rate: {formatPercent(RETIREMENT_PROJECTION_ASSUMPTIONS.withdrawalRate)}</li>
-          <li>Longevity age: {RETIREMENT_PROJECTION_ASSUMPTIONS.longevityAge}</li>
+          <li>
+            {t('results', 'assumption.withdrawalRate')}:{' '}
+            {formatPercent(RETIREMENT_PROJECTION_ASSUMPTIONS.withdrawalRate)}
+          </li>
+          <li>
+            {t('results', 'assumption.longevityAge')}:{' '}
+            {RETIREMENT_PROJECTION_ASSUMPTIONS.longevityAge}
+          </li>
         </ul>
-        <p className="funnel-microcopy assessment-note">
-          These assumptions produce hypothetical educational estimates. Actual market returns,
-          inflation, longevity, and personal circumstances will differ. Results do not guarantee
-          retirement outcomes. Version one does not model detailed COLA growth for individual income
-          sources.
-        </p>
+        <p className="funnel-microcopy assessment-note">{t('helpers', 'assumptions')}</p>
       </div>
 
       <form className="assessment-form" onSubmit={(event) => event.preventDefault()}>
         <OptionGroup
-          label="Have you reviewed how inflation may affect your retirement income?"
+          label={t('fields', 'inflationAwareness')}
           name="inflationAwareness"
-          options={YES_NO_UNSURE_OPTIONS}
+          options={localizedOptions(YES_NO_UNSURE_OPTIONS, t, 'yesNoUnsure')}
           value={incomeSources.inflationAwareness}
           onChange={(value) => onIncomeSourcesChange('inflationAwareness', value)}
           required
         />
         <ChoiceGroup
-          label="What are your top retirement priorities? (Select up to 3)"
+          label={t('fields', 'goals')}
           name="retirementGoals"
-          options={RETIREMENT_GOAL_OPTIONS}
+          options={localizedOptions(RETIREMENT_GOAL_OPTIONS, t, 'goals')}
           selected={goals.selected}
           onChange={handleGoalsChange}
           required

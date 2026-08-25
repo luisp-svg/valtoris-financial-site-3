@@ -1,25 +1,28 @@
 import CurrencyInput from '../../assessment/CurrencyInput'
+import type { ReportCardCopyFn } from '../../assessment/reportCardLocale'
 import { CalculatorQuestionCard } from '../CalculatorHelpers'
 import { CoverageStepAnswers } from '../types'
 
 type CalcStepSevenCoverageProps = {
   answers: CoverageStepAnswers
   onChange: (field: keyof CoverageStepAnswers, value: string) => void
+  t: ReportCardCopyFn
 }
 
-export default function CalcStepSevenCoverage({ answers, onChange }: CalcStepSevenCoverageProps) {
+export default function CalcStepSevenCoverage({
+  answers,
+  onChange,
+  t,
+}: CalcStepSevenCoverageProps) {
   return (
-    <CalculatorQuestionCard
-      title="Current Coverage"
-      description="Enter your existing life insurance coverage so we can estimate your protection gap."
-    >
+    <CalculatorQuestionCard title={t('ui', 'step7Title')} description={t('helpers', 'step7')}>
       <form className="assessment-form" onSubmit={(event) => event.preventDefault()}>
         <CurrencyInput
-          label="Current Life Insurance Coverage"
+          label={t('fields', 'currentLifeInsurance')}
           name="calcCurrentCoverage"
           value={answers.currentLifeInsurance}
           onChange={(value) => onChange('currentLifeInsurance', value)}
-          placeholder="0"
+          placeholder={t('placeholders', 'coverage')}
           required
         />
       </form>

@@ -752,7 +752,13 @@ p { color: var(--muted); line-height: 1.7; }
   appearance: none;
   background: transparent;
   border: 0;
-  padding: 4px 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 8px 10px;
   font: inherit;
   font-size: 14px;
   font-weight: 600;
@@ -760,6 +766,7 @@ p { color: var(--muted); line-height: 1.7; }
   color: inherit;
   cursor: pointer;
   text-decoration: none;
+  white-space: nowrap;
 }
 .specialized-locale-option.is-current {
   color: var(--brand);

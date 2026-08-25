@@ -6,9 +6,19 @@ type YesNoInputProps = {
   value: string
   onChange: (value: string) => void
   required?: boolean
+  yesLabel?: string
+  noLabel?: string
 }
 
-export default function YesNoInput({ label, name, value, onChange, required = false }: YesNoInputProps) {
+export default function YesNoInput({
+  label,
+  name,
+  value,
+  onChange,
+  required = false,
+  yesLabel = 'Yes',
+  noLabel = 'No',
+}: YesNoInputProps) {
   const id = fieldId(name)
 
   return (
@@ -25,7 +35,7 @@ export default function YesNoInput({ label, name, value, onChange, required = fa
             aria-pressed={value === option}
             onClick={() => onChange(option)}
           >
-            {option === 'yes' ? 'Yes' : 'No'}
+            {option === 'yes' ? yesLabel : noLabel}
           </button>
         ))}
       </div>

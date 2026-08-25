@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import PublicLink from '../../publicSite/PublicLink'
 import { ROUTES } from '../../../constants/routes'
 import type { FamilyConsentField, FamilyConsentState } from '../../reportCard/familyIngest/familyConsent'
 
@@ -186,7 +186,7 @@ export default function FamilyConsentSection({
               *
             </span>
             {labels.privacyBefore ?? 'I acknowledge that I have reviewed the'}{' '}
-            <Link
+            <PublicLink
               to={ROUTES.privacy}
               target="_blank"
               rel="noopener noreferrer"
@@ -194,7 +194,7 @@ export default function FamilyConsentSection({
               onClick={(event) => event.stopPropagation()}
             >
               {labels.privacyLink ?? 'Valtoris Privacy Policy'}
-            </Link>
+            </PublicLink>
             {labels.privacyAfter ?? '.'}
           </span>
         </label>

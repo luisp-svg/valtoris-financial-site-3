@@ -1,24 +1,22 @@
 import QuestionCard from '../QuestionCard'
-import { FAMILY_CTA } from '../../../constants/homepage'
+import type { ReportCardCopyFn } from '../reportCardLocale'
 
 type StepWelcomeProps = {
   onBegin: () => void
   onBack?: () => void
+  t: ReportCardCopyFn
 }
 
-export default function StepWelcome({ onBegin, onBack }: StepWelcomeProps) {
+export default function StepWelcome({ onBegin, onBack, t }: StepWelcomeProps) {
   return (
-    <QuestionCard
-      title="Start Your Family Financial Report Card™"
-      description="Answer a few simple questions so we can show where your family stands today."
-    >
+    <QuestionCard title={t('ui', 'welcomeTitle')} description={t('ui', 'welcomeBody')}>
       <div className="welcome-actions">
         <button type="button" className="platform-btn platform-btn-primary" onClick={onBegin}>
-          {FAMILY_CTA}
+          {t('ui', 'startCta')}
         </button>
         {onBack ? (
           <button type="button" className="platform-btn platform-btn-outline" onClick={onBack}>
-            Back to Overview
+            {t('ui', 'backToOverview')}
           </button>
         ) : null}
       </div>

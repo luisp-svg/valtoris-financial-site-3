@@ -1,6 +1,7 @@
 import OptionGroup from '../../../calculator/OptionGroup'
 import QuestionCard from '../../QuestionCard'
 import SelectInput from '../../SelectInput'
+import { localizedOptions, type ReportCardCopyFn } from '../../reportCardLocale'
 import {
   FINANCE_SEPARATION_OPTIONS,
   LEGAL_ENTITY_STRUCTURE_OPTIONS,
@@ -11,36 +12,38 @@ import { FoundationAnswers } from '../../business/types'
 type StepBusinessFoundationProps = {
   answers: FoundationAnswers
   onChange: (field: keyof FoundationAnswers, value: string) => void
+  t: ReportCardCopyFn
 }
 
-export default function StepBusinessFoundation({ answers, onChange }: StepBusinessFoundationProps) {
+export default function StepBusinessFoundation({
+  answers,
+  onChange,
+  t,
+}: StepBusinessFoundationProps) {
   return (
-    <QuestionCard
-      title="Business Foundation"
-      description="How your business is structured and how clearly finances are separated."
-    >
+    <QuestionCard title={t('ui', 'step3Title')} description={t('helpers', 'step3')}>
       <form className="assessment-form" onSubmit={(event) => event.preventDefault()}>
         <SelectInput
-          label="How is your business legally structured?"
+          label={t('fields', 'entityStructure')}
           name="entityStructure"
           value={answers.entityStructure}
           onChange={(value) => onChange('entityStructure', value)}
-          options={LEGAL_ENTITY_STRUCTURE_OPTIONS}
-          placeholder="Select legal structure"
+          options={localizedOptions(LEGAL_ENTITY_STRUCTURE_OPTIONS, t, 'entityStructure')}
+          placeholder={t('placeholders', 'entityStructure')}
           required
         />
         <OptionGroup
-          label="Are your operating agreement and ownership documents current?"
+          label={t('fields', 'operatingDocs')}
           name="operatingDocs"
-          options={OPERATING_DOCS_OPTIONS}
+          options={localizedOptions(OPERATING_DOCS_OPTIONS, t, 'operatingDocs')}
           value={answers.operatingDocs}
           onChange={(value) => onChange('operatingDocs', value)}
           required
         />
         <OptionGroup
-          label="How separated are your personal and business finances?"
+          label={t('fields', 'financeSeparation')}
           name="financeSeparation"
-          options={FINANCE_SEPARATION_OPTIONS}
+          options={localizedOptions(FINANCE_SEPARATION_OPTIONS, t, 'financeSeparation')}
           value={answers.financeSeparation}
           onChange={(value) => onChange('financeSeparation', value)}
           required

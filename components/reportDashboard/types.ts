@@ -29,10 +29,32 @@ export type ReportProtectionAnalysis = {
   note: string
 }
 
+export type ReportDashboardChrome = {
+  currentScore?: string
+  letterGrade?: string
+  atAGlance?: string
+  insightsTitle?: string
+  insightsLead?: string
+  greatestStrengths?: string
+  biggestOpportunities?: string
+  protectionTitle?: string
+  protectionLead?: string
+  immediate?: string
+  thirtyDays?: string
+  ninetyDays?: string
+  whyThisMatters?: string
+  recommendedTimeline?: string
+  priorityRank?: string
+  levelCritical?: string
+  levelImportant?: string
+  levelLongTerm?: string
+}
+
 export type ReportDashboardData = {
   title: string
   preparedFor: string
   narrative: string
+  chrome?: ReportDashboardChrome
   scoreLabel: string
   score: number
   grade: string

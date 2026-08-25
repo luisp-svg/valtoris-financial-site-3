@@ -2,10 +2,13 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import AssessmentBrandHeader from '../components/AssessmentBrandHeader'
 import ScheduleReportCardLink from '../components/ScheduleReportCardLink'
 import ReportDashboard from '../components/reportDashboard/ReportDashboard'
-import { getFamilyReportDashboardData, SAMPLE_GREETING } from '../components/reportCard/reportCardData'
+import SpecializedLocaleSwitcher from '../components/assessment/specialized/SpecializedLocaleSwitcher'
+import { familyCopy } from '../components/assessment/family/copy'
+import { buildLocalizedFamilyDashboard } from '../components/assessment/family/localizeResults'
+import { useReportCardCopy } from '../components/assessment/reportCardLocale'
+import { formatSpecializedTemplate } from '../components/assessment/specialized/locale'
 import { DEMO_ANSWERS_STORAGE_KEY } from '../components/assessment/constants'
 import { DemoAssessmentAnswers, INITIAL_DEMO_ANSWERS } from '../components/assessment/types'
-import { PROTECTION_CTA, RETAKE_ASSESSMENT_CTA, SCHEDULE_CTA } from '../constants/homepage'
 import { ROUTES } from '../constants/routes'
 
 function loadAnswers(state: unknown): DemoAssessmentAnswers {
@@ -26,6 +29,7 @@ function loadAnswers(state: unknown): DemoAssessmentAnswers {
 export default function FamilyReportCardResults() {
   const location = useLocation()
   const navigate = useNavigate()
+  const { locale, t, withLocale } = useReportCardCopy(familyCopy)
   const answers = loadAnswers(location.state)
   const submissionWarning =
     location.state &&
@@ -34,23 +38,25 @@ export default function FamilyReportCardResults() {
       ? String((location.state as { submissionWarning?: string }).submissionWarning ?? '')
       : ''
   const firstName = answers.family.firstName.trim()
-  const greeting = firstName ? `Prepared for ${firstName}` : SAMPLE_GREETING
+  const greeting = firstName
+    ? formatSpecializedTemplate(t('ui', 'preparedFor'), { name: firstName })
+    : t('ui', 'sampleGreeting')
 
   return (
     <div className="results-shell report-dashboard-shell">
       <div className="results-container report-dashboard-container">
         <header className="results-header report-dashboard-header">
           <AssessmentBrandHeader />
+          <SpecializedLocaleSwitcher
+            locale={locale}
+            groupLabel={t('ui', 'languageGroupLabel')}
+            englishLabel={t('ui', 'languageEnglish')}
+            spanishLabel={t('ui', 'languageSpanish')}
+          />
         </header>
 
-        <p className="family-results-diagnostic-label">
-          Family Financial Report Card™ · Initial Financial Diagnostic
-        </p>
-        <p className="family-results-disclaimer">
-          These results are educational estimates based on self-reported information. They are not
-          financial, legal, tax, investment, credit, or insurance advice, and they are not a
-          guarantee. An advisor review may reach different conclusions.
-        </p>
+        <p className="family-results-diagnostic-label">{t('ui', 'resultsDiagnosticLabel')}</p>
+        <p className="family-results-disclaimer">{t('ui', 'resultsDisclaimer')}</p>
 
         {submissionWarning ? (
           <p className="submission-notice" role="status">
@@ -58,24 +64,23 @@ export default function FamilyReportCardResults() {
           </p>
         ) : null}
 
-        <ReportDashboard data={getFamilyReportDashboardData(firstName, greeting, answers)} />
+        <ReportDashboard data={buildLocalizedFamilyDashboard(firstName, greeting, answers, t)} />
 
         <section className="rd-cta">
-          <h2 className="rd-cta-title">{SCHEDULE_CTA}</h2>
-          <p className="rd-cta-copy">
-            Review your Family Financial Report Card™ with a Valtoris strategist and receive a
-            customized action plan for protecting and growing your family&apos;s wealth.
-          </p>
-          <ScheduleReportCardLink className="platform-btn platform-btn-secondary">{SCHEDULE_CTA}</ScheduleReportCardLink>
-          <Link className="results-back-link" to={ROUTES.protectionAnalysis}>
-            {PROTECTION_CTA}
+          <h2 className="rd-cta-title">{t('ui', 'resultsScheduleTitle')}</h2>
+          <p className="rd-cta-copy">{t('ui', 'resultsScheduleCopy')}</p>
+          <ScheduleReportCardLink className="platform-btn platform-btn-secondary">
+            {t('ui', 'resultsScheduleTitle')}
+          </ScheduleReportCardLink>
+          <Link className="results-back-link" to={withLocale(ROUTES.protectionAnalysis)}>
+            {t('ui', 'resultsProtectionCta')}
           </Link>
           <button
             type="button"
             className="results-back-link"
-            onClick={() => navigate(ROUTES.familyAssessment)}
+            onClick={() => navigate(withLocale(ROUTES.familyAssessment))}
           >
-            {RETAKE_ASSESSMENT_CTA}
+            {t('ui', 'resultsRetake')}
           </button>
         </section>
       </div>

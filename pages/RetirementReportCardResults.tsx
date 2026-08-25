@@ -2,28 +2,28 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import AssessmentBrandHeader from '../components/AssessmentBrandHeader'
 import ScheduleReportCardLink from '../components/ScheduleReportCardLink'
 import ReportDashboard from '../components/reportDashboard/ReportDashboard'
-import {
-  DEMO_RETIREMENT_ANSWERS,
-  RETIREMENT_SAMPLE_GREETING,
-  getRetirementReportDashboardData,
-} from '../components/reportCard/retirementReportCardData'
+import SpecializedLocaleSwitcher from '../components/assessment/specialized/SpecializedLocaleSwitcher'
+import { retirementCopy } from '../components/assessment/retirement/copy'
+import { buildLocalizedRetirementDashboard } from '../components/assessment/retirement/localizeResults'
+import { useReportCardCopy } from '../components/assessment/reportCardLocale'
+import { formatSpecializedTemplate } from '../components/assessment/specialized/locale'
+import { DEMO_RETIREMENT_ANSWERS } from '../components/reportCard/retirementReportCardData'
 import { RETIREMENT_ANSWERS_STORAGE_KEY } from '../components/assessment/retirement/constants'
 import { RetirementAssessmentAnswers } from '../components/assessment/retirement/types'
 import { scoreRetirementAssessment } from '../components/assessment/scoring/scoreRetirementAssessment'
 import { formatCurrency } from '../components/calculator/calculations'
-import { RETAKE_ASSESSMENT_CTA, SCHEDULE_CTA } from '../constants/homepage'
 import { ROUTES } from '../constants/routes'
 
-const PLANNING_PATHWAYS = [
-  'Retirement-income planning',
-  'Social Security review',
-  'Pension analysis',
-  '401(k), 403(b), IRA, or TSP rollover review',
-  'Lifetime-income and annuity analysis',
-  'Roth and tax-diversification planning',
-  'Medicare and long-term-care planning',
-  'Life-insurance review',
-  'Estate and beneficiary review',
+const PLANNING_PATHWAY_KEYS = [
+  'pathways.1',
+  'pathways.2',
+  'pathways.3',
+  'pathways.4',
+  'pathways.5',
+  'pathways.6',
+  'pathways.7',
+  'pathways.8',
+  'pathways.9',
 ]
 
 function loadAnswers(state: unknown): RetirementAssessmentAnswers {
@@ -44,6 +44,7 @@ function loadAnswers(state: unknown): RetirementAssessmentAnswers {
 export default function RetirementReportCardResults() {
   const location = useLocation()
   const navigate = useNavigate()
+  const { locale, t, withLocale } = useReportCardCopy(retirementCopy)
   const answers = loadAnswers(location.state)
   const submissionWarning =
     location.state &&
@@ -52,7 +53,9 @@ export default function RetirementReportCardResults() {
       ? String((location.state as { submissionWarning?: string }).submissionWarning ?? '')
       : ''
   const firstName = answers.household.firstName.trim()
-  const greeting = firstName ? `Prepared for ${firstName}` : RETIREMENT_SAMPLE_GREETING
+  const greeting = firstName
+    ? formatSpecializedTemplate(t('ui', 'preparedFor'), { name: firstName })
+    : t('ui', 'sampleGreeting')
   const scored = scoreRetirementAssessment(answers)
   const { metrics } = scored
   const monthlyGap = Math.round(metrics.annualIncomeGap / 12)
@@ -61,13 +64,29 @@ export default function RetirementReportCardResults() {
     metrics.currentAnnualGrossIncome > 0
       ? Math.round(((metrics.monthlyContribution * 12) / metrics.currentAnnualGrossIncome) * 100)
       : 0
+  const dashboard = buildLocalizedRetirementDashboard(firstName, greeting, answers, t)
+  const partTimeNote = metrics.partTimeIncomeIncluded
+    ? formatSpecializedTemplate(t('results', 'snapshot.partTimeNote'), {
+        amount: formatCurrency(metrics.partTimeIncomeMonthly),
+        years: metrics.expectedPartTimeWorkYears,
+      })
+    : ''
 
   return (
     <div className="results-shell report-dashboard-shell">
       <div className="results-container report-dashboard-container">
         <header className="results-header report-dashboard-header">
           <AssessmentBrandHeader />
+          <SpecializedLocaleSwitcher
+            locale={locale}
+            groupLabel={t('ui', 'languageGroupLabel')}
+            englishLabel={t('ui', 'languageEnglish')}
+            spanishLabel={t('ui', 'languageSpanish')}
+          />
         </header>
+
+        <p className="family-results-diagnostic-label">{t('ui', 'resultsDiagnosticLabel')}</p>
+        <p className="family-results-disclaimer">{t('ui', 'resultsDisclaimer')}</p>
 
         {submissionWarning ? (
           <p className="submission-notice" role="status">
@@ -75,120 +94,122 @@ export default function RetirementReportCardResults() {
           </p>
         ) : null}
 
-        <ReportDashboard data={getRetirementReportDashboardData(firstName, greeting, answers)} />
+        <ReportDashboard data={dashboard} />
 
         <section className="rd-section" aria-labelledby="retirement-metrics-title">
           <div className="rd-section-head">
             <h2 id="retirement-metrics-title" className="rd-section-title">
-              Your Retirement Snapshot
+              {t('results', 'snapshot.title')}
             </h2>
-            <p className="rd-section-lead">
-              Your Retirement Snapshot highlights monthly need, total projected income, and any
-              estimated gap first. Supporting metrics below include assets, income sources, and
-              category context. Guaranteed income is weighted more heavily than other or temporary
-              sources.
-            </p>
+            <p className="rd-section-lead">{t('results', 'snapshot.lead')}</p>
           </div>
-          <dl className="retirement-snapshot-highlights" aria-label="Primary retirement summary">
+          <dl
+            className="retirement-snapshot-highlights"
+            aria-label={t('results', 'snapshot.highlightsLabel')}
+          >
             <div className="retirement-snapshot-highlight">
-              <dt>Estimated Monthly Retirement Need</dt>
+              <dt>{t('results', 'snapshot.needLabel')}</dt>
               <dd>{formatCurrency(metrics.targetMonthlyRetirementSpending)}</dd>
             </div>
             <div className="retirement-snapshot-highlight">
-              <dt>Estimated Total Monthly Income</dt>
+              <dt>{t('results', 'snapshot.incomeLabel')}</dt>
               <dd>{formatCurrency(metrics.totalProjectedMonthlyIncome)}</dd>
             </div>
             <div className="retirement-snapshot-highlight">
-              <dt>Estimated Monthly Income Gap</dt>
+              <dt>{t('results', 'snapshot.gapLabel')}</dt>
               <dd>{formatCurrency(monthlyGap)}</dd>
             </div>
           </dl>
           <dl className="retirement-metrics-grid">
             <div>
-              <dt>Current Retirement Assets</dt>
+              <dt>{t('results', 'snapshot.assetsLabel')}</dt>
               <dd>{formatCurrency(metrics.currentSavings)}</dd>
             </div>
             <div>
-              <dt>Projected Assets at Retirement</dt>
+              <dt>{t('results', 'snapshot.projectedAssetsLabel')}</dt>
               <dd>{formatCurrency(metrics.projectedNestEgg)}</dd>
             </div>
             <div>
-              <dt>Guaranteed Monthly Income</dt>
+              <dt>{t('results', 'snapshot.guaranteedLabel')}</dt>
               <dd>{formatCurrency(metrics.totalGuaranteedMonthlyIncome)}</dd>
             </div>
             <div>
-              <dt>Other Expected Monthly Income</dt>
+              <dt>{t('results', 'snapshot.otherIncomeLabel')}</dt>
               <dd>
                 {formatCurrency(metrics.totalOtherExpectedMonthlyIncome)}
-                {metrics.partTimeIncomeIncluded
-                  ? ` (includes temporary part-time: ${formatCurrency(metrics.partTimeIncomeMonthly)} for ~${metrics.expectedPartTimeWorkYears} yr)`
-                  : ''}
+                {partTimeNote}
               </dd>
             </div>
             <div>
-              <dt>Estimated Portfolio Monthly Income</dt>
+              <dt>{t('results', 'snapshot.portfolioLabel')}</dt>
               <dd>{formatCurrency(metrics.portfolioMonthlyIncome)}</dd>
             </div>
             <div>
-              <dt>Funded Ratio</dt>
+              <dt>{t('results', 'snapshot.fundedRatioLabel')}</dt>
               <dd>{fundedRatio}%</dd>
             </div>
             <div>
-              <dt>Current Savings Rate</dt>
+              <dt>{t('results', 'snapshot.savingsRateLabel')}</dt>
               <dd>{savingsRate}%</dd>
             </div>
             <div>
-              <dt>{metrics.isAlreadyRetired ? 'Retirement Status' : 'Years Until Retirement'}</dt>
+              <dt>
+                {metrics.isAlreadyRetired
+                  ? t('results', 'snapshot.statusLabel')
+                  : t('results', 'snapshot.yearsLabel')}
+              </dt>
               <dd>
-                {metrics.isAlreadyRetired ? 'Already Retired' : String(metrics.yearsUntilRetirement)}
+                {metrics.isAlreadyRetired
+                  ? t('results', 'snapshot.alreadyRetired')
+                  : String(metrics.yearsUntilRetirement)}
               </dd>
             </div>
             <div>
-              <dt>Strongest / Priority Categories</dt>
+              <dt>{t('results', 'snapshot.categoriesLabel')}</dt>
               <dd>
-                {scored.strongestCategory.title} / {scored.priorityCategory.title}
+                {dashboard.categories.find(
+                  (category) => category.id === scored.strongestCategory.id,
+                )?.title ?? scored.strongestCategory.title}{' '}
+                /{' '}
+                {dashboard.categories.find(
+                  (category) => category.id === scored.priorityCategory.id,
+                )?.title ?? scored.priorityCategory.title}
               </dd>
             </div>
           </dl>
           <p className="funnel-microcopy assessment-note">
-            These results are educational estimates and do not guarantee retirement outcomes.
-            Assumptions include inflation, growth, withdrawal rate, and longevity age{' '}
-            {metrics.assumptions.longevityAge}.
+            {formatSpecializedTemplate(t('results', 'snapshot.note'), {
+              longevityAge: metrics.assumptions.longevityAge,
+            })}
           </p>
         </section>
 
         <section className="rd-section" aria-labelledby="pathways-title">
           <div className="rd-section-head">
             <h2 id="pathways-title" className="rd-section-title">
-              Potential Planning Pathways
+              {t('results', 'pathways.title')}
             </h2>
-            <p className="rd-section-lead">
-              Educational topics you may explore with a strategist. This list is not a product
-              recommendation.
-            </p>
+            <p className="rd-section-lead">{t('results', 'pathways.lead')}</p>
           </div>
           <ul className="retirement-assumption-list">
-            {PLANNING_PATHWAYS.map((item) => (
-              <li key={item}>{item}</li>
+            {PLANNING_PATHWAY_KEYS.map((key) => (
+              <li key={key}>{t('results', key)}</li>
             ))}
           </ul>
         </section>
 
         <section className="rd-cta">
-          <h2 className="rd-cta-title">{SCHEDULE_CTA}</h2>
-          <p className="rd-cta-copy">
-            Review your Retirement Report Card™ with a Valtoris strategist and receive a customized
-            action plan for strengthening retirement income readiness.
-          </p>
+          <h2 className="rd-cta-title">{t('ui', 'resultsScheduleTitle')}</h2>
+          <p className="rd-cta-copy">{t('ui', 'resultsScheduleCopy')}</p>
           <ScheduleReportCardLink className="platform-btn platform-btn-secondary">
-            {SCHEDULE_CTA}
+            {t('ui', 'resultsScheduleTitle')}
           </ScheduleReportCardLink>
           <button
             type="button"
             className="results-back-link"
-            onClick={() => navigate(ROUTES.retirementAssessment)}
+            onClick={() => navigate(withLocale(ROUTES.retirementAssessment))}
           >
-            {RETAKE_ASSESSMENT_CTA}
+            {t('ui', 'resultsRetake')}
           </button>
         </section>
       </div>

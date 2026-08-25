@@ -223,6 +223,20 @@ describe('public site foundation chrome', () => {
     )
   })
 
+  it('gives the shared language switcher a 44px interaction target', () => {
+    const styles = source('src/styles.css')
+    const optionRule = styles.match(/(?:^|\n)\.specialized-locale-option \{[\s\S]*?\n\}/m)?.[0] ?? ''
+    expect(optionRule).toContain('min-height: 44px')
+    expect(optionRule).toContain('min-width: 44px')
+    expect(optionRule).toContain('font-size: 14px')
+    expect(source('components/assessment/specialized/SpecializedLocaleSwitcher.tsx')).toContain(
+      'specialized-locale-option',
+    )
+    expect(source('components/publicSite/PublicLocaleSwitcher.tsx')).toContain(
+      'specialized-locale-option',
+    )
+  })
+
   it('exposes Student Loan and Credit in the footer tools sitemap', () => {
     const html = renderChrome('/')
     expect(html).toContain('Student Loan Report Card™')

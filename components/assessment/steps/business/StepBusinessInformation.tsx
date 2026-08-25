@@ -1,6 +1,7 @@
 import QuestionCard from '../../QuestionCard'
 import SelectInput from '../../SelectInput'
 import TextInput from '../../TextInput'
+import { localizedOptions, type ReportCardCopyFn } from '../../reportCardLocale'
 import {
   BUSINESS_INDUSTRY_OPTIONS,
   EMPLOYEE_COUNT_OPTIONS,
@@ -16,6 +17,7 @@ type StepBusinessInformationProps = {
   business: BusinessInfoAnswers
   onOwnerChange: (field: keyof OwnerAnswers, value: string) => void
   onBusinessChange: (field: keyof BusinessInfoAnswers, value: string) => void
+  t: ReportCardCopyFn
 }
 
 export default function StepBusinessInformation({
@@ -23,102 +25,104 @@ export default function StepBusinessInformation({
   business,
   onOwnerChange,
   onBusinessChange,
+  t,
 }: StepBusinessInformationProps) {
   return (
-    <QuestionCard
-      title="About You & Your Business"
-      description="A few details to personalize your Business Financial Report Card™."
-    >
+    <QuestionCard title={t('ui', 'step2Title')} description={t('helpers', 'step2')}>
       <form className="assessment-form" onSubmit={(event) => event.preventDefault()}>
         <TextInput
-          label="First Name"
+          label={t('fields', 'firstName')}
           name="firstName"
           value={owner.firstName}
           onChange={(value) => onOwnerChange('firstName', value)}
-          placeholder="First name"
+          placeholder={t('placeholders', 'firstName')}
           required
         />
         <TextInput
-          label="Last Name"
+          label={t('fields', 'lastName')}
           name="lastName"
           value={owner.lastName}
           onChange={(value) => onOwnerChange('lastName', value)}
-          placeholder="Last name"
+          placeholder={t('placeholders', 'lastName')}
           required
         />
         <TextInput
-          label="Email"
+          label={t('fields', 'email')}
           name="email"
           type="email"
           value={owner.email}
           onChange={(value) => onOwnerChange('email', value)}
-          placeholder="you@email.com"
+          placeholder={t('placeholders', 'email')}
           required
         />
         <TextInput
-          label="Phone"
+          label={t('fields', 'phone')}
           name="phone"
           type="tel"
           value={owner.phone}
           onChange={(value) => onOwnerChange('phone', value)}
-          placeholder="(555) 555-5555"
+          placeholder={t('placeholders', 'phone')}
           required
         />
         <TextInput
-          label="Business Name"
+          label={t('fields', 'businessName')}
           name="businessName"
           value={business.name}
           onChange={(value) => onBusinessChange('name', value)}
-          placeholder="Business name"
+          placeholder={t('placeholders', 'businessName')}
           required
         />
         <SelectInput
-          label="What does your business primarily do?"
+          label={t('fields', 'industry')}
           name="industry"
           value={business.industry}
           onChange={(value) => onBusinessChange('industry', value)}
-          options={BUSINESS_INDUSTRY_OPTIONS}
-          placeholder="Select industry"
+          options={localizedOptions(BUSINESS_INDUSTRY_OPTIONS, t, 'industry')}
+          placeholder={t('placeholders', 'industry')}
           required
         />
         <SelectInput
-          label="Years in Business"
+          label={t('fields', 'yearsInBusiness')}
           name="yearsInBusiness"
           value={business.yearsInBusiness}
           onChange={(value) => onBusinessChange('yearsInBusiness', value)}
-          options={YEARS_IN_BUSINESS_OPTIONS}
+          options={localizedOptions(YEARS_IN_BUSINESS_OPTIONS, t, 'yearsInBusiness')}
           required
         />
         <SelectInput
-          label="Full-Time Employees"
+          label={t('fields', 'employees')}
           name="employees"
           value={business.employees}
           onChange={(value) => onBusinessChange('employees', value)}
-          options={EMPLOYEE_COUNT_OPTIONS}
+          options={localizedOptions(EMPLOYEE_COUNT_OPTIONS, t, 'employees')}
           required
         />
         <SelectInput
-          label="What is your approximate annual gross business revenue?"
+          label={t('fields', 'grossAnnualRevenue')}
           name="grossAnnualRevenue"
           value={business.grossAnnualRevenue}
           onChange={(value) => onBusinessChange('grossAnnualRevenue', value)}
-          options={GROSS_ANNUAL_REVENUE_OPTIONS}
+          options={localizedOptions(GROSS_ANNUAL_REVENUE_OPTIONS, t, 'grossAnnualRevenue')}
           required
         />
         <SelectInput
-          label="How do you currently pay yourself from the business?"
+          label={t('fields', 'ownerCompensationMethod')}
           name="ownerCompensationMethod"
           value={business.ownerCompensationMethod}
           onChange={(value) => onBusinessChange('ownerCompensationMethod', value)}
-          options={OWNER_COMPENSATION_METHOD_OPTIONS}
+          options={localizedOptions(
+            OWNER_COMPENSATION_METHOD_OPTIONS,
+            t,
+            'ownerCompensationMethod',
+          )}
           required
         />
         <SelectInput
-          label="Approximately how much do you personally receive from the business each year?"
+          label={t('fields', 'ownerPersonalIncome')}
           name="ownerPersonalIncome"
           value={business.ownerPersonalIncome}
           onChange={(value) => onBusinessChange('ownerPersonalIncome', value)}
-          options={OWNER_PERSONAL_INCOME_OPTIONS}
+          options={localizedOptions(OWNER_PERSONAL_INCOME_OPTIONS, t, 'ownerPersonalIncome')}
           required
         />
       </form>

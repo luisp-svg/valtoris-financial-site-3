@@ -2,6 +2,7 @@ import QuestionCard from '../../QuestionCard'
 import SelectInput from '../../SelectInput'
 import TextInput from '../../TextInput'
 import OptionGroup from '../../../calculator/OptionGroup'
+import { localizedOptions, type ReportCardCopyFn } from '../../reportCardLocale'
 import { CONTACT_METHOD_OPTIONS, CONTACT_TIME_OPTIONS } from '../../retirement/constants'
 import {
   RetirementHouseholdAnswers,
@@ -9,6 +10,7 @@ import {
 } from '../../retirement/types'
 
 type StepRetirementContactProps = {
+  t: ReportCardCopyFn
   household: RetirementHouseholdAnswers
   leadDetails: RetirementLeadDetails
   onHouseholdChange: (field: keyof RetirementHouseholdAnswers, value: string) => void
@@ -16,6 +18,7 @@ type StepRetirementContactProps = {
 }
 
 export default function StepRetirementContact({
+  t,
   household,
   leadDetails,
   onHouseholdChange,
@@ -24,71 +27,68 @@ export default function StepRetirementContact({
   const consentChecked = leadDetails.consentGiven === 'yes'
 
   return (
-    <QuestionCard
-      title="Contact & Results"
-      description="Share how we can reach you, then view your personalized Retirement Report Card™."
-    >
+    <QuestionCard title={t('ui', 'step9Title')} description={t('helpers', 'step9')}>
       <form className="assessment-form" onSubmit={(event) => event.preventDefault()}>
         <TextInput
-          label="First Name"
+          label={t('fields', 'firstName')}
           name="firstName"
           value={household.firstName}
           onChange={(value) => onHouseholdChange('firstName', value)}
-          placeholder="First name"
+          placeholder={t('placeholders', 'firstName')}
           required
         />
         <TextInput
-          label="Last Name"
+          label={t('fields', 'lastName')}
           name="lastName"
           value={household.lastName}
           onChange={(value) => onHouseholdChange('lastName', value)}
-          placeholder="Last name"
+          placeholder={t('placeholders', 'lastName')}
           required
         />
         <TextInput
-          label="Email"
+          label={t('fields', 'email')}
           name="email"
           type="email"
           value={household.email}
           onChange={(value) => onHouseholdChange('email', value)}
-          placeholder="you@email.com"
+          placeholder={t('placeholders', 'email')}
           required
         />
         <TextInput
-          label="Phone"
+          label={t('fields', 'phone')}
           name="phone"
           type="tel"
           value={household.phone}
           onChange={(value) => onHouseholdChange('phone', value)}
-          placeholder="(555) 555-5555"
+          placeholder={t('placeholders', 'phone')}
           required
         />
         <SelectInput
-          label="Preferred Contact Method"
+          label={t('fields', 'preferredContactMethod')}
           name="preferredContactMethod"
           value={leadDetails.preferredContactMethod}
           onChange={(value) => onLeadDetailsChange('preferredContactMethod', value)}
-          options={CONTACT_METHOD_OPTIONS}
+          options={localizedOptions(CONTACT_METHOD_OPTIONS, t, 'contactMethod')}
           required
         />
         <OptionGroup
-          label="Best Contact Time"
+          label={t('fields', 'bestContactTime')}
           name="bestContactTime"
-          options={CONTACT_TIME_OPTIONS}
+          options={localizedOptions(CONTACT_TIME_OPTIONS, t, 'contactTime')}
           value={leadDetails.bestContactTime}
           onChange={(value) => onLeadDetailsChange('bestContactTime', value)}
           required
         />
         <TextInput
-          label="Primary Retirement Concern (optional)"
+          label={t('fields', 'primaryConcern')}
           name="primaryConcern"
           value={leadDetails.primaryConcern}
           onChange={(value) => onLeadDetailsChange('primaryConcern', value)}
-          placeholder="e.g., closing my income gap"
+          placeholder={t('placeholders', 'primaryConcern')}
         />
         <div className="assessment-field assessment-consent-field">
           <p className="assessment-field-label" id="assessment-consent-heading">
-            Consent *
+            {t('fields', 'consent')} *
           </p>
           <label className="assessment-consent-label" htmlFor="assessment-consentGiven">
             <input
@@ -101,11 +101,7 @@ export default function StepRetirementContact({
                 onLeadDetailsChange('consentGiven', event.target.checked ? 'yes' : 'no')
               }
             />
-            <span className="assessment-consent-text">
-              I understand these results are educational estimates for planning purposes and do not
-              guarantee retirement outcomes. Valtoris may contact me about my Retirement Report
-              Card™ using the preferences I provided.
-            </span>
+            <span className="assessment-consent-text">{t('validation', 'contactConsent')}</span>
           </label>
         </div>
       </form>

@@ -2,67 +2,66 @@ import QuestionCard from '../QuestionCard'
 import SelectInput from '../SelectInput'
 import TextInput from '../TextInput'
 import { MARITAL_STATUS_OPTIONS, US_STATES } from '../constants'
+import { localizedOptions, type ReportCardCopyFn } from '../reportCardLocale'
 import { FamilyAnswers } from '../types'
 
 type StepTwoFamilyProps = {
   answers: FamilyAnswers
   onChange: (field: keyof FamilyAnswers, value: string) => void
+  t: ReportCardCopyFn
 }
 
-export default function StepTwoFamily({ answers, onChange }: StepTwoFamilyProps) {
+export default function StepTwoFamily({ answers, onChange, t }: StepTwoFamilyProps) {
   return (
-    <QuestionCard
-      title="About Your Family"
-      description="Tell us a little about your household so we can personalize your report card."
-    >
+    <QuestionCard title={t('ui', 'step2Title')} description={t('helpers', 'step2')}>
       <form className="assessment-form" onSubmit={(event) => event.preventDefault()}>
         <TextInput
-          label="First Name"
+          label={t('fields', 'firstName')}
           name="firstName"
           value={answers.firstName}
           onChange={(value) => onChange('firstName', value)}
-          placeholder="Enter your first name"
+          placeholder={t('placeholders', 'firstName')}
           required
         />
         <TextInput
-          label="Last Name"
+          label={t('fields', 'lastName')}
           name="lastName"
           value={answers.lastName}
           onChange={(value) => onChange('lastName', value)}
-          placeholder="Enter your last name"
+          placeholder={t('placeholders', 'lastName')}
           required
         />
         <TextInput
-          label="Email"
+          label={t('fields', 'email')}
           name="email"
           type="email"
           value={answers.email}
           onChange={(value) => onChange('email', value)}
-          placeholder="you@email.com"
+          placeholder={t('placeholders', 'email')}
           required
         />
         <TextInput
-          label="Phone"
+          label={t('fields', 'phone')}
           name="phone"
           type="tel"
           value={answers.phone}
           onChange={(value) => onChange('phone', value)}
-          placeholder="(555) 555-5555"
+          placeholder={t('placeholders', 'phone')}
           required
         />
         <TextInput
-          label="Age"
+          label={t('fields', 'age')}
           name="age"
           type="number"
           value={answers.age}
           onChange={(value) => onChange('age', value)}
-          placeholder="Enter your age"
+          placeholder={t('placeholders', 'age')}
           min={18}
           max={120}
           required
         />
         <SelectInput
-          label="State"
+          label={t('fields', 'state')}
           name="state"
           value={answers.state}
           onChange={(value) => onChange('state', value)}
@@ -70,20 +69,20 @@ export default function StepTwoFamily({ answers, onChange }: StepTwoFamilyProps)
           required
         />
         <SelectInput
-          label="Marital Status"
+          label={t('fields', 'maritalStatus')}
           name="maritalStatus"
           value={answers.maritalStatus}
           onChange={(value) => onChange('maritalStatus', value)}
-          options={MARITAL_STATUS_OPTIONS}
+          options={localizedOptions(MARITAL_STATUS_OPTIONS, t, 'maritalStatus')}
           required
         />
         <TextInput
-          label="Number of Children"
+          label={t('fields', 'numberOfChildren')}
           name="numberOfChildren"
           type="number"
           value={answers.numberOfChildren}
           onChange={(value) => onChange('numberOfChildren', value)}
-          placeholder="0"
+          placeholder={t('placeholders', 'children')}
           min={0}
           max={20}
           required
