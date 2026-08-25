@@ -39,7 +39,6 @@ export const SERVICES_NAV_GROUPS: readonly PublicNavGroup[] = [
     links: [
       { id: 'businessFormation', to: ROUTES.businessFormation, labelKey: 'servicesBusinessFormation' },
       { id: 'tax', to: ROUTES.taxStrategy, labelKey: 'servicesTax' },
-      { id: 'business', to: ROUTES.solutions, labelKey: 'servicesBusiness' },
       { id: 'viewSolutions', to: ROUTES.solutions, labelKey: 'servicesViewSolutions' },
     ],
   },
@@ -85,27 +84,26 @@ export const BOOK_NAV: PublicNavLink = {
 }
 
 export const COMPANY_FOOTER_LINKS: readonly PublicNavLink[] = [
-  { id: 'contact', to: ROUTES.schedule, labelKey: 'navContact' },
+  { id: 'home', to: ROUTES.home, labelKey: 'navHome' },
+  { id: 'book', to: ROUTES.schedule, labelKey: 'bookMeeting' },
   { id: 'privacy', to: ROUTES.privacy, labelKey: 'footerPrivacy' },
   { id: 'advisorLogin', to: ROUTES.crmLogin, labelKey: 'advisorLogin' },
 ]
 
 export const FAMILIES_FOOTER_LINKS: readonly PublicNavLink[] = [
-  { id: 'families', to: ROUTES.solutions, labelKey: 'servicesFamilies' },
-  { id: 'protection', to: ROUTES.protectionAnalysis, labelKey: 'servicesProtection' },
-  { id: 'retirement', to: ROUTES.retirementReportCard, labelKey: 'servicesRetirement' },
   { id: 'insurance', to: ROUTES.insurance, labelKey: 'servicesInsurance' },
   { id: 'health', to: ROUTES.healthDisability, labelKey: 'servicesHealth' },
-  { id: 'credit', to: ROUTES.credit, labelKey: 'servicesCredit' },
-  { id: 'studentLoans', to: ROUTES.studentLoans, labelKey: 'servicesStudentLoans' },
   { id: 'estate', to: ROUTES.estateLegacy, labelKey: 'servicesEstate' },
+  { id: 'studentLoans', to: ROUTES.studentLoans, labelKey: 'servicesStudentLoans' },
+  { id: 'credit', to: ROUTES.credit, labelKey: 'servicesCredit' },
+  { id: 'explore', to: ROUTES.solutions, labelKey: 'exploreAllSolutions' },
 ]
 
 export const BUSINESS_FOOTER_LINKS: readonly PublicNavLink[] = [
-  { id: 'businessOwners', to: ROUTES.solutions, labelKey: 'servicesBusiness' },
   { id: 'businessFormation', to: ROUTES.businessFormation, labelKey: 'servicesBusinessFormation' },
   { id: 'tax', to: ROUTES.taxStrategy, labelKey: 'servicesTax' },
-  { id: 'businessReportCard', to: ROUTES.businessReportCard, labelKey: 'toolsBusiness' },
+  { id: 'insurance', to: ROUTES.insurance, labelKey: 'servicesInsurance' },
+  { id: 'explore', to: ROUTES.solutions, labelKey: 'exploreAllSolutions' },
 ]
 
 /** Top-level visible peers. About and Contact are omitted until they have unique destinations. */

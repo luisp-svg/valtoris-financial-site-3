@@ -117,7 +117,7 @@ describe('visual review corrections', () => {
     expect(drawer).not.toContain('Contact')
     expect(html).toContain('Book a Meeting')
     expect(html).toContain(`href="${ROUTES.schedule}"`)
-    expect(html).toContain('Contact')
+    expect(html).not.toContain('>Contact</')
     expect(source('components/SiteFooter.tsx')).toContain('COMPANY_FOOTER_LINKS')
   })
 

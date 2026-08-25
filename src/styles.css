@@ -5313,6 +5313,34 @@ p { color: var(--muted); line-height: 1.7; }
   color: var(--gold);
 }
 
+.site-solutions-hub .site-service-hero .site-home-headline {
+  max-width: 22ch;
+}
+
+.site-solutions-coordination-list {
+  display: grid;
+  gap: 10px;
+  margin: 20px auto 0;
+  max-width: 62ch;
+  padding: 0;
+  list-style: none;
+  color: var(--platform-muted);
+  line-height: 1.55;
+  text-align: left;
+}
+
+.site-solutions-coordination-close {
+  margin: 18px auto 0;
+  max-width: 62ch;
+  color: var(--brand);
+  font-weight: 700;
+  text-align: center;
+}
+
+.site-solutions-disclaimer {
+  padding: 8px 0 48px;
+}
+
 .site-service-hero .site-home-hero-copy {
   max-width: 760px;
 }

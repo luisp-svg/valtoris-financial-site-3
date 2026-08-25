@@ -29,6 +29,7 @@ export type ChromeCopyKey =
   | 'servicesGroupIndividuals'
   | 'servicesGroupBusiness'
   | 'servicesViewSolutions'
+  | 'exploreAllSolutions'
   | 'toolsFamily'
   | 'toolsBusiness'
   | 'toolsRetirement'
@@ -75,6 +76,7 @@ export const chromeCopy: Record<PublicLocale, ChromeCopyCatalog> = {
     servicesGroupIndividuals: 'Individuals & Families',
     servicesGroupBusiness: 'Business',
     servicesViewSolutions: 'View Solutions',
+    exploreAllSolutions: 'Explore All Solutions',
     toolsFamily: 'Family Report Card™',
     toolsBusiness: 'Business Report Card™',
     toolsRetirement: 'Retirement Report Card™',
@@ -119,6 +121,7 @@ export const chromeCopy: Record<PublicLocale, ChromeCopyCatalog> = {
     servicesGroupIndividuals: 'Personas y familias',
     servicesGroupBusiness: 'Negocios',
     servicesViewSolutions: 'Ver soluciones',
+    exploreAllSolutions: 'Explorar todas las soluciones',
     toolsFamily: 'Family Report Card™',
     toolsBusiness: 'Business Report Card™',
     toolsRetirement: 'Retirement Report Card™',

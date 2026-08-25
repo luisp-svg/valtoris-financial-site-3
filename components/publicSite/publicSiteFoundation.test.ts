@@ -114,7 +114,6 @@ describe('public site foundation chrome', () => {
       ROUTES.businessFormation,
       ROUTES.taxStrategy,
       ROUTES.solutions,
-      ROUTES.solutions,
     ])
     expect(TOOLS_NAV_LINKS.map((item) => item.to)).toEqual([
       ROUTES.reportCard,
@@ -185,13 +184,11 @@ describe('public site foundation chrome', () => {
     expect(en).toContain('Home')
     expect(en).toContain('Services')
     expect(en).toContain('Tools')
-    expect(en).toContain('Contact')
     expect(en).toContain('Book a Meeting')
     expect(en).toContain('Advisor Login')
     expect(es).toContain('Inicio')
     expect(es).toContain('Servicios')
     expect(es).toContain('Herramientas')
-    expect(es).toContain('Contacto')
     expect(es).toContain('Agendar una reunión')
     expect(es).toContain('Acceso para estrategas')
     expect(Object.keys(chromeCopy.en).sort()).toEqual(Object.keys(chromeCopy.es).sort())

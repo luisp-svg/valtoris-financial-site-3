@@ -121,7 +121,6 @@ describe('Phase 4 insurance, health, and business formation service pages', () =
       'estate',
       'businessFormation',
       'tax',
-      'business',
       'viewSolutions',
     ])
     expect(SERVICES_NAV_LINKS.find((item) => item.id === 'insurance')?.to).toBe(ROUTES.insurance)

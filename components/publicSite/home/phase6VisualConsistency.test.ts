@@ -109,7 +109,6 @@ describe('Phase 6 public CTA hierarchy and alignment', () => {
       ROUTES.businessFormation,
       ROUTES.taxStrategy,
       ROUTES.solutions,
-      ROUTES.solutions,
     ])
     expect(TOOLS_NAV_LINKS.map((item) => item.to)).toEqual([
       ROUTES.reportCard,
