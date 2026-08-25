@@ -44,11 +44,11 @@ function createReplaceCount(sql: string, name: string): number {
 }
 
 describe('migration 051 safe Intake archive RPC', () => {
-  it('is the only 051 file, follows 050, freezes 001–051, and rejects 052', () => {
+  it('is the only 051 file, follows 050, freezes 001–052, is followed by 052, and rejects 053', () => {
     expect(MIGRATION_051_FILENAME).toBe('051_intake_archive_workflow.sql')
     const files = numberedMigrations()
     expect(files).toEqual([...EXPECTED_NUMBERED_MIGRATIONS])
-    expect(files).toHaveLength(51)
+    expect(files).toHaveLength(52)
     expect(files[0]).toBe('001_extensions_and_enums.sql')
     expect(files[44]).toBe(MIGRATION_045_FILENAME)
     expect(files[45]).toBe(MIGRATION_046_FILENAME)
@@ -57,9 +57,11 @@ describe('migration 051 safe Intake archive RPC', () => {
     expect(files[48]).toBe(MIGRATION_049_FILENAME)
     expect(files[49]).toBe(MIGRATION_050_FILENAME)
     expect(files[50]).toBe(MIGRATION_051_FILENAME)
+    expect(files[51]).toBe('052_fix_intake_archive_activity_order.sql')
     expect(files.filter((f) => f.startsWith('050_'))).toEqual([MIGRATION_050_FILENAME])
     expect(files.filter((f) => f.startsWith('051_'))).toEqual([MIGRATION_051_FILENAME])
-    expect(files.filter((f) => f.startsWith('052_'))).toEqual([])
+    expect(files.filter((f) => f.startsWith('052_'))).toEqual(['052_fix_intake_archive_activity_order.sql'])
+    expect(files.filter((f) => f.startsWith('053_'))).toEqual([])
   })
 
   it('adds only archive_intake_lead with the approved signature and security posture', () => {

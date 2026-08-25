@@ -25,6 +25,12 @@ export const INTAKE_BROWSER_QA_CHECKLIST = [
   'Stale/already-resolved reviews show a safe conflict message without corrupting UI state.',
   'Public Family submission flow remains unchanged.',
   'Privacy Policy route exists at /privacy; production release remains blocked until legal review.',
+  'Owner sees Archive / Dismiss on Intake detail; Open household remains the primary CTA.',
+  'Assigned advisor sees Archive only when existing household assignment proves access; unassigned-pool visibility does not enable Archive.',
+  'Archive dialog lists exactly four reasons: Dismissed, Not a Fit, Spam, Test / Accidental. None is labeled Delete.',
+  'Confirmation explains the household, assessment, and CRM history remain.',
+  'Pending duplicate review disables Archive with resolve-first helper copy.',
+  'Successful archive refreshes the active queue (deleted_at IS NULL), keeps the user on Intake, and does not write Sheets, Opportunity, or Activity from the browser.',
 ] as const
 
 export const DUPLICATE_RESOLUTION_BROWSER_QA_CHECKLIST = [

@@ -2,7 +2,14 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useCrmAuth } from '../../crm/auth/CrmAuthContext'
 import DuplicateResolutionConfirmDialog from '../../crm/intake/DuplicateResolutionConfirmDialog'
+import IntakeArchiveConfirmDialog from '../../crm/intake/IntakeArchiveConfirmDialog'
 import IntakeDetailPanel from '../../crm/intake/IntakeDetailPanel'
+import { archiveIntakeLead } from '../../crm/intake/intakeArchive'
+import {
+  INTAKE_ARCHIVE_SUCCESS_COPY,
+  INTAKE_ARCHIVE_TASK_COMPLETED_COPY,
+  intakeArchiveVisibilityForItem,
+} from '../../crm/intake/intakeArchiveUi'
 import {
   fetchCandidateHouseholdSummary,
   fetchCurrentAdvisorProfileId,
@@ -30,6 +37,7 @@ import {
 } from '../../crm/intake/listLoadState'
 import type {
   DuplicateResolutionWriteAction,
+  IntakeArchiveReason,
   IntakeFilterId,
   IntakeHouseholdSummary,
   IntakeQueueItem,
@@ -76,6 +84,13 @@ export default function CrmIntakePage() {
   const [reloadToken, setReloadToken] = useState(0)
   const [retryingTask, setRetryingTask] = useState(false)
   const [retryTaskMessage, setRetryTaskMessage] = useState<string | null>(null)
+  const [archiveDialogOpen, setArchiveDialogOpen] = useState(false)
+  const [archiving, setArchiving] = useState(false)
+  const [archiveDialogError, setArchiveDialogError] = useState<string | null>(null)
+  const [archiveSuccess, setArchiveSuccess] = useState<{
+    followUpTaskCompleted: boolean
+  } | null>(null)
+  const archivingRef = useRef(false)
 
   useEffect(() => {
     function onResize() {
@@ -185,6 +200,9 @@ export default function CrmIntakePage() {
     setPendingAction(null)
     setDialogError(null)
     setRetryTaskMessage(null)
+    setArchiveDialogOpen(false)
+    setArchiveDialogError(null)
+    setArchiveSuccess(null)
   }
 
   async function handleRetryFollowUpTask() {
@@ -272,7 +290,46 @@ export default function CrmIntakePage() {
     }
   }
 
+  async function handleConfirmArchive(reason: IntakeArchiveReason) {
+    if (!selectedItem || archivingRef.current) return
+    archivingRef.current = true
+    setArchiving(true)
+    setArchiveDialogError(null)
+
+    try {
+      const supabase = createSupabaseBrowserClient()
+      const result = await archiveIntakeLead(supabase, {
+        leadId: selectedItem.leadId,
+        reason,
+      })
+      if (!result.ok) {
+        setArchiveDialogError(result.message)
+        return
+      }
+      setArchiveSuccess({
+        followUpTaskCompleted: result.follow_up_task_completed,
+      })
+      setArchiveDialogOpen(false)
+      setArchiveDialogError(null)
+      setReloadToken((token) => token + 1)
+    } catch (err) {
+      setArchiveDialogError('Unable to archive this Intake. Please try again.')
+      if (import.meta.env.DEV) {
+        console.error('[crm/intake]', formatIntakeError('intake archive', err))
+      }
+    } finally {
+      archivingRef.current = false
+      setArchiving(false)
+    }
+  }
+
   const emptyCopy = emptyStateCopy(filter)
+  const archiveVisibility = selectedItem
+    ? intakeArchiveVisibilityForItem(selectedItem, {
+        isOwner: role === 'owner',
+        currentAdvisorProfileId: advisorProfileId,
+      })
+    : { canPresent: false, blockedByDuplicate: false }
 
   return (
     <div className="crm-page crm-intake-page">
@@ -291,6 +348,13 @@ export default function CrmIntakePage() {
         Public release remains blocked until the Privacy Policy at /privacy receives legal review.
         The current page describes application behavior and is not attorney-approved legal coverage.
       </p>
+
+      {archiveSuccess ? (
+        <p className="crm-banner crm-banner-success" role="status">
+          {INTAKE_ARCHIVE_SUCCESS_COPY}
+          {archiveSuccess.followUpTaskCompleted ? ` ${INTAKE_ARCHIVE_TASK_COMPLETED_COPY}` : ''}
+        </p>
+      ) : null}
 
       <div className="crm-panel crm-intake-filters" role="toolbar" aria-label="Intake filters">
         {INTAKE_FILTER_OPTIONS.map((option) => {
@@ -508,6 +572,8 @@ export default function CrmIntakePage() {
             setPendingAction(null)
             setDialogError(null)
             setRetryTaskMessage(null)
+            setArchiveDialogOpen(false)
+            setArchiveDialogError(null)
           }}
           onRequestResolve={(action) => {
             setResolveError(null)
@@ -517,6 +583,31 @@ export default function CrmIntakePage() {
           onRetryFollowUpTask={
             role === 'owner' ? () => void handleRetryFollowUpTask() : undefined
           }
+          canPresentArchive={archiveVisibility.canPresent}
+          archiveBlockedByDuplicate={archiveVisibility.blockedByDuplicate}
+          onRequestArchive={
+            archiveVisibility.canPresent
+              ? () => {
+                  if (archiveVisibility.blockedByDuplicate || archiving) return
+                  setArchiveDialogError(null)
+                  setArchiveDialogOpen(true)
+                }
+              : undefined
+          }
+        />
+      ) : null}
+
+      {archiveDialogOpen && selectedItem ? (
+        <IntakeArchiveConfirmDialog
+          prospectName={selectedItem.submittedFullName}
+          submitting={archiving}
+          error={archiveDialogError}
+          onCancel={() => {
+            if (archiving) return
+            setArchiveDialogOpen(false)
+            setArchiveDialogError(null)
+          }}
+          onConfirm={handleConfirmArchive}
         />
       ) : null}
 

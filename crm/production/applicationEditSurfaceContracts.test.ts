@@ -39,7 +39,8 @@ describe('Phase 1 expose existing Application edit workflow', () => {
     expect(files.filter((name) => name.startsWith('049_'))).toEqual(['049_specialize_public_report_card_follow_up_copy.sql'])
     expect(files.filter((name) => name.startsWith('050_'))).toEqual(['050_credit_report_card_ingest.sql'])
     expect(files.filter((name) => name.startsWith('051_'))).toEqual(['051_intake_archive_workflow.sql'])
-    expect(files.filter((name) => name.startsWith('052_'))).toEqual([])
+    expect(files.filter((name) => name.startsWith('052_'))).toEqual(['052_fix_intake_archive_activity_order.sql'])
+    expect(files.filter((name) => name.startsWith('053_'))).toEqual([])
     expect(existsSync(join(migrationsDir, '045_application_edit.sql'))).toBe(false)
   })
 

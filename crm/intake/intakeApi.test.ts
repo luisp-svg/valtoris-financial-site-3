@@ -111,6 +111,8 @@ describe('fetchIntakeQueue', () => {
     expect(items[0].ingestMatchStatus).toBe('new_prospect')
     expect(from).toHaveBeenCalledWith('leads')
     expect(from).toHaveBeenCalledWith('assessments')
+    const leadsQuery = from.mock.results[0]?.value as { is?: ReturnType<typeof vi.fn> }
+    expect(leadsQuery.is).toHaveBeenCalledWith('deleted_at', null)
   })
 
   it('maps Digital Identity Let’s Connect leads without inventing a diagnostic', async () => {

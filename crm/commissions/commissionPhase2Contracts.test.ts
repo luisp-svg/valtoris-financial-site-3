@@ -14,7 +14,7 @@ function read(name: string): string {
 describe('commission Phase 2 contracts', () => {
   it('does not add a commission lifecycle migration and keeps the 001–047 baseline', () => {
     const numbered = readdirSync(migrationsDir).filter((name) => /^\d{3}_/.test(name)).sort()
-    expect(numbered).toHaveLength(51)
+    expect(numbered).toHaveLength(52)
     expect(numbered[0]).toBe('001_extensions_and_enums.sql')
     expect(numbered[43]).toBe('044_policy_application_requirements.sql')
     expect(numbered[44]).toBe('045_policy_post_placement_lifecycle.sql')
@@ -36,7 +36,8 @@ describe('commission Phase 2 contracts', () => {
     expect(numbered.filter((name) => name.startsWith('049_'))).toEqual(['049_specialize_public_report_card_follow_up_copy.sql'])
     expect(numbered.filter((name) => name.startsWith('050_'))).toEqual(['050_credit_report_card_ingest.sql'])
     expect(numbered.filter((name) => name.startsWith('051_'))).toEqual(['051_intake_archive_workflow.sql'])
-    expect(numbered.filter((name) => name.startsWith('052_'))).toEqual([])
+    expect(numbered.filter((name) => name.startsWith('052_'))).toEqual(['052_fix_intake_archive_activity_order.sql'])
+    expect(numbered.filter((name) => name.startsWith('053_'))).toEqual([])
     expect(numbered).toContain('040_commission_pending_import.sql')
     expect(numbered).toContain('043_public_report_card_ingest.sql')
     expect(existsSync(join(migrationsDir, '039_commission_lifecycle.sql'))).toBe(false)

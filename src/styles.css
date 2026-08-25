@@ -10095,6 +10095,33 @@ p { color: var(--muted); line-height: 1.7; }
   gap: 0.65rem;
 }
 
+.crm-intake-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: center;
+  margin: 0 0 0.85rem;
+}
+
+.crm-intake-archive-reasons {
+  display: grid;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.crm-intake-archive-reason {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.55rem;
+  align-items: flex-start;
+}
+
+.crm-intake-archive-reason span {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
 .crm-intake-dialog-backdrop {
   position: fixed;
   inset: 0;
@@ -10128,6 +10155,22 @@ p { color: var(--muted); line-height: 1.7; }
   .crm-intake-detail-grid,
   .crm-intake-compare-grid {
     grid-template-columns: 1fr;
+  }
+
+  .crm-intake-confirm-dialog,
+  .crm-intake-archive-reasons,
+  .crm-intake-archive-reason {
+    max-width: 100%;
+  }
+
+  .crm-intake-detail-actions,
+  .crm-intake-resolution-actions {
+    width: 100%;
+  }
+
+  .crm-intake-detail-actions .platform-btn,
+  .crm-intake-resolution-actions .platform-btn {
+    min-height: 2.75rem;
   }
 
   .crm-intake-table-wrap {

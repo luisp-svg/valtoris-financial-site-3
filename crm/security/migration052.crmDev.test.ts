@@ -1,19 +1,15 @@
 /**
- * Live CRM-dev READ for Migration 051 safe Intake archive RPC.
+ * Live CRM-dev READ for Migration 052 archive_intake_lead Activity ordering.
  * Hard-requires linked project-ref cxgiaevervjttbuiramd. Never targets CRM-prod.
- * Definition/catalog/grant reads only. Does not archive any lead.
+ * Definition/history/grant reads only. Does not archive any lead.
  */
 import { execSync } from 'node:child_process'
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import {
-  MIGRATION_051_DUPLICATE_WORKFLOWS,
-  MIGRATION_051_ORDINARY_FOLLOW_UP_WORKFLOWS,
-  MIGRATION_051_REASONS,
-  MIGRATION_051_RPC,
-} from './migration051Contract'
+import { MIGRATION_051_RPC } from './migration051Contract'
+import { MIGRATION_052_RPC } from './migration052Contract'
 
 const REQUIRED_REF = 'cxgiaevervjttbuiramd'
 
@@ -32,7 +28,7 @@ function crmDevReady(): boolean {
 }
 
 function queryLinked(sql: string): Record<string, unknown>[] {
-  const dir = mkdtempSync(join(tmpdir(), 'm051-crmdev-'))
+  const dir = mkdtempSync(join(tmpdir(), 'm052-crmdev-'))
   const file = join(dir, 'query.sql')
   writeFileSync(file, sql, 'utf8')
   try {
@@ -52,8 +48,8 @@ function queryLinked(sql: string): Record<string, unknown>[] {
   }
 }
 
-describe.skipIf(!crmDevReady())('migration 051 CRM-dev Intake archive RPC (cxgiaevervjttbuiramd only)', () => {
-  it('records 051 in remote history and exposes one archive_intake_lead signature', () => {
+describe.skipIf(!crmDevReady())('migration 052 CRM-dev archive Activity order (cxgiaevervjttbuiramd only)', () => {
+  it('records 052 in remote history and keeps one archive_intake_lead signature', () => {
     const versions = queryLinked(`
       SELECT version
       FROM supabase_migrations.schema_migrations
@@ -61,10 +57,7 @@ describe.skipIf(!crmDevReady())('migration 051 CRM-dev Intake archive RPC (cxgia
       ORDER BY version
     `)
     const labels = versions.map((row) => String(row.version))
-    expect(labels).toContain('050')
-    expect(labels).toContain('051')
-    expect(labels).toContain('052')
-    expect(labels).not.toContain('053')
+    expect(labels).toEqual(['050', '051', '052'])
 
     const fns = queryLinked(`
       SELECT
@@ -76,8 +69,9 @@ describe.skipIf(!crmDevReady())('migration 051 CRM-dev Intake archive RPC (cxgia
       FROM pg_proc p
       JOIN pg_namespace n ON n.oid = p.pronamespace
       WHERE n.nspname = 'public'
-        AND p.proname = '${MIGRATION_051_RPC}'
+        AND p.proname = '${MIGRATION_052_RPC}'
     `)
+    expect(MIGRATION_052_RPC).toBe(MIGRATION_051_RPC)
     expect(fns).toHaveLength(1)
     expect(fns[0].args).toBe('p_lead_id uuid, p_reason text')
     expect(fns[0].security_definer).toBe(true)
@@ -88,12 +82,12 @@ describe.skipIf(!crmDevReady())('migration 051 CRM-dev Intake archive RPC (cxgia
     expect(config).toContain('extensions')
   }, 60_000)
 
-  it('keeps expected grants and the duplicate / follow-up guards in the live body', () => {
+  it('keeps Activity before leads.deleted_at in the live body and preserves grants', () => {
     const grants = queryLinked(`
       SELECT grantee, privilege_type
       FROM information_schema.routine_privileges
       WHERE routine_schema = 'public'
-        AND routine_name = '${MIGRATION_051_RPC}'
+        AND routine_name = '${MIGRATION_052_RPC}'
       ORDER BY grantee, privilege_type
     `)
     const pairs = grants.map((row) => `${row.grantee}:${row.privilege_type}`).sort()
@@ -105,25 +99,19 @@ describe.skipIf(!crmDevReady())('migration 051 CRM-dev Intake archive RPC (cxgia
       FROM pg_proc p
       JOIN pg_namespace n ON n.oid = p.pronamespace
       WHERE n.nspname = 'public'
-        AND p.proname = '${MIGRATION_051_RPC}'
+        AND p.proname = '${MIGRATION_052_RPC}'
     `)
     const def = String(defRows[0]?.def ?? '')
+    const activityAt = def.indexOf('PERFORM public.crm_write_activity(')
+    const leadUpdateAt = def.indexOf('UPDATE public.leads')
+    expect(activityAt).toBeGreaterThan(0)
+    expect(leadUpdateAt).toBeGreaterThan(activityAt)
+    expect(def).toContain('v_lead.id')
     expect(def).toContain('CRM_INTAKE:duplicate_review_pending')
     expect(def).toContain('CRM_INTAKE:already_archived')
-    expect(def).toContain('crm_can_access_household')
     expect(def).not.toContain('crm_advisors_can_view_unassigned')
-    expect(def).not.toContain('INSERT INTO public.opportunities')
     expect(def).not.toContain('DELETE FROM')
-    for (const reason of MIGRATION_051_REASONS) {
-      expect(def).toContain(`'${reason}'`)
-    }
-    for (const workflow of MIGRATION_051_ORDINARY_FOLLOW_UP_WORKFLOWS) {
-      expect(def).toContain(`'${workflow}'`)
-    }
-    for (const workflow of MIGRATION_051_DUPLICATE_WORKFLOWS) {
-      expect(def).toContain(`'${workflow}'`)
-    }
-    expect(def).toContain('NOT IN')
+    expect(def).not.toContain('INSERT INTO public.opportunities')
   }, 60_000)
 
   it('adds no new table or column and does not grant Activity INSERT to authenticated', () => {

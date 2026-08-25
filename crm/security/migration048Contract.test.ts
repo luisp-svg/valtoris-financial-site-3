@@ -28,11 +28,11 @@ function numberedMigrations(): string[] {
 }
 
 describe('migration 048 student loan report card ingest enablement', () => {
-  it('is the only 048 file, follows 047, is followed by 049–050, is followed by 051, and rejects 052', () => {
+  it('is the only 048 file, follows 047, is followed by 049–050, is followed by 051, is followed by 052, and rejects 053', () => {
     expect(MIGRATION_048_FILENAME).toBe('048_student_loan_report_card_ingest.sql')
     const files = numberedMigrations()
     expect(files).toEqual([...EXPECTED_NUMBERED_MIGRATIONS])
-    expect(files).toHaveLength(51)
+    expect(files).toHaveLength(52)
     expect(files[0]).toBe('001_extensions_and_enums.sql')
     expect(files[44]).toBe(MIGRATION_045_FILENAME)
     expect(files[45]).toBe(MIGRATION_046_FILENAME)
@@ -44,7 +44,8 @@ describe('migration 048 student loan report card ingest enablement', () => {
     expect(files.filter((f) => f.startsWith('049_'))).toEqual(['049_specialize_public_report_card_follow_up_copy.sql'])
     expect(files.filter((f) => f.startsWith('050_'))).toEqual(['050_credit_report_card_ingest.sql'])
     expect(files.filter((f) => f.startsWith('051_'))).toEqual(['051_intake_archive_workflow.sql'])
-    expect(files.filter((f) => f.startsWith('052_'))).toEqual([])
+    expect(files.filter((f) => f.startsWith('052_'))).toEqual(['052_fix_intake_archive_activity_order.sql'])
+    expect(files.filter((f) => f.startsWith('053_'))).toEqual([])
   })
 
   it('adds student_loan to assessment_type and maps lead_type / lead_source', () => {

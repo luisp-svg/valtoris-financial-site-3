@@ -232,3 +232,35 @@ export const DUPLICATE_RESOLUTION_MAX_NOTES_LENGTH = 2000
 
 export const DUPLICATE_RESOLUTION_OWNER_ONLY_MESSAGE =
   'Only owners can resolve possible duplicate reviews in this release. Advisors can open linked households but cannot confirm or dismiss matches.'
+
+/** Canonical Intake archive reasons — must match archive_intake_lead. */
+export type IntakeArchiveReason =
+  | 'dismissed'
+  | 'not_a_fit'
+  | 'spam'
+  | 'test_or_accidental'
+
+export type IntakeArchiveSuccess = {
+  ok: true
+  lead_id: string
+  archived: true
+  reason: IntakeArchiveReason
+  follow_up_task_completed: boolean
+}
+
+export type IntakeArchiveErrorCode =
+  | 'not_authenticated'
+  | 'invalid_reason'
+  | 'not_authorized'
+  | 'already_archived'
+  | 'not_intake_lead'
+  | 'duplicate_review_pending'
+  | 'unknown'
+
+export type IntakeArchiveFailure = {
+  ok: false
+  code: IntakeArchiveErrorCode
+  message: string
+}
+
+export type IntakeArchiveResponse = IntakeArchiveSuccess | IntakeArchiveFailure

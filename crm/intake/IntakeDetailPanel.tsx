@@ -10,6 +10,10 @@ import { DUPLICATE_RESOLUTION_OWNER_ONLY_MESSAGE } from './types'
 import HowWeMetBlock from './HowWeMetBlock'
 import { buildHowWeMetViewModel } from './howWeMet'
 import {
+  INTAKE_ARCHIVE_ACTION_LABEL,
+  INTAKE_ARCHIVE_DUPLICATE_BLOCK_COPY,
+} from './intakeArchiveUi'
+import {
   intakeProductLabel,
   isDigitalIdentityLead,
   mapMatchReasonLabel,
@@ -37,9 +41,12 @@ type IntakeDetailPanelProps = {
   } | null
   retryingTask?: boolean
   retryTaskMessage?: string | null
+  canPresentArchive?: boolean
+  archiveBlockedByDuplicate?: boolean
   onClose: () => void
   onRequestResolve: (action: DuplicateResolutionWriteAction) => void
   onRetryFollowUpTask?: () => void
+  onRequestArchive?: () => void
 }
 
 function ConsentRow({ label, allowed }: { label: string; allowed: boolean }) {
@@ -62,9 +69,12 @@ export default function IntakeDetailPanel({
   resolveSuccess,
   retryingTask = false,
   retryTaskMessage = null,
+  canPresentArchive = false,
+  archiveBlockedByDuplicate = false,
   onClose,
   onRequestResolve,
   onRetryFollowUpTask,
+  onRequestArchive,
 }: IntakeDetailPanelProps) {
   const isDi = isDigitalIdentityLead(item)
   const diagnostic = item.diagnostic
@@ -101,6 +111,27 @@ export default function IntakeDetailPanel({
           Close
         </button>
       </div>
+
+      <div className="crm-intake-detail-actions">
+        {item.household ? (
+          <Link className="platform-btn platform-btn-primary" to={crmHouseholdPath(item.household.id)}>
+            Open household
+          </Link>
+        ) : null}
+        {canPresentArchive && onRequestArchive ? (
+          <button
+            type="button"
+            className="platform-btn platform-btn-outline"
+            disabled={archiveBlockedByDuplicate || resolving}
+            onClick={onRequestArchive}
+          >
+            {INTAKE_ARCHIVE_ACTION_LABEL}
+          </button>
+        ) : null}
+      </div>
+      {canPresentArchive && archiveBlockedByDuplicate ? (
+        <p className="crm-muted">{INTAKE_ARCHIVE_DUPLICATE_BLOCK_COPY}</p>
+      ) : null}
 
       {resolveSuccess ? (
         <p className="crm-banner crm-banner-success" role="status">
