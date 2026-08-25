@@ -1,5 +1,10 @@
 import { DIGITAL_IDENTITY_LEAD_TYPE } from '../../modules/digital-identity'
-import { crmProductLabelForLeadType } from '../../modules/reportCard/publicIngestCatalog'
+import {
+  CRM_PRODUCT_LABEL_BY_ASSESSMENT,
+  crmProductLabelForAssessment,
+  crmProductLabelForLeadType,
+  isPublicReportCardAssessmentType,
+} from '../../modules/reportCard/publicIngestCatalog'
 import type {
   DuplicateReviewStatus,
   IngestMatchStatus,
@@ -21,7 +26,15 @@ export function intakeProductLabel(item: Pick<IntakeQueueItem, 'leadType' | 'dig
   if (isDigitalIdentityLead(item)) {
     return item.digitalIdentity?.productLabel ?? 'Digital Identity'
   }
-  return item.diagnostic?.productLabel ?? 'Initial Financial Diagnostic'
+  if (item.diagnostic?.productLabel) return item.diagnostic.productLabel
+  return asIntakeDiagnosticProductLabel(crmProductLabelForLeadType(item.leadType))
+}
+
+function asIntakeDiagnosticProductLabel(value: string): IntakeDiagnosticSummary['productLabel'] {
+  for (const label of Object.values(CRM_PRODUCT_LABEL_BY_ASSESSMENT)) {
+    if (value === label) return label
+  }
+  return 'Initial Financial Diagnostic'
 }
 
 export function parseConsentSnapshot(value: unknown): IntakeConsentSummary {
@@ -267,13 +280,11 @@ export function buildDiagnosticFromAssessmentRow(
   const overallGradeRaw =
     typeof row.overall_grade === 'string' ? row.overall_grade : leadGrade
   const overallGrade = overallGradeRaw && overallGradeRaw.trim() ? overallGradeRaw : null
-  const productLabel = crmProductLabelForLeadType(leadType ?? '')
-  const typedLabel =
-    productLabel === 'Business Report Card' ||
-    productLabel === 'Retirement Report Card' ||
-    productLabel === 'Protection Gap'
-      ? productLabel
-      : 'Initial Financial Diagnostic'
+  const fromLead = crmProductLabelForLeadType(leadType ?? '')
+  const fromAssessment = isPublicReportCardAssessmentType(row.assessment_type)
+    ? crmProductLabelForAssessment(row.assessment_type)
+    : null
+  const typedLabel = asIntakeDiagnosticProductLabel(fromLead || fromAssessment || '')
 
   const netProtectionGap =
     typeof derived.netProtectionGap === 'number' && Number.isFinite(derived.netProtectionGap)

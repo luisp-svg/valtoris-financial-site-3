@@ -87,6 +87,7 @@ function makeItem(overrides: Partial<IntakeQueueItem> = {}): IntakeQueueItem {
     followUpTask: null,
     taskIndicators: [],
     taskCreationIssueMessage: null,
+    assessmentDetail: null,
     ...overrides,
   }
 }
@@ -189,6 +190,72 @@ describe('intake formatters', () => {
     expect(diagnostic?.overallGrade).toBeNull()
     expect(diagnostic?.protectionGapFormatted).toBe('$1,200,000')
     expect(diagnostic?.netProtectionGap).toBe(1200000)
+  })
+
+  it('labels Student Loan and Credit diagnostics from the catalog', () => {
+    const studentLoan = buildDiagnosticFromAssessmentRow(
+      {
+        id: 'assess-sl',
+        assessment_type: 'student_loan',
+        overall_score: 64,
+        overall_grade: 'D',
+        capture_channel: 'public_self_report',
+        scoring_version: 1,
+        completed_at: '2026-08-20T00:00:00.000Z',
+        priorities: [{ title: 'Review repayment plan' }],
+        derived_metrics: {
+          categories: [{ id: 'status_stability', title: 'Status & stability', score: 12, grade: 'D' }],
+        },
+      },
+      null,
+      null,
+      [],
+      'Student Loan Report Card',
+    )
+    expect(studentLoan?.productLabel).toBe('Student Loan Report Card')
+    expect(studentLoan?.overallScore).toBe(64)
+
+    const credit = buildDiagnosticFromAssessmentRow(
+      {
+        id: 'assess-cr',
+        assessment_type: 'credit',
+        overall_score: 71,
+        overall_grade: 'C',
+        capture_channel: 'public_self_report',
+        scoring_version: 1,
+        completed_at: '2026-08-20T00:00:00.000Z',
+        priorities: [{ title: 'Review utilization' }],
+        derived_metrics: {
+          categories: [{ id: 'utilization', title: 'Utilization', score: 18, grade: 'C' }],
+        },
+      },
+      null,
+      null,
+      [],
+      'Credit Report Card',
+    )
+    expect(credit?.productLabel).toBe('Credit Report Card')
+  })
+
+  it('falls back to the catalog product label when the linked assessment is missing', () => {
+    expect(
+      intakeProductLabel(
+        makeItem({
+          leadType: 'Student Loan Report Card',
+          diagnostic: null,
+          assessmentDetail: null,
+        }),
+      ),
+    ).toBe('Student Loan Report Card')
+    expect(
+      intakeProductLabel(
+        makeItem({
+          leadType: 'Credit Report Card',
+          diagnostic: null,
+          assessmentDetail: null,
+        }),
+      ),
+    ).toBe('Credit Report Card')
   })
 
   it('extracts submitted identity from raw payload snapshots', () => {

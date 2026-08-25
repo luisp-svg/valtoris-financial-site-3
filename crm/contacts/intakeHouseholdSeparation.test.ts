@@ -24,7 +24,7 @@ function createQuery(result: { data: unknown; error: null | object }) {
 }
 
 describe('Intake / Households / dashboard Manual Contact separation', () => {
-  it('Intake query uses an explicit Family/DI allowlist (Manual Contact never eligible)', async () => {
+  it('Intake query uses an explicit public Report Card + Digital Identity allowlist (Manual Contact never eligible)', async () => {
     const leadsQuery = createQuery({ data: [], error: null })
     const from = vi.fn((table: string) => {
       if (table === 'leads') return leadsQuery
@@ -36,6 +36,8 @@ describe('Intake / Households / dashboard Manual Contact separation', () => {
       'Business Report Card',
       'Retirement Report Card',
       'Protection Gap',
+      'Student Loan Report Card',
+      'Credit Report Card',
       'Digital Identity',
     ])
     expect(leadsQuery.or).not.toHaveBeenCalled()

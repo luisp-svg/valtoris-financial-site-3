@@ -10180,6 +10180,10 @@ p { color: var(--muted); line-height: 1.7; }
     min-height: 2.75rem;
   }
 
+  .crm-intake-assessment-detail {
+    gap: 0.75rem;
+  }
+
   .crm-intake-table-wrap {
     display: none;
   }
@@ -10258,6 +10262,28 @@ p { color: var(--muted); line-height: 1.7; }
 .crm-ifd-wrap {
   overflow-wrap: anywhere;
   word-break: break-word;
+}
+
+.crm-intake-assessment-detail {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.crm-intake-assessment-detail .crm-panel {
+  min-width: 0;
+}
+
+.crm-intake-assessment-detail h2,
+.crm-intake-assessment-detail h3,
+.crm-intake-assessment-detail li,
+.crm-intake-assessment-detail dd,
+.crm-intake-assessment-detail dt {
+  overflow-wrap: anywhere;
+}
+
+.crm-intake-assessment-detail .crm-ifd-category-list li,
+.crm-intake-assessment-detail .crm-ifd-flag-list li {
+  flex-wrap: wrap;
 }
 
 @media (max-width: 900px) {

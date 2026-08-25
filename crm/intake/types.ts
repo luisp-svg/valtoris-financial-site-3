@@ -1,9 +1,12 @@
 /**
  * CRM Intake — typed domain models for public intake prospects.
- * Covers Family Report Card (Initial Financial Diagnostic) and Digital Identity
- * (Let's Connect) leads. Match/sheets/consent fields live on `leads` (migration 020+).
+ * Covers public Report Card lead types (Family, Business, Retirement,
+ * Protection Gap, Student Loan, Credit) and Digital Identity.
+ * Match/sheets/consent fields live on `leads` (migration 020+).
  * Follow-up task automation fields live on leads/tasks (migration 022 / 026).
  */
+
+import type { PublicFamilyDiagnosticDetail } from '../households/assessments/types'
 
 import type {
   FollowUpTaskAutomationStatus,
@@ -71,6 +74,8 @@ export type IntakeDiagnosticSummary = {
     | 'Business Report Card'
     | 'Retirement Report Card'
     | 'Protection Gap'
+    | 'Student Loan Report Card'
+    | 'Credit Report Card'
   assessmentType: string | null
   protectionGapFormatted: string | null
   netProtectionGap: number | null
@@ -151,7 +156,12 @@ export type IntakeQueueItem = {
   household: IntakeHouseholdSummary | null
   assignedAdvisor: IntakeAdvisorSummary | null
   diagnostic: IntakeDiagnosticSummary | null
-  /** Present for Digital Identity / Let's Connect leads; null for Family diagnostics. */
+  /**
+   * Full public Report Card detail for Intake display. Null for Digital Identity
+   * and when no matching linked assessment is accessible.
+   */
+  assessmentDetail: PublicFamilyDiagnosticDetail | null
+  /** Present for Digital Identity / Let's Connect leads; null for assessment-backed diagnostics. */
   digitalIdentity: IntakeDigitalIdentitySummary | null
   duplicateReview: IntakeDuplicateReviewSummary | null
   originalCampaign: string | null

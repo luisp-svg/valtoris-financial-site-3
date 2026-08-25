@@ -105,6 +105,8 @@ describe('fetchIntakeQueue', () => {
     expect(items).toHaveLength(1)
     expect(items[0].diagnostic?.productLabel).toBe('Initial Financial Diagnostic')
     expect(items[0].diagnostic?.captureChannel).toBe('public_self_report')
+    expect(items[0].assessmentDetail?.productLabel).toBe('Initial Financial Diagnostic')
+    expect(items[0].assessmentDetail?.assessmentType).toBe('family')
     expect(items[0].digitalIdentity).toBeNull()
     expect(items[0].consent.contactPermission).toBe(false)
     expect(items[0].sheetsSyncStatus).toBe('succeeded')
@@ -113,6 +115,18 @@ describe('fetchIntakeQueue', () => {
     expect(from).toHaveBeenCalledWith('assessments')
     const leadsQuery = from.mock.results[0]?.value as { is?: ReturnType<typeof vi.fn> }
     expect(leadsQuery.is).toHaveBeenCalledWith('deleted_at', null)
+    const assessmentsQuery = from.mock.results[
+      from.mock.calls.findIndex((call) => call[0] === 'assessments')
+    ]?.value as { in?: ReturnType<typeof vi.fn>; eq?: ReturnType<typeof vi.fn> }
+    expect(assessmentsQuery.in).toHaveBeenCalledWith('assessment_type', [
+      'family',
+      'business',
+      'retirement',
+      'protection',
+      'student_loan',
+      'credit',
+    ])
+    expect(assessmentsQuery.eq).not.toHaveBeenCalledWith('assessment_type', 'family')
   })
 
   it('maps Digital Identity Let’s Connect leads without inventing a diagnostic', async () => {
@@ -202,6 +216,7 @@ describe('fetchIntakeQueue', () => {
     expect(items).toHaveLength(1)
     expect(items[0].leadType).toBe(DIGITAL_IDENTITY_LEAD_TYPE)
     expect(items[0].diagnostic).toBeNull()
+    expect(items[0].assessmentDetail).toBeNull()
     expect(items[0].digitalIdentity?.productLabel).toBe('Digital Identity')
     expect(items[0].digitalIdentity?.reason).toBe('Networking')
     expect(items[0].digitalIdentity?.advisorSlug).toBe('jane-advisor')
@@ -381,6 +396,186 @@ describe('fetchIntakeQueue', () => {
     expect(items[1].duplicateReview?.candidateHouseholdId).toBe('hh-candidate')
     expect(items[1].duplicateReview?.matchReason).toBe('email_only_match')
     expect(items[1].sheetsSyncStatus).toBe('failed')
+  })
+
+  it('prefers the lead-linked same-type assessment over a later household assessment', async () => {
+    const leadRow = {
+      id: 'lead-sl',
+      household_id: 'hh-shared',
+      lead_type: 'Student Loan Report Card',
+      status: 'unassigned',
+      source_page: '/student-loan-assessment',
+      submitted_at: '2026-08-20T20:00:00.000Z',
+      overall_score: 64,
+      overall_grade: 'D',
+      top_priorities: [{ title: 'Review repayment plan' }],
+      raw_payload: { firstName: 'Jamie', lastName: 'Rivera' },
+      normalized_email: 'jamie@example.com',
+      normalized_phone: null,
+      duplicate_review_status: 'none',
+      ingest_match_status: 'new_prospect',
+      sheets_sync_status: 'succeeded',
+      consent_snapshot: { contactPermission: true, privacyAcknowledged: true },
+      original_campaign: null,
+      original_advisor_slug: null,
+      original_source_metadata: {},
+      assigned_advisor_id: null,
+      follow_up_task_automation_status: null,
+      follow_up_task_id: null,
+      deleted_at: null,
+      household: {
+        id: 'hh-shared',
+        display_name: 'Jamie Rivera',
+        status: 'lead',
+        primary_email: 'jamie@example.com',
+        primary_phone: null,
+        assigned_advisor_id: null,
+        duplicate_review_status: 'none',
+        merged_into_household_id: null,
+        deleted_at: null,
+        assigned_advisor: null,
+      },
+      assigned_advisor: null,
+    }
+
+    const laterFamilySameHousehold = {
+      id: 'assess-family-later',
+      lead_id: 'lead-other',
+      household_id: 'hh-shared',
+      assessment_type: 'family',
+      status: 'completed',
+      overall_score: 91,
+      overall_grade: 'A',
+      priorities: [{ title: 'Unrelated later family assessment' }],
+      answers: {},
+      derived_metrics: { categories: [] },
+      capture_channel: 'public_self_report',
+      scoring_version: 1,
+      completed_at: '2026-08-22T00:00:00.000Z',
+      deleted_at: null,
+    }
+    const wrongTypeSameLead = {
+      id: 'assess-family-same-lead',
+      lead_id: 'lead-sl',
+      household_id: 'hh-shared',
+      assessment_type: 'family',
+      status: 'completed',
+      overall_score: 88,
+      overall_grade: 'B',
+      priorities: [],
+      answers: {},
+      derived_metrics: { categories: [] },
+      capture_channel: 'public_self_report',
+      scoring_version: 1,
+      completed_at: '2026-08-23T00:00:00.000Z',
+      deleted_at: null,
+    }
+    const linkedStudentLoan = {
+      id: 'assess-sl',
+      lead_id: 'lead-sl',
+      household_id: 'hh-shared',
+      assessment_type: 'student_loan',
+      status: 'completed',
+      overall_score: 64,
+      overall_grade: 'D',
+      priorities: [{ title: 'Review repayment plan' }],
+      answers: { diagnostic: { primary_goal: 'lower_payment', urgency: 'this_month' } },
+      derived_metrics: {
+        categories: [{ id: 'status_stability', title: 'Status & stability', score: 12, grade: 'D' }],
+        criticalFlags: [{ id: 'flag_default', label: 'Immediate Review' }],
+      },
+      capture_channel: 'public_self_report',
+      scoring_version: 1,
+      completed_at: '2026-08-01T00:00:00.000Z',
+      deleted_at: null,
+    }
+
+    const from = vi.fn((table: string) => {
+      if (table === 'leads') return createQuery({ data: [leadRow], error: null })
+      if (table === 'assessments') {
+        return createQuery({
+          data: [wrongTypeSameLead, laterFamilySameHousehold, linkedStudentLoan],
+          error: null,
+        })
+      }
+      return createQuery({ data: [], error: null })
+    })
+
+    const items = await fetchIntakeQueue({ from } as unknown as SupabaseClient)
+    expect(items[0].diagnostic?.assessmentId).toBe('assess-sl')
+    expect(items[0].diagnostic?.productLabel).toBe('Student Loan Report Card')
+    expect(items[0].assessmentDetail?.assessmentType).toBe('student_loan')
+    expect(items[0].assessmentDetail?.overallScore).toBe(64)
+    expect(items[0].assessmentDetail?.assessmentId).not.toBe('assess-family-later')
+    expect(items[0].assessmentDetail?.assessmentId).not.toBe('assess-family-same-lead')
+  })
+
+  it('does not attach another household assessment when the Intake has no linked row', async () => {
+    const leadRow = {
+      id: 'lead-sl-missing',
+      household_id: 'hh-shared',
+      lead_type: 'Student Loan Report Card',
+      status: 'unassigned',
+      source_page: '/student-loan-assessment',
+      submitted_at: '2026-08-20T20:00:00.000Z',
+      overall_score: 64,
+      overall_grade: 'D',
+      top_priorities: [],
+      raw_payload: {},
+      normalized_email: null,
+      normalized_phone: null,
+      duplicate_review_status: 'none',
+      ingest_match_status: 'new_prospect',
+      sheets_sync_status: 'succeeded',
+      consent_snapshot: {},
+      original_campaign: null,
+      original_advisor_slug: null,
+      original_source_metadata: {},
+      assigned_advisor_id: null,
+      follow_up_task_automation_status: null,
+      follow_up_task_id: null,
+      deleted_at: null,
+      household: {
+        id: 'hh-shared',
+        display_name: 'Prospect',
+        status: 'lead',
+        primary_email: null,
+        primary_phone: null,
+        assigned_advisor_id: null,
+        duplicate_review_status: 'none',
+        merged_into_household_id: null,
+        deleted_at: null,
+        assigned_advisor: null,
+      },
+      assigned_advisor: null,
+    }
+    const laterFamilySameHousehold = {
+      id: 'assess-family-later',
+      lead_id: 'lead-other',
+      household_id: 'hh-shared',
+      assessment_type: 'family',
+      status: 'completed',
+      overall_score: 91,
+      overall_grade: 'A',
+      priorities: [],
+      answers: {},
+      derived_metrics: {},
+      capture_channel: 'public_self_report',
+      scoring_version: 1,
+      completed_at: '2026-08-22T00:00:00.000Z',
+      deleted_at: null,
+    }
+
+    const from = vi.fn((table: string) => {
+      if (table === 'leads') return createQuery({ data: [leadRow], error: null })
+      if (table === 'assessments') return createQuery({ data: [laterFamilySameHousehold], error: null })
+      return createQuery({ data: [], error: null })
+    })
+
+    const items = await fetchIntakeQueue({ from } as unknown as SupabaseClient)
+    expect(items[0].diagnostic).toBeNull()
+    expect(items[0].assessmentDetail).toBeNull()
+    expect(items[0].overallScore).toBe(64)
   })
 
   it('converts fetch failures into safe application errors', async () => {

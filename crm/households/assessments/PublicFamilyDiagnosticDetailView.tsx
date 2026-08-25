@@ -13,6 +13,8 @@ import {
 
 type Props = {
   detail: PublicFamilyDiagnosticDetail
+  /** Intake embeds result sections only (consent/source already live on the lead). */
+  variant?: 'page' | 'embedded'
 }
 
 function SnapshotRow({ label, value }: { label: string; value: string | null | undefined }) {
@@ -34,27 +36,35 @@ function ConsentRow({ label, allowed }: { label: string; allowed: boolean }) {
   )
 }
 
-export default function PublicFamilyDiagnosticDetailView({ detail }: Props) {
+export default function PublicFamilyDiagnosticDetailView({
+  detail,
+  variant = 'page',
+}: Props) {
   const snapshot = detail.submittedSnapshot
   const consent = detail.consent
   const lead = detail.lead
   const diagnosticPriorities = detail.priorities.filter((item) => item.source === 'diagnostic')
   const submittedGoals = detail.priorities.filter((item) => item.source === 'submitted_goal')
+  const embedded = variant === 'embedded'
 
   return (
-    <div className="crm-ifd-detail">
-      <header className="crm-page-header">
-        <div>
-          <p className="crm-muted">
-            <Link to={crmHouseholdPath(detail.householdId)}>Household overview</Link>
-            {' · '}
-            <Link to={crmHouseholdAssessmentsPath(detail.householdId)}>Assessment history</Link>
-          </p>
-          <h1>{detail.productLabel}</h1>
-          <p className="crm-page-subtitle">{PUBLIC_FAMILY_DIAGNOSTIC_DETAIL_DISCLAIMER}</p>
-        </div>
-        <span className="crm-intake-chip">Self-reported · Educational</span>
-      </header>
+    <div className={`crm-ifd-detail${embedded ? ' crm-intake-assessment-detail' : ''}`}>
+      {embedded ? (
+        <p className="crm-muted">{PUBLIC_FAMILY_DIAGNOSTIC_DETAIL_DISCLAIMER}</p>
+      ) : (
+        <header className="crm-page-header">
+          <div>
+            <p className="crm-muted">
+              <Link to={crmHouseholdPath(detail.householdId)}>Household overview</Link>
+              {' · '}
+              <Link to={crmHouseholdAssessmentsPath(detail.householdId)}>Assessment history</Link>
+            </p>
+            <h1>{detail.productLabel}</h1>
+            <p className="crm-page-subtitle">{PUBLIC_FAMILY_DIAGNOSTIC_DETAIL_DISCLAIMER}</p>
+          </div>
+          <span className="crm-intake-chip">Self-reported · Educational</span>
+        </header>
+      )}
 
       <section className="crm-panel crm-ifd-detail-section" aria-labelledby="crm-ifd-score-heading">
         <h2 id="crm-ifd-score-heading">Result summary</h2>
@@ -211,6 +221,8 @@ export default function PublicFamilyDiagnosticDetailView({ detail }: Props) {
         )}
       </section>
 
+      {embedded ? null : (
+        <>
       <section className="crm-panel crm-ifd-detail-section" aria-labelledby="crm-ifd-consent-heading">
         <h2 id="crm-ifd-consent-heading">Consent summary</h2>
         {!consent ? (
@@ -312,6 +324,8 @@ export default function PublicFamilyDiagnosticDetailView({ detail }: Props) {
           </p>
         )}
       </section>
+        </>
+      )}
     </div>
   )
 }

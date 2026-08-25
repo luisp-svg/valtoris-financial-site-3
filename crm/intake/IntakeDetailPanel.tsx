@@ -9,6 +9,7 @@ import type {
 import { DUPLICATE_RESOLUTION_OWNER_ONLY_MESSAGE } from './types'
 import HowWeMetBlock from './HowWeMetBlock'
 import { buildHowWeMetViewModel } from './howWeMet'
+import IntakeAssessmentDetail from './IntakeAssessmentDetail'
 import {
   INTAKE_ARCHIVE_ACTION_LABEL,
   INTAKE_ARCHIVE_DUPLICATE_BLOCK_COPY,
@@ -94,7 +95,6 @@ export default function IntakeDetailPanel({
   onRequestCreateOpportunity,
 }: IntakeDetailPanelProps) {
   const isDi = isDigitalIdentityLead(item)
-  const diagnostic = item.diagnostic
   const digitalIdentity = item.digitalIdentity
   const productLabel = intakeProductLabel(item)
   const showDuplicate =
@@ -456,47 +456,7 @@ export default function IntakeDetailPanel({
               Public self-reported diagnostic. This is not the household Financial Progress Score and
               does not feed Financial Progress evidence.
             </p>
-            {diagnostic ? (
-              <>
-                <p className="crm-intake-score-line">
-                  <strong>
-                    {diagnostic.productLabel === 'Protection Gap'
-                      ? diagnostic.protectionGapFormatted ||
-                        (diagnostic.netProtectionGap != null
-                          ? diagnostic.netProtectionGap.toLocaleString()
-                          : '—')
-                      : `${diagnostic.overallScore ?? '—'}${
-                          diagnostic.overallGrade ? ` · ${diagnostic.overallGrade}` : ''
-                        }`}
-                  </strong>
-                  <span className="crm-intake-chip">{diagnostic.productLabel}</span>
-                </p>
-                {diagnostic.topPriorities.length > 0 ? (
-                  <ul className="crm-intake-priority-list">
-                    {diagnostic.topPriorities.map((priority) => (
-                      <li key={priority}>{priority}</li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="crm-muted">No priority list stored on this submission.</p>
-                )}
-                {diagnostic.categories.length > 0 ? (
-                  <ul className="crm-intake-category-list">
-                    {diagnostic.categories.map((category) => (
-                      <li key={category.id}>
-                        <span>{category.title}</span>
-                        <span>
-                          {category.score ?? '—'}
-                          {category.grade ? ` (${category.grade})` : ''}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
-              </>
-            ) : (
-              <p className="crm-muted">Diagnostic assessment details are not available for this lead.</p>
-            )}
+            <IntakeAssessmentDetail item={item} />
           </section>
         ) : null}
 
@@ -654,7 +614,7 @@ export default function IntakeDetailPanel({
                   item.diagnostic.assessmentId,
                 )}
               >
-                View Initial Financial Diagnostic
+                View {productLabel}
               </Link>
             </>
           ) : null}
@@ -674,7 +634,7 @@ export default function IntakeDetailPanel({
                   item.diagnostic.assessmentId,
                 )}
               >
-                View Initial Financial Diagnostic
+                View {productLabel}
               </Link>
             </>
           ) : null}

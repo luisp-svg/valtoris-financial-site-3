@@ -20,7 +20,7 @@ function createQuery(result: { data: unknown; error: null | object }) {
 }
 
 describe('Intake lead_type allowlist', () => {
-  it('queries Family, Business, Retirement, Protection Gap, and Digital Identity', async () => {
+  it('queries Family, Business, Retirement, Protection Gap, Student Loan, Credit, and Digital Identity', async () => {
     const leadsQuery = createQuery({ data: [], error: null })
     const from = vi.fn((table: string) => {
       if (table === 'leads') return leadsQuery
@@ -32,6 +32,8 @@ describe('Intake lead_type allowlist', () => {
       'Business Report Card',
       'Retirement Report Card',
       'Protection Gap',
+      'Student Loan Report Card',
+      'Credit Report Card',
       DIGITAL_IDENTITY_LEAD_TYPE,
     ])
     expect(leadsQuery.or).not.toHaveBeenCalled()
@@ -44,11 +46,15 @@ describe('Intake lead_type allowlist', () => {
       'Business Report Card',
       'Retirement Report Card',
       'Protection Gap',
+      'Student Loan Report Card',
+      'Credit Report Card',
       DIGITAL_IDENTITY_LEAD_TYPE,
     ])
     for (const type of [null, undefined, 'Manual Contact', 'Future Widget', '']) {
       expect(allowed.has(type as string)).toBe(false)
     }
+    expect(allowed.has('Student Loan Report Card')).toBe(true)
+    expect(allowed.has('Credit Report Card')).toBe(true)
     expect(allowed.has('Family Report Card')).toBe(true)
     expect(allowed.has('Digital Identity')).toBe(true)
   })

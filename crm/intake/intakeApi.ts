@@ -1,6 +1,12 @@
 import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js'
 import { DIGITAL_IDENTITY_LEAD_TYPE } from '../../modules/digital-identity'
-import { PUBLIC_REPORT_CARD_LEAD_TYPES } from '../../modules/reportCard/publicIngestCatalog'
+import {
+  PUBLIC_REPORT_CARD_ASSESSMENT_TYPES,
+  PUBLIC_REPORT_CARD_LEAD_TYPES,
+  assessmentTypeForLeadType,
+} from '../../modules/reportCard/publicIngestCatalog'
+import { mapPublicFamilyDiagnosticDetail } from '../households/assessments/diagnosticFormatters'
+import { selectIntakeLinkedAssessment } from './intakeAssessmentMatch'
 import {
   buildDiagnosticFromAssessmentRow,
   extractDigitalIdentitySnapshot,
@@ -95,6 +101,7 @@ const ASSESSMENT_SELECT = `
   overall_score,
   overall_grade,
   priorities,
+  answers,
   derived_metrics,
   capture_channel,
   scoring_version,
@@ -171,7 +178,8 @@ function mapHousehold(value: unknown): IntakeHouseholdSummary | null {
 
 /**
  * Loads public intake leads visible under RLS via an explicit allowlist:
- * Family / Business / Retirement Report Cards, Protection Gap, and Digital Identity.
+ * Family / Business / Retirement / Student Loan / Credit Report Cards,
+ * Protection Gap, and Digital Identity.
  * Soft-deleted leads are excluded. Onboarding assessments are never selected.
  * Manual Contact and any future/unrelated lead_type cannot enter Intake via
  * ingest_match_status alone. NULL lead_type is excluded by the allowlist.
@@ -208,7 +216,7 @@ export async function fetchIntakeQueue(
     .from('assessments')
     .select(ASSESSMENT_SELECT)
     .in('lead_id', leadIds)
-    .eq('assessment_type', 'family')
+    .in('assessment_type', [...PUBLIC_REPORT_CARD_ASSESSMENT_TYPES])
     .eq('capture_channel', 'public_self_report')
     .eq('status', 'completed')
     .is('deleted_at', null)
@@ -216,11 +224,34 @@ export async function fetchIntakeQueue(
 
   if (assessmentError) throw assessmentError
 
+  const assessmentRowsList = (assessmentRows ?? []) as Record<string, unknown>[]
   const assessmentByLead = new Map<string, Record<string, unknown>>()
-  for (const row of (assessmentRows ?? []) as Record<string, unknown>[]) {
-    const leadId = typeof row.lead_id === 'string' ? row.lead_id : null
-    if (!leadId || assessmentByLead.has(leadId)) continue
-    assessmentByLead.set(leadId, row)
+  for (const lead of leads) {
+    const leadId = String(lead.id)
+    const leadType =
+      typeof lead.lead_type === 'string' ? lead.lead_type : 'Family Report Card'
+    const householdId = typeof lead.household_id === 'string' ? lead.household_id : null
+    const matched = selectIntakeLinkedAssessment({
+      leadId,
+      householdId,
+      leadType,
+      assessments: assessmentRowsList,
+    })
+    if (matched) {
+      assessmentByLead.set(leadId, matched)
+      continue
+    }
+    if (
+      import.meta.env.DEV &&
+      leadType !== DIGITAL_IDENTITY_LEAD_TYPE &&
+      assessmentTypeForLeadType(leadType) &&
+      assessmentRowsList.some((row) => row.lead_id === leadId)
+    ) {
+      console.warn('[crm/intake] linked assessment did not match Intake type/household', {
+        leadId,
+        leadType,
+      })
+    }
   }
 
   // duplicate_reviews is owner-only under RLS; advisors get an empty set (not an error).
@@ -453,6 +484,10 @@ export async function fetchIntakeQueue(
         row.top_priorities,
         leadType,
       ),
+      assessmentDetail:
+        assessment && typeof row.household_id === 'string'
+          ? mapPublicFamilyDiagnosticDetail(assessment, row.household_id, row)
+          : null,
       digitalIdentity: extractDigitalIdentitySnapshot({
         leadType,
         rawPayload: row.raw_payload,

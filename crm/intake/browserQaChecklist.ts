@@ -37,6 +37,9 @@ export const INTAKE_BROWSER_QA_CHECKLIST = [
   'Confirmation explains the household, assessment, and CRM history remain.',
   'Pending duplicate review disables Archive with resolve-first helper copy.',
   'Successful archive refreshes the active queue (deleted_at IS NULL), keeps the user on Intake, and does not write Sheets, Opportunity, or Activity from the browser.',
+  'Intake detail shows the matching public Report Card diagnostic for Family, Business, Retirement, Protection Gap, Student Loan, and Credit using household diagnostic rendering.',
+  'Digital Identity Intake stays lead-only: no fake score, no empty assessment error.',
+  'Missing linked assessment shows “Assessment details are not available for this Intake” and does not block Open Household / Assign Advisor / Create Opportunity / Archive.',
 ] as const
 
 export const DUPLICATE_RESOLUTION_BROWSER_QA_CHECKLIST = [

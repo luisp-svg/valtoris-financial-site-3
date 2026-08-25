@@ -84,6 +84,7 @@ function makeItem(overrides: Partial<IntakeQueueItem> = {}): IntakeQueueItem {
     followUpTask: null,
     taskIndicators: [],
     taskCreationIssueMessage: null,
+    assessmentDetail: null,
     ...overrides,
   }
 }
