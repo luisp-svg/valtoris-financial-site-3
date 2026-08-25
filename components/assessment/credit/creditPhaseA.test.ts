@@ -197,8 +197,8 @@ describe('Credit Report Card Phase A foundation', () => {
     }
   })
 
-  it('keeps English labels on locale keys and does not implement Spanish yet', () => {
-    expect(creditCopy.es).toBeNull()
+  it('keeps English labels on locale keys and implements Spanish as a presentation layer', () => {
+    expect(creditCopy.es).not.toBeNull()
     expect(creditCopy.en).toBeTruthy()
     expect(CREDIT_SCORE_NAME).toBe('Credit Report Card Score')
     expect(CREDIT_ASSESSMENT_TYPE).toBe('credit')
