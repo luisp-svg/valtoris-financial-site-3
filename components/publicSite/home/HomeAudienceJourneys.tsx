@@ -24,9 +24,6 @@ export default function HomeAudienceJourneys({ copy }: HomeAudienceJourneysProps
             <PublicLink className="platform-btn platform-btn-primary" to={ROUTES.solutions}>
               {copy.journeyFamilyCta}
             </PublicLink>
-            <PublicLink className="site-home-text-link" to={ROUTES.reportCard}>
-              {copy.journeyFamilyDiagnostic}
-            </PublicLink>
           </div>
         </article>
         <article className="site-home-card site-home-card--journey">
@@ -36,9 +33,6 @@ export default function HomeAudienceJourneys({ copy }: HomeAudienceJourneysProps
           <div className="site-home-card-actions">
             <PublicLink className="platform-btn platform-btn-primary" to={ROUTES.solutions}>
               {copy.journeyBusinessCta}
-            </PublicLink>
-            <PublicLink className="site-home-text-link" to={ROUTES.businessReportCard}>
-              {copy.journeyBusinessDiagnostic}
             </PublicLink>
           </div>
         </article>

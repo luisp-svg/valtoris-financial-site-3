@@ -1,4 +1,3 @@
-import { useLocation } from 'react-router-dom'
 import PublicLink from '../PublicLink'
 import type { ServiceCopy } from './copy'
 
@@ -9,8 +8,6 @@ type ServiceHeroProps = {
 }
 
 export default function ServiceHero({ copy, primaryTo, secondaryTo }: ServiceHeroProps) {
-  const location = useLocation()
-
   return (
     <section className="site-home-hero site-service-hero" aria-labelledby="service-hero-heading">
       <div className="container site-home-hero-copy">
@@ -27,9 +24,6 @@ export default function ServiceHero({ copy, primaryTo, secondaryTo }: ServiceHer
             {copy.heroSecondaryCta}
           </PublicLink>
         </div>
-        <PublicLink className="site-home-text-link" to={`${location.pathname}#service-process`}>
-          {copy.heroTertiaryCta}
-        </PublicLink>
       </div>
     </section>
   )

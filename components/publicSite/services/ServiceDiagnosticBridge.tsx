@@ -5,10 +5,9 @@ import SiteHomeSection from '../home/SiteHomeSection'
 type ServiceDiagnosticBridgeProps = {
   copy: ServiceCopy
   primaryTo: string
-  secondaryTo: string
 }
 
-export default function ServiceDiagnosticBridge({ copy, primaryTo, secondaryTo }: ServiceDiagnosticBridgeProps) {
+export default function ServiceDiagnosticBridge({ copy, primaryTo }: ServiceDiagnosticBridgeProps) {
   return (
     <SiteHomeSection
       tone="blue"
@@ -20,9 +19,6 @@ export default function ServiceDiagnosticBridge({ copy, primaryTo, secondaryTo }
       <div className="site-home-hero-actions">
         <PublicLink className="platform-btn platform-btn-primary" to={primaryTo}>
           {copy.bridgePrimaryCta}
-        </PublicLink>
-        <PublicLink className="platform-btn platform-btn-secondary" to={secondaryTo}>
-          {copy.bridgeSecondaryCta}
         </PublicLink>
       </div>
     </SiteHomeSection>

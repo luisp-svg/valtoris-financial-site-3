@@ -16,10 +16,10 @@ export default function ServiceFinalCta({ copy, primaryTo, secondaryTo }: Servic
         </h2>
         <p className="site-home-final-copy">{copy.finalLead}</p>
         <div className="site-home-final-actions">
-          <PublicLink className="platform-btn platform-btn-secondary" to={primaryTo}>
+          <PublicLink className="platform-btn platform-btn-primary" to={primaryTo}>
             {copy.finalPrimaryCta}
           </PublicLink>
-          <PublicLink className="site-home-final-text" to={secondaryTo}>
+          <PublicLink className="platform-btn platform-btn-secondary" to={secondaryTo}>
             {copy.finalSecondaryCta}
           </PublicLink>
         </div>

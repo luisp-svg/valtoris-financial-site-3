@@ -18,7 +18,7 @@ export default function ServiceRelated({ copy, to }: ServiceRelatedProps) {
             {copy.relatedTitle}
           </h2>
           <p className="site-service-partner-copy">{copy.relatedBody}</p>
-          <PublicLink className="site-home-text-link" to={to}>
+          <PublicLink className="platform-btn platform-btn-secondary" to={to}>
             {copy.relatedCta}
           </PublicLink>
         </div>
