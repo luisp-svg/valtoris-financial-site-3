@@ -38,11 +38,11 @@ function createReplaceCount(sql: string, name: string): number {
 }
 
 describe('migration 049 public report-card follow-up copy specialization', () => {
-  it('is the only 049 file, follows 048, is followed by 050, and rejects 051', () => {
+  it('is the only 049 file, follows 048, is followed by 050, is followed by 051, and rejects 052', () => {
     expect(MIGRATION_049_FILENAME).toBe('049_specialize_public_report_card_follow_up_copy.sql')
     const files = numberedMigrations()
     expect(files).toEqual([...EXPECTED_NUMBERED_MIGRATIONS])
-    expect(files).toHaveLength(50)
+    expect(files).toHaveLength(51)
     expect(files[0]).toBe('001_extensions_and_enums.sql')
     expect(files[44]).toBe(MIGRATION_045_FILENAME)
     expect(files[45]).toBe(MIGRATION_046_FILENAME)
@@ -52,7 +52,8 @@ describe('migration 049 public report-card follow-up copy specialization', () =>
     expect(files.filter((f) => f.startsWith('048_'))).toEqual([MIGRATION_048_FILENAME])
     expect(files.filter((f) => f.startsWith('049_'))).toEqual([MIGRATION_049_FILENAME])
     expect(files.filter((f) => f.startsWith('050_'))).toEqual(['050_credit_report_card_ingest.sql'])
-    expect(files.filter((f) => f.startsWith('051_'))).toEqual([])
+    expect(files.filter((f) => f.startsWith('051_'))).toEqual(['051_intake_archive_workflow.sql'])
+    expect(files.filter((f) => f.startsWith('052_'))).toEqual([])
   })
 
   it('replaces the existing follow-up function and does not add a new RPC', () => {
