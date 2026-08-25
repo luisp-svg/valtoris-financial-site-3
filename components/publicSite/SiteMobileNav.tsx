@@ -8,7 +8,7 @@ import type { PublicLocale } from './locale'
 import {
   BOOK_NAV,
   COMPANY_FOOTER_LINKS,
-  CONTACT_NAV,
+  HOME_NAV,
   SERVICES_NAV_LINKS,
   TOOLS_NAV_LINKS,
   type PublicNavLink,
@@ -141,6 +141,9 @@ export default function SiteMobileNav({ open, onClose, locale, copy }: SiteMobil
         </PublicLink>
 
         <nav className="site-mobile-nav" aria-label={copy.primaryNavLabel}>
+          <PublicLink className="site-mobile-link site-mobile-top-link" to={HOME_NAV.to} onClick={onClose}>
+            {copy.navHome}
+          </PublicLink>
           <MobileAccordion
             id="site-mobile-services"
             label={copy.navServices}
@@ -155,9 +158,6 @@ export default function SiteMobileNav({ open, onClose, locale, copy }: SiteMobil
             copy={copy}
             onNavigate={onClose}
           />
-          <PublicLink className="site-mobile-link site-mobile-top-link" to={CONTACT_NAV.to} onClick={onClose}>
-            {copy.navContact}
-          </PublicLink>
         </nav>
 
         <div className="site-mobile-utilities">

@@ -192,7 +192,13 @@ describe('Student Loan launch compliance', () => {
       createElement(MemoryRouter, { initialEntries: ['/student-loan-report-card'] }, createElement(StudentLoanReportCardPage)),
     )
     expect(landing).toContain('VALTORIS STUDENT LOAN REPORT CARD')
+    expect(landing).toContain('Get Clarity on Your Student Loans')
     expect(landing).toContain('Student Loan Report Card Score')
+    expect(landing).toContain('sample-results-preview')
+    expect(landing).toContain('Sample / Example')
+    expect(landing).toContain('StudentAid.gov')
+    expect(landing).not.toContain('No FSA login')
+    expect(landing).not.toContain('funnel-preview-card')
     expect(landing).not.toContain('CRM storage is not enabled')
     expect(landing).not.toContain('Department of Education seal')
 

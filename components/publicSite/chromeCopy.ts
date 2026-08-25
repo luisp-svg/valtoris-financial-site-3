@@ -5,6 +5,7 @@ export type ChromeCopyKey =
   | 'mobileMenuLabel'
   | 'menuOpen'
   | 'menuClose'
+  | 'navHome'
   | 'navServices'
   | 'navTools'
   | 'navAbout'
@@ -43,6 +44,7 @@ export const chromeCopy: Record<PublicLocale, ChromeCopyCatalog> = {
     mobileMenuLabel: 'Menu',
     menuOpen: 'Open menu',
     menuClose: 'Close menu',
+    navHome: 'Home',
     navServices: 'Services',
     navTools: 'Tools',
     navAbout: 'About',
@@ -79,6 +81,7 @@ export const chromeCopy: Record<PublicLocale, ChromeCopyCatalog> = {
     mobileMenuLabel: 'Menú',
     menuOpen: 'Abrir menú',
     menuClose: 'Cerrar menú',
+    navHome: 'Inicio',
     navServices: 'Servicios',
     navTools: 'Herramientas',
     navAbout: 'Nosotros',

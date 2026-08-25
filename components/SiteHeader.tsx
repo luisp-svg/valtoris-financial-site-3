@@ -12,7 +12,7 @@ import { usePublicDocumentLang } from './publicSite/usePublicDocumentLang'
 import {
   ABOUT_NAV_LINKS,
   BOOK_NAV,
-  CONTACT_NAV,
+  HOME_NAV,
   SERVICES_NAV_LINKS,
   TOOLS_NAV_LINKS,
 } from './publicSite/navConfig'
@@ -52,6 +52,9 @@ export default function SiteHeader() {
 
         <div className="site-header-desktop">
           <nav className="site-nav-primary" aria-label={copy.primaryNavLabel}>
+            <PublicLink className="site-nav-text-link" to={HOME_NAV.to}>
+              {copy.navHome}
+            </PublicLink>
             <SiteNavDropdown
               label={copy.navServices}
               items={serviceItems}
@@ -75,9 +78,6 @@ export default function SiteHeader() {
                 onOpenChange={setAboutOpen}
               />
             ) : null}
-            <PublicLink className="site-nav-text-link" to={CONTACT_NAV.to}>
-              {copy.navContact}
-            </PublicLink>
           </nav>
 
           <div className="site-header-utilities">

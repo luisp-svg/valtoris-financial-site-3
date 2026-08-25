@@ -14,7 +14,6 @@ import {
   HOME_AUDIENCE_PATHS,
   HOME_DIAGNOSTICS_HASH,
   HOME_FEATURED_DIAGNOSTICS,
-  HOME_MORE_DIAGNOSTICS,
   HOME_SERVICE_CARDS,
 } from './homeConfig'
 
@@ -107,6 +106,9 @@ describe('service-led bilingual homepage', () => {
     expect(html).toContain('Credit Report Card™')
     expect(html).toContain('Retirement Report Card™')
     expect(html).toContain('Protection Gap')
+    expect(html).toContain('Explore Solutions for You')
+    expect(html).not.toContain('Choose a broader path')
+    expect(html).not.toContain('Also available')
     expect(html).toContain('For Individuals &amp; Families')
     expect(html).toContain('For Business Owners')
     expect(html).toContain('Why Valtoris')
@@ -151,11 +153,11 @@ describe('service-led bilingual homepage', () => {
       ROUTES.businessReportCard,
       ROUTES.studentLoanReportCard,
       ROUTES.creditReportCard,
-    ])
-    expect(HOME_MORE_DIAGNOSTICS.map((item) => item.to)).toEqual([
       ROUTES.retirementReportCard,
       ROUTES.protectionAnalysis,
     ])
+    expect(source('components/publicSite/home/homeConfig.ts')).not.toContain('HOME_MORE_DIAGNOSTICS')
+    expect(source('components/publicSite/home/HomeDiagnostics.tsx')).not.toContain('site-home-more-tools')
     expect(HOME_DIAGNOSTICS_HASH).toBe('/#home-diagnostics')
   })
 
@@ -177,6 +179,8 @@ describe('service-led bilingual homepage', () => {
       expect(blob).not.toContain(phrase)
     }
     expect(homeCopy.es.heroTitle).toBe('Strategy Today. Security Tomorrow.')
+    expect(homeCopy.en.journeysHeading).toBe('Explore Solutions for You')
+    expect(homeCopy.es.journeysHeading).toBe('Explore soluciones para usted')
     expect(homeCopy.es.diagnosticsFamilyTitle).toBe('Family Report Card™')
     expect(homeCopy.es.diagnosticsStudentTitle).toBe('Student Loan Report Card™')
   })

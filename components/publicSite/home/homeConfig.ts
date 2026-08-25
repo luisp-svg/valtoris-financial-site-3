@@ -120,9 +120,16 @@ export const HOME_FEATURED_DIAGNOSTICS: readonly HomeLinkItem[] = [
     titleKey: 'diagnosticsCreditTitle',
     bodyKey: 'diagnosticsCreditBody',
   },
-]
-
-export const HOME_MORE_DIAGNOSTICS: readonly HomeLinkItem[] = [
-  { id: 'retirement', to: ROUTES.retirementReportCard, titleKey: 'diagnosticsRetirement' },
-  { id: 'protection', to: ROUTES.protectionAnalysis, titleKey: 'diagnosticsProtection' },
+  {
+    id: 'retirement',
+    to: ROUTES.retirementReportCard,
+    titleKey: 'diagnosticsRetirementTitle',
+    bodyKey: 'diagnosticsRetirementBody',
+  },
+  {
+    id: 'protection',
+    to: ROUTES.protectionAnalysis,
+    titleKey: 'diagnosticsProtectionTitle',
+    bodyKey: 'diagnosticsProtectionBody',
+  },
 ]

@@ -11,6 +11,7 @@ import { chromeCopy } from './chromeCopy'
 import {
   ABOUT_NAV_LINKS,
   BOOK_NAV,
+  HOME_NAV,
   BUSINESS_FOOTER_LINKS,
   COMPANY_FOOTER_LINKS,
   CONTACT_NAV,
@@ -82,11 +83,12 @@ const EXISTING_PUBLIC_PATHS = new Set<string>([
 
 describe('public site foundation chrome', () => {
   it('does not keep six Report Cards as top-level nav peers', () => {
-    expect(VISIBLE_TOP_LEVEL_NAV_IDS).toEqual(['services', 'tools', 'contact'])
+    expect(VISIBLE_TOP_LEVEL_NAV_IDS).toEqual(['home', 'services', 'tools'])
     expect(ABOUT_NAV_LINKS).toEqual([])
     const header = source('components/SiteHeader.tsx')
     expect(header).toContain('SERVICES_NAV_LINKS')
     expect(header).toContain('TOOLS_NAV_LINKS')
+    expect(header).not.toContain('copy.navContact')
     expect(header).not.toContain('to={ROUTES.reportCard}')
     expect(header).not.toContain('to={ROUTES.businessReportCard}')
     expect(header).not.toContain('to={ROUTES.retirementReportCard}')
@@ -125,6 +127,7 @@ describe('public site foundation chrome', () => {
 
   it('does not point navigation at unbuilt service, tools, about, or contact routes', () => {
     const destinations = [
+      HOME_NAV,
       ...SERVICES_NAV_LINKS,
       ...TOOLS_NAV_LINKS,
       ...ABOUT_NAV_LINKS,
@@ -166,11 +169,13 @@ describe('public site foundation chrome', () => {
   it('renders EN and ES chrome without persisting Spanish as canonical values', () => {
     const en = renderChrome('/')
     const es = renderChrome('/solutions?lang=es')
+    expect(en).toContain('Home')
     expect(en).toContain('Services')
     expect(en).toContain('Tools')
     expect(en).toContain('Contact')
     expect(en).toContain('Book a Meeting')
     expect(en).toContain('Advisor Login')
+    expect(es).toContain('Inicio')
     expect(es).toContain('Servicios')
     expect(es).toContain('Herramientas')
     expect(es).toContain('Contacto')
@@ -223,6 +228,9 @@ describe('public site foundation chrome', () => {
     expect(html).toContain(ROUTES.schedule)
     expect(source('components/SiteHeader.tsx')).not.toContain('calendly.com')
     expect(source('components/SiteFooter.tsx')).not.toContain('calendly.com')
+    expect(source('components/SiteHeader.tsx')).not.toContain('copy.navContact')
+    expect(source('components/publicSite/SiteMobileNav.tsx')).not.toContain('copy.navContact')
+    expect(source('components/SiteFooter.tsx')).toContain('COMPANY_FOOTER_LINKS')
   })
 
   it('removes the stale 404 #diagnostics target', () => {

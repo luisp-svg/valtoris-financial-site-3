@@ -66,9 +66,10 @@ export type HomeCopy = {
   diagnosticsStudentBody: string
   diagnosticsCreditTitle: string
   diagnosticsCreditBody: string
-  diagnosticsMoreHeading: string
-  diagnosticsRetirement: string
-  diagnosticsProtection: string
+  diagnosticsRetirementTitle: string
+  diagnosticsRetirementBody: string
+  diagnosticsProtectionTitle: string
+  diagnosticsProtectionBody: string
   journeysHeading: string
   journeysLead: string
   journeyFamilyTitle: string
@@ -175,11 +176,15 @@ export const homeCopy: Record<PublicLocale, HomeCopy> = {
     diagnosticsStudentBody: 'Organize loan types, status, repayment context, and review priorities.',
     diagnosticsCreditTitle: 'Credit Report Card™',
     diagnosticsCreditBody: 'Credit-readiness education to help you see what may be worth reviewing next.',
-    diagnosticsMoreHeading: 'Also available',
-    diagnosticsRetirement: 'Retirement Report Card™',
-    diagnosticsProtection: 'Protection Gap',
-    journeysHeading: 'Choose a broader path',
-    journeysLead: 'Services first. Diagnostics when you want a structured starting point.',
+    diagnosticsRetirementTitle: 'Retirement Report Card™',
+    diagnosticsRetirementBody:
+      'A retirement diagnostic covering savings progress, income sources, and gaps worth reviewing.',
+    diagnosticsProtectionTitle: 'Protection Gap',
+    diagnosticsProtectionBody:
+      'Compare estimated coverage need with current protection and see where a gap may exist.',
+    journeysHeading: 'Explore Solutions for You',
+    journeysLead:
+      'Explore the areas where Valtoris can help you build a more coordinated financial strategy.',
     journeyFamilyTitle: 'For Individuals & Families',
     journeyFamilyBody:
       'Build a clearer household strategy around the areas that usually sit in separate conversations.',
@@ -292,11 +297,15 @@ export const homeCopy: Record<PublicLocale, HomeCopy> = {
     diagnosticsStudentBody: 'Organiza tipos de préstamo, estatus, contexto de pago y prioridades de revisión.',
     diagnosticsCreditTitle: 'Credit Report Card™',
     diagnosticsCreditBody: 'Educación de preparación crediticia para ver qué puede convenir revisar después.',
-    diagnosticsMoreHeading: 'También disponibles',
-    diagnosticsRetirement: 'Retirement Report Card™',
-    diagnosticsProtection: 'Protection Gap',
-    journeysHeading: 'Elige un camino más amplio',
-    journeysLead: 'Primero los servicios. El diagnóstico, cuando quieras un punto de partida estructurado.',
+    diagnosticsRetirementTitle: 'Retirement Report Card™',
+    diagnosticsRetirementBody:
+      'Un diagnóstico de retiro que cubre el avance del ahorro, las fuentes de ingreso y las brechas que conviene revisar.',
+    diagnosticsProtectionTitle: 'Protection Gap',
+    diagnosticsProtectionBody:
+      'Compare la cobertura estimada que necesita con la protección actual y vea dónde puede haber una brecha.',
+    journeysHeading: 'Explore soluciones para usted',
+    journeysLead:
+      'Explore las áreas en las que Valtoris puede ayudarle a construir una estrategia financiera más coordinada.',
     journeyFamilyTitle: 'Para personas y familias',
     journeyFamilyBody:
       'Construye una estrategia del hogar más clara alrededor de las áreas que casi siempre se conversan por separado.',

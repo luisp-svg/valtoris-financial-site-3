@@ -144,7 +144,7 @@ const CREDIT_COPY_EN: SpecializedCopyCatalog = {
   ui: {
     welcomeTitle: 'Start Your Credit Report Card',
     welcomeBody:
-      'Answer 10 focused questions about your credit profile and goals. Contact details come after the questions and are not part of the diagnostic.',
+      'Complete the Credit Report Card about your credit profile and goals. Contact details come after the diagnostic and are not part of the score.',
     welcomeNote:
       'We will never ask for your Social Security number, date of birth, bureau login, account numbers, or uploaded credit reports.',
     backToOverview: 'Back to Overview',
@@ -205,13 +205,11 @@ const CREDIT_COPY_EN: SpecializedCopyCatalog = {
       'Results are educational estimates based on self-reported information. They are not a FICO® score, VantageScore®, bureau score, or lending decision, and they are not a guarantee that any item can be removed or that your score will increase.',
     consentHoneypot: 'Company website',
     landingEyebrow: 'VALTORIS CREDIT REPORT CARD',
-    landingTitle: 'See What Areas of Your Credit Profile Deserve Attention',
+    landingTitle: 'Understand Your Credit. Know What to Work on Next.',
     landingHero1:
-      'Take the Valtoris Credit Report Card to organize self-reported payment, utilization, derogatory, and goal details.',
+      'Understand the strengths and weaknesses in your current credit profile and what areas may deserve attention.',
     landingHero2:
-      'This is an educational diagnostic. It is not a FICO® score, VantageScore®, credit-bureau score, or lending approval.',
-    landingHeroMicrocopy:
-      'About 3–5 minutes. 10 diagnostic questions. No Social Security number. No bureau login. No cost to start.',
+      'The Credit Report Card™ helps organize the factors affecting your credit so you can identify priorities and build a clearer next-step strategy.',
     landingReceiveHeading: "What You'll Receive",
     landingReceiveLead: 'What this specialized Report Card is designed to deliver.',
     landingReceiveScoreTitle: 'Credit Report Card Score',
@@ -227,15 +225,21 @@ const CREDIT_COPY_EN: SpecializedCopyCatalog = {
     landingReceiveSessionDescription:
       'You can optionally review your answers with Valtoris later. This page does not sell credit-repair packages.',
     landingSampleHeading: 'Sample Report Preview',
-    landingSampleLead: 'A structural look at later results. No fabricated score is shown.',
-    landingSampleEyebrow: 'What you will see later',
-    landingSampleTitle: 'Reserved result slots',
-    landingSampleItem1: 'Credit Report Card Score and letter grade',
-    landingSampleItem2: 'Category scores and critical review flags',
-    landingSampleItem3: 'Up to three review areas and your primary goal',
-    landingSampleItem4: 'An educational disclaimer and optional review next step',
-    landingSampleMicrocopy: 'No sample score, letter grade, or points gained are invented on this page.',
-    landingCategoriesHeading: 'What the 10 Questions Cover',
+    landingSampleLead:
+      'An example of the report layout. Sample values are labeled as examples and are not your results.',
+    landingSampleBadge: 'Sample / Example',
+    landingSampleAriaLabel: 'Example Credit Report Card preview',
+    landingSampleFlagHeading: 'Example review flag',
+    landingSampleFlagTitle: 'Revolving utilization may deserve a closer look',
+    landingSampleReviewHeading: 'Example review areas',
+    landingSampleReview1: 'Utilization may deserve a closer look',
+    landingSampleReview2: 'Negative items may be worth organizing',
+    landingSampleReview3: 'Report-review habits may need strengthening',
+    landingSampleDisclaimer:
+      'Example only. These sample values are not your Credit Report Card Score and are not a FICO®, VantageScore®, or bureau score.',
+    landingCompliance:
+      'This is an educational diagnostic. It is not a FICO® score, VantageScore®, or credit-bureau score, and it is not a lending decision. Valtoris does not guarantee score increases, deletion of accurate information, financing approval, or specific credit outcomes.',
+    landingCategoriesHeading: 'What the Report Card Covers',
     landingCategoriesLead: 'Each group counts as one diagnostic question, including grouped follow-ups.',
     landingCategoryGoalTitle: 'Primary Goal',
     landingCategoryGoalDescription: 'Home, vehicle, rent, rates, business, rebuild, or general credit health.',
@@ -252,8 +256,8 @@ const CREDIT_COPY_EN: SpecializedCopyCatalog = {
     landingCategoryUtilizationTitle: 'Utilization and Structure',
     landingCategoryUtilizationDescription: 'Revolving use, open accounts, age, inquiries, and new accounts.',
     landingHowHeading: 'How It Works',
-    landingHowLead: 'From 10 questions to a later scored report — without creating a CRM Opportunity automatically.',
-    landingHow1Title: 'Answer 10 Questions',
+    landingHowLead: 'From your first answers to a scored report — without creating a CRM Opportunity automatically.',
+    landingHow1Title: 'Complete the Assessment',
     landingHow1Description:
       'Share self-reported credit details and your goal. Contact information is collected after the diagnostic.',
     landingHow2Title: 'Acknowledge Privacy',
@@ -267,7 +271,7 @@ const CREDIT_COPY_EN: SpecializedCopyCatalog = {
     landingFaqHeading: 'Frequently Asked Questions',
     landingFaqLead: 'Straightforward answers before you begin.',
     landingFaq1: 'How long does the Credit Report Card take?',
-    landingFaqA1: 'Most people finish the 10 diagnostic questions plus contact details in about 3–5 minutes.',
+    landingFaqA1: 'Most people finish the assessment, including contact details, in about 3–5 minutes.',
     landingFaq2: 'Will you ask for my Social Security number or bureau login?',
     landingFaqA2:
       'No. We never collect SSN, date of birth, bureau usernames or passwords, bank credentials, full account numbers, or report uploads.',
@@ -282,7 +286,7 @@ const CREDIT_COPY_EN: SpecializedCopyCatalog = {
       'No automatic messages are sent. If you finish the assessment and agree to be contacted, Valtoris may follow up about your results. Completing the questions does not enroll you in credit-repair servicing.',
     landingClosingTitle: 'Ready to Start Your Credit Report Card?',
     landingClosingCopy:
-      'Answer 10 focused questions to see which areas of your credit profile may deserve attention.',
+      'Complete the Credit Report Card to see which areas of your credit profile may deserve attention.',
     landingClosingMicrocopy:
       'No bureau logins. No Social Security number. No deletion or score-increase promises.',
   },
@@ -535,7 +539,7 @@ const CREDIT_COPY_ES: SpecializedCopyCatalog = {
   ui: {
     welcomeTitle: 'Comience su Reporte de Crédito™',
     welcomeBody:
-      'Responda 10 preguntas concretas sobre su perfil de crédito y sus metas. Los datos de contacto se piden después y no forman parte del diagnóstico.',
+      'Complete el Reporte de Crédito sobre su perfil de crédito y sus metas. Los datos de contacto se piden después del diagnóstico y no forman parte del puntaje.',
     welcomeNote:
       'Nunca le pediremos su número de Seguro Social, fecha de nacimiento, acceso a una agencia de crédito, números de cuenta ni reportes de crédito subidos.',
     backToOverview: 'Volver al resumen',
@@ -596,13 +600,11 @@ const CREDIT_COPY_ES: SpecializedCopyCatalog = {
       'Los resultados son estimaciones educativas basadas en información que usted informó. No son un puntaje FICO®, VantageScore®, de una agencia de crédito ni una decisión de préstamo, y no son una garantía de que se pueda eliminar algún elemento o de que su puntaje suba.',
     consentHoneypot: 'Sitio web de la empresa',
     landingEyebrow: 'REPORTE DE CRÉDITO™ DE VALTORIS',
-    landingTitle: 'Descubra qué áreas de su perfil de crédito merecen atención',
+    landingTitle: 'Entienda su crédito. Sepa en qué enfocarse después.',
     landingHero1:
-      'Haga el Reporte de Crédito™ de Valtoris para organizar los detalles de pagos, uso del crédito, elementos negativos y metas que usted informa.',
+      'Entienda las fortalezas y debilidades de su perfil de crédito actual y qué áreas pueden merecer atención.',
     landingHero2:
-      'Este es un diagnóstico educativo. No es un puntaje FICO®, VantageScore®, de una agencia de crédito ni una aprobación de préstamo.',
-    landingHeroMicrocopy:
-      'Unos 3–5 minutos. 10 preguntas de diagnóstico. Sin número de Seguro Social. Sin acceso a una agencia de crédito. Sin costo para comenzar.',
+      'El Reporte de Crédito™ ayuda a organizar los factores que afectan su crédito para que pueda identificar prioridades y armar una estrategia más clara para los siguientes pasos.',
     landingReceiveHeading: 'Qué recibirá',
     landingReceiveLead: 'Lo que este Reporte especializado está diseñado para entregar.',
     landingReceiveScoreTitle: 'Puntaje del Reporte de Crédito',
@@ -618,15 +620,21 @@ const CREDIT_COPY_ES: SpecializedCopyCatalog = {
     landingReceiveSessionDescription:
       'Si lo desea, puede revisar sus respuestas con Valtoris más adelante. Esta página no vende paquetes de reparación de crédito.',
     landingSampleHeading: 'Vista previa del reporte',
-    landingSampleLead: 'Una mirada a la estructura de los resultados posteriores. No se muestra un puntaje inventado.',
-    landingSampleEyebrow: 'Lo que verá más adelante',
-    landingSampleTitle: 'Espacios reservados para resultados',
-    landingSampleItem1: 'Puntaje del Reporte de Crédito y calificación con letra',
-    landingSampleItem2: 'Puntajes por categoría y señales críticas de revisión',
-    landingSampleItem3: 'Hasta tres áreas de revisión y su meta principal',
-    landingSampleItem4: 'Un descargo educativo y un siguiente paso opcional de revisión',
-    landingSampleMicrocopy: 'En esta página no se inventa un puntaje, una calificación ni puntos ganados de muestra.',
-    landingCategoriesHeading: 'Qué cubren las 10 preguntas',
+    landingSampleLead:
+      'Un ejemplo de la presentación del reporte. Los valores de muestra están marcados como ejemplo y no son sus resultados.',
+    landingSampleBadge: 'Muestra / Ejemplo',
+    landingSampleAriaLabel: 'Vista previa de ejemplo del Reporte de Crédito',
+    landingSampleFlagHeading: 'Señal de revisión de ejemplo',
+    landingSampleFlagTitle: 'El uso del crédito revolvente puede merecer una revisión más de cerca',
+    landingSampleReviewHeading: 'Áreas de revisión de ejemplo',
+    landingSampleReview1: 'El uso del crédito puede merecer una revisión más de cerca',
+    landingSampleReview2: 'Puede valer la pena organizar los elementos negativos',
+    landingSampleReview3: 'Los hábitos de revisión del reporte pueden necesitar fortalecerse',
+    landingSampleDisclaimer:
+      'Solo un ejemplo. Estos valores de muestra no son su Puntaje del Reporte de Crédito y no son un puntaje FICO®, VantageScore® ni de una agencia de crédito.',
+    landingCompliance:
+      'Este es un diagnóstico educativo. No es un puntaje FICO®, VantageScore® ni de una agencia de crédito, y no es una decisión de préstamo. Valtoris no garantiza aumentos de puntaje, la eliminación de información precisa, la aprobación de financiamiento ni resultados específicos de crédito.',
+    landingCategoriesHeading: 'Qué cubre el Reporte',
     landingCategoriesLead: 'Cada grupo cuenta como una pregunta de diagnóstico, incluidas las preguntas de seguimiento.',
     landingCategoryGoalTitle: 'Meta principal',
     landingCategoryGoalDescription: 'Casa, vehículo, alquiler, tasas, negocio, reconstruir o salud crediticia general.',
@@ -643,8 +651,8 @@ const CREDIT_COPY_ES: SpecializedCopyCatalog = {
     landingCategoryUtilizationTitle: 'Uso y estructura del crédito',
     landingCategoryUtilizationDescription: 'Uso revolvente, cuentas abiertas, antigüedad, consultas y cuentas nuevas.',
     landingHowHeading: 'Cómo funciona',
-    landingHowLead: 'Desde 10 preguntas hasta un reporte con puntaje posterior, sin crear automáticamente una Oportunidad en el CRM.',
-    landingHow1Title: 'Responda 10 preguntas',
+    landingHowLead: 'Desde las primeras respuestas hasta un reporte con puntaje, sin crear automáticamente una Oportunidad en el CRM.',
+    landingHow1Title: 'Complete la evaluación',
     landingHow1Description:
       'Comparta detalles de crédito que usted informa y su meta. La información de contacto se pide después del diagnóstico.',
     landingHow2Title: 'Reconozca la privacidad',
@@ -658,7 +666,7 @@ const CREDIT_COPY_ES: SpecializedCopyCatalog = {
     landingFaqHeading: 'Preguntas frecuentes',
     landingFaqLead: 'Respuestas claras antes de comenzar.',
     landingFaq1: '¿Cuánto tarda el Reporte de Crédito?',
-    landingFaqA1: 'La mayoría de las personas termina las 10 preguntas de diagnóstico y los datos de contacto en unos 3–5 minutos.',
+    landingFaqA1: 'La mayoría de las personas termina la evaluación, incluidos los datos de contacto, en unos 3–5 minutos.',
     landingFaq2: '¿Me pedirán mi número de Seguro Social o el acceso a una agencia de crédito?',
     landingFaqA2:
       'No. Nunca pedimos SSN, fecha de nacimiento, usuarios o contraseñas de agencias de crédito, credenciales bancarias, números de cuenta completos ni reportes subidos.',
@@ -673,7 +681,7 @@ const CREDIT_COPY_ES: SpecializedCopyCatalog = {
       'No se envían mensajes automáticos. Si termina la evaluación y acepta que lo contactemos, Valtoris puede darle seguimiento sobre sus resultados. Completar las preguntas no lo inscribe en un servicio de reparación de crédito.',
     landingClosingTitle: '¿Listo para comenzar su Reporte de Crédito™?',
     landingClosingCopy:
-      'Responda 10 preguntas concretas para ver qué áreas de su perfil de crédito pueden merecer atención.',
+      'Complete el Reporte de Crédito para ver qué áreas de su perfil de crédito pueden merecer atención.',
     landingClosingMicrocopy:
       'Sin accesos a agencias de crédito. Sin número de Seguro Social. Sin promesas de eliminación ni de aumento de puntaje.',
   },

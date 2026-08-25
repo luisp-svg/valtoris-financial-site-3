@@ -26,7 +26,7 @@ export type DiagnosticLandingProps = {
   heroCopies: string[]
   ctaLabel: string
   ctaTo: string
-  heroMicrocopy: string
+  heroMicrocopy?: string
   receiveLead: string
   receiveItems: DiagnosticLandingItem[]
   sampleLead: string
@@ -46,6 +46,7 @@ export type DiagnosticLandingProps = {
   sampleHeading?: string
   howHeading?: string
   faqHeading?: string
+  complianceNote?: string
 }
 
 export default function DiagnosticLanding({
@@ -75,6 +76,7 @@ export default function DiagnosticLanding({
   sampleHeading = 'Sample Report Preview',
   howHeading = 'How It Works',
   faqHeading = 'Frequently Asked Questions',
+  complianceNote,
 }: DiagnosticLandingProps) {
   return (
     <div className={`platform-home diagnostic-landing ${pageClassName}`}>
@@ -93,7 +95,7 @@ export default function DiagnosticLanding({
               {ctaLabel}
             </Link>
           </div>
-          <p className="funnel-microcopy">{heroMicrocopy}</p>
+          {heroMicrocopy ? <p className="funnel-microcopy">{heroMicrocopy}</p> : null}
         </div>
       </section>
 
@@ -182,6 +184,7 @@ export default function DiagnosticLanding({
               </article>
             ))}
           </div>
+          {complianceNote ? <p className="diagnostic-compliance">{complianceNote}</p> : null}
         </div>
       </section>
 

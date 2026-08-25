@@ -288,9 +288,13 @@ describe('Credit Report Card Phase A foundation', () => {
         createElement(CreditReportCardPage),
       ),
     )
-    expect(html).toContain('See What Areas of Your Credit Profile Deserve Attention')
+    expect(html).toContain('Understand Your Credit. Know What to Work on Next.')
     expect(html).toContain('Get My Credit Report Card')
     expect(html).toContain('not a FICO')
+    expect(html).toContain('sample-results-preview')
+    expect(html).toContain('Sample / Example')
+    expect(html).not.toContain('About 3–5 minutes. 10 diagnostic questions')
+    expect(html).not.toContain('funnel-preview-card')
     expect(html.toLowerCase()).not.toContain('guaranteed deletion')
     expect(html.toLowerCase()).not.toContain('100-point')
     expect(html.toLowerCase()).not.toContain('guaranteed approval')

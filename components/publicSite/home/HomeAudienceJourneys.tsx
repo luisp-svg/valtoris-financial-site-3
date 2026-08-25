@@ -15,7 +15,7 @@ export default function HomeAudienceJourneys({ copy }: HomeAudienceJourneysProps
       title={copy.journeysHeading}
       lead={copy.journeysLead}
     >
-      <div className="site-home-card-grid site-home-card-grid--2">
+      <div className="site-home-card-grid site-home-card-grid--2 site-home-card-grid--journeys">
         <article className="site-home-card site-home-card--journey">
           <h3 className="site-home-card-title">{copy.journeyFamilyTitle}</h3>
           <p className="site-home-card-copy">{copy.journeyFamilyBody}</p>

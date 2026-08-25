@@ -49,7 +49,7 @@ const SHA_049 = 'd42dcfb153970e7c9fa7cf804991f57568e6d21e7866f62fab4014b31145a79
 const SHA_050 = 'ea2f4dc9c4bbff7c93cf83958e4499fe1e20c55769235c12a1efc50b58646d0a'
 
 const ENGLISH_LEAK_PHRASES = [
-  'See What Areas of Your Credit Profile Deserve Attention',
+  'Understand Your Credit. Know What to Work on Next.',
   'Get My Credit Report Card',
   'Start Your Credit Report Card',
   'Credit Report Card Score',
@@ -149,7 +149,7 @@ describe('Credit Spanish localization', () => {
     expect(t('es', 'ui', 'productTitle')).toContain('Reporte de Crédito')
     expect(t('es', 'results', 'score')).toBe('Puntaje del Reporte de Crédito')
     expect(t('es', 'ui', 'landingTitle')).toBe(
-      'Descubra qué áreas de su perfil de crédito merecen atención',
+      'Entienda su crédito. Sepa en qué enfocarse después.',
     )
     expect(t('es', 'results', 'reviewWithValtoris')).toBe('Revisar mis resultados con Valtoris')
     expect(t('es', 'ui', 'landingReceiveHeading')).toBe('Qué recibirá')

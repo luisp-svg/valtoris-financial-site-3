@@ -1,6 +1,6 @@
 import PublicLink from '../PublicLink'
 import type { HomeCopy } from './copy'
-import { HOME_FEATURED_DIAGNOSTICS, HOME_MORE_DIAGNOSTICS } from './homeConfig'
+import { HOME_FEATURED_DIAGNOSTICS } from './homeConfig'
 import SiteHomeSection from './SiteHomeSection'
 
 type HomeDiagnosticsProps = {
@@ -17,7 +17,7 @@ export default function HomeDiagnostics({ copy }: HomeDiagnosticsProps) {
       kicker={copy.diagnosticsBrand}
       lead={copy.diagnosticsLead}
     >
-      <div className="site-home-card-grid site-home-card-grid--4">
+      <div className="site-home-card-grid site-home-card-grid--3">
         {HOME_FEATURED_DIAGNOSTICS.map((item) => (
           <article key={item.id} className="site-home-card">
             <h3 className="site-home-card-title">{copy[item.titleKey]}</h3>
@@ -27,18 +27,6 @@ export default function HomeDiagnostics({ copy }: HomeDiagnosticsProps) {
             </PublicLink>
           </article>
         ))}
-      </div>
-      <div className="site-home-more-tools">
-        <h3 className="site-home-more-heading">{copy.diagnosticsMoreHeading}</h3>
-        <ul className="site-home-more-list">
-          {HOME_MORE_DIAGNOSTICS.map((item) => (
-            <li key={item.id}>
-              <PublicLink className="site-home-text-link" to={item.to}>
-                {copy[item.titleKey]}
-              </PublicLink>
-            </li>
-          ))}
-        </ul>
       </div>
     </SiteHomeSection>
   )

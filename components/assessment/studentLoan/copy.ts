@@ -137,7 +137,7 @@ const STUDENT_LOAN_COPY_EN: SpecializedCopyCatalog = {
   ui: {
     welcomeTitle: 'Start Your Student Loan Report Card™',
     welcomeBody:
-      'Answer 10 focused questions about your loans, payments, and goals. Contact details come after the questions and are not part of the diagnostic.',
+      'Complete the Student Loan Report Card about your loans, payments, and goals. Contact details come after the diagnostic and are not part of the score.',
     backToOverview: 'Back to Overview',
     back: 'Back',
     continue: 'Continue',
@@ -203,12 +203,11 @@ const STUDENT_LOAN_COPY_EN: SpecializedCopyCatalog = {
     landingEyebrow: 'VALTORIS STUDENT LOAN REPORT CARD™',
     landingTitle: 'Get Clarity on Your Student Loans',
     landingHero1:
-      'Take the Valtoris Student Loan Report Card™ to organize your loan types, status, repayment plan, income, and goals.',
+      'Understand where you stand with your student loans and what areas may deserve attention.',
     landingHero2:
-      'See a Valtoris Student Loan Report Card Score, review flags, and next-step areas. Results are educational and are not a government determination.',
-    landingHeroMicrocopy: '10 diagnostic questions. No FSA login. No Social Security number. No cost to start.',
+      'The Student Loan Report Card™ helps organize your repayment situation, identify potential concerns, and prepare you for a more informed strategy conversation.',
     landingReceiveHeading: "What You'll Receive",
-    landingReceiveLead: 'What this specialized Report Card delivers after 10 questions.',
+    landingReceiveLead: 'What this specialized Report Card is designed to deliver.',
     landingReceiveScoreTitle: 'Student Loan Report Card Score',
     landingReceiveScoreDescription:
       'A 0–100 Valtoris Student Loan Report Card Score and letter grade that summarize loan status, repayment strategy, and review priorities. Large balances are not penalized.',
@@ -222,15 +221,21 @@ const STUDENT_LOAN_COPY_EN: SpecializedCopyCatalog = {
     landingReceiveSessionDescription:
       'You can optionally review your results in a complimentary conversation. Completing the assessment does not create a CRM Opportunity.',
     landingSampleHeading: 'Sample Report Preview',
-    landingSampleLead: 'A structural look at the results layout. No fabricated score is shown.',
-    landingSampleEyebrow: 'What you will see',
-    landingSampleTitle: 'Your results include',
-    landingSampleItem1: 'Student Loan Report Card Score and letter grade',
-    landingSampleItem2: 'Category scores and critical review flags',
-    landingSampleItem3: 'Up to three review areas and your primary goal',
-    landingSampleItem4: 'An optional complimentary review next step',
-    landingSampleMicrocopy: 'No sample score or letter grade is invented on this page.',
-    landingCategoriesHeading: 'What the 10 Questions Cover',
+    landingSampleLead:
+      'An example of the report layout. Sample values are labeled as examples and are not your results.',
+    landingSampleBadge: 'Sample / Example',
+    landingSampleAriaLabel: 'Example Student Loan Report Card preview',
+    landingSampleFlagHeading: 'Example review flag',
+    landingSampleFlagTitle: 'Repayment plan knowledge may need a closer look',
+    landingSampleReviewHeading: 'Example review areas',
+    landingSampleReview1: 'Repayment strategy may deserve a closer look',
+    landingSampleReview2: 'Program options may be worth reviewing',
+    landingSampleReview3: 'Loan details may be incomplete',
+    landingSampleDisclaimer:
+      'Example only. These sample values are not your Student Loan Report Card Score and do not diagnose your loans.',
+    landingCompliance:
+      'Valtoris is not the U.S. Department of Education and is not affiliated with or endorsed by the federal government. This diagnostic is educational and does not guarantee eligibility, forgiveness, approval, savings, or a particular payment. Official federal student-loan information is available at StudentAid.gov.',
+    landingCategoriesHeading: 'What the Report Card Covers',
     landingCategoriesLead: 'Each group counts as one diagnostic question, including grouped follow-ups.',
     landingCategoryStructureTitle: 'Loan Structure',
     landingCategoryStructureDescription:
@@ -251,7 +256,7 @@ const STUDENT_LOAN_COPY_EN: SpecializedCopyCatalog = {
     landingHowHeading: 'How It Works',
     landingHowLead:
       'From your first answers to a scored report — without creating a CRM Opportunity automatically.',
-    landingHow1Title: 'Answer 10 Questions',
+    landingHow1Title: 'Complete the Assessment',
     landingHow1Description:
       'Share loan, payment, and goal details. Contact information is collected after the diagnostic.',
     landingHow2Title: 'Acknowledge Privacy',
@@ -265,21 +270,21 @@ const STUDENT_LOAN_COPY_EN: SpecializedCopyCatalog = {
     landingFaqHeading: 'Frequently Asked Questions',
     landingFaqLead: 'Straightforward answers before you begin.',
     landingFaq1: 'How long does the Student Loan Report Card take?',
-    landingFaqA1: 'Most people finish the 10 diagnostic questions plus contact details in a few minutes.',
+    landingFaqA1: 'Most people finish the assessment, including contact details, in a few minutes.',
     landingFaq2: 'Will you ask for my FSA login or Social Security number?',
     landingFaqA2:
       'No. We never collect SSN, date of birth, FSA credentials, loan account numbers, or document uploads.',
     landingFaq3: 'Do I get a score today?',
     landingFaqA3:
-      'Yes. You receive a Valtoris Student Loan Report Card Score, grade, flags, and review areas after the 10 questions and acknowledgments.',
+      'Yes. You receive a Valtoris Student Loan Report Card Score, grade, flags, and review areas after you complete the assessment and acknowledgments.',
     landingFaq4: 'Is this an eligibility or forgiveness approval?',
     landingFaqA4:
-      'No. This is an educational diagnostic. It does not determine eligibility, payment amounts, forgiveness, or savings.',
+      'No. This is an educational diagnostic. Valtoris is not the U.S. Department of Education or a federal loan servicer, and it is not affiliated with or endorsed by the federal government. It does not determine eligibility, payment amounts, forgiveness, or savings. Official federal student-loan information is available at StudentAid.gov.',
     landingFaq5: 'Will someone contact me automatically?',
     landingFaqA5:
       'No automatic messages are sent. If you finish the assessment and agree to be contacted, Valtoris may follow up about your results. Completing the questions does not enroll you in a federal program.',
     landingClosingTitle: 'Ready to Start Your Student Loan Report Card™?',
-    landingClosingCopy: 'Answer 10 focused questions and receive your Valtoris Student Loan Report Card Score.',
+    landingClosingCopy: 'Complete the Student Loan Report Card and receive your Valtoris Student Loan Report Card Score.',
     landingClosingMicrocopy:
       'No account numbers. No FSA credentials. Required privacy acknowledgments stay explicit.',
   },
@@ -490,7 +495,7 @@ const STUDENT_LOAN_COPY_ES: SpecializedCopyCatalog = {
   ui: {
     welcomeTitle: 'Comience su Reporte de Préstamos Estudiantiles™',
     welcomeBody:
-      'Responda 10 preguntas concretas sobre sus préstamos, pagos y metas. Los datos de contacto se piden después y no forman parte del diagnóstico.',
+      'Complete el Reporte de Préstamos Estudiantiles sobre sus préstamos, pagos y metas. Los datos de contacto se piden después del diagnóstico y no forman parte del puntaje.',
     backToOverview: 'Volver al resumen',
     back: 'Atrás',
     continue: 'Continuar',
@@ -556,13 +561,11 @@ const STUDENT_LOAN_COPY_ES: SpecializedCopyCatalog = {
     landingEyebrow: 'REPORTE DE PRÉSTAMOS ESTUDIANTILES™ DE VALTORIS',
     landingTitle: 'Tenga más claridad sobre sus préstamos estudiantiles',
     landingHero1:
-      'Haga el Reporte de Préstamos Estudiantiles™ de Valtoris para organizar sus tipos de préstamo, estado, plan de pago, ingresos y metas.',
+      'Entienda en qué punto está con sus préstamos estudiantiles y qué áreas pueden merecer atención.',
     landingHero2:
-      'Vea un Puntaje del Reporte de Préstamos Estudiantiles de Valtoris, señales de revisión y siguientes pasos. Los resultados son educativos y no son una determinación del gobierno.',
-    landingHeroMicrocopy:
-      '10 preguntas de diagnóstico. Sin acceso a FSA. Sin número de Seguro Social. Sin costo para comenzar.',
+      'El Reporte de Préstamos Estudiantiles™ ayuda a organizar su situación de pago, identificar posibles inquietudes y prepararlo para una conversación de estrategia más informada.',
     landingReceiveHeading: 'Qué recibirá',
-    landingReceiveLead: 'Lo que este Reporte especializado entrega después de 10 preguntas.',
+    landingReceiveLead: 'Lo que este Reporte especializado está diseñado para entregar.',
     landingReceiveScoreTitle: 'Puntaje del Reporte de Préstamos Estudiantiles',
     landingReceiveScoreDescription:
       'Un Puntaje del Reporte de Préstamos Estudiantiles de Valtoris de 0 a 100 y una calificación que resumen el estado del préstamo, la estrategia de pago y las prioridades de revisión. Los saldos altos no se penalizan.',
@@ -576,15 +579,21 @@ const STUDENT_LOAN_COPY_ES: SpecializedCopyCatalog = {
     landingReceiveSessionDescription:
       'Si lo desea, puede revisar sus resultados en una conversación sin costo. Completar la evaluación no crea una Oportunidad en el CRM.',
     landingSampleHeading: 'Vista previa del reporte',
-    landingSampleLead: 'Una mirada a la estructura de los resultados. No se muestra un puntaje inventado.',
-    landingSampleEyebrow: 'Lo que verá',
-    landingSampleTitle: 'Sus resultados incluyen',
-    landingSampleItem1: 'Puntaje del Reporte de Préstamos Estudiantiles y calificación',
-    landingSampleItem2: 'Puntajes por categoría y señales críticas de revisión',
-    landingSampleItem3: 'Hasta tres áreas de revisión y su meta principal',
-    landingSampleItem4: 'Un siguiente paso opcional de revisión sin costo',
-    landingSampleMicrocopy: 'En esta página no se inventa un puntaje ni una calificación de muestra.',
-    landingCategoriesHeading: 'Qué cubren las 10 preguntas',
+    landingSampleLead:
+      'Un ejemplo de la presentación del reporte. Los valores de muestra están marcados como ejemplo y no son sus resultados.',
+    landingSampleBadge: 'Muestra / Ejemplo',
+    landingSampleAriaLabel: 'Vista previa de ejemplo del Reporte de Préstamos Estudiantiles',
+    landingSampleFlagHeading: 'Señal de revisión de ejemplo',
+    landingSampleFlagTitle: 'El conocimiento del plan de pago puede merecer una revisión más de cerca',
+    landingSampleReviewHeading: 'Áreas de revisión de ejemplo',
+    landingSampleReview1: 'La estrategia de pago puede merecer una revisión más de cerca',
+    landingSampleReview2: 'Puede valer la pena revisar las opciones de programas',
+    landingSampleReview3: 'Puede faltar detalle sobre los préstamos',
+    landingSampleDisclaimer:
+      'Solo un ejemplo. Estos valores de muestra no son su Puntaje del Reporte de Préstamos Estudiantiles y no diagnostican sus préstamos.',
+    landingCompliance:
+      'Valtoris no es el Departamento de Educación de EE. UU. y no está afiliado ni respaldado por el gobierno federal. Este diagnóstico es educativo y no garantiza elegibilidad, condonación, aprobación, ahorros ni un pago en particular. La información oficial federal sobre préstamos estudiantiles está disponible en StudentAid.gov.',
+    landingCategoriesHeading: 'Qué cubre el Reporte',
     landingCategoriesLead: 'Cada grupo cuenta como una pregunta de diagnóstico, incluidas las preguntas de seguimiento.',
     landingCategoryStructureTitle: 'Estructura del préstamo',
     landingCategoryStructureDescription:
@@ -604,7 +613,7 @@ const STUDENT_LOAN_COPY_ES: SpecializedCopyCatalog = {
     landingCategoryPaymentDescription: 'Patrón reciente de pagos y si los pagos están pausados actualmente.',
     landingHowHeading: 'Cómo funciona',
     landingHowLead: 'Desde sus primeras respuestas hasta un reporte con puntaje — sin crear automáticamente una Oportunidad en el CRM.',
-    landingHow1Title: 'Responda 10 preguntas',
+    landingHow1Title: 'Complete la evaluación',
     landingHow1Description:
       'Comparta datos de préstamo, pagos y metas. La información de contacto se pide después del diagnóstico.',
     landingHow2Title: 'Reconozca la privacidad',
@@ -618,21 +627,21 @@ const STUDENT_LOAN_COPY_ES: SpecializedCopyCatalog = {
     landingFaqHeading: 'Preguntas frecuentes',
     landingFaqLead: 'Respuestas claras antes de comenzar.',
     landingFaq1: '¿Cuánto tarda el Reporte de Préstamos Estudiantiles?',
-    landingFaqA1: 'La mayoría de las personas termina las 10 preguntas de diagnóstico y los datos de contacto en unos minutos.',
+    landingFaqA1: 'La mayoría de las personas termina la evaluación, incluidos los datos de contacto, en unos minutos.',
     landingFaq2: '¿Me pedirán acceso a FSA o mi número de Seguro Social?',
     landingFaqA2:
       'No. Nunca pedimos SSN, fecha de nacimiento, credenciales de FSA, números de cuenta ni documentos.',
     landingFaq3: '¿Recibo un puntaje hoy?',
     landingFaqA3:
-      'Sí. Recibe un Puntaje del Reporte de Préstamos Estudiantiles de Valtoris, calificación, señales y áreas de revisión después de las 10 preguntas y los reconocimientos.',
+      'Sí. Recibe un Puntaje del Reporte de Préstamos Estudiantiles de Valtoris, calificación, señales y áreas de revisión después de completar la evaluación y los reconocimientos.',
     landingFaq4: '¿Esto aprueba elegibilidad o condonación?',
     landingFaqA4:
-      'No. Este es un diagnóstico educativo. No determina elegibilidad, montos de pago, condonación ni ahorros.',
+      'No. Este es un diagnóstico educativo. Valtoris no es el Departamento de Educación de EE. UU. ni un administrador federal de préstamos, y no está afiliado ni respaldado por el gobierno federal. No determina elegibilidad, montos de pago, condonación ni ahorros. La información oficial federal sobre préstamos estudiantiles está disponible en StudentAid.gov.',
     landingFaq5: '¿Alguien me contactará automáticamente?',
     landingFaqA5:
       'No se envían mensajes automáticos. Si termina la evaluación y acepta que lo contactemos, Valtoris puede darle seguimiento sobre sus resultados. Completar las preguntas no lo inscribe en un programa federal.',
     landingClosingTitle: '¿Listo para comenzar su Reporte de Préstamos Estudiantiles™?',
-    landingClosingCopy: 'Responda 10 preguntas concretas y reciba su Puntaje del Reporte de Préstamos Estudiantiles de Valtoris.',
+    landingClosingCopy: 'Complete el Reporte de Préstamos Estudiantiles y reciba su Puntaje del Reporte de Préstamos Estudiantiles de Valtoris.',
     landingClosingMicrocopy:
       'Sin números de cuenta. Sin credenciales de FSA. Los reconocimientos de privacidad obligatorios siguen siendo explícitos.',
   },

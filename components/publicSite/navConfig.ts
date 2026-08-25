@@ -32,9 +32,20 @@ export const TOOLS_NAV_LINKS: readonly PublicNavLink[] = [
   { id: 'credit', to: ROUTES.creditReportCard, labelKey: 'toolsCredit' },
 ]
 
+export const HOME_NAV: PublicNavLink = {
+  id: 'home',
+  to: ROUTES.home,
+  labelKey: 'navHome',
+}
+
 /** Reserved for future About / Process / Team pages. Empty until those routes exist. */
 export const ABOUT_NAV_LINKS: readonly PublicNavLink[] = []
 
+/**
+ * Reserved until a real /contact page exists.
+ * Not rendered in primary header or mobile nav because it currently
+ * duplicates Book a Meeting → /schedule. Footer Company still uses this.
+ */
 export const CONTACT_NAV: PublicNavLink = {
   id: 'contact',
   to: ROUTES.schedule,
@@ -66,8 +77,8 @@ export const BUSINESS_FOOTER_LINKS: readonly PublicNavLink[] = [
   { id: 'businessReportCard', to: ROUTES.businessReportCard, labelKey: 'toolsBusiness' },
 ]
 
-/** Top-level visible peers. About is omitted until it has a safe destination. */
-export const VISIBLE_TOP_LEVEL_NAV_IDS = ['services', 'tools', 'contact'] as const
+/** Top-level visible peers. About and Contact are omitted until they have unique destinations. */
+export const VISIBLE_TOP_LEVEL_NAV_IDS = ['home', 'services', 'tools'] as const
 
 export const FUTURE_UNBUILT_PUBLIC_PATHS = [
   '/services',

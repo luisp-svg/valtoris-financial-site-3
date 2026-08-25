@@ -1,5 +1,6 @@
 import { useLocation } from 'react-router-dom'
 import DiagnosticLanding from '../components/home/DiagnosticLanding'
+import SpecializedSampleResultsPreview from '../components/home/SpecializedSampleResultsPreview'
 import SpecializedLocaleSwitcher, {
   useSpecializedDocumentLang,
 } from '../components/assessment/specialized/SpecializedLocaleSwitcher'
@@ -39,7 +40,6 @@ export default function CreditReportCardPage() {
       heroCopies={[t('ui', 'landingHero1'), t('ui', 'landingHero2')]}
       ctaLabel={t('ui', 'startCta')}
       ctaTo={assessmentTo}
-      heroMicrocopy={t('ui', 'landingHeroMicrocopy')}
       receiveHeading={t('ui', 'landingReceiveHeading')}
       receiveLead={t('ui', 'landingReceiveLead')}
       receiveItems={[
@@ -67,17 +67,35 @@ export default function CreditReportCardPage() {
       sampleHeading={t('ui', 'landingSampleHeading')}
       sampleLead={t('ui', 'landingSampleLead')}
       samplePreview={
-        <article className="platform-card funnel-preview-card">
-          <p className="platform-eyebrow">{t('ui', 'landingSampleEyebrow')}</p>
-          <h3 className="diagnostic-receive-title">{t('ui', 'landingSampleTitle')}</h3>
-          <ul className="diagnostic-faq-answer">
-            <li>{t('ui', 'landingSampleItem1')}</li>
-            <li>{t('ui', 'landingSampleItem2')}</li>
-            <li>{t('ui', 'landingSampleItem3')}</li>
-            <li>{t('ui', 'landingSampleItem4')}</li>
-          </ul>
-          <p className="funnel-microcopy">{t('ui', 'landingSampleMicrocopy')}</p>
-        </article>
+        <SpecializedSampleResultsPreview
+          ariaLabel={t('ui', 'landingSampleAriaLabel')}
+          badge={t('ui', 'landingSampleBadge')}
+          scoreLabel={t('results', 'score')}
+          score={73}
+          gradeLabel={t('results', 'grade')}
+          grade="C"
+          statusLabel={t('results', 'status')}
+          status={t('results', 'status.review_recommended')}
+          barsLabel={t('results', 'categories')}
+          bars={[
+            { label: t('results', 'category.payment_history'), score: 82 },
+            { label: t('results', 'category.utilization'), score: 48 },
+            { label: t('results', 'category.negative_items'), score: 61 },
+            { label: t('results', 'category.credit_structure'), score: 70 },
+          ]}
+          flagHeading={t('ui', 'landingSampleFlagHeading')}
+          flag={{
+            badge: t('results', 'flag.review_recommended'),
+            title: t('ui', 'landingSampleFlagTitle'),
+          }}
+          reviewHeading={t('ui', 'landingSampleReviewHeading')}
+          reviewAreas={[
+            { title: t('ui', 'landingSampleReview1') },
+            { title: t('ui', 'landingSampleReview2') },
+            { title: t('ui', 'landingSampleReview3') },
+          ]}
+          disclaimer={t('ui', 'landingSampleDisclaimer')}
+        />
       }
       categoriesHeading={t('ui', 'landingCategoriesHeading')}
       categoriesLead={t('ui', 'landingCategoriesLead')}
@@ -130,6 +148,7 @@ export default function CreditReportCardPage() {
         { question: t('ui', 'landingFaq4'), answer: t('ui', 'landingFaqA4') },
         { question: t('ui', 'landingFaq5'), answer: t('ui', 'landingFaqA5') },
       ]}
+      complianceNote={t('ui', 'landingCompliance')}
       closingTitle={t('ui', 'landingClosingTitle')}
       closingCopy={t('ui', 'landingClosingCopy')}
       closingMicrocopy={t('ui', 'landingClosingMicrocopy')}
