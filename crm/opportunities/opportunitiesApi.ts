@@ -1072,7 +1072,9 @@ export function pickDefaultStage(
   stages: OpportunityStageOption[],
 ): OpportunityStageOption | null {
   if (stages.length === 0) return null
-  const identified = stages.find((row) => row.code === 'opportunity_identified')
+  const identified =
+    stages.find((row) => row.code === 'opportunity_identified') ??
+    stages.find((row) => row.code === 'identified')
   if (identified) return identified
   const openStages = stages.filter((row) => !row.is_won && !row.is_lost && !row.is_terminal)
   return openStages[0] ?? stages[0] ?? null

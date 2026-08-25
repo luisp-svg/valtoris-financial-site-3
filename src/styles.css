@@ -10140,6 +10140,12 @@ p { color: var(--muted); line-height: 1.7; }
   gap: 0.85rem;
 }
 
+.crm-intake-opportunity-dialog {
+  width: min(44rem, 100%);
+  max-height: min(90vh, 52rem);
+  overflow: auto;
+}
+
 .crm-intake-confirm-list {
   margin: 0;
   padding-left: 1.2rem;
@@ -10159,7 +10165,8 @@ p { color: var(--muted); line-height: 1.7; }
 
   .crm-intake-confirm-dialog,
   .crm-intake-archive-reasons,
-  .crm-intake-archive-reason {
+  .crm-intake-archive-reason,
+  .crm-intake-opportunity-dialog {
     max-width: 100%;
   }
 

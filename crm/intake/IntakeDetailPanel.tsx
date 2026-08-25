@@ -14,6 +14,11 @@ import {
   INTAKE_ARCHIVE_DUPLICATE_BLOCK_COPY,
 } from './intakeArchiveUi'
 import {
+  INTAKE_ASSIGN_ADVISOR_ACTION_LABEL,
+  INTAKE_WORKFLOW_DUPLICATE_BLOCK_COPY,
+} from './intakeAssignmentUi'
+import { INTAKE_CREATE_OPPORTUNITY_ACTION_LABEL } from './intakeOpportunityUi'
+import {
   intakeProductLabel,
   isDigitalIdentityLead,
   mapMatchReasonLabel,
@@ -43,10 +48,16 @@ type IntakeDetailPanelProps = {
   retryTaskMessage?: string | null
   canPresentArchive?: boolean
   archiveBlockedByDuplicate?: boolean
+  canPresentAssignAdvisor?: boolean
+  assignBlockedByDuplicate?: boolean
+  canPresentCreateOpportunity?: boolean
+  createBlockedByDuplicate?: boolean
   onClose: () => void
   onRequestResolve: (action: DuplicateResolutionWriteAction) => void
   onRetryFollowUpTask?: () => void
   onRequestArchive?: () => void
+  onRequestAssignAdvisor?: () => void
+  onRequestCreateOpportunity?: () => void
 }
 
 function ConsentRow({ label, allowed }: { label: string; allowed: boolean }) {
@@ -71,10 +82,16 @@ export default function IntakeDetailPanel({
   retryTaskMessage = null,
   canPresentArchive = false,
   archiveBlockedByDuplicate = false,
+  canPresentAssignAdvisor = false,
+  assignBlockedByDuplicate = false,
+  canPresentCreateOpportunity = false,
+  createBlockedByDuplicate = false,
   onClose,
   onRequestResolve,
   onRetryFollowUpTask,
   onRequestArchive,
+  onRequestAssignAdvisor,
+  onRequestCreateOpportunity,
 }: IntakeDetailPanelProps) {
   const isDi = isDigitalIdentityLead(item)
   const diagnostic = item.diagnostic
@@ -118,10 +135,30 @@ export default function IntakeDetailPanel({
             Open household
           </Link>
         ) : null}
+        {canPresentAssignAdvisor && onRequestAssignAdvisor ? (
+          <button
+            type="button"
+            className="platform-btn"
+            disabled={assignBlockedByDuplicate || resolving}
+            onClick={onRequestAssignAdvisor}
+          >
+            {INTAKE_ASSIGN_ADVISOR_ACTION_LABEL}
+          </button>
+        ) : null}
+        {canPresentCreateOpportunity && onRequestCreateOpportunity ? (
+          <button
+            type="button"
+            className="platform-btn"
+            disabled={createBlockedByDuplicate || resolving}
+            onClick={onRequestCreateOpportunity}
+          >
+            {INTAKE_CREATE_OPPORTUNITY_ACTION_LABEL}
+          </button>
+        ) : null}
         {canPresentArchive && onRequestArchive ? (
           <button
             type="button"
-            className="platform-btn platform-btn-outline"
+            className="platform-btn platform-btn-outline crm-intake-action-secondary"
             disabled={archiveBlockedByDuplicate || resolving}
             onClick={onRequestArchive}
           >
@@ -129,6 +166,10 @@ export default function IntakeDetailPanel({
           </button>
         ) : null}
       </div>
+      {(canPresentAssignAdvisor || canPresentCreateOpportunity) &&
+      (assignBlockedByDuplicate || createBlockedByDuplicate) ? (
+        <p className="crm-muted">{INTAKE_WORKFLOW_DUPLICATE_BLOCK_COPY}</p>
+      ) : null}
       {canPresentArchive && archiveBlockedByDuplicate ? (
         <p className="crm-muted">{INTAKE_ARCHIVE_DUPLICATE_BLOCK_COPY}</p>
       ) : null}

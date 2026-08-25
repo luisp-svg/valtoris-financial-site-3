@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useCrmAuth } from '../../crm/auth/CrmAuthContext'
 import DuplicateResolutionConfirmDialog from '../../crm/intake/DuplicateResolutionConfirmDialog'
 import IntakeArchiveConfirmDialog from '../../crm/intake/IntakeArchiveConfirmDialog'
+import IntakeAssignAdvisorDialog from '../../crm/intake/IntakeAssignAdvisorDialog'
 import IntakeDetailPanel from '../../crm/intake/IntakeDetailPanel'
 import { archiveIntakeLead } from '../../crm/intake/intakeArchive'
 import {
@@ -10,6 +11,18 @@ import {
   INTAKE_ARCHIVE_TASK_COMPLETED_COPY,
   intakeArchiveVisibilityForItem,
 } from '../../crm/intake/intakeArchiveUi'
+import { assignIntakeHousehold } from '../../crm/intake/intakeAssignment'
+import {
+  INTAKE_ASSIGN_SUCCESS_COPY,
+  intakeAssignVisibilityForItem,
+} from '../../crm/intake/intakeAssignmentUi'
+import { buildIntakeOpportunityPrefill } from '../../crm/intake/intakeOpportunityPrefill'
+import {
+  INTAKE_CREATE_OPPORTUNITY_SUCCESS_COPY,
+  intakeCreateOpportunityVisibilityForItem,
+} from '../../crm/intake/intakeOpportunityUi'
+import OpportunityFormDialog from '../../crm/opportunities/OpportunityFormDialog'
+import type { OpportunityDetail } from '../../crm/opportunities/types'
 import {
   fetchCandidateHouseholdSummary,
   fetchCurrentAdvisorProfileId,
@@ -42,7 +55,7 @@ import type {
   IntakeHouseholdSummary,
   IntakeQueueItem,
 } from '../../crm/intake/types'
-import { crmHouseholdPath } from '../../constants/routes'
+import { crmHouseholdPath, crmOpportunityPath } from '../../constants/routes'
 import { createSupabaseBrowserClient } from '../../lib/supabase/client'
 
 function formatSubmittedAt(value: string): string {
@@ -91,6 +104,13 @@ export default function CrmIntakePage() {
     followUpTaskCompleted: boolean
   } | null>(null)
   const archivingRef = useRef(false)
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false)
+  const [assigning, setAssigning] = useState(false)
+  const [assignDialogError, setAssignDialogError] = useState<string | null>(null)
+  const [assignSuccess, setAssignSuccess] = useState<string | null>(null)
+  const assigningRef = useRef(false)
+  const [showCreateOpportunity, setShowCreateOpportunity] = useState(false)
+  const [createdOpportunity, setCreatedOpportunity] = useState<OpportunityDetail | null>(null)
 
   useEffect(() => {
     function onResize() {
@@ -203,6 +223,11 @@ export default function CrmIntakePage() {
     setArchiveDialogOpen(false)
     setArchiveDialogError(null)
     setArchiveSuccess(null)
+    setAssignDialogOpen(false)
+    setAssignDialogError(null)
+    setAssignSuccess(null)
+    setShowCreateOpportunity(false)
+    setCreatedOpportunity(null)
   }
 
   async function handleRetryFollowUpTask() {
@@ -323,6 +348,43 @@ export default function CrmIntakePage() {
     }
   }
 
+  async function handleConfirmAssign(advisorId: string, advisorName: string) {
+    if (!selectedItem?.household?.id || assigningRef.current) return
+    assigningRef.current = true
+    setAssigning(true)
+    setAssignDialogError(null)
+
+    try {
+      const supabase = createSupabaseBrowserClient()
+      const result = await assignIntakeHousehold(supabase, {
+        householdId: selectedItem.household.id,
+        advisorId,
+      })
+      if (!result.ok) {
+        setAssignDialogError(result.message)
+        return
+      }
+      setAssignSuccess(advisorName.trim() ? `${INTAKE_ASSIGN_SUCCESS_COPY} Assigned to ${advisorName}.` : INTAKE_ASSIGN_SUCCESS_COPY)
+      setAssignDialogOpen(false)
+      setAssignDialogError(null)
+      setReloadToken((token) => token + 1)
+    } catch (err) {
+      setAssignDialogError('Unable to assign this household. Please try again.')
+      if (import.meta.env.DEV) {
+        console.error('[crm/intake]', formatIntakeError('assign household', err))
+      }
+    } finally {
+      assigningRef.current = false
+      setAssigning(false)
+    }
+  }
+
+  function handleOpportunityCreated(opportunity: OpportunityDetail) {
+    setCreatedOpportunity(opportunity)
+    setShowCreateOpportunity(false)
+    setReloadToken((token) => token + 1)
+  }
+
   const emptyCopy = emptyStateCopy(filter)
   const archiveVisibility = selectedItem
     ? intakeArchiveVisibilityForItem(selectedItem, {
@@ -330,6 +392,16 @@ export default function CrmIntakePage() {
         currentAdvisorProfileId: advisorProfileId,
       })
     : { canPresent: false, blockedByDuplicate: false }
+  const assignVisibility = selectedItem
+    ? intakeAssignVisibilityForItem(selectedItem, { isOwner: role === 'owner' })
+    : { canPresent: false, blockedByDuplicate: false }
+  const createOpportunityVisibility = selectedItem
+    ? intakeCreateOpportunityVisibilityForItem(selectedItem, {
+        isOwner: role === 'owner',
+        currentAdvisorProfileId: advisorProfileId,
+      })
+    : { canPresent: false, blockedByDuplicate: false }
+  const opportunityPrefill = selectedItem ? buildIntakeOpportunityPrefill(selectedItem) : null
 
   return (
     <div className="crm-page crm-intake-page">
@@ -353,6 +425,19 @@ export default function CrmIntakePage() {
         <p className="crm-banner crm-banner-success" role="status">
           {INTAKE_ARCHIVE_SUCCESS_COPY}
           {archiveSuccess.followUpTaskCompleted ? ` ${INTAKE_ARCHIVE_TASK_COMPLETED_COPY}` : ''}
+        </p>
+      ) : null}
+
+      {assignSuccess ? (
+        <p className="crm-banner crm-banner-success" role="status">
+          {assignSuccess}
+        </p>
+      ) : null}
+
+      {createdOpportunity ? (
+        <p className="crm-banner crm-banner-success" role="status">
+          {INTAKE_CREATE_OPPORTUNITY_SUCCESS_COPY}{' '}
+          <Link to={crmOpportunityPath(createdOpportunity.id)}>Open Opportunity</Link>
         </p>
       ) : null}
 
@@ -574,6 +659,9 @@ export default function CrmIntakePage() {
             setRetryTaskMessage(null)
             setArchiveDialogOpen(false)
             setArchiveDialogError(null)
+            setAssignDialogOpen(false)
+            setAssignDialogError(null)
+            setShowCreateOpportunity(false)
           }}
           onRequestResolve={(action) => {
             setResolveError(null)
@@ -585,12 +673,33 @@ export default function CrmIntakePage() {
           }
           canPresentArchive={archiveVisibility.canPresent}
           archiveBlockedByDuplicate={archiveVisibility.blockedByDuplicate}
+          canPresentAssignAdvisor={assignVisibility.canPresent}
+          assignBlockedByDuplicate={assignVisibility.blockedByDuplicate}
+          canPresentCreateOpportunity={createOpportunityVisibility.canPresent}
+          createBlockedByDuplicate={createOpportunityVisibility.blockedByDuplicate}
           onRequestArchive={
             archiveVisibility.canPresent
               ? () => {
                   if (archiveVisibility.blockedByDuplicate || archiving) return
                   setArchiveDialogError(null)
                   setArchiveDialogOpen(true)
+                }
+              : undefined
+          }
+          onRequestAssignAdvisor={
+            assignVisibility.canPresent
+              ? () => {
+                  if (assignVisibility.blockedByDuplicate || assigning) return
+                  setAssignDialogError(null)
+                  setAssignDialogOpen(true)
+                }
+              : undefined
+          }
+          onRequestCreateOpportunity={
+            createOpportunityVisibility.canPresent
+              ? () => {
+                  if (createOpportunityVisibility.blockedByDuplicate) return
+                  setShowCreateOpportunity(true)
                 }
               : undefined
           }
@@ -609,6 +718,47 @@ export default function CrmIntakePage() {
           }}
           onConfirm={handleConfirmArchive}
         />
+      ) : null}
+
+      {assignDialogOpen && selectedItem?.household ? (
+        <IntakeAssignAdvisorDialog
+          householdName={selectedItem.household.displayName}
+          currentAdvisorName={
+            selectedItem.household.assignedAdvisor?.displayName ??
+            selectedItem.assignedAdvisor?.displayName ??
+            null
+          }
+          currentAdvisorId={
+            selectedItem.household.assignedAdvisor?.id ??
+            selectedItem.assignedAdvisor?.id ??
+            null
+          }
+          submitting={assigning}
+          error={assignDialogError}
+          onCancel={() => {
+            if (assigning) return
+            setAssignDialogOpen(false)
+            setAssignDialogError(null)
+          }}
+          onConfirm={handleConfirmAssign}
+        />
+      ) : null}
+
+      {showCreateOpportunity && selectedItem && opportunityPrefill?.householdId ? (
+        <div className="crm-intake-dialog-backdrop" role="presentation">
+          <div className="crm-intake-opportunity-dialog">
+            <OpportunityFormDialog
+              mode="create"
+              defaultHouseholdId={opportunityPrefill.householdId}
+              defaultHouseholdLabel={opportunityPrefill.householdLabel}
+              defaultTitle={opportunityPrefill.title}
+              defaultServiceVerticalId={opportunityPrefill.serviceVerticalId}
+              defaultAssignedAdvisorId={opportunityPrefill.assignedAdvisorId}
+              onCancel={() => setShowCreateOpportunity(false)}
+              onSaved={handleOpportunityCreated}
+            />
+          </div>
+        </div>
       ) : null}
 
       {pendingAction && selectedItem ? (

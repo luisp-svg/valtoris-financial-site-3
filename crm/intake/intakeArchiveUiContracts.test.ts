@@ -112,9 +112,15 @@ describe('Intake archive isolation contracts', () => {
     expect(wrapper).not.toContain('sheets')
     expect(wrapper).not.toContain('move_opportunity_stage')
     expect(wrapper).not.toContain('create_opportunity')
+    expect(wrapper).not.toContain('assign_household')
     expect(page).not.toContain('writeFamilyReportCardToSheets')
-    expect(page).not.toContain('createOpportunity')
-    expect(page).not.toContain('assign_household')
+    const archiveHandler = page.slice(
+      page.indexOf('async function handleConfirmArchive'),
+      page.indexOf('async function handleConfirmAssign'),
+    )
+    expect(archiveHandler).toContain('archiveIntakeLead')
+    expect(archiveHandler).not.toContain('assignIntakeHousehold')
+    expect(archiveHandler).not.toContain('OpportunityFormDialog')
     expect(page).toContain('resolveDuplicateReview')
     expect(page).toContain('resolveDigitalIdentityDuplicateReview')
     expect(duplicateDialog).toContain('Confirm Same Household')

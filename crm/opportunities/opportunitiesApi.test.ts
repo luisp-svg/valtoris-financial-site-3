@@ -598,6 +598,30 @@ describe('close / archive helpers', () => {
   it('picks default pipeline and stage without inventing ids', () => {
     expect(pickDefaultPipeline(validationContext.pipelines)?.id).toBe('pipe-1')
     expect(pickDefaultStage(validationContext.stages)?.code).toBe('opportunity_identified')
+    expect(
+      pickDefaultStage([
+        {
+          id: 'st-id',
+          pipeline_id: 'pipe-sl',
+          name: 'Identified',
+          code: 'identified',
+          sort_order: 1,
+          is_won: false,
+          is_lost: false,
+          is_terminal: false,
+        },
+        {
+          id: 'st-con',
+          pipeline_id: 'pipe-sl',
+          name: 'Consultation',
+          code: 'consultation',
+          sort_order: 2,
+          is_won: false,
+          is_lost: false,
+          is_terminal: false,
+        },
+      ])?.code,
+    ).toBe('identified')
   })
 })
 

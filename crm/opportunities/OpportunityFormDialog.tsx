@@ -41,8 +41,12 @@ export type OpportunityFormMode = 'create' | 'edit'
 
 export type OpportunityFormDialogProps = {
   mode: OpportunityFormMode
-  /** Prefill + lock household on create (household workspace). */
+  /** Prefill + lock household on create (household workspace / Intake). */
   defaultHouseholdId?: string | null
+  defaultHouseholdLabel?: string | null
+  defaultTitle?: string | null
+  defaultServiceVerticalId?: string | null
+  defaultAssignedAdvisorId?: string | null
   opportunity?: OpportunityDetail | null
   onCancel: () => void
   onSaved: (opportunity: OpportunityDetail) => void
@@ -89,6 +93,54 @@ function editFromOpportunity(opportunity: OpportunityDetail): EditFormState {
   }
 }
 
+function applyCreatePrefills(
+  prev: CreateFormState,
+  input: {
+    defaultHouseholdId?: string | null
+    defaultTitle?: string | null
+    defaultServiceVerticalId?: string | null
+    defaultAssignedAdvisorId?: string | null
+    role: 'owner' | 'advisor'
+    currentAdvisorId: string | null
+    verticals: OpportunityServiceVerticalOption[]
+    advisors: OpportunityAdvisorOption[]
+  },
+): CreateFormState {
+  const verticalOk =
+    Boolean(input.defaultServiceVerticalId) &&
+    input.verticals.some((row) => row.id === input.defaultServiceVerticalId)
+  const advisorOk =
+    Boolean(input.defaultAssignedAdvisorId) &&
+    input.advisors.some((row) => row.id === input.defaultAssignedAdvisorId)
+  const prevAdvisorOk = Boolean(prev.assigned_advisor_id) &&
+    input.advisors.some((row) => row.id === prev.assigned_advisor_id)
+
+  let assignedAdvisorId = prev.assigned_advisor_id
+  if (input.role === 'advisor' && input.currentAdvisorId) {
+    assignedAdvisorId = input.currentAdvisorId
+  } else if (prevAdvisorOk) {
+    assignedAdvisorId = prev.assigned_advisor_id
+  } else if (advisorOk && input.defaultAssignedAdvisorId) {
+    assignedAdvisorId = input.defaultAssignedAdvisorId
+  } else {
+    assignedAdvisorId = ''
+  }
+
+  return {
+    ...prev,
+    household_id: prev.household_id || input.defaultHouseholdId || '',
+    title: prev.title || input.defaultTitle || '',
+    service_vertical_id:
+      prev.service_vertical_id &&
+      input.verticals.some((row) => row.id === prev.service_vertical_id)
+        ? prev.service_vertical_id
+        : verticalOk && input.defaultServiceVerticalId
+          ? input.defaultServiceVerticalId
+          : '',
+    assigned_advisor_id: assignedAdvisorId,
+  }
+}
+
 /**
  * CRM-8.2A create/edit dialog.
  * Create: INSERT-supported fields only (no status selector).
@@ -98,6 +150,10 @@ function editFromOpportunity(opportunity: OpportunityDetail): EditFormState {
 export default function OpportunityFormDialog({
   mode,
   defaultHouseholdId = null,
+  defaultHouseholdLabel = null,
+  defaultTitle = null,
+  defaultServiceVerticalId = null,
+  defaultAssignedAdvisorId = null,
   opportunity = null,
   onCancel,
   onSaved,
@@ -110,6 +166,9 @@ export default function OpportunityFormDialog({
   const [createForm, setCreateForm] = useState<CreateFormState>(() => ({
     ...EMPTY_CREATE,
     household_id: defaultHouseholdId ?? '',
+    title: defaultTitle ?? '',
+    service_vertical_id: defaultServiceVerticalId ?? '',
+    assigned_advisor_id: defaultAssignedAdvisorId ?? '',
   }))
   const [editForm, setEditForm] = useState<EditFormState>(() =>
     mode === 'edit' && opportunity ? editFromOpportunity(opportunity) : {
@@ -178,7 +237,10 @@ export default function OpportunityFormDialog({
           !resolvedHouseholds.some((row) => row.id === defaultHouseholdId)
         ) {
           resolvedHouseholds = [
-            { id: defaultHouseholdId, display_name: 'Selected household' },
+            {
+              id: defaultHouseholdId,
+              display_name: defaultHouseholdLabel?.trim() || 'Selected household',
+            },
             ...resolvedHouseholds,
           ]
         }
@@ -196,12 +258,18 @@ export default function OpportunityFormDialog({
         setAllStages(stageRows)
         setAdvisors(advisorRows)
         setActorAdvisorId(currentAdvisorId)
-        setCreateForm((prev) => ({
-          ...prev,
-          household_id: prev.household_id || defaultHouseholdId || '',
-          assigned_advisor_id:
-            role === 'advisor' && currentAdvisorId ? currentAdvisorId : prev.assigned_advisor_id,
-        }))
+        setCreateForm((prev) =>
+          applyCreatePrefills(prev, {
+            defaultHouseholdId,
+            defaultTitle,
+            defaultServiceVerticalId,
+            defaultAssignedAdvisorId,
+            role,
+            currentAdvisorId,
+            verticals: verticalRows,
+            advisors: advisorRows,
+          }),
+        )
       } catch (err) {
         if (!cancelled) {
           setHouseholds([])
@@ -223,7 +291,16 @@ export default function OpportunityFormDialog({
     return () => {
       cancelled = true
     }
-  }, [mode, profile, role, defaultHouseholdId])
+  }, [
+    mode,
+    profile,
+    role,
+    defaultHouseholdId,
+    defaultHouseholdLabel,
+    defaultTitle,
+    defaultServiceVerticalId,
+    defaultAssignedAdvisorId,
+  ])
 
   // When vertical changes, keep pipeline/stage coherent without extra fetches.
   useEffect(() => {
@@ -290,6 +367,20 @@ export default function OpportunityFormDialog({
       setAllStages(stageRows)
       setAdvisors(advisorRows)
       setActorAdvisorId(currentAdvisorId)
+      if (role) {
+        setCreateForm((prev) =>
+          applyCreatePrefills(prev, {
+            defaultHouseholdId,
+            defaultTitle,
+            defaultServiceVerticalId,
+            defaultAssignedAdvisorId,
+            role,
+            currentAdvisorId,
+            verticals: verticalRows,
+            advisors: advisorRows,
+          }),
+        )
+      }
     } catch (err) {
       setOptionsError(
         'Unable to load form options. Please try again.\n' +
