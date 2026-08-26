@@ -74,7 +74,7 @@ export default function CurrentOpportunitiesWidget({
                       to={crmProductionPath(liveCase.applicationId)}
                       className="crm-text-btn crm-household-opportunity-action"
                     >
-                      Open Case
+                      Open Application
                     </Link>
                   ) : null}
                 </div>

@@ -1,7 +1,7 @@
 /**
  * Phase 1 sales pipeline visibility — filters, attention, and card copy
  * over existing opportunities. No schema, no Case filter/lifecycle, no new
- * routes. Case created is a derived informational badge only.
+ * routes. Application Started / Case Active is a derived informational badge only.
  */
 
 import { formatDateLabel, isDueToday, isOverdue, localDateString } from '../dashboard/dates'

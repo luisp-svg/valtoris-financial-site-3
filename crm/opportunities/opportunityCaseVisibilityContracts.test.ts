@@ -67,10 +67,10 @@ describe('Phase 3 Opportunity ↔ Case visibility contracts', () => {
     expect(page).toContain('PipelineViewBar')
   })
 
-  it('shows slim Household Current Opportunities linkage and Open Case only when linked', () => {
+  it('shows slim Household Current Opportunities linkage and Open Application only when linked', () => {
     expect(widget).toContain('CaseCreatedBadge')
     expect(widget).toContain('Open Opportunity')
-    expect(widget).toContain('Open Case')
+    expect(widget).toContain('Open Application')
     expect(widget).toContain('liveCase')
     expect(widget).toContain('crmProductionPath(liveCase.applicationId)')
     expect(widget).not.toContain('ConvertOpportunityToCaseDialog')
@@ -94,13 +94,15 @@ describe('Phase 3 Opportunity ↔ Case visibility contracts', () => {
     expect(widget).not.toContain('create_policy_application')
   })
 
-  it('keeps one primary Open Case on Opportunity Workspace and does not auto-Won', () => {
-    expect(workspace.match(/Open Case/g)).toEqual(['Open Case'])
+  it('keeps one primary Open Application on Opportunity Workspace and does not auto-Won', () => {
+    expect(workspace).toContain('Open Application')
     expect(workspace).toContain('crm-opportunity-convert-open')
-    expect(workspace).toContain('Linked Case')
+    expect(workspace).toContain('Linked Application')
     expect(workspace).toContain('linkedApplicationLabel')
     expect(workspace).not.toContain('status = \'won\'')
     expect(workspace).not.toContain('moveOpportunityStage(workspace.linkedApplication')
+    expect(workspace).toContain('opportunityAllowsCreateCase(workspace.opportunity)')
+    expect(workspace).toContain('workspace.linkedApplication')
   })
 
   it('extends Case Detail linked Opportunity with vertical and advisor on the existing embed', () => {

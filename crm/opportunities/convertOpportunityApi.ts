@@ -39,11 +39,11 @@ export type ConvertOpportunityInput = {
 }
 
 const CONVERT_ERROR_MESSAGES: Record<string, string> = {
-  invalid_transition: 'This opportunity cannot be converted to a production case.',
-  household_mismatch: 'The case must stay on this opportunity household.',
+  invalid_transition: 'This opportunity cannot start an application.',
+  household_mismatch: 'The application must stay on this opportunity household.',
   not_found: 'This opportunity was not found or you do not have access.',
   not_authorized: 'You do not have permission to convert this opportunity.',
-  invalid_payload: 'That case cannot be created. Check the highlighted fields and try again.',
+  invalid_payload: 'That application cannot be started. Check the highlighted fields and try again.',
 }
 
 export function formatConvertOpportunityUserError(err: unknown): string {

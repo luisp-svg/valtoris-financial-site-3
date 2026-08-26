@@ -11,6 +11,7 @@ import {
   requiredParticipantRoles,
   US_STATES,
 } from '../production/applicationView'
+import { isNeverSubmittedStage } from '../production/productionMetrics'
 import type {
   ProductionAllocationDraft,
   ProductionAdvisorOption,
@@ -254,4 +255,34 @@ export function formatCaseCreatedStageLabel(
   const label = formatProductionStageLabel(productionStage)
   if (!label || label === '—') return null
   return label
+}
+
+export const OPPORTUNITY_APPLICATION_STARTED_LABEL = 'Application Started'
+export const OPPORTUNITY_CASE_ACTIVE_LABEL = 'Case Active'
+export const OPPORTUNITY_APPLICATION_LINKED_LABEL = 'Application Linked'
+export const START_APPLICATION_ACTION_LABEL = 'Start Application'
+export const OPEN_APPLICATION_ACTION_LABEL = 'Open Application'
+export const APPLICATION_STARTED_SUCCESS_COPY = 'Application started.'
+export const START_APPLICATION_DIALOG_COPY =
+  'Starting an application creates a draft application linked to this Opportunity. It becomes an active Case after submission. It is not submitted and does not mark the Opportunity Won.'
+
+/**
+ * Opportunity-facing handoff badge. Uses already-loaded production_stage only.
+ * draft/pre_submitted → Application Started; other known stages → Case Active;
+ * missing stage → Application Linked (no extra fetch).
+ */
+export function formatOpportunityApplicationHandoffLabel(
+  productionStage: string | null | undefined,
+): string {
+  const stage = productionStage?.trim() ?? ''
+  if (!stage) return OPPORTUNITY_APPLICATION_LINKED_LABEL
+  if (isNeverSubmittedStage(stage)) return OPPORTUNITY_APPLICATION_STARTED_LABEL
+  return OPPORTUNITY_CASE_ACTIVE_LABEL
+}
+
+export function isOpportunityApplicationIntakeStage(
+  productionStage: string | null | undefined,
+): boolean {
+  const stage = productionStage?.trim() ?? ''
+  return stage !== '' && isNeverSubmittedStage(stage)
 }

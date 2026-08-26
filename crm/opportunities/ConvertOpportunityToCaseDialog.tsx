@@ -34,6 +34,7 @@ import {
 import {
   carriersForConversion,
   productsForConversion,
+  START_APPLICATION_DIALOG_COPY,
   suggestedWritingAllocations,
   validateConversionDraft,
 } from './convertOpportunityView'
@@ -211,16 +212,13 @@ export default function ConvertOpportunityToCaseDialog({
         aria-labelledby={headingId}
       >
         <div className="crm-panel-head">
-          <h2 id={headingId}>Create Case</h2>
+          <h2 id={headingId}>Start Application</h2>
           <button type="button" className="crm-text-btn" onClick={onCancel} disabled={submitting}>
             Cancel
           </button>
         </div>
 
-        <p className="crm-muted">
-          Creates a draft production application linked to this opportunity. It is not submitted
-          and does not mark the opportunity Won.
-        </p>
+        <p className="crm-muted">{START_APPLICATION_DIALOG_COPY}</p>
 
         <dl className="crm-opportunity-convert-locked">
           <div>
@@ -433,7 +431,7 @@ export default function ConvertOpportunityToCaseDialog({
             state={state}
             disabled={busy}
             fieldError={fieldErrors.allocations}
-            note="Opportunity assigned advisor is only a suggestion. Confirm the writing split before creating the case. The case is created as Application Draft."
+            note="Opportunity assigned advisor is only a suggestion. Confirm the writing split before starting the application. The application is created as Application Draft."
             onAllocationsChange={setAllocations}
           />
 
@@ -453,7 +451,7 @@ export default function ConvertOpportunityToCaseDialog({
 
           <div className="crm-form-actions crm-opportunity-convert-actions">
             <button type="submit" className="crm-primary-btn" disabled={busy || Boolean(optionsError)}>
-              {submitting ? 'Creating Case…' : 'Create Case'}
+              {submitting ? 'Starting application…' : 'Start Application'}
             </button>
             <button type="button" className="crm-secondary-btn" onClick={onCancel} disabled={submitting}>
               Cancel

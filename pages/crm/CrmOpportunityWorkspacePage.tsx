@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { normalizeActivityToTimelineItem } from '../../crm/households/timeline'
 import HouseholdTimelineItemView from '../../crm/households/HouseholdTimelineItemView'
 import type { HouseholdActivityRecord, HouseholdTimelineItem } from '../../crm/households/types'
@@ -33,6 +33,7 @@ import {
   opportunityAttentionFlags,
 } from '../../crm/opportunities/pipelineView'
 import {
+  APPLICATION_STARTED_SUCCESS_COPY,
   linkedApplicationLabel,
   opportunityAllowsCreateCase,
 } from '../../crm/opportunities/convertOpportunityView'
@@ -109,7 +110,6 @@ function buildOpportunityActivityTimeline(
 
 export default function CrmOpportunityWorkspacePage() {
   const { opportunityId = '' } = useParams<{ opportunityId: string }>()
-  const navigate = useNavigate()
   const [workspace, setWorkspace] = useState<OpportunityWorkspace | null>(null)
   const [pipelineStages, setPipelineStages] = useState<OpportunityStageOption[]>([])
   const [loading, setLoading] = useState(true)
@@ -121,10 +121,12 @@ export default function CrmOpportunityWorkspacePage() {
   const [showConvert, setShowConvert] = useState(false)
   const [lifecycleMode, setLifecycleMode] = useState<OpportunityLifecycleMode | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [startedApplicationId, setStartedApplicationId] = useState<string | null>(null)
   const [reloadWarning, setReloadWarning] = useState<string | null>(null)
 
   async function onEdited(opportunity: OpportunityDetail) {
     setShowEdit(false)
+    setStartedApplicationId(null)
     setSuccess(`Opportunity “${opportunity.title}” updated.`)
     setReloadWarning(null)
     setReloadKey((key) => key + 1)
@@ -132,6 +134,7 @@ export default function CrmOpportunityWorkspacePage() {
 
   async function onLifecycleMoved(opportunity: OpportunityDetail) {
     setLifecycleMode(null)
+    setStartedApplicationId(null)
     setSuccess(
       `Opportunity moved to ${getOpportunityStageLabel(opportunity)} (${formatOpportunityStatusLabel(opportunity.status)}).`,
     )
@@ -342,7 +345,19 @@ export default function CrmOpportunityWorkspacePage() {
         ) : null}
       </header>
 
-      {success ? <p className="crm-banner crm-banner-success">{success}</p> : null}
+      {success ? (
+        <p className="crm-banner crm-banner-success">
+          {success}
+          {startedApplicationId ? (
+            <>
+              {' '}
+              <Link to={crmProductionPath(startedApplicationId)} className="crm-text-btn">
+                Open Application
+              </Link>
+            </>
+          ) : null}
+        </p>
+      ) : null}
       {reloadWarning ? (
         <div className="crm-banner crm-banner-warning" role="status">
           <p>{reloadWarning}</p>
@@ -386,7 +401,10 @@ export default function CrmOpportunityWorkspacePage() {
           onCancel={() => setShowConvert(false)}
           onConverted={(result) => {
             setShowConvert(false)
-            navigate(crmProductionPath(result.applicationId))
+            setStartedApplicationId(result.applicationId)
+            setSuccess(APPLICATION_STARTED_SUCCESS_COPY)
+            setReloadWarning(null)
+            setReloadKey((key) => key + 1)
           }}
         />
       ) : null}
@@ -479,7 +497,7 @@ export default function CrmOpportunityWorkspacePage() {
                       to={crmProductionPath(workspace.linkedApplication.id)}
                       className="crm-secondary-btn crm-opportunity-convert-open"
                     >
-                      Open Case
+                      Open Application
                     </Link>
                   ) : opportunityAllowsCreateCase(workspace.opportunity) ? (
                     <button
@@ -488,12 +506,13 @@ export default function CrmOpportunityWorkspacePage() {
                       disabled={Boolean(lifecycleMode) || showEdit || showConvert}
                       onClick={() => {
                         setSuccess(null)
+                        setStartedApplicationId(null)
                         setShowEdit(false)
                         setLifecycleMode(null)
                         setShowConvert(true)
                       }}
                     >
-                      Create Case
+                      Start Application
                     </button>
                   ) : null}
                 </div>
@@ -505,7 +524,7 @@ export default function CrmOpportunityWorkspacePage() {
                   aria-labelledby="crm-opportunity-linked-case-heading"
                 >
                   <div className="crm-panel-head">
-                    <h2 id="crm-opportunity-linked-case-heading">Linked Case</h2>
+                    <h2 id="crm-opportunity-linked-case-heading">Linked Application</h2>
                     <CaseCreatedBadge
                       productionStage={workspace.linkedApplication.production_stage}
                     />

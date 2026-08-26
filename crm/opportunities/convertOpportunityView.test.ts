@@ -4,6 +4,7 @@ import {
   carriersForConversion,
   conversionProductLinesForVertical,
   formatCaseCreatedStageLabel,
+  formatOpportunityApplicationHandoffLabel,
   opportunityAllowsCreateCase,
   pickLiveLinkedApplication,
   productsForConversion,
@@ -148,5 +149,25 @@ describe('live Case linkage helpers', () => {
     expect(live.size).toBe(1)
     expect(formatCaseCreatedStageLabel('draft')).toBe('Application Draft')
     expect(formatCaseCreatedStageLabel(null)).toBeNull()
+  })
+})
+
+describe('Opportunity application handoff labels', () => {
+  it('labels draft and pre_submitted as Application Started, never Case Active', () => {
+    expect(formatOpportunityApplicationHandoffLabel('draft')).toBe('Application Started')
+    expect(formatOpportunityApplicationHandoffLabel('pre_submitted')).toBe('Application Started')
+    expect(formatOpportunityApplicationHandoffLabel('draft')).not.toBe('Case Active')
+    expect(formatOpportunityApplicationHandoffLabel('pre_submitted')).not.toBe('Case Active')
+  })
+
+  it('labels submitted+ as Case Active', () => {
+    expect(formatOpportunityApplicationHandoffLabel('submitted')).toBe('Case Active')
+    expect(formatOpportunityApplicationHandoffLabel('in_underwriting')).toBe('Case Active')
+    expect(formatOpportunityApplicationHandoffLabel('in_force')).toBe('Case Active')
+  })
+
+  it('uses Application Linked when stage is missing instead of inventing Case Active', () => {
+    expect(formatOpportunityApplicationHandoffLabel(null)).toBe('Application Linked')
+    expect(formatOpportunityApplicationHandoffLabel('')).toBe('Application Linked')
   })
 })

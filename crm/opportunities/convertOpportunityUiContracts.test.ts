@@ -16,13 +16,16 @@ const styles = readFileSync(join(root, 'src/styles.css'), 'utf8')
 const sql = readFileSync(join(root, 'supabase/migrations/046_opportunity_case_conversion.sql'), 'utf8')
 
 describe('opportunity case conversion UX contracts', () => {
-  it('adds Create Case / Open Case on the existing Opportunity Workspace route only', () => {
-    expect(workspace).toContain('Create Case')
-    expect(workspace).toContain('Open Case')
-    expect(workspace.match(/Open Case/g)).toEqual(['Open Case'])
+  it('adds Start Application / Open Application on the existing Opportunity Workspace route only', () => {
+    expect(workspace).toContain('Start Application')
+    expect(workspace).toContain('Open Application')
+    expect(workspace).toContain('APPLICATION_STARTED_SUCCESS_COPY')
     expect(workspace).toContain('ConvertOpportunityToCaseDialog')
     expect(workspace).toContain('opportunityAllowsCreateCase')
     expect(workspace).toContain('crmProductionPath')
+    expect(workspace).not.toContain('Create Case')
+    expect(workspace).not.toContain('Open Case')
+    expect(workspace).not.toContain('navigate(crmProductionPath(result.applicationId))')
     expect(app).toContain('path="opportunities/:opportunityId"')
     expect(app).not.toContain('path="opportunities/:opportunityId/convert"')
     expect(existsSync(join(root, 'pages/crm/CrmOpportunityConvertPage.tsx'))).toBe(false)
@@ -41,7 +44,12 @@ describe('opportunity case conversion UX contracts', () => {
   })
 
   it('uses a compact conversion wizard without New Application catch-up or historical import', () => {
-    expect(dialog).toContain('Create Case')
+    expect(dialog).toContain('Start Application')
+    expect(dialog).toContain('START_APPLICATION_DIALOG_COPY')
+    expect(view).toContain('draft application linked to this Opportunity')
+    expect(view).toContain('active Case after submission')
+    expect(view).toContain('does not mark the Opportunity Won')
+    expect(dialog).not.toContain('Create Case')
     expect(dialog).toContain('Application state')
     expect(dialog).toContain('WritingAdvisorsFields')
     expect(dialog).toContain('suggestedWritingAllocations')
