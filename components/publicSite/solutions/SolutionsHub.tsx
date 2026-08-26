@@ -51,16 +51,28 @@ export default function SolutionsHub({ copy }: SolutionsHubProps) {
             {copy.heroTitle}
           </h1>
           <p className="site-home-hero-support">{copy.heroSupport}</p>
+          <p className="site-home-hero-brand">{copy.heroBrand}</p>
           <div className="site-home-hero-actions">
-            <PublicLink className="platform-btn platform-btn-primary" to={ROUTES.schedule}>
+            <PublicLink className="platform-btn platform-btn-primary" to={SOLUTIONS_DIAGNOSTICS_HASH}>
               {copy.heroPrimaryCta}
             </PublicLink>
-            <PublicLink className="platform-btn platform-btn-secondary" to={SOLUTIONS_DIAGNOSTICS_HASH}>
+            <PublicLink className="platform-btn platform-btn-secondary" to={ROUTES.schedule}>
               {copy.heroSecondaryCta}
             </PublicLink>
           </div>
         </div>
       </section>
+
+      <SiteHomeSection
+        id={SOLUTIONS_DIAGNOSTICS_ID}
+        tone="blue"
+        titleId="solutions-tools-heading"
+        title={copy.toolsHeading}
+        kicker={copy.toolsBrand}
+        lead={copy.toolsLead}
+      >
+        <SolutionsCardGrid cards={SOLUTIONS_TOOL_CARDS} copy={copy} columns={3} />
+      </SiteHomeSection>
 
       <SiteHomeSection
         tone="white"
@@ -81,17 +93,6 @@ export default function SolutionsHub({ copy }: SolutionsHubProps) {
       </SiteHomeSection>
 
       <SiteHomeSection
-        id={SOLUTIONS_DIAGNOSTICS_ID}
-        tone="blue"
-        titleId="solutions-tools-heading"
-        title={copy.toolsHeading}
-        kicker={copy.toolsBrand}
-        lead={copy.toolsLead}
-      >
-        <SolutionsCardGrid cards={SOLUTIONS_TOOL_CARDS} copy={copy} columns={3} />
-      </SiteHomeSection>
-
-      <SiteHomeSection
         tone="white"
         titleId="solutions-coordination-heading"
         title={copy.coordinationHeading}
@@ -107,6 +108,12 @@ export default function SolutionsHub({ copy }: SolutionsHubProps) {
         <p className="site-solutions-coordination-close">{copy.coordinationClose}</p>
       </SiteHomeSection>
 
+      <section className="site-solutions-disclaimer">
+        <div className="container">
+          <p className="notice">{copy.disclaimer}</p>
+        </div>
+      </section>
+
       <section className="site-home-final" aria-labelledby="solutions-final-heading">
         <div className="container site-home-final-inner">
           <h2 id="solutions-final-heading" className="site-home-final-title">
@@ -114,19 +121,13 @@ export default function SolutionsHub({ copy }: SolutionsHubProps) {
           </h2>
           <p className="site-home-final-copy">{copy.finalLead}</p>
           <div className="site-home-final-actions">
-            <PublicLink className="platform-btn platform-btn-primary" to={ROUTES.schedule}>
+            <PublicLink className="platform-btn platform-btn-primary" to={SOLUTIONS_DIAGNOSTICS_HASH}>
               {copy.finalPrimaryCta}
             </PublicLink>
-            <PublicLink className="platform-btn platform-btn-secondary" to={ROUTES.reportCard}>
+            <PublicLink className="platform-btn platform-btn-secondary" to={ROUTES.schedule}>
               {copy.finalSecondaryCta}
             </PublicLink>
           </div>
-        </div>
-      </section>
-
-      <section className="site-solutions-disclaimer">
-        <div className="container">
-          <p className="notice">{copy.disclaimer}</p>
         </div>
       </section>
     </div>

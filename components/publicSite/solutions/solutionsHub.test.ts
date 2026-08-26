@@ -80,21 +80,25 @@ function sectionHtml(html: string, headingId: string) {
 }
 
 describe('Phase 8 solutions hub', () => {
-  it('is a real bilingual service hub rather than a diagnostic-led landing', () => {
+  it('positions solutions around strategy and diagnoses before exploring services', () => {
     const html = renderAt('/solutions', createElement(SolutionsPage))
     expect(html.match(/<h1[^>]*>/g)).toHaveLength(1)
-    expect(html).toContain('Explore the Areas Where Valtoris Can Help')
+    expect(html).toContain('Solutions Built Around Your Strategy.')
+    expect(html).toContain('Your Strategy Determines the Solution. Not the Other Way Around.')
+    expect(html).toContain('Find Out Where I Stand')
     expect(html).toContain('Book a Meeting')
     expect(html).toContain(`href="${ROUTES.schedule}"`)
-    expect(html).toContain('Explore Diagnostic Tools')
     expect(html).toContain(`href="${SOLUTIONS_DIAGNOSTICS_HASH}"`)
-    expect(html.indexOf('Book a Meeting')).toBeLessThan(html.indexOf('Explore Diagnostic Tools'))
+    expect(html.indexOf('Find Out Where I Stand')).toBeLessThan(html.indexOf('Book a Meeting'))
     const hero = sectionHtml(html, 'solutions-hero-heading')
+    expect(hero).toContain('Find Out Where I Stand')
     expect(hero).toContain('Book a Meeting')
-    expect(hero).toContain('Explore Diagnostic Tools')
+    expect(hero).toContain(`href="${SOLUTIONS_DIAGNOSTICS_HASH}"`)
     expect(hero).not.toContain('Start Family Report Card')
+    expect(hero).not.toContain('protection and retirement to credit')
     expect(html).not.toContain('Business Owner? Start Here')
     expect(html).not.toContain('Solutions Built Around Your Whole Financial Life')
+    expect(html).not.toContain('Take the Family Report Card™')
     expect(source('pages/SolutionsPage.tsx')).not.toContain('<Link')
     expect(source('components/publicSite/solutions/SolutionsHub.tsx')).toContain('PublicLink')
     expect(source('components/publicSite/solutions/SolutionsHub.tsx')).not.toContain(
@@ -102,19 +106,23 @@ describe('Phase 8 solutions hub', () => {
     )
   })
 
-  it('keeps Individuals & Families, Business Owners, and Diagnostic Tools as visible sections', () => {
+  it('renders diagnostics before family and business solution sections', () => {
     const html = renderAt('/solutions', createElement(SolutionsPage))
-    expect(html).toContain('Individuals &amp; Families')
-    expect(html).toContain('Business Owners')
-    expect(html).toContain('Diagnostic Tools')
+    expect(html).toContain('Solutions for Individuals &amp; Families')
+    expect(html).toContain('Solutions for Business Owners')
+    expect(html).toContain('Start With Clarity.')
     expect(html).toContain('Know Your Score. See Your Risks. Build Your Plan.')
     expect(html).toContain('id="solutions-diagnostics"')
+    expect(html).toContain('Financial Strategist')
     const family = sectionHtml(html, 'solutions-families-heading')
     const business = sectionHtml(html, 'solutions-business-heading')
     const tools = sectionHtml(html, 'solutions-tools-heading')
-    expect(family).toContain('Explore the areas where Valtoris can help coordinate strategy')
-    expect(business).toContain('owners coordinate structure, risk, tax')
-    expect(tools).toContain('Use a Report Card or diagnostic')
+    expect(html.indexOf('id="solutions-diagnostics"')).toBeLessThan(html.indexOf('solutions-families-heading'))
+    expect(html.indexOf('solutions-families-heading')).toBeLessThan(html.indexOf('solutions-business-heading'))
+    expect(html.indexOf('solutions-coordination-heading')).toBeLessThan(html.indexOf('solutions-final-heading'))
+    expect(family).toContain('which areas deserve attention')
+    expect(business).toContain('Business and personal financial decisions often overlap')
+    expect(tools).toContain('conversation begins with your situation')
     expect(family).not.toContain('Retirement Report Card™')
     expect(business).not.toContain('Business Report Card™')
   })
@@ -150,6 +158,7 @@ describe('Phase 8 solutions hub', () => {
     expect(hub).toContain('platform-btn platform-btn-outline')
     expect(hub).not.toContain('site-home-card-heading-link')
     expect(solutionsCopy.en.familyProtectionBody.toLowerCase()).toContain('life-insurance')
+    expect(solutionsCopy.en.familyProtectionBody.toLowerCase()).toContain('diagnostic')
     expect(solutionsCopy.en.familyProtectionBody.toLowerCase()).not.toContain('property')
     expect(solutionsCopy.en.familyProtectionBody.toLowerCase()).not.toContain('health insurance')
     expect(SOLUTIONS_FAMILY_CARDS.some((item) => item.to === ROUTES.retirementReportCard)).toBe(false)
@@ -191,11 +200,28 @@ describe('Phase 8 solutions hub', () => {
   it('gives Spanish every English copy key and preserves attribution', () => {
     expect(Object.keys(solutionsCopy.en).sort()).toEqual(Object.keys(solutionsCopy.es).sort())
     expect(Object.keys(chromeCopy.en).sort()).toEqual(Object.keys(chromeCopy.es).sort())
+    const blob = `${JSON.stringify(solutionsCopy.en)} ${JSON.stringify(solutionsCopy.es)}`.toLowerCase()
+    for (const phrase of [
+      'financial advisor',
+      'fiduciary',
+      'registered investment',
+      'loan forgiveness',
+      'increase your score',
+      'credit repair',
+    ]) {
+      expect(blob).not.toContain(phrase)
+    }
+    expect(solutionsCopy.en.heroBrand).toBe('Your Strategy Determines the Solution. Not the Other Way Around.')
+    expect(solutionsCopy.es.finalLead).toContain('Financial Strategist')
     const spanish = renderAt('/solutions?lang=es&utm_source=qa&utm_campaign=solutions&card=test-card', createElement(SolutionsPage))
-    expect(spanish).toContain('Explore las áreas en las que Valtoris puede ayudar')
+    expect(spanish).toContain('Soluciones construidas alrededor de tu estrategia.')
+    expect(spanish).toContain('Descubre en qué punto estás')
     expect(spanish).toContain('Agendar una reunión')
     expect(spanish).toContain(
       `href="${ROUTES.schedule}?lang=es&amp;utm_source=qa&amp;utm_campaign=solutions&amp;card=test-card"`,
+    )
+    expect(spanish).toContain(
+      `href="${ROUTES.solutions}?lang=es&amp;utm_source=qa&amp;utm_campaign=solutions&amp;card=test-card#solutions-diagnostics"`,
     )
     expect(spanish).toContain(
       `href="${ROUTES.studentLoans}?lang=es&amp;utm_source=qa&amp;utm_campaign=solutions&amp;card=test-card"`,
@@ -203,9 +229,12 @@ describe('Phase 8 solutions hub', () => {
     expect(spanish).toContain(
       `href="${ROUTES.reportCard}?lang=es&amp;utm_source=qa&amp;utm_campaign=solutions&amp;card=test-card"`,
     )
-    expect(spanish).toContain('Personas y familias')
-    expect(spanish).toContain('Dueños de negocio')
-    expect(spanish).toContain('Herramientas de diagnóstico')
+    expect(spanish).toContain('Soluciones para personas y familias')
+    expect(spanish).toContain('Soluciones para dueños de negocio')
+    expect(spanish).toContain('Empieza con claridad.')
+    expect(spanish).toContain('Financial Strategist')
+    expect(spanish).not.toContain('asesor financiero')
+    expect(spanish).not.toContain('Explore las áreas en las que Valtoris puede ayudar')
   })
 
   it('does not change scoring, ingest, CRM, credit_repair, or add Migration 053', () => {
@@ -222,6 +251,7 @@ describe('Phase 8 solutions hub', () => {
     expect(fileSha256('supabase/migrations/051_intake_archive_workflow.sql')).toBe(SHA_051)
     expect(fileSha256('supabase/migrations/052_fix_intake_archive_activity_order.sql')).toBe(SHA_052)
     expect(getModule('credit_repair')?.featureFlag.enabled).toBe(false)
+    expect(source('modules/digital-identity/cta.ts')).toContain("label: 'Future Credit Assessment'")
     expect(source('components/assessment/scoring/scoreFamilyAssessment.ts')).not.toContain('solutionsCopy')
     expect(source('components/calculator/calculations.ts')).not.toContain('solutionsCopy')
     expect(source('server/ingest/familyReportCard/ingestFamilyReportCard.ts')).not.toContain('SolutionsHub')
