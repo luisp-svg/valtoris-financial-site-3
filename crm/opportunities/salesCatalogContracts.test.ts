@@ -99,7 +99,12 @@ describe('credit repair / student loan sales catalog contracts', () => {
     expect(tabConfig).toContain("{ id: 'policies', label: 'Policies', enabled: true }")
     expect(tabConfig).toContain("availability: 'disabled_future'")
     expect(casesTab).toContain('Policies tab')
-    expect(policiesTab).toContain('Policies linked to this household through Policy Production')
+    expect(policiesTab).toContain('fetchHouseholdPolicyBook')
+    expect(policiesTab).toContain(
+      'Policy records for this household, including issued, in force, canceled, surrendered, and',
+    )
+    expect(policiesTab).not.toContain('Policies linked to this household through Policy Production')
+    expect(policiesTab).not.toContain('fetchHouseholdProductionApplications')
   })
 
   it('keeps Pipeline data-driven without new top-level chips or a second page', () => {

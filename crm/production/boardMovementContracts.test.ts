@@ -58,7 +58,7 @@ describe('Phase C board movement contracts', () => {
     expect(queuePage).toContain('setReloadKey((n) => n + 1)')
     expect(queuePage).toContain('interpretBoardMoveResult')
     expect(queuePage).toContain('setBoardFocusStage(action.toStage)')
-    expect(queuePage).toMatch(/useEffect\([\s\S]*, \[reloadKey\]\)/)
+    expect(queuePage).toContain('[reloadKey, profile?.id, user?.id]')
     expect(queuePage).toContain('buildProductionDashboard(filteredItems')
     expect(board).not.toContain('setItems')
     expect(card).not.toContain('production_stage:')

@@ -193,7 +193,7 @@ describe.skipIf(!localEnv)('P1B-2C application edit (local DB)', () => {
 
     const carrier = await createCarrier(owner, {
       code: `${PREFIX}-${randomUUID().slice(0, 8)}`,
-      name: `${PREFIX} Carrier`,
+      name: `${PREFIX} Carrier ${randomUUID().slice(0, 8)}`,
     })
     if (!carrier.ok) throw new Error(carrier.message)
     carrierId = carrier.record.id

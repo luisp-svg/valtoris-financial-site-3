@@ -190,7 +190,10 @@ describe.skipIf(!localEnv)('P1B-2B application entry (local DB)', () => {
     })
     if (mem.error) throw mem.error
 
-    const carrier = await createCarrier(owner, { code: `${PREFIX}-${randomUUID().slice(0, 8)}`, name: `${PREFIX} Carrier` })
+    const carrier = await createCarrier(owner, {
+      code: `${PREFIX}-${randomUUID().slice(0, 8)}`,
+      name: `${PREFIX} Carrier ${randomUUID().slice(0, 8)}`,
+    })
     if (!carrier.ok) throw new Error(carrier.message)
     carrierId = carrier.record.id
     const life = await createInsuranceProduct(owner, {
