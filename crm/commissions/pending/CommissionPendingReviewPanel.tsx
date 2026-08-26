@@ -1,7 +1,13 @@
+import { Link } from 'react-router-dom'
 import { formatCommissionBpsPercent, formatWritingContractLevel } from '../../production/compensationLabels'
 import { formatProductionStageLabel } from '../../production/labels'
 import { formatProductionDate } from '../../production/productionApi'
 import { formatSignedCents } from '../../production/compensationView'
+import {
+  PENDING_IS_NOT_PAID_COPY,
+  RECORD_PAYMENT_ACTION_LABEL,
+  acceptedPendingRecordPaymentPath,
+} from '../commissionPendingPayment'
 import type {
   ImportAllocationCandidate,
   ImportApplicationCandidate,
@@ -59,6 +65,7 @@ export function PendingRowActions({
   const excluded = isExcludedFromPendingAcceptance(row)
   const exclusion = pendingExclusionCopy(row)
   const isReviewing = workflow.reviewRowId === row.id
+  const recordPaymentPath = acceptedPendingRecordPaymentPath(row)
 
   return (
     <div className="crm-commissions-import-row-actions">
@@ -91,7 +98,16 @@ export function PendingRowActions({
       ) : null}
 
       {row.pending_review_status === 'accepted_pending' ? (
-        <p className="crm-muted">Accepted Pending is read-only. Income was not posted to the ledger.</p>
+        <div>
+          <p className="crm-muted">{PENDING_IS_NOT_PAID_COPY}</p>
+          {recordPaymentPath ? (
+            <p>
+              <Link to={recordPaymentPath} className="crm-primary-btn">
+                {RECORD_PAYMENT_ACTION_LABEL}
+              </Link>
+            </p>
+          ) : null}
+        </div>
       ) : null}
 
       {isReviewing && canConfirmPendingDuplicate(row) ? (

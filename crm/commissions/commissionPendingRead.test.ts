@@ -14,6 +14,7 @@ import {
   sumCurrentPendingCents,
   type AcceptedPendingSourceFact,
 } from './commissionPendingRead'
+import { canRecordPendingPayment, defaultPendingPaymentDraft } from './commissionPendingPayment'
 import { filterCommissionWorkItems, defaultCommissionQueueFilters } from './commissionFilters'
 import { buildCommissionWorkItems, isPendingOnlyCommissionStub } from './commissionWorkView'
 import { validateRecordCommissionDraft } from './commissionRecordDraft'
@@ -100,6 +101,8 @@ function fact(
     sourcePolicyNumber: 'ST11314961',
     sourceCompany: 'Symetra',
     sourceProduct: 'Life',
+    carrierId: null,
+    sourceRow: null,
     ...partial,
   }
 }
@@ -882,6 +885,27 @@ describe('commission Phase C current Pending derivation', () => {
     expect(stub?.pendingCents).toBe(88000)
     expect(queued.map((row) => row.id).sort()).toEqual(['app-1:alloc-a', 'app-1:alloc-b'])
     expect(canRecordAttributedActual(true, stub!)).toBe(false)
+    expect(canRecordPendingPayment(true, stub!)).toBe(true)
+    expect(canRecordPendingPayment(false, stub!)).toBe(false)
+    const pendingPaid = validateRecordCommissionDraft({
+      item: stub!,
+      draft: {
+        ...defaultPendingPaymentDraft(stub!, TODAY),
+        amountInput: '12.00',
+      },
+      idempotencyKey: 'manual035:from-pending',
+      preIssue: false,
+      includeCarrierId: true,
+      lockedEventType: 'paid',
+      fromPending: true,
+    })
+    expect(pendingPaid.ok).toBe(true)
+    if (pendingPaid.ok) {
+      expect(pendingPaid.args.eventType).toBe('paid')
+      expect(pendingPaid.args.allocationId).toBe('alloc-b')
+      expect(pendingPaid.args.amountCents).toBe(1200)
+      expect(pendingPaid.args.preIssue).toBe(false)
+    }
     expect(
       canReverseCommissionEvent({
         isOwner: true,

@@ -13,12 +13,19 @@ import {
 import { formatCommissionEventSourceLabel } from './commissionEventSource'
 import CommissionOwnerActions from './CommissionOwnerActions'
 import type { CommissionWorkItem } from './commissionWorkView'
+import { formatCommissionWorkStatusLabel } from './commissionWorkView'
 import {
   CHARGEBACK_LIFECYCLE_NOTE,
   CHARGEBACK_PAID_HISTORY_NOTE,
   chargebackReviewTotals,
   eventsOfType,
 } from './chargebackReview'
+import {
+  PENDING_AND_PAID_COEXISTENCE_COPY,
+  PENDING_IS_NOT_PAID_COPY,
+  pendingPaymentShowsCoexistence,
+  remainingExpectedDisplay,
+} from './commissionPendingPayment'
 import {
   canAttributeCommissionEvent,
   canReverseCommissionEvent,
@@ -37,6 +44,7 @@ type CommissionWorkItemDetailProps = {
   onRecord: (item: CommissionWorkItem) => void
   onChargeback: (item: CommissionWorkItem) => void
   onPreIssue: (item: CommissionWorkItem) => void
+  onRecordPayment: (item: CommissionWorkItem) => void
   onReverse: (item: CommissionWorkItem, event: WritingCommissionEvent) => void
   onAttribute: (item: CommissionWorkItem, event: WritingCommissionEvent) => void
 }
@@ -53,6 +61,7 @@ export default function CommissionWorkItemDetail({
   onRecord,
   onChargeback,
   onPreIssue,
+  onRecordPayment,
   onReverse,
   onAttribute,
 }: CommissionWorkItemDetailProps) {
@@ -147,12 +156,49 @@ export default function CommissionWorkItemDetail({
         <p>
           <Link to={crmProductionPath(item.applicationId)}>Open production record</Link>
         </p>
+        <dl className="crm-production-detail-grid" aria-label="Reconciliation">
+          <div>
+            <dt>Expected</dt>
+            <dd className="crm-production-money">
+              {item.expectedCents == null ? '—' : formatCents(item.expectedCents)}
+            </dd>
+          </div>
+          {isOwner ? (
+            <div>
+              <dt>Pending</dt>
+              <dd className="crm-production-money">{formatCents(item.pendingCents)}</dd>
+            </div>
+          ) : null}
+          <div>
+            <dt>Net actual</dt>
+            <dd
+              className={`crm-production-money${item.netPaidCents < 0 ? ' is-negative' : ''}`}
+            >
+              {formatSignedCents(item.netPaidCents)}
+            </dd>
+          </div>
+          <div>
+            <dt>Remaining expected</dt>
+            <dd className="crm-production-money">
+              {remainingExpectedDisplay(item.remainingExpectedCents)}
+            </dd>
+          </div>
+          <div>
+            <dt>Status</dt>
+            <dd>{formatCommissionWorkStatusLabel(item.derivedStatus.primary)}</dd>
+          </div>
+        </dl>
         {isOwner && item.pendingSource ? (
           <section className="crm-commissions-pending-source" aria-label="Pending source">
             <h3>Pending</h3>
             <p className="crm-production-kpi-caption">
               Source-confirmed Experior pending writing compensation. This is not Paid.
             </p>
+            {pendingPaymentShowsCoexistence(item) ? (
+              <p className="crm-production-kpi-caption">{PENDING_AND_PAID_COEXISTENCE_COPY}</p>
+            ) : (
+              <p className="crm-production-kpi-caption">{PENDING_IS_NOT_PAID_COPY}</p>
+            )}
             <dl className="crm-production-detail-grid">
               <div>
                 <dt>Current Pending</dt>
@@ -271,6 +317,7 @@ export default function CommissionWorkItemDetail({
               onRecord={onRecord}
               onChargeback={onChargeback}
               onPreIssue={onPreIssue}
+              onRecordPayment={onRecordPayment}
             />
           }
           formatEventSource={formatCommissionEventSourceLabel}

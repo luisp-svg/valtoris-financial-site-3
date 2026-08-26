@@ -49,6 +49,8 @@ export type AcceptedPendingSourceFact = {
   sourcePolicyNumber: string | null
   sourceCompany: string | null
   sourceProduct: string | null
+  carrierId: string | null
+  sourceRow: number | null
 }
 
 export type { CommissionWorkPendingSource }
@@ -220,6 +222,8 @@ export function pendingSourceFromFact(
     statementDate: fact.statementDate,
     sourceFile: fact.sourceFile,
     transactionDate: fact.transactionDate,
+    carrierId: fact.carrierId,
+    sourceRow: fact.sourceRow,
   }
 }
 
@@ -269,6 +273,7 @@ function stubWorkItemForPendingFact(
     productionStageLabel: formatProductionStageLabel(item.production_stage),
     expectedCents: null,
     outstandingCents: 0,
+    remainingExpectedCents: null,
     pendingCents: fact.sourceIncomeCents,
     paidCents: 0,
     chargebackCents: 0,

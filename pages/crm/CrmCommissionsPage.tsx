@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { localDateString } from '../../crm/dashboard/dates'
 import { useCrmAuth } from '../../crm/auth/CrmAuthContext'
 import AttributeCommissionEventDialog from '../../crm/commissions/AttributeCommissionEventDialog'
@@ -35,6 +36,13 @@ import {
   type RecordCommissionEventArgs,
 } from '../../crm/commissions/commissionWriteApi'
 import { writingAttributionTargets } from '../../crm/commissions/commissionWriteView'
+import {
+  COMMISSION_PAYMENT_ALREADY_RECORDED_COPY,
+  COMMISSION_PAYMENT_RECORDED_COPY,
+  canOpenPendingPaymentFromSearch,
+  canRecordPendingPayment,
+  parseCommissionRecordPaymentSearch,
+} from '../../crm/commissions/commissionPendingPayment'
 import { buildAdvisorCompensationDashboard } from '../../crm/production/advisorCompensationView'
 import {
   fetchLiveExpectedCompensations,
@@ -88,7 +96,8 @@ type CommissionWriteFlow =
       item: CommissionWorkItem
       preIssue: boolean
       idempotencyKey: string
-      lockedEventType?: 'chargeback'
+      lockedEventType?: 'paid' | 'chargeback'
+      fromPending?: boolean
     }
   | {
       kind: 'reverse'
@@ -135,6 +144,8 @@ export default function CrmCommissionsPage() {
   const [writeFlow, setWriteFlow] = useState<CommissionWriteFlow | null>(null)
   const [writeSubmitting, setWriteSubmitting] = useState(false)
   const [writeError, setWriteError] = useState<string | null>(null)
+  const [writeNotice, setWriteNotice] = useState<string | null>(null)
+  const [searchParams, setSearchParams] = useSearchParams()
 
   useEffect(() => {
     let cancelled = false
@@ -345,6 +356,30 @@ export default function CrmCommissionsPage() {
     }
   }, [selectedItem, snapshotNonce])
 
+  useEffect(() => {
+    if (!isOwner || loading || writeFlow != null) return
+    const parsed = parseCommissionRecordPaymentSearch(searchParams)
+    if (!parsed) return
+    const match = workItems.find(
+      (item) =>
+        item.applicationId === parsed.applicationId && item.allocationId === parsed.allocationId,
+    )
+    setSearchParams({}, { replace: true })
+    if (!canOpenPendingPaymentFromSearch({ isOwner, item: match })) return
+    if (!match) return
+    setWriteError(null)
+    setWriteNotice(null)
+    setSelectedItemId(match.id)
+    setWriteFlow({
+      kind: 'record',
+      item: match,
+      preIssue: false,
+      idempotencyKey: createManualCommissionIdempotencyKey(),
+      lockedEventType: 'paid',
+      fromPending: true,
+    })
+  }, [isOwner, loading, workItems, searchParams, writeFlow, setSearchParams])
+
   function closeWriteFlow() {
     if (writeSubmitting) return
     setWriteFlow(null)
@@ -354,6 +389,7 @@ export default function CrmCommissionsPage() {
   function openRecord(item: CommissionWorkItem, preIssue: boolean, lockedEventType?: 'chargeback') {
     if (!isOwner || item.pendingOnlyStub) return
     setWriteError(null)
+    setWriteNotice(null)
     setWriteFlow({
       kind: 'record',
       item,
@@ -363,9 +399,25 @@ export default function CrmCommissionsPage() {
     })
   }
 
+  function openPendingPayment(item: CommissionWorkItem) {
+    if (!canRecordPendingPayment(isOwner, item)) return
+    setWriteError(null)
+    setWriteNotice(null)
+    setSelectedItemId(item.id)
+    setWriteFlow({
+      kind: 'record',
+      item,
+      preIssue: false,
+      idempotencyKey: createManualCommissionIdempotencyKey(),
+      lockedEventType: 'paid',
+      fromPending: true,
+    })
+  }
+
   function openReverse(item: CommissionWorkItem, event: WritingCommissionEvent) {
     if (!isOwner || item.pendingOnlyStub) return
     setWriteError(null)
+    setWriteNotice(null)
     setWriteFlow({ kind: 'reverse', item, event })
   }
 
@@ -387,9 +439,13 @@ export default function CrmCommissionsPage() {
 
   async function handleRecord(args: RecordCommissionEventArgs) {
     if (!isOwner || writeSubmitting) return
-    if (writeFlow?.kind === 'record' && writeFlow.item.pendingOnlyStub) return
+    if (writeFlow?.kind !== 'record') return
+    if (writeFlow.fromPending) {
+      if (args.eventType !== 'paid' || writeFlow.preIssue || args.preIssue) return
+    } else if (writeFlow.item.pendingOnlyStub) {
+      return
+    }
     if (
-      writeFlow?.kind === 'record' &&
       writeFlow.lockedEventType &&
       args.eventType !== writeFlow.lockedEventType
     ) {
@@ -404,7 +460,17 @@ export default function CrmCommissionsPage() {
         setWriteError(result.message)
         return
       }
+      const fromPending = writeFlow.fromPending === true
+      const postedItemId = writeFlow.item.id
       setWriteFlow(null)
+      if (fromPending) {
+        setWriteNotice(
+          result.duplicate
+            ? COMMISSION_PAYMENT_ALREADY_RECORDED_COPY
+            : COMMISSION_PAYMENT_RECORDED_COPY,
+        )
+        setSelectedItemId(postedItemId)
+      }
       await refreshAfterWrite()
     } finally {
       setWriteSubmitting(false)
@@ -491,9 +557,11 @@ export default function CrmCommissionsPage() {
       onRecord={(item) => openRecord(item, false)}
       onChargeback={(item) => openRecord(item, false, 'chargeback')}
       onPreIssue={(item) => openRecord(item, true)}
+      onRecordPayment={openPendingPayment}
       onReverse={openReverse}
       onAttribute={openAttribute}
       writeDialogOpen={writeFlow != null}
+      writeNotice={writeNotice}
     />
     {writeFlow?.kind === 'record' ? (
       <RecordCommissionEventDialog
@@ -504,6 +572,7 @@ export default function CrmCommissionsPage() {
         submitting={writeSubmitting}
         error={writeError}
         lockedEventType={writeFlow.lockedEventType}
+        fromPending={writeFlow.fromPending === true}
         onCancel={closeWriteFlow}
         onConfirm={handleRecord}
       />

@@ -68,6 +68,7 @@ function item(
     productionStageLabel: 'Issued',
     expectedCents: 100000,
     outstandingCents: 100000,
+    remainingExpectedCents: 100000,
     paidCents: 0,
     chargebackCents: 0,
     netPaidCents: 0,

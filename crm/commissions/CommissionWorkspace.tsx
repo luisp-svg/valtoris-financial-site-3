@@ -78,9 +78,11 @@ type CommissionWorkspaceProps = {
   onRecord: (item: CommissionWorkItem) => void
   onChargeback: (item: CommissionWorkItem) => void
   onPreIssue: (item: CommissionWorkItem) => void
+  onRecordPayment: (item: CommissionWorkItem) => void
   onReverse: (item: CommissionWorkItem, event: WritingCommissionEvent) => void
   onAttribute: (item: CommissionWorkItem, event: WritingCommissionEvent) => void
   writeDialogOpen?: boolean
+  writeNotice?: string | null
 }
 
 export default function CommissionWorkspace({
@@ -118,9 +120,11 @@ export default function CommissionWorkspace({
   onRecord,
   onChargeback,
   onPreIssue,
+  onRecordPayment,
   onReverse,
   onAttribute,
   writeDialogOpen = false,
+  writeNotice = null,
 }: CommissionWorkspaceProps) {
   const presentation = getProductionListPresentation(viewportWidth)
   const reviewTitle =
@@ -201,6 +205,11 @@ export default function CommissionWorkspace({
       {capWarning ? (
         <div className="crm-banner crm-banner-warning" role="status">
           {capWarning}
+        </div>
+      ) : null}
+      {writeNotice ? (
+        <div className="crm-banner crm-banner-success" role="status">
+          {writeNotice}
         </div>
       ) : null}
 
@@ -427,6 +436,7 @@ export default function CommissionWorkspace({
               onRecord={onRecord}
               onChargeback={onChargeback}
               onPreIssue={onPreIssue}
+              onRecordPayment={onRecordPayment}
             />
           ) : (
             <CommissionQueueCards
@@ -436,6 +446,7 @@ export default function CommissionWorkspace({
               onRecord={onRecord}
               onChargeback={onChargeback}
               onPreIssue={onPreIssue}
+              onRecordPayment={onRecordPayment}
             />
           )
         ) : null}
@@ -462,6 +473,7 @@ export default function CommissionWorkspace({
           onRecord={onRecord}
           onChargeback={onChargeback}
           onPreIssue={onPreIssue}
+          onRecordPayment={onRecordPayment}
           onReverse={onReverse}
           onAttribute={onAttribute}
         />

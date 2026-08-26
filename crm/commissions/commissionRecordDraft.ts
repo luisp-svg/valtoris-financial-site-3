@@ -23,13 +23,19 @@ export type RecordCommissionDraftResult =
 export function validateRecordCommissionDraft(options: {
   item: Pick<
     CommissionWorkItem,
-    'applicationId' | 'allocationId' | 'expectedRow' | 'providerId' | 'pendingOnlyStub'
+    | 'applicationId'
+    | 'allocationId'
+    | 'expectedRow'
+    | 'providerId'
+    | 'pendingOnlyStub'
+    | 'pendingSource'
   >
   draft: RecordCommissionDraft
   idempotencyKey: string
   preIssue: boolean
   includeCarrierId: boolean
   lockedEventType?: ManualCommissionEventType
+  fromPending?: boolean
 }): RecordCommissionDraftResult {
   const draft = options.lockedEventType
     ? { ...options.draft, eventType: options.lockedEventType }
@@ -61,14 +67,24 @@ export function validateRecordCommissionDraft(options: {
   if (!options.item.allocationId) {
     errors.eventType = 'This row has no writing allocation to post against.'
   }
-  if (isPendingOnlyCommissionStub(options.item)) {
+  if (options.fromPending) {
+    if (draft.eventType !== 'paid') {
+      errors.eventType = 'Record Payment posts a Paid event only.'
+    }
+    if (options.preIssue) {
+      errors.eventType = 'Record Payment uses the ordinary posting path.'
+    }
+    if (!options.item.pendingSource) {
+      errors.eventType = 'Record Payment requires reviewed Pending evidence.'
+    }
+  } else if (isPendingOnlyCommissionStub(options.item)) {
     errors.eventType = 'Pending-only rows cannot be posted to the commission ledger.'
   }
   if (
     Object.keys(errors).length > 0 ||
     !parsed.ok ||
     !options.item.allocationId ||
-    isPendingOnlyCommissionStub(options.item)
+    (!options.fromPending && isPendingOnlyCommissionStub(options.item))
   ) {
     return { ok: false, errors }
   }
@@ -92,13 +108,18 @@ export function validateRecordCommissionDraft(options: {
       idempotencyKey: options.idempotencyKey,
       allocationId: options.item.allocationId,
       expectedCompensationId: options.item.expectedRow?.id ?? null,
-      carrierId: options.includeCarrierId ? options.item.providerId : null,
+      carrierId: options.includeCarrierId
+        ? options.fromPending
+          ? options.item.pendingSource?.carrierId ?? options.item.providerId
+          : options.item.providerId
+        : null,
       carrierTransactionId: draft.carrierTransactionId,
       statementIdentifier: draft.statementIdentifier,
       statementDate: draft.statementDate,
       transactionDate: draft.transactionDate,
       policyReference: draft.policyReference,
       sourceFile: draft.sourceFile,
+      sourceRow: options.fromPending ? options.item.pendingSource?.sourceRow ?? null : null,
       rawDescription: draft.rawDescription,
       preIssue: options.preIssue,
     },

@@ -127,6 +127,18 @@ export function crmCommissionsPath(): string {
   return ROUTES.crmCommissions
 }
 
+/** Owner Record Payment from reviewed Pending. Query is consumed by the commissions workspace. */
+export function crmCommissionsRecordPaymentPath(
+  applicationId: string,
+  allocationId: string,
+): string {
+  const params = new URLSearchParams()
+  params.set('recordPayment', '1')
+  params.set('application', applicationId)
+  params.set('allocation', allocationId)
+  return `${ROUTES.crmCommissions}?${params.toString()}`
+}
+
 export function crmCommissionsImportPath(): string {
   return ROUTES.crmCommissionsImport
 }

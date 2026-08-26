@@ -66,6 +66,8 @@ export type CommissionWorkPendingSource = {
   statementDate: string | null
   sourceFile: string | null
   transactionDate: string | null
+  carrierId: string | null
+  sourceRow: number | null
 }
 
 export type CommissionWorkItem = {
@@ -85,6 +87,7 @@ export type CommissionWorkItem = {
   productionStageLabel: string
   expectedCents: number | null
   outstandingCents: number
+  remainingExpectedCents: number | null
   pendingCents: number
   paidCents: number
   chargebackCents: number
@@ -309,6 +312,7 @@ function toWorkItem(options: {
     productionStageLabel: formatProductionStageLabel(options.item.production_stage),
     expectedCents,
     outstandingCents,
+    remainingExpectedCents: totals.remaining_expected_cents,
     pendingCents: 0,
     paidCents: totals.gross_paid_cents,
     chargebackCents: totals.chargeback_cents,

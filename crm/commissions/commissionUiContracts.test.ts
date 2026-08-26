@@ -119,5 +119,6 @@ describe('commission Phase 2 owner write workspace', () => {
     expect(summary).toContain('Paid')
     expect(summary).toContain('Chargebacks')
     expect(summary).toContain('Net Paid')
+    expect(queueTable).toContain('Remaining expected')
   })
 })

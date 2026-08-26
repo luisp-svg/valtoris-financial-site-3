@@ -12,6 +12,14 @@ import type { RecordCommissionEventArgs } from './commissionWriteApi'
 import { formatCommissionEventTypeLabel } from '../production/compensationLabels'
 import { CHARGEBACK_LIFECYCLE_NOTE, CHARGEBACK_PAID_HISTORY_NOTE } from './chargebackReview'
 import type { ManualCommissionEventType } from './commissionMoney'
+import {
+  PENDING_AMOUNT_IS_SUGGESTION_COPY,
+  PENDING_IS_NOT_PAID_COPY,
+  PENDING_PAYMENT_ALREADY_PAID_NOTE,
+  RECORD_PAYMENT_ACTION_LABEL,
+  defaultPendingPaymentDraft,
+  remainingExpectedDisplay,
+} from './commissionPendingPayment'
 
 type RecordCommissionEventDialogProps = {
   item: CommissionWorkItem
@@ -21,6 +29,7 @@ type RecordCommissionEventDialogProps = {
   submitting: boolean
   error: string | null
   lockedEventType?: ManualCommissionEventType
+  fromPending?: boolean
   onCancel: () => void
   onConfirm: (args: RecordCommissionEventArgs) => void
 }
@@ -33,16 +42,22 @@ export default function RecordCommissionEventDialog({
   submitting,
   error,
   lockedEventType,
+  fromPending = false,
   onCancel,
   onConfirm,
 }: RecordCommissionEventDialogProps) {
   const headingId = useId()
   const amountRef = useRef<HTMLInputElement>(null)
   const isChargeback = lockedEventType === 'chargeback'
+  const isPendingPayment = fromPending === true
   const [draft, setDraft] = useState(() =>
-    isChargeback ? defaultChargebackDraft(today) : defaultRecordCommissionDraft(today),
+    isPendingPayment
+      ? defaultPendingPaymentDraft(item, today)
+      : isChargeback
+        ? defaultChargebackDraft(today)
+        : defaultRecordCommissionDraft(today),
   )
-  const [showDetails, setShowDetails] = useState(false)
+  const [showDetails, setShowDetails] = useState(isPendingPayment)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
   useEffect(() => {
@@ -67,6 +82,7 @@ export default function RecordCommissionEventDialog({
       preIssue,
       includeCarrierId: true,
       lockedEventType,
+      fromPending: isPendingPayment,
     })
     if (!result.ok) {
       setFieldErrors(result.errors)
@@ -76,18 +92,22 @@ export default function RecordCommissionEventDialog({
     onConfirm(result.args)
   }
 
-  const title = isChargeback
-    ? 'Record Chargeback'
-    : preIssue
-      ? 'Record pre-issue actual'
-      : 'Record actual commission'
-  const confirmLabel = submitting
-    ? 'Recording…'
+  const title = isPendingPayment
+    ? RECORD_PAYMENT_ACTION_LABEL
     : isChargeback
       ? 'Record Chargeback'
       : preIssue
         ? 'Record pre-issue actual'
-        : 'Record actual'
+        : 'Record actual commission'
+  const confirmLabel = submitting
+    ? 'Recording…'
+    : isPendingPayment
+      ? RECORD_PAYMENT_ACTION_LABEL
+      : isChargeback
+        ? 'Record Chargeback'
+        : preIssue
+          ? 'Record pre-issue actual'
+          : 'Record actual'
 
   return (
     <div className="crm-production-review-overlay crm-commissions-write-overlay">
@@ -104,7 +124,15 @@ export default function RecordCommissionEventDialog({
             Close
           </button>
         </div>
-        {isChargeback ? (
+        {isPendingPayment ? (
+          <>
+            <p className="crm-muted">{PENDING_IS_NOT_PAID_COPY}</p>
+            <p className="crm-production-kpi-caption">{PENDING_AMOUNT_IS_SUGGESTION_COPY}</p>
+            {item.paidCents > 0 ? (
+              <p className="crm-production-kpi-caption">{PENDING_PAYMENT_ALREADY_PAID_NOTE}</p>
+            ) : null}
+          </>
+        ) : isChargeback ? (
           <>
             <p className="crm-muted">
               Posts a writing-advisor chargeback event for this allocation. The original paid
@@ -146,10 +174,22 @@ export default function RecordCommissionEventDialog({
             <dt>Writing advisor</dt>
             <dd>{item.advisorName}</dd>
           </div>
+          {isPendingPayment && item.pendingSource ? (
+            <div>
+              <dt>Pending amount</dt>
+              <dd className="crm-production-money">{formatCents(item.pendingSource.amountCents)}</dd>
+            </div>
+          ) : null}
           <div>
             <dt>Current expected</dt>
             <dd className="crm-production-money">
               {item.expectedCents == null ? '—' : formatCents(item.expectedCents)}
+            </dd>
+          </div>
+          <div>
+            <dt>Remaining expected</dt>
+            <dd className="crm-production-money">
+              {remainingExpectedDisplay(item.remainingExpectedCents)}
             </dd>
           </div>
           <div>
@@ -161,6 +201,11 @@ export default function RecordCommissionEventDialog({
             <dd className="crm-production-money">{formatCents(item.paidCents)}</dd>
           </div>
         </dl>
+        {isPendingPayment ? (
+          <p className="crm-production-kpi-caption">
+            Writing advisor comes from the resolved writing allocation and cannot be changed here.
+          </p>
+        ) : null}
 
         {error ? (
           <p className="crm-banner crm-banner-error" role="alert">
@@ -169,7 +214,12 @@ export default function RecordCommissionEventDialog({
         ) : null}
 
         <form onSubmit={handleSubmit} className="crm-commissions-write-form">
-          {isChargeback ? (
+          {isPendingPayment ? (
+            <p className="crm-field">
+              <span>Event type</span>
+              <strong>Paid</strong>
+            </p>
+          ) : isChargeback ? (
             <p className="crm-field">
               <span>Event type</span>
               <strong>Chargeback</strong>
@@ -200,7 +250,7 @@ export default function RecordCommissionEventDialog({
           )}
 
           <label className="crm-field">
-            <span>Amount</span>
+            <span>{isPendingPayment ? 'Paid amount' : 'Amount'}</span>
             <input
               ref={amountRef}
               inputMode="decimal"
@@ -216,9 +266,11 @@ export default function RecordCommissionEventDialog({
               <span className="crm-field-error">{fieldErrors.amount}</span>
             ) : (
               <span className="crm-muted">
-                {isChargeback
-                  ? 'Enter a positive dollar amount. Chargebacks post as negative cents automatically.'
-                  : 'Enter a positive dollar amount. Chargebacks are posted as negative cents automatically.'}
+                {isPendingPayment
+                  ? 'Enter the actual paid amount. It may differ from the Pending amount.'
+                  : isChargeback
+                    ? 'Enter a positive dollar amount. Chargebacks post as negative cents automatically.'
+                    : 'Enter a positive dollar amount. Chargebacks are posted as negative cents automatically.'}
               </span>
             )}
           </label>

@@ -3,6 +3,7 @@ import { formatSignedCents } from '../production/compensationView'
 import type { CommissionWorkItem } from './commissionWorkView'
 import { formatCommissionWorkStatusLabel } from './commissionWorkView'
 import CommissionOwnerActions from './CommissionOwnerActions'
+import { remainingExpectedDisplay } from './commissionPendingPayment'
 
 type CommissionQueueCardsProps = {
   items: readonly CommissionWorkItem[]
@@ -11,6 +12,7 @@ type CommissionQueueCardsProps = {
   onRecord: (item: CommissionWorkItem) => void
   onChargeback: (item: CommissionWorkItem) => void
   onPreIssue: (item: CommissionWorkItem) => void
+  onRecordPayment: (item: CommissionWorkItem) => void
 }
 
 export default function CommissionQueueCards({
@@ -20,6 +22,7 @@ export default function CommissionQueueCards({
   onRecord,
   onChargeback,
   onPreIssue,
+  onRecordPayment,
 }: CommissionQueueCardsProps) {
   return (
     <ul className="crm-opportunities-card-list" aria-label="Commission work queue cards">
@@ -66,6 +69,12 @@ export default function CommissionQueueCards({
                 <dd className="crm-production-money">{formatCents(item.outstandingCents)}</dd>
               </div>
               <div>
+                <dt>Remaining expected</dt>
+                <dd className="crm-production-money">
+                  {remainingExpectedDisplay(item.remainingExpectedCents)}
+                </dd>
+              </div>
+              <div>
                 <dt>Paid</dt>
                 <dd className="crm-production-money">{formatCents(item.paidCents)}</dd>
               </div>
@@ -103,6 +112,7 @@ export default function CommissionQueueCards({
               onRecord={onRecord}
               onChargeback={onChargeback}
               onPreIssue={onPreIssue}
+              onRecordPayment={onRecordPayment}
             />
           </article>
         </li>

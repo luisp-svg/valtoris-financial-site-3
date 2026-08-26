@@ -90,6 +90,7 @@ describe('commission Phase C pending read contracts', () => {
     expect(read('commissionPendingRead.ts')).toContain('pendingOnlyStub: true')
     expect(read('commissionWriteView.ts')).toContain('isPendingOnlyCommissionStub(item)')
     expect(read('CommissionOwnerActions.tsx')).toContain('canRecordAttributedActual(isOwner, item)')
+    expect(read('CommissionOwnerActions.tsx')).toContain('canRecordPendingPayment(isOwner, item)')
     expect(read('commissionPendingRead.ts')).toContain('pending-import row needs review')
   })
 

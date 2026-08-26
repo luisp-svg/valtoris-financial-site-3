@@ -31,7 +31,7 @@ function embedOne(value: unknown): Record<string, unknown> | null {
 }
 
 const ACCEPTED_PENDING_SELECT =
-  'id, batch_id, pending_review_status, source_income_cents, transaction_date, source_writing_associate, source_client, source_policy_number, source_company, source_product, resolved_application_id, resolved_allocation_id, resolved_advisor_id, created_at, batch:commission_pending_import_batches(statement_date, statement_identifier, source_file, source_created_at)'
+  'id, batch_id, pending_review_status, source_income_cents, transaction_date, source_writing_associate, source_client, source_policy_number, source_company, source_product, source_row_ordinal, resolved_application_id, resolved_allocation_id, resolved_advisor_id, resolved_carrier_id, created_at, batch:commission_pending_import_batches(statement_date, statement_identifier, source_file, source_created_at)'
 
 export const COMMISSION_PENDING_DASHBOARD_PAGE_SIZE = 1000
 
@@ -68,6 +68,8 @@ export function mapAcceptedPendingSourceFact(value: unknown): AcceptedPendingSou
     sourcePolicyNumber: asString(row.source_policy_number),
     sourceCompany: asString(row.source_company),
     sourceProduct: asString(row.source_product),
+    carrierId: asString(row.resolved_carrier_id),
+    sourceRow: asNumber(row.source_row_ordinal),
   }
 }
 

@@ -3,6 +3,7 @@ import { formatSignedCents } from '../production/compensationView'
 import type { CommissionWorkItem } from './commissionWorkView'
 import { formatCommissionWorkStatusLabel } from './commissionWorkView'
 import CommissionOwnerActions from './CommissionOwnerActions'
+import { remainingExpectedDisplay } from './commissionPendingPayment'
 
 type CommissionQueueTableProps = {
   items: readonly CommissionWorkItem[]
@@ -11,6 +12,7 @@ type CommissionQueueTableProps = {
   onRecord: (item: CommissionWorkItem) => void
   onChargeback: (item: CommissionWorkItem) => void
   onPreIssue: (item: CommissionWorkItem) => void
+  onRecordPayment: (item: CommissionWorkItem) => void
 }
 
 export default function CommissionQueueTable({
@@ -20,6 +22,7 @@ export default function CommissionQueueTable({
   onRecord,
   onChargeback,
   onPreIssue,
+  onRecordPayment,
 }: CommissionQueueTableProps) {
   return (
     <div className="crm-opportunities-table-wrap" role="region" aria-label="Commission work queue">
@@ -34,6 +37,7 @@ export default function CommissionQueueTable({
             <th scope="col">Expected</th>
             {isOwner ? <th scope="col">Pending</th> : null}
             <th scope="col">Outstanding</th>
+            <th scope="col">Remaining expected</th>
             <th scope="col">Paid</th>
             <th scope="col">Chargebacks</th>
             <th scope="col">Net Paid</th>
@@ -66,6 +70,9 @@ export default function CommissionQueueTable({
                 <td className="crm-production-money">{formatCents(item.pendingCents)}</td>
               ) : null}
               <td className="crm-production-money">{formatCents(item.outstandingCents)}</td>
+              <td className="crm-production-money">
+                {remainingExpectedDisplay(item.remainingExpectedCents)}
+              </td>
               <td className="crm-production-money">{formatCents(item.paidCents)}</td>
               <td
                 className={`crm-production-money${item.chargebackCents < 0 ? ' is-negative' : ''}`}
@@ -106,6 +113,7 @@ export default function CommissionQueueTable({
                     onRecord={onRecord}
                     onChargeback={onChargeback}
                     onPreIssue={onPreIssue}
+                    onRecordPayment={onRecordPayment}
                   />
                 </td>
               ) : null}
