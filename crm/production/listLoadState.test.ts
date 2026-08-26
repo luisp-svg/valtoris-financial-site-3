@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import {
+  CASE_VIEWS_LOADED_RECORDS_NOTE,
   DEFAULT_PRODUCTION_QUEUE_VIEW,
   getProductionDetailViewState,
   getProductionListPresentation,
   getProductionListViewState,
   isProductionQueueViewMode,
   productionListCapWarning,
+  caseViewsCapReached,
 } from './listLoadState'
 
 describe('production list/detail view states', () => {
@@ -101,5 +103,14 @@ describe('production list/detail view states', () => {
       'Showing the first 200 production records. Production dashboard, Case views, and Advisor Compensation totals may be incomplete.',
     )
     expect(productionListCapWarning(0, 200)).toBeNull()
+  })
+
+  it('exposes an always-accurate Case-view loaded-records note without fabricating truncation', () => {
+    expect(CASE_VIEWS_LOADED_RECORDS_NOTE).toBe(
+      'Case views reflect the currently loaded production records.',
+    )
+    expect(caseViewsCapReached(199, 200)).toBe(false)
+    expect(caseViewsCapReached(200, 200)).toBe(true)
+    expect(caseViewsCapReached(0, 200)).toBe(false)
   })
 })

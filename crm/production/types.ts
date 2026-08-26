@@ -270,6 +270,11 @@ export type ProductionApplicationListItem = {
   allocations: ProductionAllocation[]
   stage_history: ProductionStageHistoryEntry[]
   linked_policies: ProductionLinkedPolicy[]
+  /**
+   * Present when the list/detail SELECT includes it. Optional on fixtures.
+   * Not an Opportunity embed — use the id to link without a second fetch.
+   */
+  opportunity_id?: string | null
   /** Live 034 rows visible under RLS. Never a second-writer leak for advisors. */
   expected_compensations: LiveExpectedCompensationRow[]
   /**

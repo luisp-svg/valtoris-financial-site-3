@@ -11,7 +11,7 @@ import ProductionQueueCards from '../../crm/production/ProductionQueueCards'
 import ProductionQueueTable from '../../crm/production/ProductionQueueTable'
 import ProductionViewToggle from '../../crm/production/ProductionViewToggle'
 import StageTransitionConfirmDialog from '../../crm/production/StageTransitionConfirmDialog'
-import { transitionPolicyApplicationStage } from '../../crm/production/applicationApi'
+import { fetchCurrentAdvisorProfileId, transitionPolicyApplicationStage } from '../../crm/production/applicationApi'
 import { buildAdvisorCompensationDashboard } from '../../crm/production/advisorCompensationView'
 import { getProductionBoardLayout } from '../../crm/production/boardView'
 import {
@@ -27,6 +27,7 @@ import {
 } from '../../crm/production/dashboardPeriod'
 import { buildProductionDashboard, type PaidCommissionListEvent } from '../../crm/production/dashboardView'
 import {
+  CASE_VIEWS_LOADED_RECORDS_NOTE,
   DEFAULT_PRODUCTION_QUEUE_VIEW,
   getProductionListPresentation,
   getProductionListViewState,
@@ -63,6 +64,10 @@ import {
   applyCaseWorkspaceView,
   CASE_WORKSPACE_VIEWS,
   caseListHeading,
+  caseWorkspaceEmptyTitle,
+  caseWorkspaceFilteredEmptyCopy,
+  caseWorkspaceViewerFromRole,
+  DEFAULT_CASE_WORKSPACE_VIEW,
   type CaseWorkspaceView,
 } from '../../crm/production/caseWorkspace'
 import CaseWorkspaceViewBar from '../../crm/production/CaseWorkspaceViewBar'
@@ -99,9 +104,10 @@ function useViewportWidth(): number {
 }
 
 export default function CrmProductionPage() {
-  const { role, profile } = useCrmAuth()
+  const { role, profile, user } = useCrmAuth()
   const isOwner = role === 'owner'
   const viewer: CompensationViewer = role === 'owner' ? 'owner' : 'advisor'
+  const caseViewer = caseWorkspaceViewerFromRole(role)
   const viewportWidth = useViewportWidth()
   const tablePresentation = getProductionListPresentation(viewportWidth)
   const boardLayout = getProductionBoardLayout(viewportWidth)
@@ -124,7 +130,8 @@ export default function CrmProductionPage() {
     DEFAULT_COMPENSATION_DASHBOARD_PERIOD,
   )
   const [viewMode, setViewMode] = useState<ProductionQueueViewMode>(DEFAULT_PRODUCTION_QUEUE_VIEW)
-  const [caseView, setCaseView] = useState<CaseWorkspaceView>('all_applications')
+  const [caseView, setCaseView] = useState<CaseWorkspaceView>(DEFAULT_CASE_WORKSPACE_VIEW)
+  const [writingAdvisorId, setWritingAdvisorId] = useState<string | null>(null)
   const [reloadKey, setReloadKey] = useState(0)
   const [notesTarget, setNotesTarget] = useState<{
     householdId: string
@@ -147,9 +154,10 @@ export default function CrmProductionPage() {
       setPaidError(null)
       try {
         const supabase = createSupabaseBrowserClient()
-        const [rows, carrierRows] = await Promise.all([
+        const [rows, carrierRows, currentWritingAdvisorId] = await Promise.all([
           fetchProductionApplications(supabase, { includeDeleted: false }),
           fetchProductionCarrierOptions(supabase),
+          fetchCurrentAdvisorProfileId(supabase, profile?.id ?? user?.id),
         ])
         let expectedByApp = new Map<string, typeof rows[number]['expected_compensations']>()
         let expectedLoadError: string | null = null
@@ -200,6 +208,7 @@ export default function CrmProductionPage() {
           )
           setPaidEvents(paidRows)
           setCarriers(carrierRows)
+          setWritingAdvisorId(currentWritingAdvisorId)
           setExpectedError(expectedLoadError)
           setPaidError(paidLoadError)
         }
@@ -207,6 +216,7 @@ export default function CrmProductionPage() {
         if (!cancelled) {
           setItems([])
           setPaidEvents([])
+          setWritingAdvisorId(null)
           setError('Unable to load production applications. Please try again.')
           if (import.meta.env.DEV) {
             console.error(
@@ -222,7 +232,7 @@ export default function CrmProductionPage() {
     return () => {
       cancelled = true
     }
-  }, [reloadKey])
+  }, [reloadKey, profile?.id, user?.id])
 
   useEffect(() => {
     if (!isOwner) {
@@ -253,17 +263,21 @@ export default function CrmProductionPage() {
     const parsed = new Date(`${today}T12:00:00`)
     return Number.isNaN(parsed.getTime()) ? new Date() : parsed
   }, [today])
+  const caseViewOptions = useMemo(
+    () => ({ writingAdvisorId }),
+    [writingAdvisorId],
+  )
   const caseItems = useMemo(
-    () => applyCaseWorkspaceView(filteredItems, caseView, now),
-    [filteredItems, caseView, now],
+    () => applyCaseWorkspaceView(filteredItems, caseView, now, caseViewOptions),
+    [filteredItems, caseView, now, caseViewOptions],
   )
   const caseViewCounts = useMemo(() => {
     const counts = {} as Record<CaseWorkspaceView, number>
     for (const view of CASE_WORKSPACE_VIEWS) {
-      counts[view] = applyCaseWorkspaceView(filteredItems, view, now).length
+      counts[view] = applyCaseWorkspaceView(filteredItems, view, now, caseViewOptions).length
     }
     return counts
-  }, [filteredItems, now])
+  }, [filteredItems, now, caseViewOptions])
 
   const dashboard = useMemo(
     () => buildProductionDashboard(filteredItems, { period: productionPeriod, today }),
@@ -361,12 +375,12 @@ export default function CrmProductionPage() {
     <div className="crm-page crm-opportunities-page crm-production-page">
       <header className="crm-page-header crm-opportunities-header">
         <div>
-          <p className="crm-page-eyebrow">Production</p>
-          <h1 className="crm-page-title">Life / IUL / FIA production</h1>
+          <p className="crm-page-eyebrow">Production · Case workspace</p>
+          <h1 className="crm-page-title">Life & Annuity Case Management</h1>
           <p className="crm-page-subtitle">
-            Track applications through underwriting, delivery, and in force. Case views answer
-            which applications need operational attention. Production Performance still measures
-            what was written and placed.
+            Production is the Case workspace. Open Cases, My Cases, and All Cases filter the
+            currently loaded production records. Production Performance still measures Applied
+            (submitted production), written, and placed.
           </p>
         </div>
         <div className="crm-production-header-actions">
@@ -609,13 +623,16 @@ export default function CrmProductionPage() {
         <h2 className="crm-production-case-views-heading">Case views</h2>
         <p className="crm-production-kpi-caption">
           Operational working set over the current queue. Production Performance above is not
-          changed by this control. Requirements, APS, paramed results, suitability, 1035 paperwork,
-          funds-received, and application-scoped tasks or documents are not tracked yet.
+          changed by this control. My Cases uses existing writing allocations for this login.
+          Requirements, APS, paramed results, suitability, 1035 paperwork, funds-received, and
+          application-scoped tasks or documents are not tracked yet.
         </p>
+        <p className="crm-muted">{CASE_VIEWS_LOADED_RECORDS_NOTE}</p>
         <CaseWorkspaceViewBar
           value={caseView}
           onChange={setCaseView}
           counts={caseViewCounts}
+          viewer={caseViewer}
           disabled={loading}
         />
       </section>
@@ -623,7 +640,7 @@ export default function CrmProductionPage() {
       <section className="crm-panel" aria-labelledby="crm-production-list-heading">
         <div className="crm-panel-head crm-production-view-head">
           <h2 id="crm-production-list-heading">
-            {caseListHeading(caseView)} ({loading ? '…' : caseItems.length})
+            {caseListHeading(caseView, caseViewer)} ({loading ? '…' : caseItems.length})
           </h2>
           <ProductionViewToggle value={viewMode} onChange={setViewMode} />
         </div>
@@ -648,15 +665,19 @@ export default function CrmProductionPage() {
 
         {viewState.kind === 'filtered_empty' ? (
           <div className="crm-empty-state">
-            <p className="crm-empty-state-title">No matching applications</p>
+            <p className="crm-empty-state-title">{caseWorkspaceEmptyTitle(caseView)}</p>
             <p>
-              {filters.search.trim()
-                ? `No applications match “${filters.search.trim()}” with the current filters.`
-                : 'No applications match the selected filters.'}
+              {caseWorkspaceFilteredEmptyCopy(caseView, caseViewer, {
+                writingAdvisorId,
+                search: filters.search,
+                hasActiveFilters,
+              })}
             </p>
-            <button type="button" className="crm-text-btn" onClick={resetFilters}>
-              Clear filters
-            </button>
+            {hasActiveFilters ? (
+              <button type="button" className="crm-text-btn" onClick={resetFilters}>
+                Clear filters
+              </button>
+            ) : null}
           </div>
         ) : null}
 

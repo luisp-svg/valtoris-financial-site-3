@@ -300,7 +300,7 @@ export default function CrmProductionDetailPage() {
           </p>
         </div>
         <div className="crm-production-header-actions">
-          <StageBadge stage={application.production_stage} />
+          <StageBadge stage={application.production_stage} surface="case" />
           {lifecycle.statusLabel ? <PolicyLifecycleBadge status={linked?.status} /> : null}
           {showEdit ? (
             <Link to={crmProductionEditPath(application.id)} className="crm-primary-btn">

@@ -62,3 +62,11 @@ export function productionListCapWarning(
   if (loadedCount !== limit) return null
   return `Showing the first ${limit} production records. Production dashboard, Case views, and Advisor Compensation totals may be incomplete.`
 }
+
+/** Always-accurate Case-view note. Does not claim a cap was hit. */
+export const CASE_VIEWS_LOADED_RECORDS_NOTE =
+  'Case views reflect the currently loaded production records.'
+
+export function caseViewsCapReached(loadedCount: number, limit: number): boolean {
+  return loadedCount === limit
+}

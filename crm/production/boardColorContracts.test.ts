@@ -18,7 +18,7 @@ const migrationsDir = join(here, '../../supabase/migrations')
 describe('Phase B.5 board stage color contracts', () => {
   it('reuses centralized board stage mapping and data-stage hooks', () => {
     expect(BOARD_PIPELINE_COLUMNS.map((column) => column.label)).toEqual([
-      'Applied',
+      'Submitted',
       'Paramed',
       'In Underwriting',
       'Approved',

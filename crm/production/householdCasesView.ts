@@ -9,6 +9,7 @@ import {
   caseNeedsAttention,
 } from './caseWorkspace'
 import {
+  computeDaysInStage,
   getInsuredOrAnnuitantLabel,
   getWritingAdvisorLabel,
 } from './daysInStage'
@@ -29,9 +30,12 @@ export type HouseholdCaseRow = {
   stage: string
   lifecycleBadge: string | null
   followUp: string
+  submitted: string
   writingAdvisors: string
   amount: string
   attentionLabels: string[]
+  daysInStage: number
+  opportunityId: string | null
 }
 
 export function partitionHouseholdCases(
@@ -57,6 +61,12 @@ export function mapHouseholdCaseRow(
   const closed = isClosedPolicyCase(application)
   if (!open && !closed) return null
   const flags = caseAttentionFlags(application, now)
+  const { days } = computeDaysInStage({
+    productionStage: application.production_stage,
+    stageHistory: application.stage_history,
+    updatedAt: application.updated_at,
+    now,
+  })
   return {
     id: application.id,
     section: open ? 'open' : 'closed',
@@ -70,10 +80,13 @@ export function mapHouseholdCaseRow(
     stage: formatCaseStageLabel(application.production_stage),
     lifecycleBadge: formatPlacedCaseLifecycleBadge(application),
     followUp: formatProductionDate(application.next_follow_up_date),
+    submitted: formatProductionDate(application.submission_date),
     writingAdvisors: getWritingAdvisorLabel(application),
     amount: formatCaseAmount(application),
     attentionLabels: open && caseNeedsAttention(application, now)
       ? formatCaseAttentionLabels(flags, application.product_line)
       : [],
+    daysInStage: days,
+    opportunityId: application.opportunity_id ?? null,
   }
 }

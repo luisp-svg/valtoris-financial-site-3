@@ -7,7 +7,7 @@ import type { ProductionApplicationListItem, ProductionStage } from './types'
 import { PRODUCTION_STAGES } from './types'
 
 export const BOARD_PIPELINE_COLUMNS = [
-  { stage: 'submitted', label: 'Applied' },
+  { stage: 'submitted', label: 'Submitted' },
   { stage: 'paramed', label: 'Paramed' },
   { stage: 'in_underwriting', label: 'In Underwriting' },
   { stage: 'approved', label: 'Approved' },

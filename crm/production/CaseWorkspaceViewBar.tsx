@@ -2,12 +2,14 @@ import {
   CASE_WORKSPACE_VIEWS,
   caseWorkspaceViewLabel,
   type CaseWorkspaceView,
+  type CaseWorkspaceViewer,
 } from './caseWorkspace'
 
 type CaseWorkspaceViewBarProps = {
   value: CaseWorkspaceView
   onChange: (next: CaseWorkspaceView) => void
   counts: Record<CaseWorkspaceView, number>
+  viewer: CaseWorkspaceViewer
   disabled?: boolean
 }
 
@@ -15,6 +17,7 @@ export default function CaseWorkspaceViewBar({
   value,
   onChange,
   counts,
+  viewer,
   disabled = false,
 }: CaseWorkspaceViewBarProps) {
   return (
@@ -30,7 +33,7 @@ export default function CaseWorkspaceViewBar({
             disabled={disabled}
             onClick={() => onChange(view)}
           >
-            {caseWorkspaceViewLabel(view)}
+            {caseWorkspaceViewLabel(view, viewer)}
             <span className="crm-count-pill">{counts[view]}</span>
           </button>
         )

@@ -98,6 +98,7 @@ const APPLICATION_LIST_SELECT = `
   updated_at,
   deleted_at,
   writing_receivable_expected,
+  opportunity_id,
   household:households!household_id ( id, display_name ),
   carrier:carriers!carrier_id ( id, name, code ),
   product:insurance_products!product_id ( id, name, product_line ),
@@ -109,7 +110,6 @@ const APPLICATION_LIST_SELECT = `
 
 const APPLICATION_DETAIL_SELECT = `
   ${APPLICATION_LIST_SELECT},
-  opportunity_id,
   opportunity:opportunities!opportunity_id (
     id,
     title,
@@ -315,6 +315,7 @@ type RawListRow = {
   updated_at: string
   deleted_at: string | null
   writing_receivable_expected?: boolean
+  opportunity_id?: string | null
   household?: EmbedOne<ProductionHouseholdSummary>
   carrier?: EmbedOne<ProductionCarrierSummary>
   product?: EmbedOne<ProductionProductSummary>
@@ -362,6 +363,7 @@ function mapListItem(row: RawListRow): ProductionApplicationListItem | null {
     expected_compensations: [],
     overdue_requirement_count: 0,
     writing_receivable_expected: row.writing_receivable_expected !== false,
+    opportunity_id: row.opportunity_id ? String(row.opportunity_id) : null,
   }
 }
 

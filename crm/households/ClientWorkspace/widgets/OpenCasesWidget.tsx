@@ -24,13 +24,13 @@ export default function OpenCasesWidget({ workspace, onNavigateTab }: Props) {
       {count === 0 ? (
         <EmptyState
           title="No open cases"
-          description="Submitted Life and FIA applications still in pipeline will appear here."
+          description="Submitted Life and FIA cases still in pipeline will appear here."
         />
       ) : (
         <p className="crm-muted">
           {count === 1
-            ? '1 open Life or FIA application needs operational follow-through.'
-            : `${count} open Life or FIA applications need operational follow-through.`}
+            ? '1 open Life or FIA case needs operational follow-through.'
+            : `${count} open Life or FIA cases need operational follow-through.`}
         </p>
       )}
     </Widget>

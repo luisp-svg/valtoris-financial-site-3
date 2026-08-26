@@ -4,12 +4,17 @@ import {
   CASE_APPROVED_CLIENT_STAGES,
   CASE_RECENTLY_UPDATED_DAYS,
   CASE_UNDERWRITING_STAGES,
+  CASE_WORKSPACE_VIEWS,
   caseAttentionFlags,
   caseHasOverdueRequirement,
   caseNeedsAttention,
   caseOperationalBucket,
   casePipelineStagesMatchDashboard,
+  caseWorkspaceFilteredEmptyCopy,
+  caseWorkspaceViewLabel,
+  caseWorkspaceViewerFromRole,
   countOpenPolicyCases,
+  DEFAULT_CASE_WORKSPACE_VIEW,
   formatCaseAmount,
   formatCaseAttentionLabels,
   formatCaseDeliveryBucketLabel,
@@ -17,7 +22,11 @@ import {
   formatCaseStageLabel,
   isCaseDeliveryFundingStage,
   isClosedPolicyCase,
+  isLoadedWritingAdvisorCase,
   isOpenPolicyCase,
+  isOperationalPolicyCase,
+  myCasesEmptyCopy,
+  myCasesMissingAdvisorCopy,
 } from './caseWorkspace'
 import { DASHBOARD_PIPELINE_STAGES, pipelineStageLabel } from './productionMetrics'
 import { PRODUCTION_TERMINAL_STAGES } from './types'
@@ -375,5 +384,128 @@ describe('pipeline and Life/FIA presentation', () => {
     )
     expect(fia).toContain('Deposit')
     expect(fia).not.toMatch(/expected|commission/i)
+  })
+})
+
+describe('operational Case definition and My Cases', () => {
+  const now = new Date('2026-08-20T12:00:00.000Z')
+  const mine = 'adv-mine'
+  const other = 'adv-other'
+
+  function writing(advisorId: string, effectiveTo: string | null = null) {
+    return {
+      id: `alloc-${advisorId}-${effectiveTo ?? 'current'}`,
+      recipient_type: 'advisor' as const,
+      advisor_id: advisorId,
+      allocation_role: 'writing' as const,
+      commission_bps: 10000,
+      production_credit_bps: 10000,
+      effective_to: effectiveTo,
+      advisor: { id: advisorId, display_name: 'Advisor' },
+    }
+  }
+
+  it('keeps the operational Case definition as submitted+ with a valid submission date', () => {
+    expect(DEFAULT_CASE_WORKSPACE_VIEW).toBe('open')
+    expect(CASE_WORKSPACE_VIEWS).toEqual([
+      'open',
+      'my_cases',
+      'all_cases',
+      'needs_attention',
+      'underwriting',
+      'approved_client',
+      'delivery_funding',
+      'recently_updated',
+      'all_applications',
+    ])
+    const submitted = item({ id: 'sub', production_stage: 'submitted' })
+    const draft = item({ id: 'draft', production_stage: 'draft' })
+    const pre = item({ id: 'pre', production_stage: 'pre_submitted' })
+    const missingDate = item({
+      id: 'nodate',
+      production_stage: 'submitted',
+      submission_date: null,
+    })
+    expect(isOperationalPolicyCase(submitted)).toBe(true)
+    expect(isOpenPolicyCase(submitted)).toBe(true)
+    expect(isOperationalPolicyCase(draft)).toBe(false)
+    expect(isOperationalPolicyCase(pre)).toBe(false)
+    expect(isOperationalPolicyCase(missingDate)).toBe(false)
+    expect(applyCaseWorkspaceView([draft, pre, submitted], 'all_cases', now).map((row) => row.id)).toEqual([
+      'sub',
+    ])
+    expect(applyCaseWorkspaceView([draft, submitted], 'all_applications', now).map((row) => row.id)).toEqual([
+      'draft',
+      'sub',
+    ])
+  })
+
+  it('separates terminal Cases from open Cases without treating them as not-a-case', () => {
+    const closed = item({ id: 'closed', production_stage: 'in_force' })
+    expect(isOperationalPolicyCase(closed)).toBe(true)
+    expect(isClosedPolicyCase(closed)).toBe(true)
+    expect(isOpenPolicyCase(closed)).toBe(false)
+    expect(applyCaseWorkspaceView([closed], 'open', now)).toEqual([])
+    expect(applyCaseWorkspaceView([closed], 'all_cases', now).map((row) => row.id)).toEqual(['closed'])
+  })
+
+  it('filters My Cases with existing writing allocations only and does not invent extra rows', () => {
+    const myOpen = item({
+      id: 'mine-open',
+      production_stage: 'submitted',
+      allocations: [writing(mine)],
+    })
+    const myClosed = item({
+      id: 'mine-closed',
+      production_stage: 'withdrawn',
+      allocations: [writing(mine)],
+    })
+    const otherCase = item({
+      id: 'other',
+      production_stage: 'submitted',
+      allocations: [writing(other)],
+    })
+    const myDraft = item({
+      id: 'mine-draft',
+      production_stage: 'draft',
+      allocations: [writing(mine)],
+    })
+    const ended = item({
+      id: 'ended',
+      production_stage: 'submitted',
+      allocations: [writing(mine, '2026-01-01')],
+    })
+    const loaded = [myOpen, myClosed, otherCase, myDraft, ended]
+    const mineIds = applyCaseWorkspaceView(loaded, 'my_cases', now, { writingAdvisorId: mine }).map(
+      (row) => row.id,
+    )
+    expect(mineIds).toEqual(['mine-open', 'mine-closed'])
+    expect(isLoadedWritingAdvisorCase(myOpen, mine)).toBe(true)
+    expect(isLoadedWritingAdvisorCase(otherCase, mine)).toBe(false)
+    expect(applyCaseWorkspaceView(loaded, 'my_cases', now, { writingAdvisorId: null })).toEqual([])
+    expect(applyCaseWorkspaceView(loaded, 'my_cases', now)).toEqual([])
+    const output = applyCaseWorkspaceView(loaded, 'my_cases', now, { writingAdvisorId: mine })
+    for (const row of output) {
+      expect(loaded).toContain(row)
+    }
+  })
+
+  it('keeps owner All Cases on the loaded dataset and uses role-aware labels', () => {
+    expect(caseWorkspaceViewerFromRole('owner')).toBe('owner')
+    expect(caseWorkspaceViewerFromRole('advisor')).toBe('advisor')
+    expect(caseWorkspaceViewLabel('all_cases', 'owner')).toBe('All Cases')
+    expect(caseWorkspaceViewLabel('all_cases', 'advisor')).toBe('Visible Cases')
+    expect(caseWorkspaceViewLabel('all_applications', 'owner')).toBe('All Applications')
+    expect(caseWorkspaceViewLabel('all_applications', 'advisor')).toBe('Visible applications')
+    expect(caseWorkspaceViewLabel('my_cases', 'advisor')).toBe('My Cases')
+    expect(caseWorkspaceViewLabel('open', 'owner')).toBe('Open Cases')
+    expect(caseWorkspaceFilteredEmptyCopy('all_cases', 'advisor')).toBe(
+      'No visible cases in the currently loaded production records.',
+    )
+    expect(caseWorkspaceFilteredEmptyCopy('all_cases', 'owner')).not.toMatch(/firm-wide|entire firm/i)
+    expect(caseWorkspaceFilteredEmptyCopy('my_cases', 'advisor')).toBe(myCasesMissingAdvisorCopy())
+    expect(caseWorkspaceFilteredEmptyCopy('my_cases', 'advisor', { writingAdvisorId: mine })).toBe(
+      myCasesEmptyCopy(),
+    )
   })
 })

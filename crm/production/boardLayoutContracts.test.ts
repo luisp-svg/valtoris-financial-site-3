@@ -63,7 +63,7 @@ describe('Production board layout contracts', () => {
       'in_force',
     ])
     expect(BOARD_PIPELINE_COLUMNS.map((column) => column.label)).toEqual([
-      'Applied',
+      'Submitted',
       'Paramed',
       'In Underwriting',
       'Approved',

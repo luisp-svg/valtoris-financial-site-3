@@ -56,7 +56,7 @@ export default function StageTransitionPanel({
       </div>
       <p className="crm-production-comp-summary">
         <span className="crm-muted">Current stage</span>
-        <StageBadge stage={application.production_stage} />
+        <StageBadge stage={application.production_stage} surface="case" />
       </p>
 
       {issuedWaitingOnDelivery ? (

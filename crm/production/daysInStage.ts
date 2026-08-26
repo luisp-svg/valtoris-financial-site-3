@@ -128,7 +128,7 @@ export function getWritingAdvisorLabel(item: ProductionApplicationListItem): str
   return name || '—'
 }
 
-export function getWritingAdvisorIds(item: ProductionApplicationListItem): string[] {
+export function getWritingAdvisorIds(item: Pick<ProductionApplicationListItem, 'allocations'>): string[] {
   return getCurrentAllocations(item.allocations)
     .filter((row) => row.allocation_role === 'writing' && row.advisor_id)
     .map((row) => row.advisor_id as string)

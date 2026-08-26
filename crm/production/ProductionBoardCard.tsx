@@ -1,6 +1,6 @@
 import { useDraggable } from '@dnd-kit/core'
 import { Link } from 'react-router-dom'
-import { crmProductionEditPath, crmProductionPath } from '../../constants/routes'
+import { crmOpportunityPath, crmProductionEditPath, crmProductionPath } from '../../constants/routes'
 import type { CrmSupportedRole } from '../types'
 import { productionBoardCardMoney } from './boardCardMoney'
 import CaseAttentionFlagList from './CaseAttentionFlagList'
@@ -107,7 +107,7 @@ export default function ProductionBoardCard({
         </p>
         {showStageBadge ? (
           <div className="crm-production-board-card-stage">
-            <StageBadge stage={item.production_stage} />
+            <StageBadge stage={item.production_stage} surface="case" />
           </div>
         ) : null}
         {policyLifecycleDisplayForApplication(item) ? (
@@ -120,6 +120,16 @@ export default function ProductionBoardCard({
           <BoardCardMoney item={item} />
         </p>
         <dl className="crm-production-board-card-meta">
+          <div>
+            <dt>Submitted</dt>
+            <dd>{formatProductionDate(item.submission_date)}</dd>
+          </div>
+          {item.opportunity_id ? (
+            <div>
+              <dt>Opportunity</dt>
+              <dd>Linked</dd>
+            </div>
+          ) : null}
           <div>
             <dt>Follow-up</dt>
             <dd className={overdue ? 'crm-production-overdue' : undefined}>
@@ -175,6 +185,15 @@ export default function ProductionBoardCard({
             disabled={movementBusy}
             onSelect={(stage) => onRequestMove?.(item, stage)}
           />
+        ) : null}
+        {item.opportunity_id ? (
+          <Link
+            to={crmOpportunityPath(item.opportunity_id)}
+            className="crm-text-btn"
+            onClick={(event) => event.stopPropagation()}
+          >
+            Opportunity
+          </Link>
         ) : null}
         {showEdit ? (
           <Link

@@ -5,6 +5,7 @@ import {
   formatCaseAmount,
   formatCaseAttentionLabels,
   formatCaseProductLineLabel,
+  formatCaseStageLabel,
 } from './caseWorkspace'
 import CompensationStatusBadge from './CompensationStatusBadge'
 import {
@@ -24,14 +25,13 @@ import {
 import {
   formatProductionDeliveryLabel,
   formatProductionDispositionLabel,
-  formatProductionStageLabel,
 } from './labels'
 import { formatProductionDate } from './productionApi'
 import PolicyLifecycleBadge from './PolicyLifecycleBadge'
 import { policyLifecycleDisplayForApplication } from './policyLifecycle'
 import type { CompensationViewer, ProductionApplicationListItem } from './types'
 import { PRODUCTION_STALE_DAYS_IN_STAGE } from './types'
-import { crmProductionEditPath, crmProductionPath } from '../../constants/routes'
+import { crmOpportunityPath, crmProductionEditPath, crmProductionPath } from '../../constants/routes'
 import type { CrmSupportedRole } from '../types'
 import { canShowProductionEditAction } from './applicationEditView'
 
@@ -90,7 +90,7 @@ export default function ProductionQueueCards({
                   {formatCaseProductLineLabel(item.product_line)})
                 </p>
                 <p className="crm-production-queue-card-stage">
-                  {formatProductionStageLabel(item.production_stage)}
+                  {formatCaseStageLabel(item.production_stage)}
                 </p>
                 {policyLifecycleDisplayForApplication(item) ? (
                   <p className="crm-production-queue-card-lifecycle">
@@ -117,6 +117,16 @@ export default function ProductionQueueCards({
                       </dd>
                     </div>
                   )}
+                  <div>
+                    <dt>Submitted</dt>
+                    <dd>{formatProductionDate(item.submission_date)}</dd>
+                  </div>
+                  {item.opportunity_id ? (
+                    <div>
+                      <dt>Opportunity</dt>
+                      <dd>Linked</dd>
+                    </div>
+                  ) : null}
                   <div>
                     <dt>Follow-up</dt>
                     <dd className={overdue ? 'crm-production-overdue' : undefined}>
@@ -160,14 +170,24 @@ export default function ProductionQueueCards({
                   </span>
                 </div>
               </Link>
-              {showEdit ? (
+              {showEdit || item.opportunity_id ? (
                 <div className="crm-production-queue-card-actions">
-                  <Link
-                    to={crmProductionEditPath(item.id)}
-                    className="crm-production-edit-action"
-                  >
-                    Edit Application
-                  </Link>
+                  {item.opportunity_id ? (
+                    <Link
+                      to={crmOpportunityPath(item.opportunity_id)}
+                      className="crm-text-btn"
+                    >
+                      Opportunity
+                    </Link>
+                  ) : null}
+                  {showEdit ? (
+                    <Link
+                      to={crmProductionEditPath(item.id)}
+                      className="crm-production-edit-action"
+                    >
+                      Edit Application
+                    </Link>
+                  ) : null}
                 </div>
               ) : null}
             </article>

@@ -32,7 +32,7 @@ import StageBadge from './StageBadge'
 import type { CrmSupportedRole } from '../types'
 import type { CompensationViewer, ProductionApplicationListItem } from './types'
 import { PRODUCTION_STALE_DAYS_IN_STAGE } from './types'
-import { crmProductionEditPath, crmProductionPath } from '../../constants/routes'
+import { crmOpportunityPath, crmProductionEditPath, crmProductionPath } from '../../constants/routes'
 import { canShowProductionEditAction } from './applicationEditView'
 
 type ProductionQueueTableProps = {
@@ -118,6 +118,13 @@ export default function ProductionQueueTable({
                   >
                     {item.household?.display_name?.trim() || 'Household'}
                   </Link>
+                  {item.opportunity_id ? (
+                    <div>
+                      <Link to={crmOpportunityPath(item.opportunity_id)} className="crm-text-btn">
+                        Opportunity
+                      </Link>
+                    </div>
+                  ) : null}
                   <CaseAttentionFlagList labels={attention} />
                   {linked ? (
                     <span className="crm-production-linked-pill" title="Linked issued policy">
@@ -136,7 +143,7 @@ export default function ProductionQueueTable({
                 <td>{getWritingAdvisorLabel(item)}</td>
                 <td>{expected.split ? 'Split' : '—'}</td>
                 <td>
-                  <StageBadge stage={item.production_stage} />
+                  <StageBadge stage={item.production_stage} surface="case" />
                 </td>
                 <td>
                   {policyLifecycleDisplayForApplication(item) ? (

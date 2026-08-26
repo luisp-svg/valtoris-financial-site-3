@@ -41,7 +41,7 @@ describe('Case Management Phase 1 contracts', () => {
   })
 
   it('filters Case views on the loaded list without a second fetch or dashboard funnel reuse', () => {
-    expect(queuePage).toContain('applyCaseWorkspaceView(filteredItems, caseView, now)')
+    expect(queuePage).toContain('applyCaseWorkspaceView(filteredItems, caseView, now, caseViewOptions)')
     expect(queuePage).toContain('buildProductionDashboard(filteredItems, { period: productionPeriod, today })')
     expect(queuePage).not.toMatch(/buildProductionDashboard\([^)]*caseItems/)
     expect(queuePage).not.toContain('fetchProductionApplications(supabase, { limit: ')
@@ -56,7 +56,11 @@ describe('Case Management Phase 1 contracts', () => {
     expect(queuePage).toContain('CASE_WORKSPACE_VIEWS')
     expect(queuePage).toContain('CaseWorkspaceViewBar')
     expect(caseWorkspace).toContain("'needs_attention'")
-    expect(caseWorkspace).toContain("if (view === 'needs_attention') return 'Needs attention'")
+    expect(caseWorkspace).toContain("if (view === 'needs_attention') return 'Needs Attention'")
+    expect(caseWorkspace).toContain("'my_cases'")
+    expect(caseWorkspace).toContain("'all_cases'")
+    expect(queuePage).toContain('fetchCurrentAdvisorProfileId')
+    expect(queuePage).toContain('CASE_VIEWS_LOADED_RECORDS_NOTE')
     expect(queuePage).not.toContain('SERVICE_ROLE')
     expect(casesTab).not.toContain('SERVICE_ROLE')
     expect(householdsApi).not.toContain('SERVICE_ROLE')

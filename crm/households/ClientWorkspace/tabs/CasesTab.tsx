@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { crmProductionPath } from '../../../../constants/routes'
+import { crmOpportunityPath, crmProductionPath } from '../../../../constants/routes'
 import EmptyState from '../../../components/ui/EmptyState'
 import Panel from '../../../components/ui/Panel'
 import SectionHeader from '../../../components/ui/SectionHeader'
@@ -24,16 +24,23 @@ function CaseRow({ row }: { row: HouseholdCaseRow }) {
       <CaseAttentionFlagList labels={row.attentionLabels} />
       <p className="crm-household-case-amount">{row.amount}</p>
       <p className="crm-task-meta">
-        Follow-up {row.followUp}
+        Submitted {row.submitted}
+        {row.followUp ? ` · Follow-up ${row.followUp}` : ''}
         {row.applicationNumber ? ` · App ${row.applicationNumber}` : ''}
         {row.policyNumber ? ` · Policy ${row.policyNumber}` : ''}
       </p>
       <p className="crm-task-meta">
         {row.insuredOrAnnuitant} · Writing {row.writingAdvisors}
+        {row.daysInStage != null ? ` · ${row.daysInStage} days in stage` : ''}
       </p>
       <Link to={crmProductionPath(row.id)} className="crm-text-btn">
         Open case workspace
       </Link>
+      {row.opportunityId ? (
+        <Link to={crmOpportunityPath(row.opportunityId)} className="crm-text-btn">
+          Opportunity
+        </Link>
+      ) : null}
     </li>
   )
 }
@@ -97,7 +104,7 @@ export default function CasesTab({ workspace, householdId }: ClientWorkspaceTabP
           meta={<span className="crm-count-pill">{loading ? workspace.openCasesCount : openRows.length}</span>}
         />
         <p className="crm-muted">
-          Operational Life and FIA applications. Issued stays open until in force. This is not the
+          Operational Life and FIA cases. Issued stays open until in force. This is not the
           Policies tab. Requirement details stay on the Case workspace.
         </p>
         {error ? (
@@ -109,7 +116,7 @@ export default function CasesTab({ workspace, householdId }: ClientWorkspaceTabP
         {!loading && openRows.length === 0 ? (
           <EmptyState
             title="No open cases"
-            description="Submitted Life and FIA applications in underwriting, client action, or delivery/funding will appear here."
+            description="Submitted Life and FIA cases in underwriting, client action, or delivery/funding will appear here."
           />
         ) : null}
         {!loading && openRows.length > 0 ? (
@@ -134,7 +141,7 @@ export default function CasesTab({ workspace, householdId }: ClientWorkspaceTabP
         {!loading && closedRows.length === 0 ? (
           <EmptyState
             title="No closed cases"
-            description="Placed and terminated applications for this household will appear here."
+            description="Placed and terminated cases for this household will appear here."
           />
         ) : null}
         {!loading && closedRows.length > 0 ? (

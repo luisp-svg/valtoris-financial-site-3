@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { mapHouseholdCaseRow, partitionHouseholdCases } from './householdCasesView'
+import { formatProductionDate } from './productionApi'
 import type { ProductionApplicationListItem } from './types'
 
 function item(
@@ -64,6 +65,8 @@ describe('household Cases tab mapping', () => {
       now,
     )
     expect(row?.stage).toBe('Submitted')
+    expect(row?.submitted).toBe(formatProductionDate('2026-06-15'))
+    expect(row?.opportunityId).toBeNull()
     expect(row?.productLine).toBe('Term')
     expect(row?.amount).toContain('Annual premium')
     expect(row?.amount).not.toMatch(/expected|commission/i)
@@ -114,5 +117,17 @@ describe('household Cases tab mapping', () => {
     expect(open).toEqual([])
     expect(closed).toHaveLength(1)
     expect(closed[0]?.lifecycleBadge).toBe('Placed · Surrendered')
+  })
+
+  it('surfaces a linked opportunity id from already-loaded production data', () => {
+    const row = mapHouseholdCaseRow(
+      item({
+        id: 'linked',
+        production_stage: 'submitted',
+        opportunity_id: 'opp-9',
+      }),
+      now,
+    )
+    expect(row?.opportunityId).toBe('opp-9')
   })
 })

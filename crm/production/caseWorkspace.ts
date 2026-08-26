@@ -12,6 +12,7 @@
 import { isFiaProductionLine } from './dashboardView'
 import {
   computeDaysInStage,
+  getWritingAdvisorIds,
   isFollowUpOverdue,
   isProductionTerminalStage,
   isStaleDaysInStage,
@@ -37,16 +38,26 @@ import { PRODUCTION_TERMINAL_STAGES } from './types'
 export const CASE_RECENTLY_UPDATED_DAYS = 7
 
 export const CASE_WORKSPACE_VIEWS = [
-  'all_applications',
   'open',
+  'my_cases',
+  'all_cases',
   'needs_attention',
   'underwriting',
   'approved_client',
   'delivery_funding',
   'recently_updated',
+  'all_applications',
 ] as const
 
 export type CaseWorkspaceView = (typeof CASE_WORKSPACE_VIEWS)[number]
+
+export const DEFAULT_CASE_WORKSPACE_VIEW: CaseWorkspaceView = 'open'
+
+export type CaseWorkspaceViewer = 'owner' | 'advisor'
+
+export type CaseWorkspaceViewOptions = {
+  writingAdvisorId?: string | null
+}
 
 /** Underwriting lens: dashboard pipeline prefix plus postponed (open, not a pipeline column). */
 export const CASE_UNDERWRITING_STAGES = [
@@ -231,6 +242,26 @@ export function caseOperationalBucket(
   return 'open_other'
 }
 
+export function isOperationalPolicyCase(item: {
+  production_stage: string
+  submission_date: string | null | undefined
+  deleted_at?: string | null
+}): boolean {
+  return isLegitimateSubmittedApplication(item)
+}
+
+/**
+ * Client-side writing-advisor match. Uses the same live allocation ids as the
+ * Production writing-advisor filter. Does not grant access to rows RLS hid.
+ */
+export function isLoadedWritingAdvisorCase(
+  item: Pick<ProductionApplicationListItem, 'allocations'>,
+  writingAdvisorId: string | null | undefined,
+): boolean {
+  if (!writingAdvisorId) return false
+  return getWritingAdvisorIds(item).includes(writingAdvisorId)
+}
+
 export function applyCaseWorkspaceView<
   T extends Pick<
     ProductionApplicationListItem,
@@ -243,10 +274,16 @@ export function applyCaseWorkspaceView<
     | 'stage_history'
     | 'updated_at'
     | 'overdue_requirement_count'
+    | 'allocations'
   >,
->(items: readonly T[], view: CaseWorkspaceView, now: Date = new Date()): T[] {
+>(
+  items: readonly T[],
+  view: CaseWorkspaceView,
+  now: Date = new Date(),
+  options: CaseWorkspaceViewOptions = {},
+): T[] {
   if (view === 'all_applications') return [...items]
-  return items.filter((item) => matchesCaseWorkspaceView(item, view, now))
+  return items.filter((item) => matchesCaseWorkspaceView(item, view, now, options))
 }
 
 export function matchesCaseWorkspaceView(
@@ -261,12 +298,18 @@ export function matchesCaseWorkspaceView(
     | 'stage_history'
     | 'updated_at'
     | 'overdue_requirement_count'
+    | 'allocations'
   >,
   view: CaseWorkspaceView,
   now: Date = new Date(),
+  options: CaseWorkspaceViewOptions = {},
 ): boolean {
   if (view === 'all_applications') return true
   if (view === 'open') return isOpenPolicyCase(item)
+  if (view === 'all_cases') return isOperationalPolicyCase(item)
+  if (view === 'my_cases') {
+    return isOperationalPolicyCase(item) && isLoadedWritingAdvisorCase(item, options.writingAdvisorId)
+  }
   if (view === 'needs_attention') return caseNeedsAttention(item, now)
   if (view === 'underwriting') {
     return isOpenPolicyCase(item) && isCaseUnderwritingStage(item.production_stage)
@@ -336,19 +379,86 @@ export function formatCaseAmount(item: Pick<
   return `${premium} · Face ${formatCents(item.face_amount_cents)}`
 }
 
-export function caseWorkspaceViewLabel(view: CaseWorkspaceView): string {
-  if (view === 'all_applications') return 'All applications'
-  if (view === 'open') return 'All open cases'
-  if (view === 'needs_attention') return 'Needs attention'
-  if (view === 'underwriting') return 'Underwriting'
-  if (view === 'approved_client') return 'Approved / Client action'
-  if (view === 'delivery_funding') return 'Delivery / Funding'
-  return 'Recently updated'
+export function caseWorkspaceViewerFromRole(
+  role: string | null | undefined,
+): CaseWorkspaceViewer {
+  return role === 'owner' ? 'owner' : 'advisor'
 }
 
-export function caseListHeading(view: CaseWorkspaceView): string {
-  if (view === 'all_applications') return 'Applications'
-  return caseWorkspaceViewLabel(view)
+export function caseWorkspaceViewLabel(
+  view: CaseWorkspaceView,
+  viewer: CaseWorkspaceViewer = 'advisor',
+): string {
+  if (view === 'open') return 'Open Cases'
+  if (view === 'my_cases') return 'My Cases'
+  if (view === 'all_cases') return viewer === 'owner' ? 'All Cases' : 'Visible Cases'
+  if (view === 'all_applications') {
+    return viewer === 'owner' ? 'All Applications' : 'Visible applications'
+  }
+  if (view === 'needs_attention') return 'Needs Attention'
+  if (view === 'underwriting') return 'Underwriting'
+  if (view === 'approved_client') return 'Approved / Client Action'
+  if (view === 'delivery_funding') return 'Delivery / Funding'
+  return 'Recently Updated'
+}
+
+export function caseListHeading(
+  view: CaseWorkspaceView,
+  viewer: CaseWorkspaceViewer = 'advisor',
+): string {
+  return caseWorkspaceViewLabel(view, viewer)
+}
+
+export function caseWorkspaceEmptyTitle(view: CaseWorkspaceView): string {
+  if (view === 'my_cases') return 'No matching cases'
+  if (view === 'open') return 'No open cases'
+  if (view === 'all_cases') return 'No cases in the loaded records'
+  if (view === 'all_applications') return 'No matching applications'
+  return 'No matching cases'
+}
+
+export function myCasesMissingAdvisorCopy(): string {
+  return 'My Cases uses current writing allocations for this login. This login has no writing-advisor profile, so the view is empty.'
+}
+
+export function myCasesEmptyCopy(): string {
+  return 'No loaded cases list you as a current writing advisor. Applications you cannot already see stay hidden.'
+}
+
+export function caseWorkspaceFilteredEmptyCopy(
+  view: CaseWorkspaceView,
+  viewer: CaseWorkspaceViewer,
+  options: {
+    writingAdvisorId?: string | null
+    search?: string
+    hasActiveFilters?: boolean
+  } = {},
+): string {
+  if (view === 'my_cases') {
+    return options.writingAdvisorId ? myCasesEmptyCopy() : myCasesMissingAdvisorCopy()
+  }
+  if (options.hasActiveFilters) {
+    const needle = options.search?.trim()
+    if (needle) {
+      return viewer === 'owner'
+        ? `No applications match “${needle}” with the current filters.`
+        : `No visible applications match “${needle}” with the current filters.`
+    }
+    return viewer === 'owner'
+      ? 'No applications match the selected filters.'
+      : 'No visible applications match the selected filters.'
+  }
+  if (view === 'all_cases') {
+    return viewer === 'owner'
+      ? 'No cases in the currently loaded production records.'
+      : 'No visible cases in the currently loaded production records.'
+  }
+  if (view === 'all_applications') {
+    return viewer === 'owner'
+      ? 'No applications in the currently loaded production records.'
+      : 'No visible applications in the currently loaded production records.'
+  }
+  return 'No matching cases in the currently loaded production records.'
 }
 
 /** Pin Case underwriting/approved/issued to the dashboard pipeline so labels cannot drift. */

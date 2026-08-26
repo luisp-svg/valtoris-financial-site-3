@@ -72,13 +72,13 @@ describe('production board grouping', () => {
     expect(model.exceptionCount).toBe(5)
   })
 
-  it('maps submitted to Applied and premium_drafted to Drafted, never draft under Drafted', () => {
+  it('maps submitted to Submitted and premium_drafted to Drafted, never draft under Drafted', () => {
     const model = groupProductionBoardItems([
       item({ id: 'applied', production_stage: 'submitted' }),
       item({ id: 'drafted', production_stage: 'premium_drafted' }),
       item({ id: 'app-draft', production_stage: 'draft' }),
     ])
-    expect(model.pipeline.find((column) => column.label === 'Applied')?.items.map((row) => row.id)).toEqual([
+    expect(model.pipeline.find((column) => column.label === 'Submitted')?.items.map((row) => row.id)).toEqual([
       'applied',
     ])
     expect(model.pipeline.find((column) => column.label === 'Drafted')?.items.map((row) => row.id)).toEqual([
