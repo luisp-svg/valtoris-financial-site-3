@@ -307,8 +307,19 @@ export default function CrmCommissionsPage() {
     [pendingReviewCount],
   )
   const filteredWorkItems = useMemo(
-    () => filterCommissionWorkItems(workItems, filters, period, today),
-    [workItems, filters, period, today],
+    () => filterCommissionWorkItems(workItems, filters, period, today, { isOwner }),
+    [workItems, filters, period, today, isOwner],
+  )
+  const periodWorkItems = useMemo(
+    () =>
+      filterCommissionWorkItems(
+        workItems,
+        defaultCommissionQueueFilters(),
+        period,
+        today,
+        { isOwner },
+      ),
+    [workItems, period, today, isOwner],
   )
   const unattributed = useMemo(
     () => summarizeUnattributedCommission({ items: workItems, viewer }),
@@ -538,6 +549,7 @@ export default function CrmCommissionsPage() {
       period={period}
       onPeriodChange={setPeriod}
       workItems={workItems}
+      periodWorkItems={periodWorkItems}
       filteredWorkItems={filteredWorkItems}
       filters={filters}
       onFiltersChange={setFilters}

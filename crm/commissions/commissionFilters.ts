@@ -1,6 +1,11 @@
 import type { DashboardReportingPeriod } from '../production/dashboardPeriod'
 import type { ProductionProductLine, ProductionStage } from '../production/types'
 import {
+  commissionExceptionFlags,
+  type CommissionExceptionBucket,
+  workItemMatchesExceptionBucket,
+} from './commissionExceptionView'
+import {
   type CommissionWorkDerivedStatus,
   type CommissionWorkItem,
   workItemInReportingPeriod,
@@ -22,8 +27,13 @@ export type CommissionQueueFilters = {
   productLine: 'all' | ProductionProductLine
   productionStage: 'all' | ProductionStage
   derivedStatus: 'all' | CommissionWorkDerivedStatus
+  exceptionBucket: CommissionExceptionBucket
   moneyKind: CommissionMoneyKindFilter
   needsReviewOnly: boolean
+}
+
+export type CommissionFilterViewer = {
+  isOwner: boolean
 }
 
 export function defaultCommissionQueueFilters(): CommissionQueueFilters {
@@ -34,6 +44,7 @@ export function defaultCommissionQueueFilters(): CommissionQueueFilters {
     productLine: 'all',
     productionStage: 'all',
     derivedStatus: 'all',
+    exceptionBucket: 'all',
     moneyKind: 'all',
     needsReviewOnly: false,
   }
@@ -83,6 +94,7 @@ export function filterCommissionWorkItems(
   filters: CommissionQueueFilters,
   period: DashboardReportingPeriod,
   today: string,
+  viewer: CommissionFilterViewer = { isOwner: false },
 ): CommissionWorkItem[] {
   return items.filter((item) => {
     if (!workItemInReportingPeriod(item, period, today)) return false
@@ -102,8 +114,17 @@ export function filterCommissionWorkItems(
     if (filters.derivedStatus !== 'all' && item.derivedStatus.primary !== filters.derivedStatus) {
       return false
     }
+    if (!workItemMatchesExceptionBucket(item, filters.exceptionBucket, viewer.isOwner)) {
+      return false
+    }
     if (!workItemMatchesMoneyKind(item, filters.moneyKind)) return false
-    if (filters.needsReviewOnly && !item.derivedStatus.needsReview) return false
+    if (filters.needsReviewOnly) {
+      if (viewer.isOwner) {
+        if (!commissionExceptionFlags(item, true).needsAttention) return false
+      } else if (!item.derivedStatus.needsReview) {
+        return false
+      }
+    }
     return true
   })
 }
@@ -116,6 +137,7 @@ export function hasActiveCommissionFilters(filters: CommissionQueueFilters): boo
     filters.productLine !== 'all' ||
     filters.productionStage !== 'all' ||
     filters.derivedStatus !== 'all' ||
+    filters.exceptionBucket !== 'all' ||
     filters.moneyKind !== 'all' ||
     filters.needsReviewOnly
   )

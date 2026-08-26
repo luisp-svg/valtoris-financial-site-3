@@ -26,6 +26,13 @@ import CommissionSummary from './CommissionSummary'
 import CommissionWorkItemDetail from './CommissionWorkItemDetail'
 import type { CommissionAdvisorPendingRow } from './commissionPendingRead'
 import {
+  formatExceptionBucketLabel,
+  summarizeCommissionExceptions,
+  summarizeCommissionReconciliation,
+  visibleExceptionBuckets,
+  type CommissionExceptionBucket,
+} from './commissionExceptionView'
+import {
   COMMISSION_MONEY_KIND_FILTERS,
   commissionMoneyKindFilterLabel,
   defaultCommissionQueueFilters,
@@ -59,6 +66,7 @@ type CommissionWorkspaceProps = {
   period: DashboardReportingPeriod
   onPeriodChange: (next: DashboardReportingPeriod) => void
   workItems: readonly CommissionWorkItem[]
+  periodWorkItems: readonly CommissionWorkItem[]
   filteredWorkItems: readonly CommissionWorkItem[]
   filters: CommissionQueueFilters
   onFiltersChange: (next: CommissionQueueFilters) => void
@@ -101,6 +109,7 @@ export default function CommissionWorkspace({
   period,
   onPeriodChange,
   workItems,
+  periodWorkItems,
   filteredWorkItems,
   filters,
   onFiltersChange,
@@ -139,6 +148,15 @@ export default function CommissionWorkspace({
     if (filteredWorkItems.length === 0) return 'filtered_empty' as const
     return 'ready' as const
   }, [loading, error, workItems.length, filteredWorkItems.length])
+
+  const exceptionCounts = useMemo(
+    () => summarizeCommissionExceptions(periodWorkItems, isOwner),
+    [periodWorkItems, isOwner],
+  )
+  const reconciliationTotals = useMemo(
+    () => summarizeCommissionReconciliation(periodWorkItems, isOwner),
+    [periodWorkItems, isOwner],
+  )
 
   function updateFilter<K extends keyof CommissionQueueFilters>(
     key: K,
@@ -217,6 +235,12 @@ export default function CommissionWorkspace({
         compensation={compensation}
         pendingCents={pendingCents}
         pendingReviewCopy={pendingReviewCopy}
+        remainingExpectedCents={reconciliationTotals.remainingExpectedCents}
+        varianceCents={reconciliationTotals.varianceCents}
+        exceptionCounts={exceptionCounts}
+        exceptionBucket={filters.exceptionBucket}
+        onExceptionBucketChange={(bucket) => updateFilter('exceptionBucket', bucket)}
+        needsAttentionCount={reconciliationTotals.needsAttentionCount}
         isOwner={isOwner}
         period={period}
         onPeriodChange={onPeriodChange}
@@ -357,6 +381,22 @@ export default function CommissionWorkspace({
           </select>
         </label>
         <label className="crm-field">
+          <span>Exception</span>
+          <select
+            value={filters.exceptionBucket}
+            onChange={(e) =>
+              updateFilter('exceptionBucket', e.target.value as CommissionExceptionBucket)
+            }
+            disabled={loading}
+          >
+            {visibleExceptionBuckets(isOwner).map((bucket) => (
+              <option key={bucket} value={bucket}>
+                {formatExceptionBucketLabel(bucket)}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="crm-field">
           <span>Ledger activity</span>
           <select
             value={filters.moneyKind}
@@ -373,7 +413,7 @@ export default function CommissionWorkspace({
           </select>
         </label>
         <label className="crm-field crm-production-check-field">
-          <span>Needs review</span>
+          <span>{isOwner ? 'Needs attention' : 'Needs review'}</span>
           <input
             type="checkbox"
             checked={filters.needsReviewOnly}

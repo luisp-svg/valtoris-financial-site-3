@@ -13230,6 +13230,49 @@ button.public-card-diagnostic:disabled {
   grid-template-columns: repeat(6, minmax(0, 1fr));
 }
 
+.crm-commissions-kpi-grid.has-reconciliation,
+.crm-commissions-kpi-grid.has-pending.has-reconciliation {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.crm-commissions-exception-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.crm-commissions-exception-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 4px 10px;
+  border: 1px solid var(--crm-border);
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.crm-commissions-exception-chip.is-selected {
+  border-color: var(--brand);
+  background: color-mix(in srgb, var(--brand) 12%, transparent);
+}
+
+.crm-commissions-exception-count {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.crm-commissions-exception-list {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.crm-commissions-exception-list li + li {
+  margin-top: 8px;
+}
+
 .crm-commissions-advisor-grid {
   min-width: 0;
 }

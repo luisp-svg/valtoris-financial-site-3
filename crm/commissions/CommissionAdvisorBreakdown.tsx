@@ -71,7 +71,7 @@ export default function CommissionAdvisorBreakdown({
             Chargebacks
           </div>
           <div className="is-money" role="columnheader">
-            Net Paid
+            Net actual
           </div>
           <div className="is-review" role="columnheader">
             Needs Review
@@ -133,7 +133,7 @@ export default function CommissionAdvisorBreakdown({
                   row.netPaidCents < 0 ? ' is-negative' : ''
                 }`}
                 role="cell"
-                data-label="Net Paid"
+                data-label="Net actual"
               >
                 {formatSignedCents(row.netPaidCents)}
               </div>

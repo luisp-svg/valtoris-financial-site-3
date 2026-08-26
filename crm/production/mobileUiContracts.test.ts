@@ -108,7 +108,7 @@ describe('CRM mobile responsive cleanup contracts', () => {
     expect(commissionSummary).toContain("options={['this_month', 'ytd', 'lifetime']}")
     expect(commissionSummary).toContain('label="Expected"')
     expect(commissionSummary).toContain('label="Paid"')
-    expect(commissionSummary).toContain('label="Net Paid"')
+    expect(commissionSummary).toContain('label="Net actual"')
     expect(styles).toContain('.crm-commissions-kpi-grid')
   })
 
@@ -139,9 +139,19 @@ describe('CRM mobile responsive cleanup contracts', () => {
     expect(queueCards).toContain('PolicyLifecycleBadge')
     expect(boardCard).toContain('PolicyLifecycleBadge')
     expect(casesTab).toContain('lifecycleBadge')
-    expect(readFileSync(join(here, '../households/ClientWorkspace/tabs/PoliciesTab.tsx'), 'utf8')).toContain(
-      'policyLifecycleLabel',
+    // Household Policies became policies-table based in D2, so Policy status is now
+    // sourced from `policies.status` rather than application lifecycle labels.
+    const policiesTab = readFileSync(
+      join(here, '../households/ClientWorkspace/tabs/PoliciesTab.tsx'),
+      'utf8',
     )
+    expect(policiesTab).toContain('policy.statusLabel')
+    expect(policiesTab).toContain('crm-household-case-stage')
+    expect(policiesTab).toContain('crm-household-policy-card')
+    expect(policiesTab).not.toContain('policyLifecycleLabel')
+    expect(policiesTab).not.toContain('mapHouseholdProductionPolicy')
+    expect(policiesTab).not.toContain('production_stage')
+    expect(styles).toContain('.crm-household-policy-card')
     expect(queuePage).toContain('Policy status')
     expect(styles).toContain('overflow-x: clip')
     expect(styles).toContain('.crm-policy-lifecycle-actions')

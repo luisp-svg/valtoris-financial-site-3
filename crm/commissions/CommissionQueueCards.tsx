@@ -1,9 +1,15 @@
 import { formatCents, formatProductionDate } from '../production/productionApi'
 import { formatSignedCents } from '../production/compensationView'
 import type { CommissionWorkItem } from './commissionWorkView'
-import { formatCommissionWorkStatusLabel } from './commissionWorkView'
 import CommissionOwnerActions from './CommissionOwnerActions'
 import { remainingExpectedDisplay } from './commissionPendingPayment'
+import {
+  commissionExceptionFlags,
+  formatCommissionReconciliationLabel,
+  PENDING_WITHOUT_ACTUAL_COPY,
+  varianceCentsDisplay,
+  varianceCentsForWorkItem,
+} from './commissionExceptionView'
 
 type CommissionQueueCardsProps = {
   items: readonly CommissionWorkItem[]
@@ -26,7 +32,9 @@ export default function CommissionQueueCards({
 }: CommissionQueueCardsProps) {
   return (
     <ul className="crm-opportunities-card-list" aria-label="Commission work queue cards">
-      {items.map((item) => (
+      {items.map((item) => {
+        const flags = commissionExceptionFlags(item, isOwner)
+        return (
         <li key={item.id}>
           <article className="crm-panel crm-commissions-card">
             <div className="crm-panel-head">
@@ -42,13 +50,20 @@ export default function CommissionQueueCards({
             <p>Writing advisor {item.advisorName}</p>
             <p>
               <span className="crm-production-comp-badge">
-                {formatCommissionWorkStatusLabel(item.derivedStatus.primary)}
+                {formatCommissionReconciliationLabel(item)}
               </span>
-              {item.derivedStatus.chargedBack ? (
+              {flags.chargebackActivity ? (
                 <span className="crm-production-comp-badge is-review">Charged back</span>
               ) : null}
-              {item.derivedStatus.needsReview ? (
-                <span className="crm-production-comp-badge is-review">Needs review</span>
+              {flags.pendingWithoutActual ? (
+                <span className="crm-production-comp-badge is-review">
+                  {PENDING_WITHOUT_ACTUAL_COPY}
+                </span>
+              ) : null}
+              {flags.needsAttention ? (
+                <span className="crm-production-comp-badge is-review">
+                  {isOwner ? 'Needs attention' : 'Needs review'}
+                </span>
               ) : null}
             </p>
             <dl className="crm-production-detail-grid">
@@ -91,11 +106,17 @@ export default function CommissionQueueCards({
                 </dd>
               </div>
               <div>
-                <dt>Net Paid</dt>
+                <dt>Net actual</dt>
                 <dd
                   className={`crm-production-money${item.netPaidCents < 0 ? ' is-negative' : ''}`}
                 >
                   {formatSignedCents(item.netPaidCents)}
+                </dd>
+              </div>
+              <div>
+                <dt>Variance</dt>
+                <dd className="crm-production-money">
+                  {varianceCentsDisplay(varianceCentsForWorkItem(item))}
                 </dd>
               </div>
               <div>
@@ -116,7 +137,8 @@ export default function CommissionQueueCards({
             />
           </article>
         </li>
-      ))}
+        )
+      })}
     </ul>
   )
 }

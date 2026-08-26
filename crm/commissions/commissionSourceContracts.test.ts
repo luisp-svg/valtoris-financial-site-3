@@ -26,6 +26,7 @@ function readCommissionSources(): string[] {
     'commissionWriteApi.ts',
     'commissionWriteView.ts',
     'commissionIdempotency.ts',
+    'commissionExceptionView.ts',
   ]
   return files.map((name) => readFileSync(join(here, name), 'utf8'))
 }

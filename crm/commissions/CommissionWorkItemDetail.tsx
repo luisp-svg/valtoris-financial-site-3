@@ -13,7 +13,12 @@ import {
 import { formatCommissionEventSourceLabel } from './commissionEventSource'
 import CommissionOwnerActions from './CommissionOwnerActions'
 import type { CommissionWorkItem } from './commissionWorkView'
-import { formatCommissionWorkStatusLabel } from './commissionWorkView'
+import {
+  commissionExceptionNotes,
+  formatCommissionReconciliationLabel,
+  varianceCentsDisplay,
+  varianceCentsForWorkItem,
+} from './commissionExceptionView'
 import {
   CHARGEBACK_LIFECYCLE_NOTE,
   CHARGEBACK_PAID_HISTORY_NOTE,
@@ -132,6 +137,8 @@ export default function CommissionWorkItemDetail({
     return <div className="crm-commissions-event-actions">{actions}</div>
   }
 
+  const exceptionNotes = commissionExceptionNotes(item, isOwner)
+
   return (
     <div className="crm-production-review-overlay">
       <section
@@ -156,6 +163,7 @@ export default function CommissionWorkItemDetail({
         <p>
           <Link to={crmProductionPath(item.applicationId)}>Open production record</Link>
         </p>
+        <h3 className="crm-production-comp-subheading">Reconciliation</h3>
         <dl className="crm-production-detail-grid" aria-label="Reconciliation">
           <div>
             <dt>Expected</dt>
@@ -184,10 +192,29 @@ export default function CommissionWorkItemDetail({
             </dd>
           </div>
           <div>
+            <dt>Variance</dt>
+            <dd className="crm-production-money">
+              {varianceCentsDisplay(varianceCentsForWorkItem(item))}
+            </dd>
+          </div>
+          <div>
             <dt>Status</dt>
-            <dd>{formatCommissionWorkStatusLabel(item.derivedStatus.primary)}</dd>
+            <dd>{formatCommissionReconciliationLabel(item)}</dd>
           </div>
         </dl>
+        {exceptionNotes.length > 0 ? (
+          <section className="crm-commissions-exceptions" aria-label="Exceptions">
+            <h3 className="crm-production-comp-subheading">Exceptions</h3>
+            <ul className="crm-commissions-exception-list">
+              {exceptionNotes.map((note) => (
+                <li key={`${note.bucket}:${note.title}`}>
+                  <strong>{note.title}</strong>
+                  <p className="crm-production-kpi-caption">{note.detail}</p>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
         {isOwner && item.pendingSource ? (
           <section className="crm-commissions-pending-source" aria-label="Pending source">
             <h3>Pending</h3>
@@ -305,26 +332,28 @@ export default function CommissionWorkItemDetail({
             </ul>
           </section>
         ) : null}
-        <ActualCommissionPanel
-          viewer={viewer}
-          snapshot={snapshot}
-          loading={loading}
-          error={error}
-          headerActions={
-            <CommissionOwnerActions
-              isOwner={isOwner}
-              item={item}
-              onRecord={onRecord}
-              onChargeback={onChargeback}
-              onPreIssue={onPreIssue}
-              onRecordPayment={onRecordPayment}
-            />
-          }
-          formatEventSource={formatCommissionEventSourceLabel}
-          renderEventActions={
-            isOwner && !item.pendingOnlyStub ? renderEventActions : undefined
-          }
-        />
+        <section aria-label="Activity">
+          <ActualCommissionPanel
+            viewer={viewer}
+            snapshot={snapshot}
+            loading={loading}
+            error={error}
+            headerActions={
+              <CommissionOwnerActions
+                isOwner={isOwner}
+                item={item}
+                onRecord={onRecord}
+                onChargeback={onChargeback}
+                onPreIssue={onPreIssue}
+                onRecordPayment={onRecordPayment}
+              />
+            }
+            formatEventSource={formatCommissionEventSourceLabel}
+            renderEventActions={
+              isOwner && !item.pendingOnlyStub ? renderEventActions : undefined
+            }
+          />
+        </section>
       </section>
     </div>
   )
