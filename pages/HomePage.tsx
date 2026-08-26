@@ -1,5 +1,4 @@
 import { useLocation } from 'react-router-dom'
-import HomeAudienceJourneys from '../components/publicSite/home/HomeAudienceJourneys'
 import HomeAudiencePaths from '../components/publicSite/home/HomeAudiencePaths'
 import HomeDiagnostics from '../components/publicSite/home/HomeDiagnostics'
 import HomeFinalCta from '../components/publicSite/home/HomeFinalCta'
@@ -21,10 +20,9 @@ export default function HomePage() {
     <div className="platform-home site-home">
       <HomeHero copy={copy} />
       <HomeAudiencePaths copy={copy} />
-      <HomeServiceGrid copy={copy} />
       <HomeProcess copy={copy} />
       <HomeDiagnostics copy={copy} />
-      <HomeAudienceJourneys copy={copy} />
+      <HomeServiceGrid copy={copy} />
       <HomeWhyValtoris copy={copy} />
       <HomeFinalCta copy={copy} />
     </div>

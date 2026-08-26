@@ -104,8 +104,10 @@ describe('Phase 3 Student Loan and Credit service pages', () => {
   })
 
   it('updates homepage service links and leaves diagnostic cards on Report Cards', () => {
-    expect(HOME_AUDIENCE_PATHS.find((item) => item.id === 'studentLoans')?.to).toBe(ROUTES.studentLoans)
-    expect(HOME_AUDIENCE_PATHS.find((item) => item.id === 'credit')?.to).toBe(ROUTES.credit)
+    expect(HOME_AUDIENCE_PATHS.find((item) => item.id === 'studentLoans')?.to).toBe(
+      ROUTES.studentLoanReportCard,
+    )
+    expect(HOME_AUDIENCE_PATHS.find((item) => item.id === 'credit')?.to).toBe(ROUTES.creditReportCard)
     expect(HOME_SERVICE_CARDS.find((item) => item.id === 'studentLoans')?.to).toBe(ROUTES.studentLoans)
     expect(HOME_SERVICE_CARDS.find((item) => item.id === 'credit')?.to).toBe(ROUTES.credit)
     expect(HOME_FEATURED_DIAGNOSTICS.find((item) => item.id === 'studentLoan')?.to).toBe(

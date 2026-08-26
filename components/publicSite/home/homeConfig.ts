@@ -16,28 +16,28 @@ export const HOME_DIAGNOSTICS_HASH = '/#home-diagnostics'
 export const HOME_AUDIENCE_PATHS: readonly HomeLinkItem[] = [
   {
     id: 'families',
-    to: ROUTES.solutions,
+    to: ROUTES.reportCard,
     titleKey: 'audienceFamiliesTitle',
     bodyKey: 'audienceFamiliesBody',
     ctaKey: 'audienceFamiliesCta',
   },
   {
     id: 'business',
-    to: ROUTES.solutions,
+    to: ROUTES.businessReportCard,
     titleKey: 'audienceBusinessTitle',
     bodyKey: 'audienceBusinessBody',
     ctaKey: 'audienceBusinessCta',
   },
   {
     id: 'studentLoans',
-    to: ROUTES.studentLoans,
+    to: ROUTES.studentLoanReportCard,
     titleKey: 'audienceStudentTitle',
     bodyKey: 'audienceStudentBody',
     ctaKey: 'audienceStudentCta',
   },
   {
     id: 'credit',
-    to: ROUTES.credit,
+    to: ROUTES.creditReportCard,
     titleKey: 'audienceCreditTitle',
     bodyKey: 'audienceCreditBody',
     ctaKey: 'audienceCreditCta',

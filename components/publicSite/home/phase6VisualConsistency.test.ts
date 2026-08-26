@@ -65,15 +65,15 @@ describe('Phase 6 public CTA hierarchy and alignment', () => {
     expect(diagnostics).not.toContain('Also available')
   })
 
-  it('keeps Family and Business journey cards to one primary solutions action', () => {
+  it('stops rendering homepage journey cards while keeping the unused component', () => {
     const html = renderAt('/', createElement(HomePage))
-    const journeys = section(html, 'home-journeys-heading')
-    expect(journeys).toContain('Explore Family Solutions')
-    expect(journeys).toContain('Explore Business Solutions')
-    expect(journeys.match(/class="platform-btn platform-btn-primary"/g)?.length).toBe(2)
-    expect(journeys).not.toContain('site-home-text-link')
-    expect(journeys).not.toContain(`href="${ROUTES.reportCard}"`)
-    expect(journeys).not.toContain(`href="${ROUTES.businessReportCard}"`)
+    expect(html).not.toContain('id="home-journeys-heading"')
+    expect(html).not.toContain('Explore Family Solutions')
+    expect(html).not.toContain('Explore Business Solutions')
+    expect(source('pages/HomePage.tsx')).not.toContain('HomeAudienceJourneys')
+    expect(source('components/publicSite/home/HomeAudienceJourneys.tsx')).toContain(
+      'site-home-card-grid--journeys',
+    )
   })
 
   it('limits service heroes to two actions and removes See How It Works', () => {

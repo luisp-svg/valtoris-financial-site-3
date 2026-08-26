@@ -17,15 +17,16 @@ export default function HomeHero({ copy }: HomeHeroProps) {
             {copy.heroTitle}
           </h1>
           <p className="site-home-hero-support">{copy.heroSupport}</p>
+          <p className="site-home-hero-brand">{copy.heroBrand}</p>
           <div className="site-home-hero-actions">
-            <PublicLink className="platform-btn platform-btn-primary" to={ROUTES.solutions}>
+            <PublicLink className="platform-btn platform-btn-primary" to={HOME_DIAGNOSTICS_HASH}>
               {copy.heroPrimaryCta}
             </PublicLink>
             <PublicLink className="platform-btn platform-btn-secondary" to={ROUTES.schedule}>
               {copy.heroSecondaryCta}
             </PublicLink>
           </div>
-          <PublicLink className="site-home-text-link" to={HOME_DIAGNOSTICS_HASH}>
+          <PublicLink className="site-home-text-link" to={ROUTES.solutions}>
             {copy.heroTertiaryCta}
           </PublicLink>
         </div>

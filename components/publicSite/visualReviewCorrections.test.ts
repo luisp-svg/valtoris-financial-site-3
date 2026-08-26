@@ -170,22 +170,14 @@ describe('visual review corrections', () => {
     expect(source('components/publicSite/home/homeConfig.ts')).not.toContain('HOME_MORE_DIAGNOSTICS')
   })
 
-  it('aligns Family/Business journey cards with a shared heading and layout', () => {
+  it('keeps unused journey architecture off the rendered homepage', () => {
     expect(homeCopy.en.journeysHeading).toBe('Explore Solutions for You')
     expect(homeCopy.es.journeysHeading).toBe('Explore soluciones para usted')
     const html = renderAt('/', createElement(HomePage))
-    expect(html).toContain('Explore Solutions for You')
+    expect(html).not.toContain('Explore Solutions for You')
+    expect(html).not.toContain('id="home-journeys-heading"')
     expect(html).not.toContain('Choose a broader path')
-    const journeys = html.match(/id="home-journeys-heading"[\s\S]*?<\/section>/)?.[0] ?? ''
-    expect(journeys).toContain('site-home-card-grid--journeys')
-    expect(journeys.match(/site-home-card--journey/g)?.length).toBe(2)
-    expect(journeys).toContain('Explore Family Solutions')
-    expect(journeys).toContain('Explore Business Solutions')
-    expect(journeys).toContain(`href="${ROUTES.solutions}"`)
-    expect(journeys).not.toContain(`href="${ROUTES.reportCard}"`)
-    expect(journeys).not.toContain(`href="${ROUTES.businessReportCard}"`)
-    expect(journeys).not.toContain('/services/family')
-    expect(journeys).not.toContain('/services/business')
+    expect(source('pages/HomePage.tsx')).not.toContain('HomeAudienceJourneys')
     const styles = source('src/styles.css')
     expect(styles).toContain('.site-home-card.site-home-card--journey')
     expect(styles).toContain('grid-template-rows: subgrid;')

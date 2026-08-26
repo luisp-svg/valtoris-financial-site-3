@@ -20,6 +20,7 @@ export default function HomeWhyValtoris({ copy }: HomeWhyValtorisProps) {
       title={copy.whyHeading}
       lead={copy.whyLead}
     >
+      <p className="site-home-why-support">{copy.whySupport}</p>
       <div className="site-home-card-grid site-home-card-grid--2">
         {items.map((item) => (
           <article key={item.title} className="site-home-card">

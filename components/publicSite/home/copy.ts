@@ -6,6 +6,7 @@ export type HomeCopy = {
   heroEyebrow: string
   heroTitle: string
   heroSupport: string
+  heroBrand: string
   heroPrimaryCta: string
   heroSecondaryCta: string
   heroTertiaryCta: string
@@ -84,6 +85,7 @@ export type HomeCopy = {
   journeyBusinessDiagnostic: string
   whyHeading: string
   whyLead: string
+  whySupport: string
   whyCoordinatedTitle: string
   whyCoordinatedBody: string
   whyUnderstandTitle: string
@@ -102,41 +104,42 @@ export const homeCopy: Record<PublicLocale, HomeCopy> = {
   en: {
     metaTitle: 'Valtoris Financial | Financial Strategy for Families & Business Owners',
     metaDescription:
-      'Valtoris helps individuals, families, and business owners coordinate protection, retirement, credit, student loan, insurance, and business planning strategies.',
+      'Valtoris Financial helps families and business owners understand their complete financial picture, identify risks and opportunities, and build a strategy around what matters most.',
     heroEyebrow: 'Valtoris Financial',
-    heroTitle: 'Strategy Today. Security Tomorrow.',
+    heroTitle: "Your Financial Life Shouldn't Be Managed in Pieces.",
     heroSupport:
-      'Valtoris helps individuals, families, and business owners understand their financial risks, coordinate the right strategies, and move forward with a clearer plan.',
-    heroPrimaryCta: 'Explore Our Services',
+      'Valtoris Financial helps families and business owners understand their complete financial picture, identify their biggest risks and opportunities, and build a strategy around what matters most.',
+    heroBrand: 'Know Your Score. See Your Risks. Build Your Plan.',
+    heroPrimaryCta: 'Find Out Where I Stand',
     heroSecondaryCta: 'Book a Meeting',
-    heroTertiaryCta: 'Explore Our Report Cards',
-    heroPanelLabel: 'Areas we help coordinate',
-    heroPanelProtection: 'Protection',
-    heroPanelRetirement: 'Retirement',
-    heroPanelCredit: 'Credit',
-    heroPanelStudentLoans: 'Student Loans',
-    audienceHeading: 'Who We Help',
+    heroTertiaryCta: 'Explore Solutions',
+    heroPanelLabel: 'We diagnose first',
+    heroPanelProtection: 'Diagnose',
+    heroPanelRetirement: 'Prioritize',
+    heroPanelCredit: 'Build',
+    heroPanelStudentLoans: 'Then coordinate solutions',
+    audienceHeading: 'Where Do You Want More Clarity?',
     audienceLead:
-      'Start with the path that matches your situation. Each one leads to education, diagnosis, and a clearer next step—not a one-size-fits-all product.',
-    audienceFamiliesTitle: 'Individuals & Families',
+      'Choose the diagnostic that matches the picture you want to understand first. Each Report Card is an educational starting point—not a product pitch.',
+    audienceFamiliesTitle: 'Family',
     audienceFamiliesBody:
-      'Households looking to connect cash flow, protection, retirement, credit, and legacy planning into one coordinated picture.',
-    audienceFamiliesCta: 'Explore family solutions',
-    audienceBusinessTitle: 'Business Owners',
+      "Understand your household's financial strengths, risks and priorities.",
+    audienceFamiliesCta: 'Take the Family Financial Report Card',
+    audienceBusinessTitle: 'Business',
     audienceBusinessBody:
-      'Owners who need the company and the household to work together—protection, benefits, continuity, and owner independence.',
-    audienceBusinessCta: 'Explore business solutions',
-    audienceStudentTitle: 'Student Loan Borrowers',
+      'See where your business may be financially exposed and what deserves attention.',
+    audienceBusinessCta: 'Take the Business Financial Report Card',
+    audienceStudentTitle: 'Student Loans',
     audienceStudentBody:
-      'Borrowers who want a clearer view of loan types, repayment options, and what is worth reviewing with a Financial Strategist.',
-    audienceStudentCta: 'Start the Student Loan Report Card™',
-    audienceCreditTitle: 'Credit & Financial Readiness',
+      'Understand your repayment position, potential risks and areas worth investigating.',
+    audienceStudentCta: 'Take the Student Loan Report Card',
+    audienceCreditTitle: 'Credit',
     audienceCreditBody:
-      'People preparing for a purchase, refinance, or next financial step who want education on credit-readiness—not promised outcomes.',
-    audienceCreditCta: 'Start the Credit Report Card™',
-    servicesHeading: 'What We Help With',
+      'Understand the factors affecting your credit profile and identify areas that may deserve attention.',
+    audienceCreditCta: 'Take the Credit Report Card',
+    servicesHeading: 'Your Strategy Determines the Solution. Not the Other Way Around.',
     servicesLead:
-      'Valtoris is a financial-strategy firm. We help you identify risks, understand options, and coordinate solutions across the areas that usually get handled in isolation.',
+      "Depending on what your financial picture reveals, the appropriate strategy may involve one solution or several areas working together.",
     serviceProtectionTitle: 'Protection',
     serviceProtectionBody: 'Life insurance, income protection, and coverage planning.',
     serviceRetirementTitle: 'Retirement',
@@ -153,21 +156,20 @@ export const homeCopy: Record<PublicLocale, HomeCopy> = {
     serviceEstateBody: 'Wills and trust coordination through appropriate providers.',
     serviceTaxTitle: 'Tax Strategy Coordination',
     serviceTaxBody: 'Planning coordination with qualified tax professionals.',
-    processHeading: 'How Valtoris Works',
+    processHeading: 'We Diagnose Before We Prescribe.',
     processLead:
-      'We start with the current picture, then decide what deserves attention first. Implementation follows the priorities that matter to your household or business.',
-    processKicker: 'Diagnose. Prioritize. Strategize.',
+      'Financial products should be tools used to execute a strategy—not the starting point of the conversation.',
+    processKicker: 'Diagnose. Prioritize. Build.',
     processDiagnoseTitle: 'Diagnose',
-    processDiagnoseBody: 'Understand the current picture—what is working, what is unclear, and where risk may be hiding.',
+    processDiagnoseBody: 'Understand where you stand.',
     processPrioritizeTitle: 'Prioritize',
-    processPrioritizeBody: 'Identify which risks and opportunities deserve attention first, based on your goals and timeline.',
-    processStrategizeTitle: 'Strategize',
-    processStrategizeBody:
-      'Build and implement a coordinated plan around those priorities, then review as life, business, and markets change.',
-    diagnosticsHeading: 'Diagnostic tools',
+    processPrioritizeBody: 'Identify what deserves attention first.',
+    processStrategizeTitle: 'Build',
+    processStrategizeBody: 'Create a strategy around your goals.',
+    diagnosticsHeading: 'Financial Report Cards',
     diagnosticsBrand: 'Know Your Score. See Your Risks. Build Your Plan.',
     diagnosticsLead:
-      'Report Cards help you organize your situation and identify areas worth reviewing. They are educational tools—not a substitute for a full strategy conversation.',
+      'Report Cards are Valtoris diagnostic tools. They help you understand your current position—strengths, risks, and priorities—before anyone discusses a solution.',
     diagnosticsFamilyTitle: 'Family Report Card™',
     diagnosticsFamilyBody: 'A household diagnostic across cash flow, protection, retirement, credit, and related foundations.',
     diagnosticsBusinessTitle: 'Business Report Card™',
@@ -199,60 +201,64 @@ export const homeCopy: Record<PublicLocale, HomeCopy> = {
     journeyBusinessCta: 'Explore Business Solutions',
     journeyBusinessDiagnostic: 'Business Report Card™',
     whyHeading: 'Why Valtoris',
-    whyLead: 'A Financial Strategist should help you see how decisions connect—before anyone asks you to implement the next product.',
+    whyLead: "Because your financial life isn't one-dimensional.",
+    whySupport:
+      "You may already have insurance, retirement accounts, credit, debt, student loans, a mortgage or a business. The question isn't simply whether you own financial products. The question is whether they work together toward the life you're trying to build.",
     whyCoordinatedTitle: 'Coordinated Strategy',
     whyCoordinatedBody: 'Your financial decisions should work together rather than exist in separate silos.',
     whyUnderstandTitle: 'Understand Before Implementing',
-    whyUnderstandBody: 'Start with education and diagnosis before recommending the next move.',
+    whyUnderstandBody:
+      'A Financial Strategist starts with education and diagnosis before recommending the next move.',
     whyPrioritiesTitle: 'Built Around Your Priorities',
     whyPrioritiesBody:
       'The strategy should reflect the household or business owner’s actual goals, risks, and timeline.',
     whyReviewTitle: 'Ongoing Review',
     whyReviewBody: 'Financial plans evolve as life, business, markets, and priorities change.',
-    finalHeading: 'Ready to Build a Clearer Financial Strategy?',
+    finalHeading: "You Can't Improve What You Haven't Measured.",
     finalLead:
-      'Meet with Valtoris to talk through your priorities, or start with a Report Card if you want a structured snapshot first.',
-    finalPrimaryCta: 'Book a Meeting',
-    finalSecondaryCta: 'Explore Our Report Cards',
+      'Find out where you stand, understand your priorities and determine what deserves attention next.',
+    finalPrimaryCta: 'Find Out Where I Stand',
+    finalSecondaryCta: 'Book a Meeting',
   },
   es: {
     metaTitle: 'Valtoris Financial | Estrategia financiera para familias y dueños de negocio',
     metaDescription:
-      'Valtoris ayuda a personas, familias y dueños de negocio a coordinar estrategias de protección, retiro, crédito, préstamos estudiantiles, seguros y planificación empresarial.',
+      'Valtoris Financial ayuda a familias y dueños de negocio a entender su panorama financiero completo, identificar riesgos y oportunidades, y construir una estrategia alrededor de lo que más importa.',
     heroEyebrow: 'Valtoris Financial',
-    heroTitle: 'Strategy Today. Security Tomorrow.',
+    heroTitle: 'Tu vida financiera no debería gestionarse en pedazos.',
     heroSupport:
-      'Valtoris ayuda a personas, familias y dueños de negocio a entender sus riesgos financieros, coordinar las estrategias adecuadas y avanzar con un plan más claro.',
-    heroPrimaryCta: 'Explorar nuestros servicios',
+      'Valtoris Financial ayuda a familias y dueños de negocio a entender su panorama financiero completo, identificar sus mayores riesgos y oportunidades, y construir una estrategia alrededor de lo que más importa.',
+    heroBrand: 'Know Your Score. See Your Risks. Build Your Plan.',
+    heroPrimaryCta: 'Descubre en qué punto estás',
     heroSecondaryCta: 'Agendar una reunión',
-    heroTertiaryCta: 'Ver nuestros Report Cards',
-    heroPanelLabel: 'Áreas que ayudamos a coordinar',
-    heroPanelProtection: 'Protección',
-    heroPanelRetirement: 'Jubilación',
-    heroPanelCredit: 'Crédito',
-    heroPanelStudentLoans: 'Préstamos estudiantiles',
-    audienceHeading: 'A quién ayudamos',
+    heroTertiaryCta: 'Explorar soluciones',
+    heroPanelLabel: 'Primero diagnosticamos',
+    heroPanelProtection: 'Diagnosticar',
+    heroPanelRetirement: 'Priorizar',
+    heroPanelCredit: 'Construir',
+    heroPanelStudentLoans: 'Luego coordinar soluciones',
+    audienceHeading: '¿En qué quieres más claridad?',
     audienceLead:
-      'Empieza por el camino que mejor describe tu situación. Cada uno lleva a educación, diagnóstico y un siguiente paso más claro—no a un producto único para todos.',
-    audienceFamiliesTitle: 'Personas y familias',
+      'Elige el diagnóstico que corresponde al panorama que quieres entender primero. Cada Report Card es un punto de partida educativo, no una oferta de producto.',
+    audienceFamiliesTitle: 'Familia',
     audienceFamiliesBody:
-      'Hogares que quieren conectar flujo de efectivo, protección, retiro, crédito y planificación de legado en una sola imagen coordinada.',
-    audienceFamiliesCta: 'Explorar soluciones para familias',
-    audienceBusinessTitle: 'Dueños de negocio',
+      'Entiende las fortalezas, los riesgos y las prioridades financieras de tu hogar.',
+    audienceFamiliesCta: 'Hacer el Family Financial Report Card',
+    audienceBusinessTitle: 'Negocio',
     audienceBusinessBody:
-      'Dueños que necesitan que la empresa y el hogar trabajen juntos: protección, beneficios, continuidad e independencia del propietario.',
-    audienceBusinessCta: 'Explorar soluciones para negocios',
-    audienceStudentTitle: 'Personas con préstamos estudiantiles',
+      'Ve dónde tu negocio puede estar expuesto financieramente y qué merece atención.',
+    audienceBusinessCta: 'Hacer el Business Financial Report Card',
+    audienceStudentTitle: 'Préstamos estudiantiles',
     audienceStudentBody:
-      'Prestatarios que quieren ver con más claridad los tipos de préstamo, las opciones de pago y qué conviene revisar con un Financial Strategist.',
-    audienceStudentCta: 'Empezar el Student Loan Report Card™',
-    audienceCreditTitle: 'Crédito y preparación financiera',
+      'Entiende tu posición de pago, los posibles riesgos y las áreas que conviene investigar.',
+    audienceStudentCta: 'Hacer el Student Loan Report Card',
+    audienceCreditTitle: 'Crédito',
     audienceCreditBody:
-      'Quienes se preparan para una compra, un refinanciamiento u otro paso financiero y buscan educación sobre preparación crediticia—sin resultados prometidos.',
-    audienceCreditCta: 'Empezar el Credit Report Card™',
-    servicesHeading: 'En qué podemos ayudarte',
+      'Entiende los factores que afectan tu perfil de crédito e identifica áreas que pueden merecer atención.',
+    audienceCreditCta: 'Hacer el Credit Report Card',
+    servicesHeading: 'Tu estrategia determina la solución. No al revés.',
     servicesLead:
-      'Valtoris es una firma de estrategia financiera. Te ayudamos a identificar riesgos, entender opciones y coordinar soluciones en las áreas que casi siempre se atienden por separado.',
+      'Según lo que revele tu panorama financiero, la estrategia adecuada puede involucrar una solución o varias áreas trabajando juntas.',
     serviceProtectionTitle: 'Protección',
     serviceProtectionBody: 'Seguros de vida, protección de ingresos y planificación de cobertura.',
     serviceRetirementTitle: 'Jubilación',
@@ -270,23 +276,20 @@ export const homeCopy: Record<PublicLocale, HomeCopy> = {
     serviceEstateBody: 'Coordinación de testamentos y fideicomisos a través de proveedores adecuados.',
     serviceTaxTitle: 'Coordinación de estrategia fiscal',
     serviceTaxBody: 'Coordinación de planificación con profesionales fiscales calificados.',
-    processHeading: 'Cómo trabaja Valtoris',
+    processHeading: 'Diagnosticamos antes de prescribir.',
     processLead:
-      'Empezamos por el panorama actual y luego decidimos qué merece atención primero. La implementación sigue las prioridades de tu hogar o tu negocio.',
-    processKicker: 'Diagnose. Prioritize. Strategize.',
+      'Los productos financieros deben ser herramientas para ejecutar una estrategia, no el punto de partida de la conversación.',
+    processKicker: 'Diagnosticar. Priorizar. Construir.',
     processDiagnoseTitle: 'Diagnosticar',
-    processDiagnoseBody:
-      'Entender el panorama actual: qué está funcionando, qué no está claro y dónde puede haber riesgo.',
+    processDiagnoseBody: 'Entiende en qué punto estás.',
     processPrioritizeTitle: 'Priorizar',
-    processPrioritizeBody:
-      'Identificar qué riesgos y oportunidades merecen atención primero, según tus metas y tu plazo.',
-    processStrategizeTitle: 'Diseñar la estrategia',
-    processStrategizeBody:
-      'Construir e implementar un plan coordinado alrededor de esas prioridades, y revisarlo cuando cambien la vida, el negocio y los mercados.',
-    diagnosticsHeading: 'Herramientas de diagnóstico',
+    processPrioritizeBody: 'Identifica qué merece atención primero.',
+    processStrategizeTitle: 'Construir',
+    processStrategizeBody: 'Crea una estrategia alrededor de tus metas.',
+    diagnosticsHeading: 'Financial Report Cards',
     diagnosticsBrand: 'Know Your Score. See Your Risks. Build Your Plan.',
     diagnosticsLead:
-      'Los Report Cards te ayudan a organizar tu situación e identificar áreas que vale la pena revisar. Son herramientas educativas, no un sustituto de una conversación de estrategia.',
+      'Los Report Cards son herramientas de diagnóstico de Valtoris. Te ayudan a entender tu posición actual—fortalezas, riesgos y prioridades—antes de que alguien converse una solución.',
     diagnosticsFamilyTitle: 'Family Report Card™',
     diagnosticsFamilyBody:
       'Un diagnóstico del hogar que cubre flujo de efectivo, protección, retiro, crédito y bases relacionadas.',
@@ -320,21 +323,23 @@ export const homeCopy: Record<PublicLocale, HomeCopy> = {
     journeyBusinessCta: 'Explorar soluciones para negocios',
     journeyBusinessDiagnostic: 'Business Report Card™',
     whyHeading: 'Por qué Valtoris',
-    whyLead:
-      'Un Financial Strategist debe ayudarte a ver cómo se conectan las decisiones—antes de pedirte que implementes el siguiente producto.',
+    whyLead: 'Porque tu vida financiera no es unidimensional.',
+    whySupport:
+      'Puede que ya tengas seguros, cuentas de retiro, crédito, deudas, préstamos estudiantiles, una hipoteca o un negocio. La pregunta no es simplemente si tienes productos financieros. La pregunta es si trabajan juntos hacia la vida que quieres construir.',
     whyCoordinatedTitle: 'Estrategia coordinada',
     whyCoordinatedBody: 'Tus decisiones financieras deben trabajar juntas, no existir en silos separados.',
     whyUnderstandTitle: 'Entender antes de implementar',
-    whyUnderstandBody: 'Empieza con educación y diagnóstico antes de recomendar el siguiente paso.',
+    whyUnderstandBody:
+      'Un Financial Strategist empieza con educación y diagnóstico antes de recomendar el siguiente paso.',
     whyPrioritiesTitle: 'Basado en tus prioridades',
     whyPrioritiesBody:
       'La estrategia debe reflejar las metas, los riesgos y el plazo reales del hogar o del dueño del negocio.',
     whyReviewTitle: 'Revisión continua',
     whyReviewBody: 'Los planes financieros evolucionan cuando cambian la vida, el negocio, los mercados y las prioridades.',
-    finalHeading: '¿Listo para construir una estrategia financiera más clara?',
+    finalHeading: 'No puedes mejorar lo que no has medido.',
     finalLead:
-      'Reúnete con Valtoris para hablar de tus prioridades, o empieza con un Report Card si quieres primero una foto estructurada.',
-    finalPrimaryCta: 'Agendar una reunión',
-    finalSecondaryCta: 'Ver nuestros Report Cards',
+      'Descubre en qué punto estás, entiende tus prioridades y determina qué merece atención a continuación.',
+    finalPrimaryCta: 'Descubre en qué punto estás',
+    finalSecondaryCta: 'Agendar una reunión',
   },
 }
