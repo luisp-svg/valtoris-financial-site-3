@@ -14,6 +14,7 @@ import {
   computeDaysInStage,
   getWritingAdvisorIds,
   isFollowUpOverdue,
+  isFollowUpToday,
   isProductionTerminalStage,
   isStaleDaysInStage,
 } from './daysInStage'
@@ -78,6 +79,7 @@ const APPROVED_CLIENT_SET = new Set<string>(CASE_APPROVED_CLIENT_STAGES)
 
 export type CaseAttentionFlags = {
   overdueFollowUp: boolean
+  followUpToday: boolean
   staleInStage: boolean
   issuedDeliveryIncomplete: boolean
   overdueRequirementCount: number
@@ -167,6 +169,7 @@ export function caseAttentionFlags(
   })
   return {
     overdueFollowUp: isFollowUpOverdue(item.next_follow_up_date, now),
+    followUpToday: isFollowUpToday(item.next_follow_up_date, now),
     staleInStage: isStaleDaysInStage(days),
     issuedDeliveryIncomplete: isIssuedDeliveryIncomplete(item),
     overdueRequirementCount: caseHasOverdueRequirement(item)
@@ -351,6 +354,7 @@ export function formatCaseAttentionLabels(
 ): string[] {
   const labels: string[] = []
   if (flags.overdueFollowUp) labels.push('Overdue follow-up')
+  else if (flags.followUpToday) labels.push('Follow-up today')
   if (flags.staleInStage) labels.push('Stale in stage')
   if (flags.issuedDeliveryIncomplete) {
     labels.push(

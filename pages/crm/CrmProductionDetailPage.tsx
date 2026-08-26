@@ -1,20 +1,28 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import CaseAttentionFlagList from '../../crm/production/CaseAttentionFlagList'
+import CaseNextActionPanel from '../../crm/production/CaseNextActionPanel'
 import {
   caseAttentionFlags,
   formatCaseAttentionLabels,
   formatCaseDeliveryStatusLabel,
   formatCaseProductLineLabel,
   formatCaseStageLabel,
+  isClosedPolicyCase,
+  isOpenPolicyCase,
 } from '../../crm/production/caseWorkspace'
+import { deriveCaseNextAction, type CaseRequirementsLoadState } from '../../crm/production/caseNextAction'
 import {
   computeDaysInStage,
+  formatDaysInStageLabel,
+  formatFollowUpStateLabel,
   formatMemberDisplayName,
+  followUpState,
   getActiveLinkedPolicy,
   getCurrentAllocations,
   getCurrentParticipants,
-  isFollowUpOverdue,
+  getInsuredOrAnnuitantLabel,
+  getWritingAdvisorLabel,
   isStaleDaysInStage,
 } from '../../crm/production/daysInStage'
 import {
@@ -93,6 +101,9 @@ export default function CrmProductionDetailPage() {
   const [pendingAction, setPendingAction] = useState<StageTransitionAction | null>(null)
   const [stageSubmitting, setStageSubmitting] = useState(false)
   const [stageError, setStageError] = useState<string | null>(null)
+  const [requirementsState, setRequirementsState] = useState<CaseRequirementsLoadState>({
+    status: 'loading',
+  })
 
   useEffect(() => {
     let cancelled = false
@@ -108,6 +119,7 @@ export default function CrmProductionDetailPage() {
         setPendingAction(null)
         setStageSubmitting(false)
         setStageError(null)
+        setRequirementsState({ status: 'loading' })
       try {
         const supabase = createSupabaseBrowserClient()
         const result = await fetchProductionApplicationById(supabase, applicationId)
@@ -236,8 +248,19 @@ export default function CrmProductionDetailPage() {
     now,
   })
   const stale = isStaleDaysInStage(days)
-  const overdue = isFollowUpOverdue(application.next_follow_up_date, now)
+  const followState = followUpState(application.next_follow_up_date, now)
   const attention = formatCaseAttentionLabels(caseAttentionFlags(application, now), application.product_line)
+  const nextAction = deriveCaseNextAction({
+    productionStage: application.production_stage,
+    productLine: application.product_line,
+    deliveryStatus: application.delivery_status,
+    submissionDate: application.submission_date,
+    deletedAt: application.deleted_at,
+    nextFollowUpDate: application.next_follow_up_date,
+    requirements: requirementsState,
+    overdueRequirementCount: application.overdue_requirement_count,
+    now,
+  })
   const linked = getActiveLinkedPolicy(application)
   const lifecycle = policyLifecycleDetailModel(application)
   const participants = getCurrentParticipants(application.participants)
@@ -298,6 +321,38 @@ export default function CrmProductionDetailPage() {
             {application.carrier?.name ?? 'Carrier'} · {application.product?.name ?? 'Product'} ·{' '}
             {formatCaseProductLineLabel(application.product_line)}
           </p>
+          <dl className="crm-case-header-meta">
+            <div>
+              <dt>{isFia ? 'Annuitant' : 'Insured'}</dt>
+              <dd>{getInsuredOrAnnuitantLabel(application)}</dd>
+            </div>
+            <div>
+              <dt>Writing advisor</dt>
+              <dd>{getWritingAdvisorLabel(application)}</dd>
+            </div>
+            <div>
+              <dt>Days in stage</dt>
+              <dd>
+                {formatDaysInStageLabel(days)}
+                {stale ? ` · ${PRODUCTION_STALE_DAYS_IN_STAGE}+ days in stage` : ''}
+              </dd>
+            </div>
+            {application.opportunity_id ? (
+              <div>
+                <dt>Opportunity</dt>
+                <dd>
+                  <Link to={crmOpportunityPath(application.opportunity_id)} className="crm-opportunities-secondary-link">
+                    {application.linked_opportunity?.title?.trim() || 'Open Opportunity'}
+                  </Link>
+                </dd>
+              </div>
+            ) : (
+              <div>
+                <dt>Opportunity</dt>
+                <dd>None linked</dd>
+              </div>
+            )}
+          </dl>
         </div>
         <div className="crm-production-header-actions">
           <StageBadge stage={application.production_stage} surface="case" />
@@ -323,60 +378,16 @@ export default function CrmProductionDetailPage() {
         </div>
       ) : null}
 
-      <section className="crm-panel" aria-labelledby="pp-summary-heading">
-        <div className="crm-panel-head">
-          <h2 id="pp-summary-heading">Case summary</h2>
+      {isClosedPolicyCase(application) ? (
+        <div className="crm-banner" role="status">
+          Closed Case — {formatCaseStageLabel(application.production_stage)}. This remains a
+          historical Case.
         </div>
-        <p className="crm-muted">
-          This application is the Case record. Track administrative carrier requirements in the
-          section below. Application-scoped tasks and documents remain household-level for now.
-        </p>
-        <CaseAttentionFlagList labels={attention} />
-        <dl className="crm-production-detail-grid">
-          <div>
-            <dt>Stage</dt>
-            <dd>{formatCaseStageLabel(application.production_stage)}</dd>
-          </div>
-          <div>
-            <dt>Days in stage</dt>
-            <dd>
-              {days}
-              {stale ? ` · ${PRODUCTION_STALE_DAYS_IN_STAGE}+ days in stage` : ''}
-              <span className="crm-muted">
-                {' '}
-                (
-                {daysSource === 'stage_history'
-                  ? 'from stage history'
-                  : 'fallback: last update'}
-                )
-              </span>
-            </dd>
-          </div>
-          <div>
-            <dt>Next follow-up</dt>
-            <dd className={overdue ? 'crm-production-overdue' : undefined}>
-              {formatProductionDate(application.next_follow_up_date)}
-              {overdue ? ' (overdue)' : ''}
-            </dd>
-          </div>
-          <div>
-            <dt>Last update</dt>
-            <dd>{formatProductionDateTime(application.updated_at)}</dd>
-          </div>
-          <div>
-            <dt>State</dt>
-            <dd>{application.state || '—'}</dd>
-          </div>
-          <div>
-            <dt>Replacement / exchange</dt>
-            <dd>
-              {application.is_replacement ? 'Replacement' : 'Not a replacement'}
-              {' · '}
-              {application.is_exchange_or_transfer ? 'Exchange/transfer' : 'No exchange/transfer'}
-            </dd>
-          </div>
-        </dl>
-      </section>
+      ) : null}
+
+      {isOpenPolicyCase(application) ? <CaseAttentionFlagList labels={attention} /> : null}
+
+      <CaseNextActionPanel action={nextAction} />
 
       <CaseOperationsSection
         application={application}
@@ -391,7 +402,78 @@ export default function CrmProductionDetailPage() {
         deletedAt={application.deleted_at}
         submissionDate={application.submission_date}
         role={role}
+        onRequirementsStateChange={setRequirementsState}
       />
+
+      <section className="crm-panel" aria-labelledby="pp-progress-heading">
+        <div className="crm-panel-head">
+          <h2 id="pp-progress-heading">Case progress</h2>
+        </div>
+        <dl className="crm-production-detail-grid">
+          <div>
+            <dt>Current stage</dt>
+            <dd>{formatCaseStageLabel(application.production_stage)}</dd>
+          </div>
+          <div>
+            <dt>Days in stage</dt>
+            <dd>
+              {formatDaysInStageLabel(days)}
+              {stale ? ` · ${PRODUCTION_STALE_DAYS_IN_STAGE}+ days in stage` : ''}
+              <span className="crm-muted">
+                {' '}
+                (
+                {daysSource === 'stage_history'
+                  ? 'from stage history'
+                  : 'fallback: last update'}
+                )
+              </span>
+            </dd>
+          </div>
+          <div>
+            <dt>Next follow-up</dt>
+            <dd
+              className={
+                followState === 'overdue'
+                  ? 'crm-production-overdue'
+                  : followState === 'today'
+                    ? 'crm-case-follow-up-today'
+                    : undefined
+              }
+            >
+              {formatProductionDate(application.next_follow_up_date)}
+              {followState !== 'future' ? ` (${formatFollowUpStateLabel(followState)})` : ''}
+            </dd>
+          </div>
+          <div>
+            <dt>Underwriting disposition</dt>
+            <dd>{formatProductionDispositionLabel(application.underwriting_disposition)}</dd>
+          </div>
+          <div>
+            <dt>{formatCaseDeliveryStatusLabel(application.product_line)}</dt>
+            <dd>{formatProductionDeliveryLabel(application.delivery_status)}</dd>
+          </div>
+          <div>
+            <dt>Submitted</dt>
+            <dd>{formatProductionDate(application.submission_date)}</dd>
+          </div>
+          <div>
+            <dt>Decision</dt>
+            <dd>{formatProductionDate(application.decision_date)}</dd>
+          </div>
+          <div>
+            <dt>Issue</dt>
+            <dd>{formatProductionDate(application.issue_date)}</dd>
+          </div>
+          <div>
+            <dt>In force</dt>
+            <dd>{formatProductionDate(application.in_force_date)}</dd>
+          </div>
+          <div>
+            <dt>Production month</dt>
+            <dd>{formatProductionDate(application.production_month)}</dd>
+          </div>
+        </dl>
+      </section>
 
       <StageTransitionPanel
         application={application}
@@ -521,6 +603,14 @@ export default function CrmProductionDetailPage() {
             <dt>Application state</dt>
             <dd>{application.state || '—'}</dd>
           </div>
+          <div>
+            <dt>Replacement / exchange</dt>
+            <dd>
+              {application.is_replacement ? 'Replacement' : 'Not a replacement'}
+              {' · '}
+              {application.is_exchange_or_transfer ? 'Exchange/transfer' : 'No exchange/transfer'}
+            </dd>
+          </div>
         </dl>
       </section>
 
@@ -558,6 +648,38 @@ export default function CrmProductionDetailPage() {
         <p className="crm-muted">
           Production points (scaled): {application.total_points_scaled ?? '—'}
         </p>
+      </section>
+
+      <section className="crm-panel" aria-labelledby="pp-ids-heading">
+        <div className="crm-panel-head">
+          <h2 id="pp-ids-heading">Identifiers</h2>
+        </div>
+        <dl className="crm-production-detail-grid">
+          <div>
+            <dt>Application number</dt>
+            <dd>{application.application_number ?? '—'}</dd>
+          </div>
+          <div>
+            <dt>Application policy number</dt>
+            <dd>{application.policy_number ?? '—'}</dd>
+          </div>
+          <div>
+            <dt>Linked issued policy</dt>
+            <dd>
+              {linked
+                ? `${linked.policy_number ?? 'No policy number'} (${linked.id})`
+                : 'None'}
+            </dd>
+          </div>
+          <div>
+            <dt>Linked policy status</dt>
+            <dd>
+              {isPlacedApplication(application) && lifecycle.statusLabel
+                ? lifecycle.statusLabel
+                : (linked?.status ?? '—')}
+            </dd>
+          </div>
+        </dl>
       </section>
 
       <section className="crm-panel" aria-labelledby="pp-alloc-heading">
@@ -609,101 +731,12 @@ export default function CrmProductionDetailPage() {
         onSaved={() => setReloadKey((n) => n + 1)}
       />
 
-      <section className="crm-panel" aria-labelledby="pp-ids-heading">
-        <div className="crm-panel-head">
-          <h2 id="pp-ids-heading">Identifiers</h2>
-        </div>
-        <dl className="crm-production-detail-grid">
-          <div>
-            <dt>Application number</dt>
-            <dd>{application.application_number ?? '—'}</dd>
-          </div>
-          <div>
-            <dt>Application policy number</dt>
-            <dd>{application.policy_number ?? '—'}</dd>
-          </div>
-          <div>
-            <dt>Linked issued policy</dt>
-            <dd>
-              {linked
-                ? `${linked.policy_number ?? 'No policy number'} (${linked.id})`
-                : 'None'}
-            </dd>
-          </div>
-          <div>
-            <dt>Linked policy status</dt>
-            <dd>
-              {isPlacedApplication(application) && lifecycle.statusLabel
-                ? lifecycle.statusLabel
-                : (linked?.status ?? '—')}
-            </dd>
-          </div>
-        </dl>
-      </section>
-
-      <section className="crm-panel" aria-labelledby="pp-dates-heading">
-        <div className="crm-panel-head">
-          <h2 id="pp-dates-heading">Production dates</h2>
-        </div>
-        <dl className="crm-production-detail-grid">
-          <div>
-            <dt>Submitted</dt>
-            <dd>{formatProductionDate(application.submission_date)}</dd>
-          </div>
-          <div>
-            <dt>Decision</dt>
-            <dd>{formatProductionDate(application.decision_date)}</dd>
-          </div>
-          <div>
-            <dt>Issue</dt>
-            <dd>{formatProductionDate(application.issue_date)}</dd>
-          </div>
-          <div>
-            <dt>In force</dt>
-            <dd>{formatProductionDate(application.in_force_date)}</dd>
-          </div>
-          <div>
-            <dt>Production month</dt>
-            <dd>{formatProductionDate(application.production_month)}</dd>
-          </div>
-          <div>
-            <dt>Created</dt>
-            <dd>{formatProductionDateTime(application.created_at)}</dd>
-          </div>
-        </dl>
-      </section>
-
-      <section className="crm-panel" aria-labelledby="pp-status-heading">
-        <div className="crm-panel-head">
-          <h2 id="pp-status-heading">Approval / issue / delivery / in force</h2>
-        </div>
-        <dl className="crm-production-detail-grid">
-          <div>
-            <dt>Underwriting disposition</dt>
-            <dd>{formatProductionDispositionLabel(application.underwriting_disposition)}</dd>
-          </div>
-          <div>
-            <dt>{formatCaseDeliveryStatusLabel(application.product_line)}</dt>
-            <dd>{formatProductionDeliveryLabel(application.delivery_status)}</dd>
-          </div>
-          <div>
-            <dt>Production stage</dt>
-            <dd>{formatProductionStageLabel(application.production_stage)}</dd>
-          </div>
-        </dl>
-        <p className="crm-muted">
-          Stage, delivery, and in-force actions stay in this Case workspace. Edit Application
-          changes application details only. Issued and in-force historical corrections are not
-          handled there.
-        </p>
-      </section>
-
       <section className="crm-panel" aria-labelledby="pp-history-heading">
         <div className="crm-panel-head">
-          <h2 id="pp-history-heading">Stage history</h2>
+          <h2 id="pp-history-heading">Activity / history</h2>
         </div>
         {history.length === 0 ? (
-          <p className="crm-muted">No stage-history rows are available for this application.</p>
+          <p className="crm-muted">No recent Case activity.</p>
         ) : (
           <ol className="crm-production-timeline">
             {history.map((entry) => (

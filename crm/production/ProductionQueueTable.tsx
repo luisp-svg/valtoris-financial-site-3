@@ -1,4 +1,6 @@
 import { Link } from 'react-router-dom'
+import { CaseNextActionLine } from './CaseNextActionPanel'
+import { deriveCaseNextAction } from './caseNextAction'
 import CaseAttentionFlagList from './CaseAttentionFlagList'
 import {
   caseAttentionFlags,
@@ -15,10 +17,10 @@ import {
 } from './compensationView'
 import {
   computeDaysInStage,
+  followUpState,
   getActiveLinkedPolicy,
   getInsuredOrAnnuitantLabel,
   getWritingAdvisorLabel,
-  isFollowUpOverdue,
   isStaleDaysInStage,
 } from './daysInStage'
 import {
@@ -92,8 +94,19 @@ export default function ProductionQueueTable({
               now: asOf,
             })
             const stale = isStaleDaysInStage(days)
-            const overdue = isFollowUpOverdue(item.next_follow_up_date, asOf)
+            const followState = followUpState(item.next_follow_up_date, asOf)
             const attention = formatCaseAttentionLabels(caseAttentionFlags(item, asOf), item.product_line)
+            const nextAction = deriveCaseNextAction({
+              productionStage: item.production_stage,
+              productLine: item.product_line,
+              deliveryStatus: item.delivery_status,
+              submissionDate: item.submission_date,
+              deletedAt: item.deleted_at,
+              nextFollowUpDate: item.next_follow_up_date,
+              requirements: { status: 'unavailable' },
+              overdueRequirementCount: item.overdue_requirement_count,
+              now: asOf,
+            })
             const linked = getActiveLinkedPolicy(item)
             const policyNumber = linked?.policy_number ?? item.policy_number
             const expected = deriveExpectedListPresentation({
@@ -126,6 +139,7 @@ export default function ProductionQueueTable({
                     </div>
                   ) : null}
                   <CaseAttentionFlagList labels={attention} />
+                  <CaseNextActionLine action={nextAction} />
                   {linked ? (
                     <span className="crm-production-linked-pill" title="Linked issued policy">
                       Linked policy
@@ -183,10 +197,23 @@ export default function ProductionQueueTable({
                 )}
                 <td>{formatProductionDateTime(item.updated_at)}</td>
                 <td>
-                  <span className={overdue ? 'crm-production-overdue' : undefined}>
+                  <span
+                    className={
+                      followState === 'overdue'
+                        ? 'crm-production-overdue'
+                        : followState === 'today'
+                          ? 'crm-case-follow-up-today'
+                          : undefined
+                    }
+                  >
                     {formatProductionDate(item.next_follow_up_date)}
                   </span>
-                  {overdue ? <div className="crm-production-stale-note">Follow-up overdue</div> : null}
+                  {followState === 'overdue' ? (
+                    <div className="crm-production-stale-note">Follow-up overdue</div>
+                  ) : null}
+                  {followState === 'today' ? (
+                    <div className="crm-production-stale-note">Follow-up today</div>
+                  ) : null}
                 </td>
                 <td>
                   <div>{formatProductionDeliveryLabel(item.delivery_status)}</div>

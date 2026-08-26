@@ -18,7 +18,7 @@ import {
 } from './caseOperationsView'
 import { saveCaseOperations } from './applicationApi'
 import { createSupabaseBrowserClient } from '../../lib/supabase/client'
-import { isFollowUpOverdue } from './daysInStage'
+import { followUpState, formatFollowUpStateLabel } from './daysInStage'
 
 type CaseOperationsSectionProps = {
   application: ProductionApplicationDetail
@@ -52,7 +52,7 @@ export default function CaseOperationsSection({
   if (!canShowCaseOperations(eligibility)) return null
 
   const dirty = isCaseOperationsDirty(original, draft)
-  const overdue = isFollowUpOverdue(draft.nextFollowUpDate || null, new Date())
+  const followState = followUpState(application.next_follow_up_date, new Date())
   const deliveryLabel = formatCaseDeliveryStatusLabel(application.product_line)
   const issuedNotRequired =
     application.production_stage === 'issued' && application.delivery_status === 'not_required'
@@ -133,9 +133,17 @@ export default function CaseOperationsSection({
                 disabled={submitting}
               />
             </label>
-            <p className={overdue ? 'crm-production-overdue' : 'crm-muted'}>
-              Current: {formatProductionDate(application.next_follow_up_date)}
-              {overdue ? ' (overdue)' : ''}
+            <p
+              className={
+                followState === 'overdue'
+                  ? 'crm-production-overdue'
+                  : followState === 'today'
+                    ? 'crm-case-follow-up-today'
+                    : 'crm-muted'
+              }
+            >
+              Current: {formatProductionDate(application.next_follow_up_date)} (
+              {formatFollowUpStateLabel(followState)})
             </p>
             <button
               type="button"

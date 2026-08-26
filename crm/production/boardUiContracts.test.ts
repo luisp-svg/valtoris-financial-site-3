@@ -27,7 +27,11 @@ describe('Phase B production board contracts', () => {
     expect(queuePage).toContain("viewMode === 'table'")
     expect(queuePage).toContain('onChange={setViewMode}')
     expect(queuePage).not.toMatch(/setViewMode\([^)]*(setFilters|resetFilters)/)
-    expect(queuePage).toMatch(/useEffect\([\s\S]*, \[reloadKey\]\)/)
+    // Production must reload when reloadKey changes and when the authenticated
+    // advisor/profile identity becomes available or changes (My Cases uses it).
+    expect(queuePage).toContain('fetchCurrentAdvisorProfileId(supabase, profile?.id ?? user?.id)')
+    expect(queuePage).toContain('}, [reloadKey, profile?.id, user?.id])')
+    expect(queuePage).not.toContain('}, [reloadKey])')
     expect(queuePage).not.toMatch(/useEffect\([\s\S]*, \[[^\]]*viewMode/)
     expect(queuePage).toContain('buildProductionDashboard(filteredItems, { period: productionPeriod, today })')
     expect(queuePage).not.toMatch(/buildProductionDashboard\([^)]*caseItems/)

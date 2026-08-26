@@ -53,15 +53,46 @@ export function isStaleDaysInStage(daysInStage: number): boolean {
   return daysInStage >= PRODUCTION_STALE_DAYS_IN_STAGE
 }
 
+export type FollowUpState = 'none' | 'overdue' | 'today' | 'future'
+
+export function followUpState(
+  nextFollowUpDate: string | null | undefined,
+  now: Date = new Date(),
+): FollowUpState {
+  if (!nextFollowUpDate) return 'none'
+  const followUp = parseDateOnlyUtc(nextFollowUpDate)
+  if (!followUp) return 'none'
+  const today = startOfUtcDay(now)
+  const followUpMs = followUp.getTime()
+  const todayMs = today.getTime()
+  if (followUpMs < todayMs) return 'overdue'
+  if (followUpMs === todayMs) return 'today'
+  return 'future'
+}
+
 export function isFollowUpOverdue(
   nextFollowUpDate: string | null | undefined,
   now: Date = new Date(),
 ): boolean {
-  if (!nextFollowUpDate) return false
-  const followUp = parseDateOnlyUtc(nextFollowUpDate)
-  if (!followUp) return false
-  const today = startOfUtcDay(now)
-  return followUp.getTime() < today.getTime()
+  return followUpState(nextFollowUpDate, now) === 'overdue'
+}
+
+export function isFollowUpToday(
+  nextFollowUpDate: string | null | undefined,
+  now: Date = new Date(),
+): boolean {
+  return followUpState(nextFollowUpDate, now) === 'today'
+}
+
+export function formatFollowUpStateLabel(state: FollowUpState): string {
+  if (state === 'overdue') return 'Overdue'
+  if (state === 'today') return 'Today'
+  if (state === 'future') return 'Scheduled'
+  return 'No follow-up scheduled'
+}
+
+export function formatDaysInStageLabel(days: number): string {
+  return days === 1 ? '1 day' : `${days} days`
 }
 
 function parseDateOnlyUtc(value: string): Date | null {

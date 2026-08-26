@@ -8,10 +8,13 @@ import {
   caseAttentionFlags,
   caseNeedsAttention,
 } from './caseWorkspace'
+import { compactCaseNextActionLine, deriveCaseNextAction } from './caseNextAction'
 import {
   computeDaysInStage,
+  followUpState,
   getInsuredOrAnnuitantLabel,
   getWritingAdvisorLabel,
+  type FollowUpState,
 } from './daysInStage'
 import { formatProductionDate } from './productionApi'
 import { formatPlacedCaseLifecycleBadge } from './policyLifecycle'
@@ -30,6 +33,8 @@ export type HouseholdCaseRow = {
   stage: string
   lifecycleBadge: string | null
   followUp: string
+  followUpState: FollowUpState
+  nextActionLine: string | null
   submitted: string
   writingAdvisors: string
   amount: string
@@ -67,6 +72,17 @@ export function mapHouseholdCaseRow(
     updatedAt: application.updated_at,
     now,
   })
+  const nextAction = deriveCaseNextAction({
+    productionStage: application.production_stage,
+    productLine: application.product_line,
+    deliveryStatus: application.delivery_status,
+    submissionDate: application.submission_date,
+    deletedAt: application.deleted_at,
+    nextFollowUpDate: application.next_follow_up_date,
+    requirements: { status: 'unavailable' },
+    overdueRequirementCount: application.overdue_requirement_count,
+    now,
+  })
   return {
     id: application.id,
     section: open ? 'open' : 'closed',
@@ -80,6 +96,8 @@ export function mapHouseholdCaseRow(
     stage: formatCaseStageLabel(application.production_stage),
     lifecycleBadge: formatPlacedCaseLifecycleBadge(application),
     followUp: formatProductionDate(application.next_follow_up_date),
+    followUpState: followUpState(application.next_follow_up_date, now),
+    nextActionLine: open ? compactCaseNextActionLine(nextAction) : null,
     submitted: formatProductionDate(application.submission_date),
     writingAdvisors: getWritingAdvisorLabel(application),
     amount: formatCaseAmount(application),

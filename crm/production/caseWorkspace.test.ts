@@ -180,6 +180,7 @@ describe('needs attention', () => {
     expect(caseNeedsAttention(current, now)).toBe(false)
     expect(caseAttentionFlags(current, now)).toEqual({
       overdueFollowUp: false,
+      followUpToday: false,
       staleInStage: false,
       issuedDeliveryIncomplete: false,
       overdueRequirementCount: 0,
@@ -194,6 +195,20 @@ describe('needs attention', () => {
       next_follow_up_date: '2026-08-01',
     })
     expect(caseNeedsAttention(placed, now)).toBe(false)
+  })
+
+  it('surfaces follow-up today without putting it into Needs Attention', () => {
+    const todayFollowUp = item({
+      id: 'today',
+      production_stage: 'approved',
+      next_follow_up_date: '2026-08-20',
+      updated_at: '2026-08-18T00:00:00.000Z',
+    })
+    expect(caseNeedsAttention(todayFollowUp, now)).toBe(false)
+    expect(caseAttentionFlags(todayFollowUp, now).followUpToday).toBe(true)
+    expect(formatCaseAttentionLabels(caseAttentionFlags(todayFollowUp, now), 'life_term')).toEqual([
+      'Follow-up today',
+    ])
   })
 
   it('flags an open Case with an overdue persisted requirement', () => {

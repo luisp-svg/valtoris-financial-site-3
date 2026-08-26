@@ -9,6 +9,8 @@ import {
   historyVisibleForRequirement,
   isOpenRequirementOverdue,
   overdueRequirementCountsByApplicationId,
+  partitionRequirementRows,
+  pickBlockingRequirement,
   previewCommonRequirements,
   requirementCalendarToday,
   requirementDisplayLabel,
@@ -160,6 +162,27 @@ describe('overdue requirement rule', () => {
     expect(formatOverdueRequirementLabel(1)).toBe('Overdue requirement')
     expect(formatOverdueRequirementLabel(2)).toBe('2 overdue requirements')
     expect(requirementCalendarToday(new Date('2026-08-20T15:00:00.000Z'))).toBe('2026-08-20')
+  })
+
+  it('partitions overdue, outstanding, and completed without treating complete as blocking', () => {
+    const rows: RequirementRow[] = [
+      row({ id: 'late', status: 'open', due_date: '2026-08-01' }),
+      row({ id: 'open', status: 'open', due_date: '2026-08-28' }),
+      row({ id: 'done', status: 'complete', due_date: '2026-08-01' }),
+      row({ id: 'waived', status: 'waived', due_date: '2026-08-01' }),
+    ]
+    const grouped = partitionRequirementRows(rows, '2026-08-20')
+    expect(grouped.overdue.map((item) => item.id)).toEqual(['late'])
+    expect(grouped.outstanding.map((item) => item.id)).toEqual(['open'])
+    expect(grouped.completed.map((item) => item.id)).toEqual(['done', 'waived'])
+    expect(pickBlockingRequirement(rows, '2026-08-20')?.row.id).toBe('late')
+    expect(
+      pickBlockingRequirement(
+        rows.filter((item) => item.id !== 'late'),
+        '2026-08-20',
+      )?.row.id,
+    ).toBe('open')
+    expect(pickBlockingRequirement([row({ id: 'done', status: 'complete' })], '2026-08-20')).toBeNull()
   })
 })
 

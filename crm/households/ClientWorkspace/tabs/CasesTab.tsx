@@ -22,10 +22,38 @@ function CaseRow({ row }: { row: HouseholdCaseRow }) {
         {row.productLine} · {row.lifecycleBadge ?? row.stage}
       </p>
       <CaseAttentionFlagList labels={row.attentionLabels} />
+      {row.nextActionLine ? (
+        <p className="crm-case-next-action-line">
+          <span className="crm-case-next-action-kicker">Next</span>
+          {row.nextActionLine}
+        </p>
+      ) : null}
       <p className="crm-household-case-amount">{row.amount}</p>
       <p className="crm-task-meta">
         Submitted {row.submitted}
-        {row.followUp ? ` · Follow-up ${row.followUp}` : ''}
+        {row.followUpState === 'none' ? (
+          ' · No follow-up scheduled'
+        ) : (
+          <>
+            {' · Follow-up '}
+            <span
+              className={
+                row.followUpState === 'overdue'
+                  ? 'crm-production-overdue'
+                  : row.followUpState === 'today'
+                    ? 'crm-case-follow-up-today'
+                    : undefined
+              }
+            >
+              {row.followUp}
+              {row.followUpState === 'overdue'
+                ? ' (overdue)'
+                : row.followUpState === 'today'
+                  ? ' (today)'
+                  : ''}
+            </span>
+          </>
+        )}
         {row.applicationNumber ? ` · App ${row.applicationNumber}` : ''}
         {row.policyNumber ? ` · Policy ${row.policyNumber}` : ''}
       </p>

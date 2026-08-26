@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom'
+import { CaseNextActionLine } from './CaseNextActionPanel'
 import CaseAttentionFlagList from './CaseAttentionFlagList'
+import { deriveCaseNextAction } from './caseNextAction'
 import {
   caseAttentionFlags,
   formatCaseAmount,
@@ -16,10 +18,10 @@ import {
 } from './compensationView'
 import {
   computeDaysInStage,
+  followUpState,
   getActiveLinkedPolicy,
   getInsuredOrAnnuitantLabel,
   getWritingAdvisorLabel,
-  isFollowUpOverdue,
   isStaleDaysInStage,
 } from './daysInStage'
 import {
@@ -62,8 +64,19 @@ export default function ProductionQueueCards({
           now: asOf,
         })
         const stale = isStaleDaysInStage(days)
-            const overdue = isFollowUpOverdue(item.next_follow_up_date, asOf)
+            const followState = followUpState(item.next_follow_up_date, asOf)
             const attention = formatCaseAttentionLabels(caseAttentionFlags(item, asOf), item.product_line)
+            const nextAction = deriveCaseNextAction({
+              productionStage: item.production_stage,
+              productLine: item.product_line,
+              deliveryStatus: item.delivery_status,
+              submissionDate: item.submission_date,
+              deletedAt: item.deleted_at,
+              nextFollowUpDate: item.next_follow_up_date,
+              requirements: { status: 'unavailable' },
+              overdueRequirementCount: item.overdue_requirement_count,
+              now: asOf,
+            })
             const linked = getActiveLinkedPolicy(item)
         const expected = deriveExpectedListPresentation({
           viewer,
@@ -98,6 +111,7 @@ export default function ProductionQueueCards({
                   </p>
                 ) : null}
                 <CaseAttentionFlagList labels={attention} />
+                <CaseNextActionLine action={nextAction} />
                 <dl className="crm-opportunities-card-meta">
                   {hideCompensation ? (
                     <div>
@@ -129,9 +143,21 @@ export default function ProductionQueueCards({
                   ) : null}
                   <div>
                     <dt>Follow-up</dt>
-                    <dd className={overdue ? 'crm-production-overdue' : undefined}>
+                    <dd
+                      className={
+                        followState === 'overdue'
+                          ? 'crm-production-overdue'
+                          : followState === 'today'
+                            ? 'crm-case-follow-up-today'
+                            : undefined
+                      }
+                    >
                       {formatProductionDate(item.next_follow_up_date)}
-                      {overdue ? ' (overdue)' : ''}
+                      {followState === 'overdue'
+                        ? ' (overdue)'
+                        : followState === 'today'
+                          ? ' (today)'
+                          : ''}
                     </dd>
                   </div>
                   <div>

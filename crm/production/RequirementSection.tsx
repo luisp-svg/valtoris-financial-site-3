@@ -29,6 +29,7 @@ import {
   canSoftDeleteRequirement,
   historyVisibleForRequirement,
   isOpenRequirementOverdue,
+  partitionRequirementRows,
   previewCommonRequirements,
   requirementCalendarToday,
   requirementDisplayLabel,
@@ -40,6 +41,7 @@ import {
 } from './requirementView'
 import { formatProductionDate, formatProductionDateTime } from './productionApi'
 import { isOpenPolicyCase } from './caseWorkspace'
+import type { CaseRequirementsLoadState } from './caseNextAction'
 import { createSupabaseBrowserClient } from '../../lib/supabase/client'
 
 type RequirementSectionProps = {
@@ -49,6 +51,7 @@ type RequirementSectionProps = {
   deletedAt: string | null
   submissionDate: string | null
   role: CrmSupportedRole | null
+  onRequirementsStateChange?: (state: CaseRequirementsLoadState) => void
 }
 
 type Prompt =
@@ -73,6 +76,7 @@ export default function RequirementSection({
   deletedAt,
   submissionDate,
   role,
+  onRequirementsStateChange,
 }: RequirementSectionProps) {
   const canMutate = canMutateRequirements({ stage: productionStage, deletedAt })
   const canDelete = canSoftDeleteRequirement(role)
@@ -110,6 +114,7 @@ export default function RequirementSection({
     ])
     setRows(nextRows)
     setHistory(nextHistory)
+    onRequirementsStateChange?.({ status: 'ready', rows: nextRows })
   }
 
   useEffect(() => {
@@ -117,6 +122,7 @@ export default function RequirementSection({
     ;(async () => {
       setLoading(true)
       setError(null)
+      onRequirementsStateChange?.({ status: 'loading' })
       try {
         const supabase = createSupabaseBrowserClient()
         const [nextRows, nextHistory] = await Promise.all([
@@ -126,8 +132,15 @@ export default function RequirementSection({
         if (cancelled) return
         setRows(nextRows)
         setHistory(nextHistory)
+        onRequirementsStateChange?.({ status: 'ready', rows: nextRows })
       } catch (err) {
-        if (!cancelled) setError(formatRequirementUserError(err) || REQUIREMENT_LOAD_ERROR)
+        if (!cancelled) {
+          setError(formatRequirementUserError(err) || REQUIREMENT_LOAD_ERROR)
+          onRequirementsStateChange?.({
+            status: 'error',
+            message: formatRequirementUserError(err) || REQUIREMENT_LOAD_ERROR,
+          })
+        }
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -135,7 +148,7 @@ export default function RequirementSection({
     return () => {
       cancelled = true
     }
-  }, [applicationId])
+  }, [applicationId, onRequirementsStateChange])
 
   function closePrompt() {
     if (pending) return
@@ -308,9 +321,134 @@ export default function RequirementSection({
     }
   }
 
+  function renderRequirementCard(row: RequirementRow) {
+    const actions = requirementStatusActions(row.status)
+    const entries = historyVisibleForRequirement(history, row.id)
+    const historyOpen = openHistory === row.id
+    return (
+      <li key={row.id} className="crm-requirement-card">
+        <div className="crm-requirement-card-head">
+          <strong>{requirementDisplayLabel(row)}</strong>
+          <span className={`crm-requirement-status crm-requirement-status-${row.status}`}>
+            {formatRequirementStatusLabel(row.status)}
+          </span>
+        </div>
+        <dl className="crm-requirement-meta">
+          {row.due_date ? (
+            <div>
+              <dt>Due</dt>
+              <dd>
+                {formatProductionDate(row.due_date)}
+                {caseOpen && isOpenRequirementOverdue(row, today) ? (
+                  <span className="crm-case-flag crm-requirement-overdue">Overdue</span>
+                ) : null}
+              </dd>
+            </div>
+          ) : null}
+          {row.scheduled_for ? (
+            <div>
+              <dt>Scheduled</dt>
+              <dd>{formatProductionDate(row.scheduled_for)}</dd>
+            </div>
+          ) : null}
+          {row.completed_at ? (
+            <div>
+              <dt>Completed</dt>
+              <dd>{formatProductionDateTime(row.completed_at)}</dd>
+            </div>
+          ) : null}
+          {row.waived_at ? (
+            <div>
+              <dt>Waived</dt>
+              <dd>{formatProductionDateTime(row.waived_at)}</dd>
+            </div>
+          ) : null}
+        </dl>
+        {canMutate ? (
+          <div className="crm-requirement-actions">
+            {actions.map((action) => (
+              <button
+                key={action}
+                type="button"
+                className="crm-secondary-btn"
+                disabled={pending != null}
+                onClick={() => void handleDirectAction(row, action)}
+              >
+                {REQUIREMENT_ACTION_LABELS[action]}
+              </button>
+            ))}
+            <button
+              type="button"
+              className="crm-text-btn"
+              disabled={pending != null}
+              onClick={() => {
+                setPrompt({ kind: 'due_date', id: row.id })
+                setPromptValue(row.due_date ?? '')
+                setPromptError(null)
+              }}
+            >
+              Update due date
+            </button>
+            {canDelete ? (
+              <button
+                type="button"
+                className="crm-text-btn"
+                disabled={pending != null}
+                onClick={() => {
+                  setPrompt({ kind: 'delete', id: row.id })
+                  setPromptError(null)
+                }}
+              >
+                Delete
+              </button>
+            ) : null}
+            {entries.length > 0 ? (
+              <button
+                type="button"
+                className="crm-text-btn"
+                onClick={() => setOpenHistory(historyOpen ? null : row.id)}
+              >
+                {historyOpen ? 'Hide history' : 'History'}
+              </button>
+            ) : null}
+          </div>
+        ) : entries.length > 0 ? (
+          <div className="crm-requirement-actions">
+            <button
+              type="button"
+              className="crm-text-btn"
+              onClick={() => setOpenHistory(historyOpen ? null : row.id)}
+            >
+              {historyOpen ? 'Hide history' : 'History'}
+            </button>
+          </div>
+        ) : null}
+        {historyOpen ? (
+          <ol className="crm-requirement-history">
+            {entries.map((entry) => (
+              <li key={entry.id}>
+                <span className="crm-muted">{formatProductionDateTime(entry.changed_at)}</span>
+                {' · '}
+                {entry.from_status
+                  ? `${formatRequirementStatusLabel(entry.from_status)} → `
+                  : ''}
+                <strong>{formatRequirementStatusLabel(entry.to_status)}</strong>
+                {entry.reason && entry.reason !== 'soft_delete' ? (
+                  <div>Reason: {entry.reason}</div>
+                ) : null}
+              </li>
+            ))}
+          </ol>
+        ) : null}
+      </li>
+    )
+  }
+
   const commonPreview = previewCommonRequirements(productLine, rows)
   const commonLabel =
     productLine === 'fia' ? 'Add common FIA requirements' : 'Add common Life requirements'
+  const grouped = partitionRequirementRows(rows, today)
+  const hasOutstanding = grouped.overdue.length + grouped.outstanding.length > 0
 
   return (
     <section className="crm-panel" aria-labelledby="pp-requirements-heading" aria-busy={pending != null || undefined}>
@@ -334,6 +472,10 @@ export default function RequirementSection({
         <p className="crm-muted">{REQUIREMENTS_EMPTY_COPY}</p>
       ) : null}
 
+      {!loading && rows.length > 0 && !hasOutstanding ? (
+        <p className="crm-muted">No outstanding requirements.</p>
+      ) : null}
+
       {!canMutate ? (
         <p className="crm-muted">
           Requirements can be added after this case is submitted. Draft and pre-submitted
@@ -341,131 +483,31 @@ export default function RequirementSection({
         </p>
       ) : null}
 
-      {!loading ? (
-        <ul className="crm-requirement-list">
-          {rows.map((row) => {
-            const actions = requirementStatusActions(row.status)
-            const entries = historyVisibleForRequirement(history, row.id)
-            const historyOpen = openHistory === row.id
-            return (
-              <li key={row.id} className="crm-requirement-card">
-                <div className="crm-requirement-card-head">
-                  <strong>{requirementDisplayLabel(row)}</strong>
-                  <span className={`crm-requirement-status crm-requirement-status-${row.status}`}>
-                    {formatRequirementStatusLabel(row.status)}
-                  </span>
-                </div>
-                <dl className="crm-requirement-meta">
-                  {row.due_date ? (
-                    <div>
-                      <dt>Due</dt>
-                      <dd>
-                        {formatProductionDate(row.due_date)}
-                        {caseOpen && isOpenRequirementOverdue(row, today) ? (
-                          <span className="crm-case-flag crm-requirement-overdue">Overdue</span>
-                        ) : null}
-                      </dd>
-                    </div>
-                  ) : null}
-                  {row.scheduled_for ? (
-                    <div>
-                      <dt>Scheduled</dt>
-                      <dd>{formatProductionDate(row.scheduled_for)}</dd>
-                    </div>
-                  ) : null}
-                  {row.completed_at ? (
-                    <div>
-                      <dt>Completed</dt>
-                      <dd>{formatProductionDateTime(row.completed_at)}</dd>
-                    </div>
-                  ) : null}
-                  {row.waived_at ? (
-                    <div>
-                      <dt>Waived</dt>
-                      <dd>{formatProductionDateTime(row.waived_at)}</dd>
-                    </div>
-                  ) : null}
-                </dl>
-                {canMutate ? (
-                  <div className="crm-requirement-actions">
-                    {actions.map((action) => (
-                      <button
-                        key={action}
-                        type="button"
-                        className="crm-secondary-btn"
-                        disabled={pending != null}
-                        onClick={() => void handleDirectAction(row, action)}
-                      >
-                        {REQUIREMENT_ACTION_LABELS[action]}
-                      </button>
-                    ))}
-                    <button
-                      type="button"
-                      className="crm-text-btn"
-                      disabled={pending != null}
-                      onClick={() => {
-                        setPrompt({ kind: 'due_date', id: row.id })
-                        setPromptValue(row.due_date ?? '')
-                        setPromptError(null)
-                      }}
-                    >
-                      Update due date
-                    </button>
-                    {canDelete ? (
-                      <button
-                        type="button"
-                        className="crm-text-btn"
-                        disabled={pending != null}
-                        onClick={() => {
-                          setPrompt({ kind: 'delete', id: row.id })
-                          setPromptError(null)
-                        }}
-                      >
-                        Delete
-                      </button>
-                    ) : null}
-                    {entries.length > 0 ? (
-                      <button
-                        type="button"
-                        className="crm-text-btn"
-                        onClick={() => setOpenHistory(historyOpen ? null : row.id)}
-                      >
-                        {historyOpen ? 'Hide history' : 'History'}
-                      </button>
-                    ) : null}
-                  </div>
-                ) : entries.length > 0 ? (
-                  <div className="crm-requirement-actions">
-                    <button
-                      type="button"
-                      className="crm-text-btn"
-                      onClick={() => setOpenHistory(historyOpen ? null : row.id)}
-                    >
-                      {historyOpen ? 'Hide history' : 'History'}
-                    </button>
-                  </div>
-                ) : null}
-                {historyOpen ? (
-                  <ol className="crm-requirement-history">
-                    {entries.map((entry) => (
-                      <li key={entry.id}>
-                        <span className="crm-muted">{formatProductionDateTime(entry.changed_at)}</span>
-                        {' · '}
-                        {entry.from_status
-                          ? `${formatRequirementStatusLabel(entry.from_status)} → `
-                          : ''}
-                        <strong>{formatRequirementStatusLabel(entry.to_status)}</strong>
-                        {entry.reason && entry.reason !== 'soft_delete' ? (
-                          <div>Reason: {entry.reason}</div>
-                        ) : null}
-                      </li>
-                    ))}
-                  </ol>
-                ) : null}
-              </li>
-            )
-          })}
-        </ul>
+      {!loading && grouped.overdue.length > 0 ? (
+        <div className="crm-requirement-group">
+          <h3 className="crm-requirement-group-heading">Overdue</h3>
+          <ul className="crm-requirement-list">
+            {grouped.overdue.map((row) => renderRequirementCard(row))}
+          </ul>
+        </div>
+      ) : null}
+
+      {!loading && grouped.outstanding.length > 0 ? (
+        <div className="crm-requirement-group">
+          <h3 className="crm-requirement-group-heading">Outstanding</h3>
+          <ul className="crm-requirement-list">
+            {grouped.outstanding.map((row) => renderRequirementCard(row))}
+          </ul>
+        </div>
+      ) : null}
+
+      {!loading && grouped.completed.length > 0 ? (
+        <div className="crm-requirement-group">
+          <h3 className="crm-requirement-group-heading">Completed</h3>
+          <ul className="crm-requirement-list">
+            {grouped.completed.map((row) => renderRequirementCard(row))}
+          </ul>
+        </div>
       ) : null}
 
       {canMutate ? (

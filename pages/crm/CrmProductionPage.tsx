@@ -624,8 +624,8 @@ export default function CrmProductionPage() {
         <p className="crm-production-kpi-caption">
           Operational working set over the current queue. Production Performance above is not
           changed by this control. My Cases uses existing writing allocations for this login.
-          Requirements, APS, paramed results, suitability, 1035 paperwork, funds-received, and
-          application-scoped tasks or documents are not tracked yet.
+          Requirements live on each Case. Application-scoped tasks and documents remain
+          household-level.
         </p>
         <p className="crm-muted">{CASE_VIEWS_LOADED_RECORDS_NOTE}</p>
         <CaseWorkspaceViewBar

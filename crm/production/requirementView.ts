@@ -169,6 +169,55 @@ export function formatOverdueRequirementLabel(count: number): string {
   return `${count} overdue requirements`
 }
 
+export function isOutstandingRequirementStatus(status: RequirementStatus): boolean {
+  return status === 'open' || status === 'scheduled'
+}
+
+export type RequirementPartition = {
+  overdue: RequirementRow[]
+  outstanding: RequirementRow[]
+  completed: RequirementRow[]
+}
+
+/** Outstanding = open/scheduled and not overdue. Completed = complete/waived/cancelled. */
+export function partitionRequirementRows(
+  rows: readonly RequirementRow[],
+  today: string,
+): RequirementPartition {
+  const overdue: RequirementRow[] = []
+  const outstanding: RequirementRow[] = []
+  const completed: RequirementRow[] = []
+  for (const row of rows) {
+    if (isOpenRequirementOverdue(row, today)) overdue.push(row)
+    else if (isOutstandingRequirementStatus(row.status)) outstanding.push(row)
+    else completed.push(row)
+  }
+  return { overdue, outstanding, completed }
+}
+
+function compareRequirementsByDueThenLabel(a: RequirementRow, b: RequirementRow): number {
+  const aDue = calendarDay(a.due_date) ?? '9999-99-99'
+  const bDue = calendarDay(b.due_date) ?? '9999-99-99'
+  if (aDue !== bDue) return aDue.localeCompare(bDue)
+  return requirementDisplayLabel(a).localeCompare(requirementDisplayLabel(b))
+}
+
+export function pickBlockingRequirement(
+  rows: readonly RequirementRow[],
+  today: string,
+): { row: RequirementRow; overdue: boolean } | null {
+  const partitioned = partitionRequirementRows(rows, today)
+  if (partitioned.overdue.length > 0) {
+    const sorted = partitioned.overdue.slice().sort(compareRequirementsByDueThenLabel)
+    return { row: sorted[0], overdue: true }
+  }
+  if (partitioned.outstanding.length > 0) {
+    const sorted = partitioned.outstanding.slice().sort(compareRequirementsByDueThenLabel)
+    return { row: sorted[0], overdue: false }
+  }
+  return null
+}
+
 export function previewCommonRequirements(
   productLine: ProductionProductLine,
   existing: readonly Pick<RequirementRow, 'requirement_code'>[],

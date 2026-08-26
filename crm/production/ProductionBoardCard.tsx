@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 import { crmOpportunityPath, crmProductionEditPath, crmProductionPath } from '../../constants/routes'
 import type { CrmSupportedRole } from '../types'
 import { productionBoardCardMoney } from './boardCardMoney'
+import { CaseNextActionLine } from './CaseNextActionPanel'
+import { deriveCaseNextAction } from './caseNextAction'
 import CaseAttentionFlagList from './CaseAttentionFlagList'
 import {
   caseAttentionFlags,
@@ -14,10 +16,10 @@ import { boardDraggableId, boardMoveDestinations } from './boardMovement'
 import ProductionBoardMoveMenu from './ProductionBoardMoveMenu'
 import {
   computeDaysInStage,
+  followUpState,
   getActiveLinkedPolicy,
   getInsuredOrAnnuitantLabel,
   getWritingAdvisorLabel,
-  isFollowUpOverdue,
 } from './daysInStage'
 import StageBadge from './StageBadge'
 import PolicyLifecycleBadge from './PolicyLifecycleBadge'
@@ -76,8 +78,19 @@ export default function ProductionBoardCard({
     now: asOf,
   })
   const stale = days >= PRODUCTION_STALE_DAYS_IN_STAGE
-  const overdue = isFollowUpOverdue(item.next_follow_up_date, asOf)
+  const followState = followUpState(item.next_follow_up_date, asOf)
   const attention = formatCaseAttentionLabels(caseAttentionFlags(item, asOf), item.product_line)
+  const nextAction = deriveCaseNextAction({
+    productionStage: item.production_stage,
+    productLine: item.product_line,
+    deliveryStatus: item.delivery_status,
+    submissionDate: item.submission_date,
+    deletedAt: item.deleted_at,
+    nextFollowUpDate: item.next_follow_up_date,
+    requirements: { status: 'unavailable' },
+    overdueRequirementCount: item.overdue_requirement_count,
+    now: asOf,
+  })
   const linked = getActiveLinkedPolicy(item)
   const policyNumber = linked?.policy_number ?? item.policy_number
   const householdName = item.household?.display_name?.trim() || 'Household'
@@ -116,6 +129,7 @@ export default function ProductionBoardCard({
           </p>
         ) : null}
         <CaseAttentionFlagList labels={attention} />
+        <CaseNextActionLine action={nextAction} />
         <p className="crm-production-board-card-money">
           <BoardCardMoney item={item} />
         </p>
@@ -132,9 +146,21 @@ export default function ProductionBoardCard({
           ) : null}
           <div>
             <dt>Follow-up</dt>
-            <dd className={overdue ? 'crm-production-overdue' : undefined}>
+            <dd
+              className={
+                followState === 'overdue'
+                  ? 'crm-production-overdue'
+                  : followState === 'today'
+                    ? 'crm-case-follow-up-today'
+                    : undefined
+              }
+            >
               {formatProductionDate(item.next_follow_up_date)}
-              {overdue ? ' · overdue' : ''}
+              {followState === 'overdue'
+                ? ' · overdue'
+                : followState === 'today'
+                  ? ' · today'
+                  : ''}
             </dd>
           </div>
           <div>

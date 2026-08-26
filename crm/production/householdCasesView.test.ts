@@ -70,6 +70,8 @@ describe('household Cases tab mapping', () => {
     expect(row?.productLine).toBe('Term')
     expect(row?.amount).toContain('Annual premium')
     expect(row?.amount).not.toMatch(/expected|commission/i)
+    expect(row?.nextActionLine).toContain('Follow up scheduled')
+    expect(row?.followUpState).toBe('future')
     expect(JSON.stringify(row)).not.toContain('expected_compensation')
   })
 

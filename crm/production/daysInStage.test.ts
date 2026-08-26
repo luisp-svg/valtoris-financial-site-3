@@ -1,9 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import {
   computeDaysInStage,
+  followUpState,
+  formatDaysInStageLabel,
+  formatFollowUpStateLabel,
   getInsuredOrAnnuitantLabel,
   getWritingAdvisorLabel,
   isFollowUpOverdue,
+  isFollowUpToday,
   isProductionTerminalStage,
   isStaleDaysInStage,
 } from './daysInStage'
@@ -67,10 +71,18 @@ describe('days in stage', () => {
     expect(isProductionTerminalStage('submitted')).toBe(false)
   })
 
-  it('detects follow-up overdue on UTC calendar days', () => {
-    expect(isFollowUpOverdue('2026-08-12', new Date('2026-08-13T15:00:00.000Z'))).toBe(true)
-    expect(isFollowUpOverdue('2026-08-13', new Date('2026-08-13T15:00:00.000Z'))).toBe(false)
+  it('detects follow-up overdue, today, future, and none on UTC calendar days', () => {
+    const now = new Date('2026-08-13T15:00:00.000Z')
+    expect(isFollowUpOverdue('2026-08-12', now)).toBe(true)
+    expect(isFollowUpOverdue('2026-08-13', now)).toBe(false)
     expect(isFollowUpOverdue(null)).toBe(false)
+    expect(isFollowUpToday('2026-08-13', now)).toBe(true)
+    expect(isFollowUpToday('2026-08-14', now)).toBe(false)
+    expect(followUpState(null, now)).toBe('none')
+    expect(followUpState('2026-08-14', now)).toBe('future')
+    expect(formatFollowUpStateLabel('none')).toBe('No follow-up scheduled')
+    expect(formatDaysInStageLabel(1)).toBe('1 day')
+    expect(formatDaysInStageLabel(12)).toBe('12 days')
   })
 
   it('handles null participant and allocation relationships', () => {

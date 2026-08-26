@@ -244,5 +244,10 @@ function confirmBody(from: ProductionStage, to: ProductionStage): string[] {
   if (to === 'in_force') {
     lines.push('Delivery must already be complete or marked not required.')
   }
+  if (to === 'declined' || to === 'withdrawn' || to === 'not_taken' || to === 'incomplete') {
+    lines.push(
+      'This records the Case outcome. It does not automatically change Opportunity status or write commissions.',
+    )
+  }
   return lines
 }
