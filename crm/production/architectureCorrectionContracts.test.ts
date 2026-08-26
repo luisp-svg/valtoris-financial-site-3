@@ -48,9 +48,10 @@ describe('policy production + client architecture no-schema contracts', () => {
     expect(readFileSync(join(here, 'labels.ts'), 'utf8')).toContain("submitted: 'Applied'")
   })
 
-  it('loads client policies from household production relationships without compensation', () => {
-    expect(policiesTab).toContain('fetchHouseholdProductionApplications')
-    expect(policiesTab).toContain('crmProductionPath')
+  it('loads client policies from household policies without compensation', () => {
+    expect(policiesTab).toContain('fetchHouseholdPolicyBook')
+    expect(policiesTab).toContain('VIEW_CASE_LABEL')
+    expect(policiesTab).not.toContain('fetchHouseholdProductionApplications')
     expect(policiesTab).not.toContain('expected_compensation')
     expect(policiesTab).not.toContain('fetchLiveExpectedCompensations')
     expect(productionApi).toContain('.eq(\'household_id\', householdId)')

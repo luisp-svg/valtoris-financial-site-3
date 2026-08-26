@@ -58,6 +58,11 @@ import {
   crmOpportunityPath,
   crmProductionEditPath,
 } from '../../constants/routes'
+import {
+  CASE_POLICY_STATUS_SEPARATE_NOTE,
+  VIEW_IN_HOUSEHOLD_POLICIES_LABEL,
+  linkedPolicyHandoffModel,
+} from '../../crm/production/policyHandoffView'
 import ActualCommissionPanel from '../../crm/production/ActualCommissionPanel'
 import ExpectedCompensationPanel from '../../crm/production/ExpectedCompensationPanel'
 import {
@@ -262,6 +267,7 @@ export default function CrmProductionDetailPage() {
     now,
   })
   const linked = getActiveLinkedPolicy(application)
+  const policyHandoff = linkedPolicyHandoffModel(application)
   const lifecycle = policyLifecycleDetailModel(application)
   const participants = getCurrentParticipants(application.participants)
   const allocations = getCurrentAllocations(application.allocations)
@@ -649,6 +655,46 @@ export default function CrmProductionDetailPage() {
           Production points (scaled): {application.total_points_scaled ?? '—'}
         </p>
       </section>
+
+      {policyHandoff.visible ? (
+        <section className="crm-panel" aria-labelledby="pp-linked-policy-heading">
+          <div className="crm-panel-head">
+            <h2 id="pp-linked-policy-heading">Linked Policy</h2>
+          </div>
+          <p className="crm-muted">
+            This Case is linked to a Policy record. Case stage and Policy status are separate
+            fields.
+          </p>
+          <dl className="crm-production-detail-grid">
+            <div>
+              <dt>Policy number</dt>
+              <dd>{policyHandoff.policyNumber}</dd>
+            </div>
+            <div>
+              <dt>Policy status</dt>
+              <dd>{policyHandoff.policyStatusLabel ?? '—'}</dd>
+            </div>
+            <div>
+              <dt>Case stage</dt>
+              <dd>{policyHandoff.caseStageLabel}</dd>
+            </div>
+            {policyHandoff.effectiveDateLabel ? (
+              <div>
+                <dt>Effective / issue date</dt>
+                <dd>{policyHandoff.effectiveDateLabel}</dd>
+              </div>
+            ) : null}
+          </dl>
+          {policyHandoff.showDivergentNotTakenIssuedNote ? (
+            <p className="crm-muted">{CASE_POLICY_STATUS_SEPARATE_NOTE}</p>
+          ) : null}
+          {policyHandoff.householdPoliciesHref ? (
+            <Link to={policyHandoff.householdPoliciesHref} className="crm-text-btn">
+              {VIEW_IN_HOUSEHOLD_POLICIES_LABEL}
+            </Link>
+          ) : null}
+        </section>
+      ) : null}
 
       <section className="crm-panel" aria-labelledby="pp-ids-heading">
         <div className="crm-panel-head">

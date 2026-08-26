@@ -3,7 +3,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import { CRM_NAV_ITEMS } from '../nav'
-import { ROUTES, crmProductionPath } from '../../constants/routes'
+import { ROUTES, crmHouseholdPoliciesPath, crmProductionPath } from '../../constants/routes'
 import { getCrmSidebarNavItems } from '../../platform/registry'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -25,6 +25,7 @@ describe('production P1B-1 contracts', () => {
     expect(ROUTES.crmProduction).toBe('/crm/production')
     expect(ROUTES.crmPolicies).toBe('/crm/policies')
     expect(crmProductionPath('abc')).toBe('/crm/production/abc')
+    expect(crmHouseholdPoliciesPath('hh-1')).toBe('/crm/households/hh-1?tab=policies')
     expect(appSource).toContain('path="production"')
     expect(appSource).toContain('path="production/new"')
     expect(appSource).toContain('path="production/catalog"')

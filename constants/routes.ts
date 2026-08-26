@@ -70,6 +70,11 @@ export function crmHouseholdPath(householdId: string): string {
   return `${ROUTES.crmHouseholds}/${householdId}`
 }
 
+/** Household workspace Policies tab. Not /crm/policies (deferred placeholder). */
+export function crmHouseholdPoliciesPath(householdId: string): string {
+  return `${crmHouseholdPath(householdId)}?tab=policies`
+}
+
 export function crmContactPath(leadId: string): string {
   return `${ROUTES.crmContacts}/${leadId}`
 }

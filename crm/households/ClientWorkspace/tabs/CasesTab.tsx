@@ -163,8 +163,8 @@ export default function CasesTab({ workspace, householdId }: ClientWorkspaceTabP
           meta={<span className="crm-count-pill">{loading ? '…' : closedRows.length}</span>}
         />
         <p className="crm-muted">
-          In force, declined, withdrawn, incomplete, and not taken. Issued policies also appear on
-          the Policies tab.
+          In force, declined, withdrawn, incomplete, and not taken. Policy records appear on the
+          Policies tab independently of Case stage.
         </p>
         {!loading && closedRows.length === 0 ? (
           <EmptyState
