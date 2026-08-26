@@ -41,6 +41,7 @@ export type ChromeCopyKey =
   | 'footerBusiness'
   | 'footerTools'
   | 'footerPrivacy'
+  | 'footerBrandLine'
   | 'footerDisclaimer'
   | 'footerLegalNav'
 
@@ -88,8 +89,9 @@ export const chromeCopy: Record<PublicLocale, ChromeCopyCatalog> = {
     footerBusiness: 'Business',
     footerTools: 'Tools',
     footerPrivacy: 'Privacy Policy',
+    footerBrandLine: 'Your financial life. One coordinated strategy.',
     footerDisclaimer:
-      'For educational purposes only. Coverage and solutions depend on underwriting, carrier availability, and state rules.',
+      'For educational purposes only. Insurance products depend on underwriting, carrier availability, and state rules. Valtoris does not provide legal or tax advice, and outcomes are not guaranteed.',
     footerLegalNav: 'Legal',
   },
   es: {
@@ -133,8 +135,9 @@ export const chromeCopy: Record<PublicLocale, ChromeCopyCatalog> = {
     footerBusiness: 'Negocios',
     footerTools: 'Herramientas',
     footerPrivacy: 'Política de privacidad',
+    footerBrandLine: 'Tu vida financiera. Una estrategia coordinada.',
     footerDisclaimer:
-      'Solo con fines educativos. La cobertura y las soluciones dependen de la suscripción, la disponibilidad de las aseguradoras y las normas estatales.',
+      'Solo con fines educativos. Los productos de seguros dependen de la suscripción, la disponibilidad de las aseguradoras y las normas estatales. Valtoris no ofrece asesoría legal ni fiscal, y los resultados no están garantizados.',
     footerLegalNav: 'Legal',
   },
 }

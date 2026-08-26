@@ -104,6 +104,7 @@ describe('service-led bilingual homepage', () => {
     expect(html).toContain('Prioritize')
     expect(html).toContain('Build')
     expect(html).toContain('id="home-diagnostics"')
+    expect(source('src/styles.css')).toContain('.site-home #home-diagnostics {\n  scroll-margin-top: 96px;\n}')
     expect(html).toContain('Family Report Card™')
     expect(html).toContain('Business Report Card™')
     expect(html).toContain('Student Loan Report Card™')

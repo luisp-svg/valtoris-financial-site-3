@@ -25,6 +25,7 @@ export default function SiteFooter() {
               {copy.footerCompany}
             </h2>
             <p className="site-footer-brand">Valtoris Financial</p>
+            <p className="site-footer-brand-line">{copy.footerBrandLine}</p>
             <nav className="site-footer-links" aria-label={copy.footerCompany}>
               {COMPANY_FOOTER_LINKS.map((item) =>
                 item.to === ROUTES.crmLogin ? (

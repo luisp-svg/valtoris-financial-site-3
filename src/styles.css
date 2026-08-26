@@ -371,9 +371,17 @@ main { flex: 1 0 auto; }
   color: var(--brand);
 }
 .site-footer-brand {
-  margin: 0 0 10px;
+  margin: 0 0 4px;
   font-weight: 800;
   color: var(--text);
+}
+.site-footer-brand-line {
+  margin: 0 0 12px;
+  max-width: 22ch;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--muted);
 }
 .site-footer-links {
   display: grid;
@@ -4990,6 +4998,9 @@ p { color: var(--muted); line-height: 1.7; }
 
 /* Service-led public homepage */
 .site-home #home-diagnostics {
+  scroll-margin-top: 96px;
+}
+#solutions-diagnostics {
   scroll-margin-top: 96px;
 }
 .site-home-hero {

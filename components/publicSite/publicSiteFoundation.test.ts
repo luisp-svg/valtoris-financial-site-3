@@ -186,11 +186,22 @@ describe('public site foundation chrome', () => {
     expect(en).toContain('Tools')
     expect(en).toContain('Book a Meeting')
     expect(en).toContain('Advisor Login')
+    expect(en).toContain('Your financial life. One coordinated strategy.')
+    expect(en).toContain(
+      'For educational purposes only. Insurance products depend on underwriting, carrier availability, and state rules. Valtoris does not provide legal or tax advice, and outcomes are not guaranteed.',
+    )
+    expect(en).not.toContain('Coverage and solutions depend on underwriting')
     expect(es).toContain('Inicio')
     expect(es).toContain('Servicios')
     expect(es).toContain('Herramientas')
     expect(es).toContain('Agendar una reunión')
     expect(es).toContain('Acceso para estrategas')
+    expect(es).toContain('Tu vida financiera. Una estrategia coordinada.')
+    expect(es).toContain(
+      'Solo con fines educativos. Los productos de seguros dependen de la suscripción, la disponibilidad de las aseguradoras y las normas estatales. Valtoris no ofrece asesoría legal ni fiscal, y los resultados no están garantizados.',
+    )
+    expect(chromeCopy.en.footerBrandLine).toBe('Your financial life. One coordinated strategy.')
+    expect(chromeCopy.es.footerBrandLine).toBe('Tu vida financiera. Una estrategia coordinada.')
     expect(Object.keys(chromeCopy.en).sort()).toEqual(Object.keys(chromeCopy.es).sort())
     expect(JSON.stringify(SERVICES_NAV_LINKS.map((item) => item.id))).not.toContain('Servicios')
   })
@@ -255,6 +266,7 @@ describe('public site foundation chrome', () => {
     expect(source('components/SiteHeader.tsx')).not.toContain('copy.navContact')
     expect(source('components/publicSite/SiteMobileNav.tsx')).not.toContain('copy.navContact')
     expect(source('components/SiteFooter.tsx')).toContain('COMPANY_FOOTER_LINKS')
+    expect(source('components/SiteFooter.tsx')).toContain('copy.footerBrandLine')
   })
 
   it('removes the stale 404 #diagnostics target', () => {

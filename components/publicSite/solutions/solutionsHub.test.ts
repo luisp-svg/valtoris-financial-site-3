@@ -113,6 +113,7 @@ describe('Phase 8 solutions hub', () => {
     expect(html).toContain('Start With Clarity.')
     expect(html).toContain('Know Your Score. See Your Risks. Build Your Plan.')
     expect(html).toContain('id="solutions-diagnostics"')
+    expect(source('src/styles.css')).toContain('#solutions-diagnostics {\n  scroll-margin-top: 96px;\n}')
     expect(html).toContain('Financial Strategist')
     const family = sectionHtml(html, 'solutions-families-heading')
     const business = sectionHtml(html, 'solutions-business-heading')
@@ -194,6 +195,10 @@ describe('Phase 8 solutions hub', () => {
     const chrome = renderChrome('/')
     expect(chrome).toContain('Explore All Solutions')
     expect(chrome).toContain('View Solutions')
+    expect(chrome).toContain('Your financial life. One coordinated strategy.')
+    expect(chrome).toContain(
+      'For educational purposes only. Insurance products depend on underwriting, carrier availability, and state rules. Valtoris does not provide legal or tax advice, and outcomes are not guaranteed.',
+    )
     expect((chrome.match(/Business Owners/g) ?? []).length).toBeLessThan(2)
   })
 
