@@ -29,11 +29,14 @@ describe('public card browser/server boundary', () => {
     })
     expect(viewModel.publicCardPageSideEffects()).toMatchObject({
       writesAnalytics: false,
+      writesDigitalCardEvents: false,
       createsLead: false,
       createsHousehold: false,
+      createsActivity: false,
       downloadsVCard: true,
       downloadsQr: false,
       opensConnectForm: true,
+      sharesCard: true,
     })
   })
 
@@ -57,6 +60,7 @@ describe('public card browser/server boundary', () => {
     const { join } = await import('node:path')
     const files = [
       'components/digitalIdentity/PublicAdvisorCardView.tsx',
+      'components/digitalIdentity/sharePublicCard.ts',
       'pages/PublicAdvisorCardPage.tsx',
       'crm/digital-identity/cardsApi.ts',
       'crm/digital-identity/AdvisorDigitalCardPanel.tsx',
@@ -96,6 +100,7 @@ describe('public card browser/server boundary', () => {
     expect(view).toMatch(/public-card-btn--text/)
     expect(view).toMatch(/public-card-btn--light/)
     expect(view).toMatch(/public-card-btn--connect/)
+    expect(view).toMatch(/public-card-btn--share/)
     expect(view).toMatch(/selectPublicCardHelpTiles/)
     expect(view).toMatch(/public-card-btn--book/)
     expect(view).toMatch(/Connect With Me/)
@@ -110,6 +115,8 @@ describe('public card browser/server boundary', () => {
     expect(css).toMatch(/\.public-card-btn--call\s*\{/)
     expect(css).toMatch(/\.public-card-btn--text\s*\{/)
     expect(css).toMatch(/\.public-card-btn--connect\s*\{/)
+    expect(css).toMatch(/\.public-card-btn--share\s*\{/)
+    expect(css).toMatch(/\.public-card-btn--share:focus-visible/)
     expect(css).toMatch(/\.public-card-headshot\s*\{[\s\S]*?border:\s*4px solid var\(--gold\)/)
     expect(css).toMatch(/\.public-card-hero\s*\{[\s\S]*?overflow:\s*visible/)
     expect(css).not.toMatch(/\.public-card-hero\s*\{[^}]*overflow:\s*hidden/)

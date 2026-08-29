@@ -15,6 +15,11 @@ import {
   triggerVCardBrowserDownload,
 } from './downloadPublicCardVCard'
 import LetsConnectModal from './LetsConnectModal'
+import {
+  PUBLIC_CARD_SHARE_COPIED_MESSAGE,
+  sharePublicCard,
+  sharePublicCardErrorCopy,
+} from './sharePublicCard'
 import { getCardAttributionSession } from './campaignAttributionSession'
 import {
   buildHeroActions,
@@ -52,6 +57,8 @@ function heroActionClassName(key: PublicCardHeroAction['key']): string {
       return 'platform-btn public-card-btn public-card-btn--light'
     case 'lets_connect':
       return 'platform-btn public-card-btn public-card-btn--connect'
+    case 'share':
+      return 'platform-btn public-card-btn public-card-btn--share'
     case 'book_appointment':
       return 'platform-btn public-card-btn public-card-btn--book'
     default:
@@ -110,7 +117,9 @@ function ActionGlyph({ kind }: { kind: PublicCardHeroAction['key'] }) {
             ? 'M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z'
             : kind === 'book_appointment'
               ? 'M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5'
-              : 'M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z'
+              : kind === 'share'
+                ? 'M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 7.566-4.385m-7.566 6.57 7.566 4.385m.225-9.655a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0 11.124a2.25 2.25 0 1 0 3.933 2.185 2.25 2.25 0 0 0-3.933-2.185Z'
+                : 'M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z'
   return <StrokeIcon className="public-card-action-icon" d={d} size={18} />
 }
 
@@ -251,6 +260,8 @@ function ReadyCard({ card }: { card: IdentitySurfacePublicDto }) {
   const company = card.approvedCompany?.trim() || ''
   const [vcardStatus, setVcardStatus] = useState<'idle' | 'loading' | 'error'>('idle')
   const [vcardMessage, setVcardMessage] = useState<string | null>(null)
+  const [shareStatus, setShareStatus] = useState<'idle' | 'working' | 'copied' | 'error'>('idle')
+  const [shareMessage, setShareMessage] = useState<string | null>(null)
   const [connectOpen, setConnectOpen] = useState(false)
 
   async function handleSaveContact() {
@@ -274,6 +285,40 @@ function ReadyCard({ card }: { card: IdentitySurfacePublicDto }) {
 
     setVcardStatus('idle')
     setVcardMessage(null)
+  }
+
+  async function handleShareCard() {
+    if (shareStatus === 'working') return
+    setShareStatus('working')
+    setShareMessage(null)
+
+    const origin = typeof window !== 'undefined' ? window.location.origin : ''
+    const result = await sharePublicCard({
+      publicKey: card.publicKey,
+      displayName: card.displayName,
+      origin,
+    })
+
+    if (result.ok && result.method === 'cancelled') {
+      setShareStatus('idle')
+      setShareMessage(null)
+      return
+    }
+
+    if (result.ok && result.method === 'clipboard') {
+      setShareStatus('copied')
+      setShareMessage(PUBLIC_CARD_SHARE_COPIED_MESSAGE)
+      return
+    }
+
+    if (result.ok) {
+      setShareStatus('idle')
+      setShareMessage(null)
+      return
+    }
+
+    setShareStatus('error')
+    setShareMessage(result.message || sharePublicCardErrorCopy(result.code))
   }
 
   return (
@@ -367,6 +412,25 @@ function ReadyCard({ card }: { card: IdentitySurfacePublicDto }) {
                 )
               }
 
+              if (action.mode === 'share_card') {
+                return (
+                  <button
+                    key={action.key}
+                    type="button"
+                    className={className}
+                    onClick={() => {
+                      void handleShareCard()
+                    }}
+                    disabled={shareStatus === 'working'}
+                    aria-busy={shareStatus === 'working'}
+                    aria-label="Share this card"
+                  >
+                    <ActionGlyph kind={action.key} />
+                    <span>{shareStatus === 'working' ? 'Sharing…' : action.label}</span>
+                  </button>
+                )
+              }
+
               if (action.mode === 'opens_connect_form') {
                 return (
                   <button
@@ -386,6 +450,16 @@ function ReadyCard({ card }: { card: IdentitySurfacePublicDto }) {
           {vcardMessage ? (
             <p className="public-card-download-error" role="alert">
               {vcardMessage}
+            </p>
+          ) : null}
+          {shareMessage ? (
+            <p
+              className={
+                shareStatus === 'error' ? 'public-card-download-error' : 'public-card-share-status'
+              }
+              role={shareStatus === 'error' ? 'alert' : 'status'}
+            >
+              {shareMessage}
             </p>
           ) : null}
         </div>

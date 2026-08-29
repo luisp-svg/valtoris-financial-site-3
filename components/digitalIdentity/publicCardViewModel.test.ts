@@ -98,10 +98,14 @@ describe('publicCardViewModel', () => {
     const actions = buildHeroActions(sampleCard())
     const connect = actions.find((a) => a.key === 'lets_connect')
     const save = actions.find((a) => a.key === 'save_contact')
+    const share = actions.find((a) => a.key === 'share')
     expect(connect?.label).toBe("Let's Connect")
     expect(connect?.mode).toBe('opens_connect_form')
     expect(save?.mode).toBe('vcard_download')
     expect(save?.label).toBe('Save Contact')
+    expect(share?.label).toBe('Share')
+    expect(share?.mode).toBe('share_card')
+    expect(share?.href).toBeNull()
   })
 
   it('shows Financial Strategist on the public card meta contract', () => {
@@ -122,11 +126,12 @@ describe('publicCardViewModel', () => {
     expect(call?.href).toBe('tel:+15125550100')
     expect(text?.href).toBe('sms:+15125550100')
     expect(email?.href).toBe('mailto:jane@example.com')
-    expect(actions.map((a) => a.key).slice(0, 5)).toEqual([
+    expect(actions.map((a) => a.key).slice(0, 6)).toEqual([
       'call',
       'text',
       'email',
       'save_contact',
+      'share',
       'lets_connect',
     ])
   })
@@ -280,11 +285,14 @@ describe('publicCardViewModel', () => {
   it('opens Let’s Connect form without browser CRM writes, analytics, or admin imports', () => {
     expect(publicCardPageSideEffects()).toEqual({
       writesAnalytics: false,
+      writesDigitalCardEvents: false,
       createsLead: false,
       createsHousehold: false,
+      createsActivity: false,
       downloadsVCard: true,
       downloadsQr: false,
       opensConnectForm: true,
+      sharesCard: true,
       importsAdminClient: false,
     })
   })

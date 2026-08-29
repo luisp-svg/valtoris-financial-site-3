@@ -11636,6 +11636,31 @@ p { color: var(--muted); line-height: 1.7; }
   border-color: var(--brand-dark);
 }
 
+.public-card-btn--share {
+  background: #ffffff;
+  color: var(--brand);
+  border-color: var(--brand);
+  box-shadow: 0 1px 2px rgba(7, 20, 77, 0.04);
+}
+
+.public-card-btn--share:hover:not(:disabled) {
+  background: #f8fafc;
+  border-color: var(--brand-dark);
+}
+
+.public-card-btn--share:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
+
+.public-card-share-status {
+  margin: 4px 0 0;
+  max-width: 28rem;
+  color: var(--brand);
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
 .public-card-action-icon {
   flex: 0 0 auto;
 }

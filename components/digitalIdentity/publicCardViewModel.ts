@@ -21,14 +21,15 @@ export type PublicCardPageStatus =
   | 'server_error'
 
 export type PublicCardHeroAction = {
-  key: 'call' | 'text' | 'email' | 'lets_connect' | 'save_contact' | 'book_appointment'
+  key: 'call' | 'text' | 'email' | 'lets_connect' | 'save_contact' | 'book_appointment' | 'share'
   label: string
   /**
    * Let's Connect opens the relationship capture modal/sheet.
    * Save Contact triggers Smart vCard download via the public API.
    * Call / Text / Email use tel:, sms:, mailto: (same-window contact links).
+   * Share uses Web Share or clipboard of the canonical /c/k/{publicKey} URL.
    */
-  mode: 'opens_connect_form' | 'external_link' | 'vcard_download' | 'contact_link'
+  mode: 'opens_connect_form' | 'external_link' | 'vcard_download' | 'contact_link' | 'share_card'
   href: string | null
   comingSoonBadge: boolean
 }
@@ -204,6 +205,13 @@ export function buildHeroActions(card: IdentitySurfacePublicDto): PublicCardHero
       key: 'save_contact',
       label: 'Save Contact',
       mode: 'vcard_download',
+      href: null,
+      comingSoonBadge: false,
+    },
+    {
+      key: 'share',
+      label: 'Share',
+      mode: 'share_card',
       href: null,
       comingSoonBadge: false,
     },
@@ -442,23 +450,30 @@ export function publicCardLayoutClasses(): {
 
 export function publicCardPageSideEffects(): {
   writesAnalytics: false
+  writesDigitalCardEvents: false
   createsLead: false
   createsHousehold: false
+  createsActivity: false
   /** Smart vCard download via public API — never a CRM write. */
   downloadsVCard: true
   /** Prospect public card does not download QR; CRM Campaigns still does. */
   downloadsQr: false
   /** Let's Connect modal submits via public ingest API (server creates CRM records). */
   opensConnectForm: true
+  /** Browser-only Share of /c/k/{publicKey}. */
+  sharesCard: true
   importsAdminClient: false
 } {
   return {
     writesAnalytics: false,
+    writesDigitalCardEvents: false,
     createsLead: false,
     createsHousehold: false,
+    createsActivity: false,
     downloadsVCard: true,
     downloadsQr: false,
     opensConnectForm: true,
+    sharesCard: true,
     importsAdminClient: false,
   }
 }
