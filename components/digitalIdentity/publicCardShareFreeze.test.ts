@@ -67,12 +67,13 @@ describe('DI-A public share freeze', () => {
     expect(source(FROZEN.cardsApi)).not.toMatch(/updateOwnAdvisorPublicProfile[\s\S]*bio/)
   })
 
-  it('does not add Migration 053 and keeps credit_repair disabled', () => {
+  it('does not add a Digital Identity 053 and keeps credit_repair disabled', () => {
     const files = readdirSync(join(ROOT, 'supabase/migrations')).filter((name) =>
       name.endsWith('.sql'),
     )
-    expect(files).toHaveLength(52)
-    expect(files.some((name) => name.startsWith('053'))).toBe(false)
+    expect(files).toHaveLength(53)
+    expect(files.some((name) => name.startsWith('053_bulk_lead_import_writer'))).toBe(true)
+    expect(files.some((name) => name.startsWith('054'))).toBe(false)
     expect(existsSync(join(ROOT, 'supabase/migrations/053_digital_identity.sql'))).toBe(false)
     expect(getModule('credit_repair')?.featureFlag.enabled).toBe(false)
     expect(source(FROZEN.catalog)).toContain("key: 'credit_repair'")

@@ -140,8 +140,9 @@ describe('Phase D2 Policy Handoff & Household Policy Cleanup contracts', () => {
 
   it('does not broaden RLS, add Migration 053, or enable credit_repair', () => {
     const files = readdirSync(migrationsDir).filter((name) => name.endsWith('.sql')).sort()
-    expect(files).toHaveLength(52)
-    expect(files.filter((name) => name.startsWith('053_'))).toEqual([])
+    expect(files).toHaveLength(53)
+    expect(files.filter((name) => name.startsWith('053_'))).toEqual(['053_bulk_lead_import_writer.sql'])
+    expect(files.filter((name) => name.startsWith('054_'))).toEqual([])
     expect(existsSync(join(migrationsDir, '053_policy_handoff.sql'))).toBe(false)
     expect(sha256('supabase/migrations/046_opportunity_case_conversion.sql')).toBe(SHA_046)
     expect(sha256('supabase/migrations/047_credit_repair_student_loan_sales_catalog.sql')).toBe(SHA_047)

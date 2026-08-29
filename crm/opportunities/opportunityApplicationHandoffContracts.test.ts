@@ -109,7 +109,8 @@ describe('Opportunity → application handoff Phase B contracts', () => {
       isOperationalPolicyCase({ production_stage: 'submitted', submission_date: '2026-06-15' }),
     ).toBe(true)
     expect(caseWorkspace).toContain('isLegitimateSubmittedApplication')
-    expect(readdirSync(migrationsDir).filter((name) => name.startsWith('053_'))).toEqual([])
+    expect(readdirSync(migrationsDir).filter((name) => name.startsWith('053_'))).toEqual(['053_bulk_lead_import_writer.sql'])
+    expect(readdirSync(migrationsDir).filter((name) => name.startsWith('054_'))).toEqual([])
     expect(sha256('supabase/migrations/047_credit_repair_student_loan_sales_catalog.sql')).toBe(SHA_047)
     expect(sha256('supabase/migrations/048_student_loan_report_card_ingest.sql')).toBe(SHA_048)
     expect(sha256('supabase/migrations/049_specialize_public_report_card_follow_up_copy.sql')).toBe(SHA_049)

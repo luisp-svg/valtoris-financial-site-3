@@ -67,10 +67,11 @@ const EXPECTED_MIGRATIONS = [
   '050_credit_report_card_ingest.sql',
   '051_intake_archive_workflow.sql',
   '052_fix_intake_archive_activity_order.sql',
+  '053_bulk_lead_import_writer.sql',
 ]
 
 describe('Phase A production dashboard contracts', () => {
-  it('does not add a production dashboard or Case table migration and freezes 001–052', () => {
+  it('does not add a production dashboard or Case table migration and freezes 001–053', () => {
     const files = readdirSync(migrationsDir).filter((name) => name.endsWith('.sql')).sort()
     expect(files).toEqual(EXPECTED_MIGRATIONS)
     expect(existsSync(join(migrationsDir, '044_case_management.sql'))).toBe(false)
@@ -93,7 +94,8 @@ describe('Phase A production dashboard contracts', () => {
     expect(files.filter((name) => name.startsWith('050_'))).toEqual(['050_credit_report_card_ingest.sql'])
     expect(files.filter((name) => name.startsWith('051_'))).toEqual(['051_intake_archive_workflow.sql'])
     expect(files.filter((name) => name.startsWith('052_'))).toEqual(['052_fix_intake_archive_activity_order.sql'])
-    expect(files.filter((name) => name.startsWith('053_'))).toEqual([])
+    expect(files.filter((name) => name.startsWith('053_'))).toEqual(['053_bulk_lead_import_writer.sql'])
+    expect(files.filter((name) => name.startsWith('054_'))).toEqual([])
   })
 
   it('does not introduce drag/drop, pending commission stage, or stage mutation', () => {

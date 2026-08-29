@@ -247,13 +247,14 @@ describe('Intake diagnostic dispatcher contracts', () => {
     expect(getModule('credit_repair')?.featureFlag.enabled).toBe(false)
   })
 
-  it('leaves migrations 047–052 unchanged and does not add 053', () => {
+  it('leaves migrations 047–052 unchanged and is followed by 053', () => {
     const migrationsDir = resolve(root, 'supabase/migrations')
     const files = readdirSync(migrationsDir)
       .filter((name) => /^\d{3}_.+\.sql$/.test(name))
       .sort()
     expect(files).toEqual([...EXPECTED_NUMBERED_MIGRATIONS])
-    expect(files.filter((name) => name.startsWith('053_'))).toEqual([])
+    expect(files.filter((name) => name.startsWith('053_'))).toEqual(['053_bulk_lead_import_writer.sql'])
+    expect(files.filter((name) => name.startsWith('054_'))).toEqual([])
     expect(existsSync(resolve(migrationsDir, '053_intake_diagnostic_detail.sql'))).toBe(false)
     expect(sha256('supabase/migrations/047_credit_repair_student_loan_sales_catalog.sql')).toBe(SHA_047)
     expect(sha256('supabase/migrations/048_student_loan_report_card_ingest.sql')).toBe(SHA_048)

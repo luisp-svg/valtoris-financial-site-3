@@ -3,6 +3,7 @@ import { join } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { fetchIntakeQueue } from '../intake/intakeApi'
+import { BULK_LEAD_IMPORT_LEAD_TYPE } from '../../modules/bulkLeadImport'
 import { MANUAL_CONTACT_HOUSEHOLD_EXCLUSION } from './exclusions'
 
 const ROOT = join(import.meta.dirname, '../..')
@@ -39,6 +40,7 @@ describe('Intake / Households / dashboard Manual Contact separation', () => {
       'Student Loan Report Card',
       'Credit Report Card',
       'Digital Identity',
+      BULK_LEAD_IMPORT_LEAD_TYPE,
     ])
     expect(leadsQuery.or).not.toHaveBeenCalled()
   })

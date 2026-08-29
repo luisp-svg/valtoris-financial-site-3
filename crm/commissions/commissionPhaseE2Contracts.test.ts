@@ -36,10 +36,11 @@ function read(relativePath: string): string {
 }
 
 describe('commission Phase E2 contracts', () => {
-  it('does not add Migration 053, Eligible, Released, or a persisted reconciliation status', () => {
+  it('does not add a commission 053, Eligible, Released, or a persisted reconciliation status', () => {
     const numbered = readdirSync(migrationsDir).filter((name) => /^\d{3}_/.test(name)).sort()
-    expect(numbered).toHaveLength(52)
-    expect(numbered.filter((name) => name.startsWith('053_'))).toEqual([])
+    expect(numbered).toHaveLength(53)
+    expect(numbered.filter((name) => name.startsWith('053_'))).toEqual(['053_bulk_lead_import_writer.sql'])
+    expect(numbered.filter((name) => name.startsWith('054_'))).toEqual([])
     expect(existsSync(join(migrationsDir, '053_commission_eligible_released.sql'))).toBe(false)
     expect(sha256(`supabase/migrations/${MIGRATION_034_FILENAME}`)).toBe(SHA_034)
     expect(sha256(`supabase/migrations/${MIGRATION_035_FILENAME}`)).toBe(SHA_035)

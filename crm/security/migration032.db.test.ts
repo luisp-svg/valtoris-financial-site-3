@@ -2085,9 +2085,14 @@ describe.skipIf(!localEnv)('migration 032 policy production foundation (local DB
       const cross = await createApp(owner, lifePayload({ opportunity_id: opportunityB }))
       expect(errMsg(cross.error)).toMatch(/CRM_PP:household_mismatch/)
 
-      const sameHousehold = await newLifeApp({ opportunity_id: opportunityA })
+      // Migration 046 adds policy_applications_live_opportunity_unique_idx:
+      // one live application per opportunity. issuedAppId already occupies
+      // opportunityA, so the same-household attach uses a second household-A
+      // opportunity. Production mismatch rules are unchanged.
+      const opportunityASame = await seedOpportunity(householdA, 'Opp A same-hh')
+      const sameHousehold = await newLifeApp({ opportunity_id: opportunityASame })
       const row = await appRow(sameHousehold, 'opportunity_id')
-      expect(row.opportunity_id).toBe(opportunityA)
+      expect(row.opportunity_id).toBe(opportunityASame)
 
       const relink = await owner.rpc('update_policy_application', {
         p_id: sameHousehold,

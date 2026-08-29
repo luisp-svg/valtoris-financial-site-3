@@ -24,7 +24,7 @@ describe('migration 045 post-placement policy lifecycle contract', () => {
     expect(MIGRATION_045_FILENAME).toBe('045_policy_post_placement_lifecycle.sql')
     const files = numberedMigrations()
     expect(files).toEqual([...EXPECTED_NUMBERED_MIGRATIONS])
-    expect(files).toHaveLength(52)
+    expect(files).toHaveLength(53)
     expect(files[0]).toBe('001_extensions_and_enums.sql')
     expect(files[43]).toBe(MIGRATION_044_FILENAME)
     expect(files[44]).toBe(MIGRATION_045_FILENAME)
@@ -45,7 +45,8 @@ describe('migration 045 post-placement policy lifecycle contract', () => {
     expect(files.filter((f) => f.startsWith('050_'))).toEqual(['050_credit_report_card_ingest.sql'])
     expect(files.filter((f) => f.startsWith('051_'))).toEqual(['051_intake_archive_workflow.sql'])
     expect(files.filter((f) => f.startsWith('052_'))).toEqual(['052_fix_intake_archive_activity_order.sql'])
-    expect(files.filter((f) => f.startsWith('053_'))).toEqual([])
+    expect(files.filter((f) => f.startsWith('053_'))).toEqual(['053_bulk_lead_import_writer.sql'])
+    expect(files.filter((f) => f.startsWith('054_'))).toEqual([])
   })
 
   it('adds termination facts, linked status check, owner RPC, audit, and a narrow link-guard context', () => {

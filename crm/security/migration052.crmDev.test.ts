@@ -53,11 +53,14 @@ describe.skipIf(!crmDevReady())('migration 052 CRM-dev archive Activity order (c
     const versions = queryLinked(`
       SELECT version
       FROM supabase_migrations.schema_migrations
-      WHERE version IN ('050', '051', '052', '053')
+      WHERE version IN ('050', '051', '052', '053', '054')
       ORDER BY version
     `)
     const labels = versions.map((row) => String(row.version))
-    expect(labels).toEqual(['050', '051', '052'])
+    expect(labels).toEqual(['050', '051', '052', '053'])
+    expect(labels).not.toContain('054')
+    const total = queryLinked(`SELECT count(*)::int AS n FROM supabase_migrations.schema_migrations`)
+    expect(Number(total[0]?.n)).toBe(53)
 
     const fns = queryLinked(`
       SELECT
@@ -112,6 +115,7 @@ describe.skipIf(!crmDevReady())('migration 052 CRM-dev archive Activity order (c
     expect(def).not.toContain('crm_advisors_can_view_unassigned')
     expect(def).not.toContain('DELETE FROM')
     expect(def).not.toContain('INSERT INTO public.opportunities')
+    expect(def).toContain("'Bulk Lead Import'")
   }, 60_000)
 
   it('adds no new table or column and does not grant Activity INSERT to authenticated', () => {

@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { fetchIntakeQueue } from '../intake/intakeApi'
 import { DIGITAL_IDENTITY_LEAD_TYPE } from '../../modules/digital-identity'
+import { BULK_LEAD_IMPORT_LEAD_TYPE } from '../../modules/bulkLeadImport'
 
 function createQuery(result: { data: unknown; error: null | object }) {
   const query: Record<string, unknown> = {}
@@ -20,7 +21,7 @@ function createQuery(result: { data: unknown; error: null | object }) {
 }
 
 describe('Intake lead_type allowlist', () => {
-  it('queries Family, Business, Retirement, Protection Gap, Student Loan, Credit, and Digital Identity', async () => {
+  it('queries Family, Business, Retirement, Protection Gap, Student Loan, Credit, Digital Identity, and Bulk Lead Import', async () => {
     const leadsQuery = createQuery({ data: [], error: null })
     const from = vi.fn((table: string) => {
       if (table === 'leads') return leadsQuery
@@ -35,6 +36,7 @@ describe('Intake lead_type allowlist', () => {
       'Student Loan Report Card',
       'Credit Report Card',
       DIGITAL_IDENTITY_LEAD_TYPE,
+      BULK_LEAD_IMPORT_LEAD_TYPE,
     ])
     expect(leadsQuery.or).not.toHaveBeenCalled()
     expect(leadsQuery.neq).not.toHaveBeenCalled()
@@ -49,6 +51,7 @@ describe('Intake lead_type allowlist', () => {
       'Student Loan Report Card',
       'Credit Report Card',
       DIGITAL_IDENTITY_LEAD_TYPE,
+      BULK_LEAD_IMPORT_LEAD_TYPE,
     ])
     for (const type of [null, undefined, 'Manual Contact', 'Future Widget', '']) {
       expect(allowed.has(type as string)).toBe(false)
@@ -57,5 +60,6 @@ describe('Intake lead_type allowlist', () => {
     expect(allowed.has('Credit Report Card')).toBe(true)
     expect(allowed.has('Family Report Card')).toBe(true)
     expect(allowed.has('Digital Identity')).toBe(true)
+    expect(allowed.has(BULK_LEAD_IMPORT_LEAD_TYPE)).toBe(true)
   })
 })

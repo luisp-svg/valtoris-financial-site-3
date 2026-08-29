@@ -322,13 +322,14 @@ describe('public site foundation chrome', () => {
     expect(app).toContain('path="/crm"')
   })
 
-  it('does not change scoring, ingest, Digital Identity, or add Migration 053', () => {
+  it('does not change scoring, ingest, Digital Identity, or add a website 053', () => {
     const files = readdirSync(join(ROOT, 'supabase/migrations'))
       .filter((name) => name.endsWith('.sql'))
       .sort()
-    expect(files).toHaveLength(52)
-    expect(files[files.length - 1]).toBe('052_fix_intake_archive_activity_order.sql')
-    expect(files.some((name) => name.startsWith('053_'))).toBe(false)
+    expect(files).toHaveLength(53)
+    expect(files[files.length - 1]).toBe('053_bulk_lead_import_writer.sql')
+    expect(files.some((name) => name.startsWith('053_'))).toBe(true)
+    expect(files.some((name) => name.startsWith('054_'))).toBe(false)
     expect(existsSync(join(ROOT, 'supabase/migrations/053_website_foundation.sql'))).toBe(false)
     expect(fileSha256('supabase/migrations/047_credit_repair_student_loan_sales_catalog.sql')).toBe(SHA_047)
     expect(fileSha256('supabase/migrations/048_student_loan_report_card_ingest.sql')).toBe(SHA_048)

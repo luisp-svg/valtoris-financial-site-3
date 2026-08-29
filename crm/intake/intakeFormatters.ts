@@ -1,4 +1,5 @@
 import { DIGITAL_IDENTITY_LEAD_TYPE } from '../../modules/digital-identity'
+import { BULK_LEAD_IMPORT_LEAD_TYPE } from '../../modules/bulkLeadImport'
 import {
   CRM_PRODUCT_LABEL_BY_ASSESSMENT,
   crmProductLabelForAssessment,
@@ -26,6 +27,7 @@ export function intakeProductLabel(item: Pick<IntakeQueueItem, 'leadType' | 'dig
   if (isDigitalIdentityLead(item)) {
     return item.digitalIdentity?.productLabel ?? 'Digital Identity'
   }
+  if (item.leadType === BULK_LEAD_IMPORT_LEAD_TYPE) return BULK_LEAD_IMPORT_LEAD_TYPE
   if (item.diagnostic?.productLabel) return item.diagnostic.productLabel
   return asIntakeDiagnosticProductLabel(crmProductLabelForLeadType(item.leadType))
 }

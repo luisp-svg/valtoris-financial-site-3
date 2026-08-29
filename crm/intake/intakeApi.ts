@@ -1,5 +1,6 @@
 import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js'
 import { DIGITAL_IDENTITY_LEAD_TYPE } from '../../modules/digital-identity'
+import { BULK_LEAD_IMPORT_LEAD_TYPE } from '../../modules/bulkLeadImport'
 import {
   PUBLIC_REPORT_CARD_ASSESSMENT_TYPES,
   PUBLIC_REPORT_CARD_LEAD_TYPES,
@@ -194,7 +195,7 @@ export async function fetchIntakeQueue(
     .from('leads')
     .select(LEAD_SELECT)
     .is('deleted_at', null)
-    .in('lead_type', [...PUBLIC_REPORT_CARD_LEAD_TYPES, DIGITAL_IDENTITY_LEAD_TYPE])
+    .in('lead_type', [...PUBLIC_REPORT_CARD_LEAD_TYPES, DIGITAL_IDENTITY_LEAD_TYPE, BULK_LEAD_IMPORT_LEAD_TYPE])
     .order('submitted_at', { ascending: false })
     .limit(limit)
 

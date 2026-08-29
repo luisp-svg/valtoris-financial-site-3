@@ -112,8 +112,9 @@ describe('generic strategy-meeting schedule page', () => {
     const files = readdirSync(join(ROOT, 'supabase/migrations'))
       .filter((name) => name.endsWith('.sql'))
       .sort()
-    expect(files).toHaveLength(52)
-    expect(files.some((name) => name.startsWith('053_'))).toBe(false)
+    expect(files).toHaveLength(53)
+    expect(files.some((name) => name.startsWith('053_'))).toBe(true)
+    expect(files.some((name) => name.startsWith('054_'))).toBe(false)
     expect(existsSync(join(ROOT, 'supabase/migrations/053_schedule_cleanup.sql'))).toBe(false)
     expect(fileSha256('supabase/migrations/047_credit_repair_student_loan_sales_catalog.sql')).toBe(
       SHA_047,

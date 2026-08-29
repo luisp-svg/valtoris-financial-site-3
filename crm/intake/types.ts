@@ -1,7 +1,7 @@
 /**
  * CRM Intake — typed domain models for public intake prospects.
  * Covers public Report Card lead types (Family, Business, Retirement,
- * Protection Gap, Student Loan, Credit) and Digital Identity.
+ * Protection Gap, Student Loan, Credit), Digital Identity, and Bulk Lead Import.
  * Match/sheets/consent fields live on `leads` (migration 020+).
  * Follow-up task automation fields live on leads/tasks (migration 022 / 026).
  */

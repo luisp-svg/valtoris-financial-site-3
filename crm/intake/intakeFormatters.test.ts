@@ -16,6 +16,7 @@ import {
   sortIntakeNewestFirst,
 } from './intakeFormatters'
 import { DIGITAL_IDENTITY_LEAD_TYPE } from '../../modules/digital-identity'
+import { BULK_LEAD_IMPORT_LEAD_TYPE } from '../../modules/bulkLeadImport'
 import type { IntakeQueueItem } from './types'
 import { getDuplicateResolutionAvailability } from './intakeApi'
 import { emptyStateCopy, getIntakeListViewState } from './listLoadState'
@@ -351,6 +352,19 @@ describe('intake formatters', () => {
     })
     expect(isDigitalIdentityLead(di)).toBe(true)
     expect(intakeProductLabel(di)).toBe('Digital Identity')
+    expect(intakeProductLabel(makeItem())).toBe('Initial Financial Diagnostic')
+  })
+
+  it('labels Bulk Lead Import without remapping it to a Report Card diagnostic', () => {
+    const imported = makeItem({
+      leadType: BULK_LEAD_IMPORT_LEAD_TYPE,
+      diagnostic: null,
+      digitalIdentity: null,
+      sourcePage: 'bulk_import:2026_leads_crm:Leads',
+    })
+    expect(isDigitalIdentityLead(imported)).toBe(false)
+    expect(intakeProductLabel(imported)).toBe(BULK_LEAD_IMPORT_LEAD_TYPE)
+    expect(intakeProductLabel(imported)).not.toBe('Initial Financial Diagnostic')
     expect(intakeProductLabel(makeItem())).toBe('Initial Financial Diagnostic')
   })
 
