@@ -255,11 +255,11 @@ describe('Home Buyer Phase C ingest', () => {
     )
   })
 
-  it('does not add App routes, Migration 055, or a Home Buyer workspace', () => {
+  it('keeps Home Buyer out of the CRM workspace and does not add Migration 055', () => {
     expect(HOME_BUYER_CRM_INGEST_ENABLED).toBe(true)
     expect(canSubmitHomeBuyerToCrm()).toBe(true)
-    expect(source('src/App.tsx')).not.toContain('HomeBuyer')
-    expect(source('src/App.tsx')).not.toContain('home-buyer-assessment')
+    expect(source('src/App.tsx')).toContain('HomeBuyerAssessment')
+    expect(source('src/App.tsx')).toContain('homeBuyerAssessment')
     expect(WORKSPACE_ASSESSMENT_TYPES).not.toContain('home_buyer')
     const files = readdirSync(join(ROOT, 'supabase/migrations')).filter((name) => name.endsWith('.sql')).sort()
     expect(files.some((name) => name.startsWith('055_'))).toBe(false)

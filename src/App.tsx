@@ -29,6 +29,9 @@ import StudentLoanReportCardResults from '../pages/StudentLoanReportCardResults'
 import CreditReportCardPage from '../pages/CreditReportCardPage'
 import CreditAssessment from '../pages/CreditAssessment'
 import CreditReportCardResults from '../pages/CreditReportCardResults'
+import HomeBuyerReportCardPage from '../pages/HomeBuyerReportCardPage'
+import HomeBuyerAssessment from '../pages/HomeBuyerAssessment'
+import HomeBuyerReportCardResults from '../pages/HomeBuyerReportCardResults'
 import FinancialProtectionAssessment from '../pages/FinancialProtectionAssessment'
 import FamilyReportCardResults from '../pages/FamilyReportCardResults'
 import FamilyReportCardPage from '../pages/FamilyReportCardPage'
@@ -99,6 +102,8 @@ export default function App() {
       <Route path={ROUTES.studentLoanReportCardResults} element={<StudentLoanReportCardResults />} />
       <Route path={ROUTES.creditAssessment} element={<CreditAssessment />} />
       <Route path={ROUTES.creditReportCardResults} element={<CreditReportCardResults />} />
+      <Route path={ROUTES.homeBuyerAssessment} element={<HomeBuyerAssessment />} />
+      <Route path={ROUTES.homeBuyerReportCardResults} element={<HomeBuyerReportCardResults />} />
       <Route path={ROUTES.schedule} element={<ScheduleReportCardPage />} />
 
       <Route
@@ -217,6 +222,14 @@ export default function App() {
         element={
           <SiteLayout>
             <CreditReportCardPage />
+          </SiteLayout>
+        }
+      />
+      <Route
+        path={ROUTES.homeBuyerReportCard}
+        element={
+          <SiteLayout>
+            <HomeBuyerReportCardPage />
           </SiteLayout>
         }
       />

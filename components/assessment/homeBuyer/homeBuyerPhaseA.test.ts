@@ -159,15 +159,17 @@ describe('Home Buyer Phase A foundation', () => {
     }
   })
 
-  it('registers the specialized product without adding App routes or UI pages', () => {
+  it('registers the specialized product and public App routes', () => {
     expect(isSpecializedAssessmentProduct('home_buyer')).toBe(true)
     expect(SPECIALIZED_ASSESSMENT_PRODUCTS).toEqual(['student_loan', 'credit', 'home_buyer'])
     expect(PUBLIC_REPORT_CARD_ASSESSMENT_TYPES).toContain('home_buyer')
     expect(HOME_BUYER_CRM_INGEST_ENABLED).toBe(true)
     expect(canSubmitHomeBuyerToCrm()).toBe(true)
     const app = source('src/App.tsx')
-    expect(app).not.toContain('HomeBuyer')
-    expect(app).not.toContain('home-buyer-assessment')
+    expect(app).toContain('HomeBuyerReportCardPage')
+    expect(app).toContain('HomeBuyerAssessment')
+    expect(app).toContain('HomeBuyerReportCardResults')
+    expect(app).toContain('homeBuyerAssessment')
     expect(source('components/assessment/homeBuyer/ingestBoundary.ts')).not.toContain('opportunity')
     expect(source('components/assessment/homeBuyer/ingestBoundary.ts')).not.toContain('idiq')
   })

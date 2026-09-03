@@ -167,10 +167,147 @@ const HOME_BUYER_COPY_EN: SpecializedCopyCatalog = {
       'Contact and consent come first. Ten diagnostic questions then measure purchase preparation. This is a readiness review, not a lending decision.',
     welcomeNote:
       'We never collect Social Security numbers, dates of birth, credit-bureau logins, lender credentials, account numbers, or document uploads.',
+    backToOverview: 'Back to Overview',
     back: 'Back',
     continue: 'Continue',
     viewResults: 'View my Home Buyer Report Card',
     contactTitle: 'Contact and acknowledgments',
+    contactBody: 'Share how we can reach you. Required acknowledgments are marked with an asterisk.',
+    firstName: 'First Name',
+    lastName: 'Last Name',
+    email: 'Email',
+    phone: 'Phone',
+    firstNamePlaceholder: 'First name',
+    lastNamePlaceholder: 'Last name',
+    emailPlaceholder: 'you@email.com',
+    phonePlaceholder: '(555) 555-5555',
+    consentIntro:
+      'Your Home Buyer Report Card is based on the information you share. Required acknowledgments are marked with an asterisk.',
+    ingestUnavailable:
+      'Your answers were reviewed on this device. They were not sent to Valtoris CRM.',
+    saving: 'Saving your Home Buyer Report Card…',
+    submitFailed: 'We could not save your Home Buyer Report Card. Please try again.',
+    resultsUnavailable: 'Your Home Buyer Report Card results are not available yet.',
+    resultsLead:
+      'Complete the Home Buyer Report Card to see your educational readiness score, grade, and next actions.',
+    backToLanding: 'Back to Home Buyer Report Card',
+    retake: 'Return to assessment',
+    retakeCta: 'Retake Assessment',
+    preparedFor: 'Prepared for',
+    scoreOutOf: '{score} out of 100',
+    nextStepSupport:
+      'Optional. This does not create a CRM Opportunity or send automatic messages.',
+    startCta: 'Get My Home Buyer Report Card',
+    productTitle: 'Home Buyer Report Card',
+    storageResultName: 'Home Buyer Report Card',
+    languageGroupLabel: 'Language',
+    languageEnglish: 'English',
+    languageSpanish: 'Español',
+    stepIndicator: 'Step {current} of {total}',
+    consentRequired: 'Please confirm the required acknowledgments before continuing.',
+    consentHeading: 'Acknowledgments',
+    consentStorage:
+      'I understand that Valtoris will use the information I provide to calculate and save my {storageResultName} and related results.',
+    consentStorageHint: 'Required acknowledgment to save and calculate your diagnostic.',
+    consentStorageError: 'Please acknowledge that your information will be used to calculate and save your diagnostic.',
+    consentContact: 'I give Valtoris permission to contact me about my results and possible next steps.',
+    consentEmailMarketing:
+      'I agree to receive occasional marketing emails from Valtoris. I can unsubscribe at any time.',
+    consentSms:
+      'I agree to receive recurring marketing text messages from Valtoris at the number provided. Consent is not a condition of receiving my report. Message and data rates may apply. Reply STOP to cancel.',
+    consentSmsPhoneNote: 'Add a phone number earlier in the assessment to enable this option.',
+    consentPrivacyBefore: 'I acknowledge that I have reviewed the',
+    consentPrivacyLink: 'Valtoris Privacy Policy',
+    consentPrivacyAfter: '.',
+    consentPrivacyHint: 'Required privacy acknowledgment. Opens the Privacy Policy in a new tab.',
+    consentPrivacyError: 'Please review and acknowledge the Privacy Policy before continuing.',
+    consentDisclaimer:
+      'Results are educational estimates based on self-reported information. They are not a credit pull, underwriting decision, mortgage approval, or lending offer.',
+    consentHoneypot: 'Company website',
+    landingEyebrow: 'VALTORIS HOME BUYER REPORT CARD',
+    landingTitle: 'See How Prepared You Are to Buy. Know What to Work on Next.',
+    landingHero1:
+      'Understand your self-reported purchase readiness — credit, income, debt, savings, cash flow, down payment, documents, and timing.',
+    landingHero2:
+      'The Home Buyer Report Card helps organize preparation gaps so you can plan next steps. It is not a credit pull or a lending decision.',
+    landingReceiveHeading: "What You'll Receive",
+    landingReceiveLead: 'What this specialized Report Card is designed to deliver.',
+    landingReceiveScoreTitle: 'Home Buyer Report Card Score',
+    landingReceiveScoreDescription:
+      'An educational 0–100 readiness score and +/- grade based on your answers — not a mortgage approval.',
+    landingReceiveFlagsTitle: 'Strengths, Barriers, and Next Actions',
+    landingReceiveFlagsDescription:
+      'Top strengths, barriers, and prioritized next actions based on your self-reported answers.',
+    landingReceiveGoalTitle: 'Readiness Status',
+    landingReceiveGoalDescription:
+      'A preparation-only status such as Strongly prepared or Building readiness. Completing this diagnostic does not create a CRM Opportunity.',
+    landingReceiveSessionTitle: 'Optional Strategy Conversation',
+    landingReceiveSessionDescription:
+      'You can optionally review your results with Valtoris later. This page does not sell a mortgage or prequalification.',
+    landingSampleHeading: 'Sample Report Preview',
+    landingSampleLead:
+      'An example of the report layout. Sample values are labeled as examples and are not your results.',
+    landingSampleBadge: 'Sample / Example',
+    landingSampleAriaLabel: 'Example Home Buyer Report Card preview',
+    landingSampleFlagHeading: 'Example readiness flag',
+    landingSampleFlagTitle: 'Down-payment preparation may deserve a closer look',
+    landingSampleReviewHeading: 'Example next actions',
+    landingSampleReview1: 'Review self-reported credit preparation',
+    landingSampleReview2: 'Build savings and reserves',
+    landingSampleReview3: 'Gather core documents',
+    landingSampleDisclaimer:
+      'Example only. These sample values are not your Home Buyer Report Card Score and are not a credit pull or lending decision.',
+    landingCompliance:
+      'This is a self-reported readiness diagnostic. It is not a credit pull, underwriting decision, mortgage approval, or lending offer. Valtoris does not guarantee approval, prequalification, or a specific purchase outcome.',
+    landingCategoriesHeading: 'What the Report Card Covers',
+    landingCategoriesLead: 'Each group counts as one diagnostic question. Contact and consent are separate.',
+    landingCategoryCreditTitle: 'Credit Profile and Risk Flags',
+    landingCategoryCreditDescription: 'Self-reported score range, last review, and exclusive risk flags.',
+    landingCategoryIncomeTitle: 'Income and Employment',
+    landingCategoryIncomeDescription: 'Household income band, work type, and tenure — not an underwriting file.',
+    landingCategoryDebtTitle: 'Debt and Cash Flow',
+    landingCategoryDebtDescription: 'Debt-burden bands, housing cost, and leftover cash flow. No precise DTI.',
+    landingCategorySavingsTitle: 'Savings and Down Payment',
+    landingCategorySavingsDescription: 'Liquid savings, reserves, and approximate down-payment progress.',
+    landingCategoryDocsTitle: 'Documents and Situation',
+    landingCategoryDocsDescription: 'A document checklist plus buyer history, occupancy, and current housing.',
+    landingCategoryTimelineTitle: 'Purchase Timeline',
+    landingCategoryTimelineDescription: 'Target timing and how prepared you feel today.',
+    landingHowHeading: 'How It Works',
+    landingHowLead: 'Contact first, then ten questions, then a scored readiness report — without creating a CRM Opportunity automatically.',
+    landingHow1Title: 'Share Contact and Consent',
+    landingHow1Description:
+      'Start with your name, email, phone, and required acknowledgments. Contact is not one of the 10 diagnostic questions.',
+    landingHow2Title: 'Answer 10 Diagnostic Groups',
+    landingHow2Description:
+      'Share self-reported credit, income, debt, savings, cash flow, down payment, documents, situation, and timing.',
+    landingHow3Title: 'See Your Results',
+    landingHow3Description:
+      'You receive a 0–100 score, +/- grade, readiness status, category scores, strengths, barriers, and next actions.',
+    landingHow4Title: 'Optional Review',
+    landingHow4Description:
+      'A later conversation can review your preparation plan. No Opportunity is created automatically.',
+    landingFaqHeading: 'Frequently Asked Questions',
+    landingFaqLead: 'Straightforward answers before you begin.',
+    landingFaq1: 'How long does the Home Buyer Report Card take?',
+    landingFaqA1: 'Most people finish contact, consent, and the 10 diagnostic groups in about 5–8 minutes.',
+    landingFaq2: 'Will you ask for my Social Security number or lender login?',
+    landingFaqA2:
+      'No. We never collect SSN, date of birth, credit-bureau or lender logins, account numbers, or document uploads.',
+    landingFaq3: 'Is this a credit pull or a mortgage approval?',
+    landingFaqA3:
+      'No. This is a self-reported readiness diagnostic. It is not a credit pull, underwriting decision, approval, or prequalification.',
+    landingFaq4: 'Do you calculate my exact debt-to-income ratio?',
+    landingFaqA4:
+      'No. Debt and income answers use broad bands only. The score does not invent a precise DTI.',
+    landingFaq5: 'Will someone contact me automatically?',
+    landingFaqA5:
+      'No automatic messages are sent. If you finish and agree to be contacted, Valtoris may follow up about your results.',
+    landingClosingTitle: 'Ready to Start Your Home Buyer Report Card?',
+    landingClosingCopy:
+      'Complete the Home Buyer Report Card to see which preparation areas may deserve attention.',
+    landingClosingMicrocopy:
+      'No lender logins. No Social Security number. No approval or prequalification promises.',
   },
   results: {
     score: 'Home Buyer Report Card Score',
@@ -181,9 +318,10 @@ const HOME_BUYER_COPY_EN: SpecializedCopyCatalog = {
     barriers: 'Barriers',
     nextActions: 'Prioritized next actions',
     flags: 'Hard-risk flags',
+    reviewWithValtoris: 'Review My Results With Valtoris',
     unavailable: 'Your Home Buyer Report Card results are not available yet.',
     disclaimer:
-      'This Home Buyer Report Card Score is a Valtoris educational readiness assessment based on the answers you provided. It measures preparation only. It is not a mortgage decision, approval, or prequalification, and it does not calculate a precise debt-to-income ratio.',
+      'This Home Buyer Report Card Score is a self-reported readiness diagnostic based on the answers you provided. It is not a credit pull, underwriting decision, mortgage approval, or lending offer, and it does not calculate a precise debt-to-income ratio.',
     'status.strongly_prepared': 'Strongly prepared',
     'status.almost_prepared': 'Almost prepared',
     'status.building_readiness': 'Building readiness',
@@ -424,10 +562,148 @@ const HOME_BUYER_COPY_ES: SpecializedCopyCatalog = {
       'El contacto y el consentimiento van primero. Diez preguntas de diagnóstico miden después la preparación para comprar. Esto es una revisión de preparación, no una decisión de préstamo.',
     welcomeNote:
       'Nunca pedimos número de Seguro Social, fecha de nacimiento, accesos a agencias de crédito, credenciales de prestamistas, números de cuenta ni documentos subidos.',
+    backToOverview: 'Volver al resumen',
     back: 'Atrás',
     continue: 'Continuar',
     viewResults: 'Ver mi Reporte para Compradores de Vivienda',
     contactTitle: 'Contacto y reconocimientos',
+    contactBody: 'Indique cómo podemos comunicarnos con usted. Los reconocimientos obligatorios están marcados con un asterisco.',
+    firstName: 'Nombre',
+    lastName: 'Apellido',
+    email: 'Correo electrónico',
+    phone: 'Teléfono',
+    firstNamePlaceholder: 'Nombre',
+    lastNamePlaceholder: 'Apellido',
+    emailPlaceholder: 'usted@email.com',
+    phonePlaceholder: '(555) 555-5555',
+    consentIntro:
+      'Su Reporte para Compradores de Vivienda se basa en la información que comparta. Los reconocimientos obligatorios están marcados con un asterisco.',
+    ingestUnavailable:
+      'Sus respuestas se revisaron en este dispositivo. No se enviaron al CRM de Valtoris.',
+    saving: 'Guardando su Reporte para Compradores de Vivienda…',
+    submitFailed: 'No pudimos guardar su Reporte para Compradores de Vivienda. Inténtelo de nuevo.',
+    resultsUnavailable: 'Los resultados de su Reporte para Compradores de Vivienda aún no están disponibles.',
+    resultsLead:
+      'Complete la evaluación para ver su puntaje educativo de preparación, calificación y siguientes acciones.',
+    backToLanding: 'Volver al Reporte para Compradores de Vivienda',
+    retake: 'Volver a la evaluación',
+    retakeCta: 'Repetir evaluación',
+    preparedFor: 'Preparado para',
+    scoreOutOf: '{score} de 100',
+    nextStepSupport:
+      'Opcional. Esto no crea una Oportunidad en el CRM ni envía mensajes automáticos.',
+    startCta: 'Obtener mi Reporte para Compradores de Vivienda',
+    productTitle: 'Reporte para Compradores de Vivienda',
+    storageResultName: 'Reporte para Compradores de Vivienda',
+    languageGroupLabel: 'Idioma',
+    languageEnglish: 'English',
+    languageSpanish: 'Español',
+    stepIndicator: 'Paso {current} de {total}',
+    consentRequired: 'Confirme los reconocimientos obligatorios antes de continuar.',
+    consentHeading: 'Reconocimientos',
+    consentStorage:
+      'Entiendo que Valtoris usará la información que proporcione para calcular y guardar mi {storageResultName} y los resultados relacionados.',
+    consentStorageHint: 'Reconocimiento obligatorio para guardar y calcular su diagnóstico.',
+    consentStorageError:
+      'Reconozca que su información se usará para calcular y guardar su diagnóstico.',
+    consentContact: 'Autorizo a Valtoris a comunicarse conmigo sobre mis resultados y posibles siguientes pasos.',
+    consentEmailMarketing:
+      'Acepto recibir correos de marketing ocasionales de Valtoris. Puedo cancelar la suscripción en cualquier momento.',
+    consentSms:
+      'Acepto recibir mensajes de texto de marketing recurrentes de Valtoris al número indicado. El consentimiento no es una condición para recibir mi reporte. Pueden aplicarse tarifas de mensajes y datos. Responda STOP para cancelar.',
+    consentSmsPhoneNote: 'Agregue un número de teléfono más arriba en la evaluación para activar esta opción.',
+    consentPrivacyBefore: 'Reconozco que he revisado la',
+    consentPrivacyLink: 'Política de privacidad de Valtoris',
+    consentPrivacyAfter: '.',
+    consentPrivacyHint: 'Reconocimiento de privacidad obligatorio. Abre la Política de privacidad en una pestaña nueva.',
+    consentPrivacyError: 'Revise y reconozca la Política de privacidad antes de continuar.',
+    consentDisclaimer:
+      'Los resultados son estimaciones educativas basadas en información que usted informó. No son una consulta de crédito, una decisión de suscripción, una aprobación hipotecaria ni una oferta de préstamo.',
+    consentHoneypot: 'Sitio web de la empresa',
+    landingEyebrow: 'REPORTE PARA COMPRADORES DE VIVIENDA DE VALTORIS',
+    landingTitle: 'Vea qué tan preparado está para comprar. Sepa en qué trabajar después.',
+    landingHero1:
+      'Entienda su preparación de compra que usted informa: crédito, ingresos, deudas, ahorros, flujo de efectivo, enganche, documentos y plazos.',
+    landingHero2:
+      'El Reporte para Compradores de Vivienda ayuda a organizar las brechas de preparación para planear los siguientes pasos. No es una consulta de crédito ni una decisión de préstamo.',
+    landingReceiveHeading: 'Qué recibirá',
+    landingReceiveLead: 'Lo que este Reporte especializado está diseñado para entregar.',
+    landingReceiveScoreTitle: 'Puntaje del Reporte para Compradores de Vivienda',
+    landingReceiveScoreDescription:
+      'Un puntaje educativo de preparación de 0 a 100 y una calificación con +/− según sus respuestas — no una aprobación hipotecaria.',
+    landingReceiveFlagsTitle: 'Fortalezas, barreras y siguientes acciones',
+    landingReceiveFlagsDescription:
+      'Principales fortalezas, barreras y acciones priorizadas según las respuestas que usted informa.',
+    landingReceiveGoalTitle: 'Estado de preparación',
+    landingReceiveGoalDescription:
+      'Un estado solo de preparación, como Muy preparado o Construyendo preparación. Completar este diagnóstico no crea una Oportunidad en el CRM.',
+    landingReceiveSessionTitle: 'Conversación opcional de estrategia',
+    landingReceiveSessionDescription:
+      'Más adelante puede revisar sus resultados con Valtoris. Esta página no vende una hipoteca ni una precalificación.',
+    landingSampleHeading: 'Vista previa de ejemplo',
+    landingSampleLead:
+      'Un ejemplo del diseño del reporte. Los valores de muestra están etiquetados como ejemplos y no son sus resultados.',
+    landingSampleBadge: 'Muestra / Ejemplo',
+    landingSampleAriaLabel: 'Vista previa de ejemplo del Reporte para Compradores de Vivienda',
+    landingSampleFlagHeading: 'Indicador de preparación de ejemplo',
+    landingSampleFlagTitle: 'La preparación del enganche puede merecer una revisión más cercana',
+    landingSampleReviewHeading: 'Siguientes acciones de ejemplo',
+    landingSampleReview1: 'Revisar la preparación crediticia que usted informa',
+    landingSampleReview2: 'Construir ahorros y reservas',
+    landingSampleReview3: 'Reunir documentos básicos',
+    landingSampleDisclaimer:
+      'Solo un ejemplo. Estos valores de muestra no son su puntaje y no son una consulta de crédito ni una decisión de préstamo.',
+    landingCompliance:
+      'Esto es un diagnóstico de preparación que usted informa. No es una consulta de crédito, una decisión de suscripción, una aprobación hipotecaria ni una oferta de préstamo. Valtoris no garantiza aprobación, precalificación ni un resultado de compra específico.',
+    landingCategoriesHeading: 'Qué cubre el Reporte',
+    landingCategoriesLead: 'Cada grupo cuenta como una pregunta de diagnóstico. El contacto y el consentimiento son aparte.',
+    landingCategoryCreditTitle: 'Perfil de crédito y banderas de riesgo',
+    landingCategoryCreditDescription: 'Rango de puntaje que usted informa, última revisión y banderas exclusivas de riesgo.',
+    landingCategoryIncomeTitle: 'Ingresos y empleo',
+    landingCategoryIncomeDescription: 'Rango de ingreso del hogar, tipo de trabajo y antigüedad — no un expediente de suscripción.',
+    landingCategoryDebtTitle: 'Deuda y flujo de efectivo',
+    landingCategoryDebtDescription: 'Rangos de carga de deuda, costo de vivienda y efectivo que queda. Sin un DTI preciso.',
+    landingCategorySavingsTitle: 'Ahorros y enganche',
+    landingCategorySavingsDescription: 'Ahorro líquido, reservas y avance aproximado del enganche.',
+    landingCategoryDocsTitle: 'Documentos y situación',
+    landingCategoryDocsDescription: 'Una lista de documentos más historial de comprador, ocupación y vivienda actual.',
+    landingCategoryTimelineTitle: 'Plazo de compra',
+    landingCategoryTimelineDescription: 'El plazo objetivo y qué tan preparado se siente hoy.',
+    landingHowHeading: 'Cómo funciona',
+    landingHowLead: 'Primero el contacto, luego diez preguntas y un reporte de preparación — sin crear una Oportunidad en el CRM de forma automática.',
+    landingHow1Title: 'Comparta contacto y consentimiento',
+    landingHow1Description:
+      'Empiece con su nombre, correo, teléfono y los reconocimientos obligatorios. El contacto no es una de las 10 preguntas de diagnóstico.',
+    landingHow2Title: 'Responda 10 grupos de diagnóstico',
+    landingHow2Description:
+      'Comparta crédito, ingresos, deudas, ahorros, flujo de efectivo, enganche, documentos, situación y plazos que usted informa.',
+    landingHow3Title: 'Vea sus resultados',
+    landingHow3Description:
+      'Recibe un puntaje de 0 a 100, una calificación con +/−, estado de preparación, categorías, fortalezas, barreras y siguientes acciones.',
+    landingHow4Title: 'Revisión opcional',
+    landingHow4Description:
+      'Una conversación posterior puede revisar su plan de preparación. No se crea una Oportunidad de forma automática.',
+    landingFaqHeading: 'Preguntas frecuentes',
+    landingFaqLead: 'Respuestas directas antes de empezar.',
+    landingFaq1: '¿Cuánto tarda el Reporte para Compradores de Vivienda?',
+    landingFaqA1: 'La mayoría termina el contacto, el consentimiento y los 10 grupos de diagnóstico en unos 5–8 minutos.',
+    landingFaq2: '¿Me pedirán el Seguro Social o el acceso de un prestamista?',
+    landingFaqA2:
+      'No. Nunca pedimos SSN, fecha de nacimiento, accesos a agencias de crédito o prestamistas, números de cuenta ni documentos subidos.',
+    landingFaq3: '¿Esto es una consulta de crédito o una aprobación hipotecaria?',
+    landingFaqA3:
+      'No. Esto es un diagnóstico de preparación que usted informa. No es una consulta de crédito, una decisión de suscripción, una aprobación ni una precalificación.',
+    landingFaq4: '¿Calculan mi ratio exacto de deuda sobre ingreso?',
+    landingFaqA4:
+      'No. Las respuestas de deuda e ingresos usan solo rangos amplios. El puntaje no inventa un DTI preciso.',
+    landingFaq5: '¿Alguien me contactará de forma automática?',
+    landingFaqA5:
+      'No se envían mensajes automáticos. Si termina y acepta que lo contacten, Valtoris puede darle seguimiento sobre sus resultados.',
+    landingClosingTitle: '¿Listo para comenzar su Reporte para Compradores de Vivienda?',
+    landingClosingCopy:
+      'Complete el Reporte para ver qué áreas de preparación pueden merecer atención.',
+    landingClosingMicrocopy:
+      'Sin accesos de prestamista. Sin número de Seguro Social. Sin promesas de aprobación ni precalificación.',
   },
   results: {
     score: 'Puntaje del Reporte para Compradores de Vivienda',
@@ -438,9 +714,10 @@ const HOME_BUYER_COPY_ES: SpecializedCopyCatalog = {
     barriers: 'Barreras',
     nextActions: 'Próximas acciones priorizadas',
     flags: 'Indicadores de riesgo alto',
+    reviewWithValtoris: 'Revisar mis resultados con Valtoris',
     unavailable: 'Los resultados de su Reporte para Compradores de Vivienda aún no están disponibles.',
     disclaimer:
-      'Este puntaje es una evaluación educativa de preparación de Valtoris basada en las respuestas que usted dio. Mide solo la preparación. No es una decisión hipotecaria, una aprobación ni una precalificación, y no calcula un ratio preciso de deuda sobre ingreso.',
+      'Este puntaje es un diagnóstico de preparación que usted informa, basado en las respuestas que dio. No es una consulta de crédito, una decisión de suscripción, una aprobación hipotecaria ni una oferta de préstamo, y no calcula un ratio preciso de deuda sobre ingreso.',
     'status.strongly_prepared': 'Muy preparado',
     'status.almost_prepared': 'Casi preparado',
     'status.building_readiness': 'Construyendo preparación',
