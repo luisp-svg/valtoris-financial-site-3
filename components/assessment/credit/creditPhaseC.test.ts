@@ -73,6 +73,7 @@ describe('Credit Phase C catalog', () => {
       'protection',
       'student_loan',
       'credit',
+      'home_buyer',
     ])
     expect(isPublicReportCardAssessmentType('credit')).toBe(true)
     expect(LEAD_TYPE_BY_ASSESSMENT.credit).toBe('Credit Report Card')
@@ -419,12 +420,12 @@ describe('Credit Phase C CRM display and boundaries', () => {
 
   it('leaves 047–050 byte-identical, does not add Migration 051, and keeps credit_repair disabled', () => {
     const files = readdirSync(join(ROOT, 'supabase/migrations')).filter((name) => name.endsWith('.sql')).sort()
-    expect(files).toHaveLength(53)
+    expect(files).toHaveLength(54)
     expect(files[49]).toBe('050_credit_report_card_ingest.sql')
     expect(files.some((name) => name.startsWith('051_'))).toBe(true)
     expect(files.some((name) => name.startsWith('052_'))).toBe(true)
     expect(files.some((name) => name.startsWith('053_'))).toBe(true)
-    expect(files.some((name) => name.startsWith('054_'))).toBe(false)
+    expect(files.some((name) => name.startsWith('054_'))).toBe(true)
     expect(fileSha256('supabase/migrations/047_credit_repair_student_loan_sales_catalog.sql')).toBe(SHA_047)
     expect(fileSha256('supabase/migrations/048_student_loan_report_card_ingest.sql')).toBe(SHA_048)
     expect(fileSha256('supabase/migrations/049_specialize_public_report_card_follow_up_copy.sql')).toBe(SHA_049)

@@ -132,5 +132,7 @@ export function normalizePublicReportCardContact(
       return normalizeStudentLoanContact(answers as StudentLoanAssessmentAnswers)
     case 'credit':
       return normalizeCreditContact(answers as CreditAssessmentAnswers)
+    case 'home_buyer':
+      throw new Error('home_buyer contact normalization requires Batch 2 answers')
   }
 }

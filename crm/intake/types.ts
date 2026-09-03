@@ -76,6 +76,7 @@ export type IntakeDiagnosticSummary = {
     | 'Protection Gap'
     | 'Student Loan Report Card'
     | 'Credit Report Card'
+    | 'Home Buyer Report Card'
   assessmentType: string | null
   protectionGapFormatted: string | null
   netProtectionGap: number | null

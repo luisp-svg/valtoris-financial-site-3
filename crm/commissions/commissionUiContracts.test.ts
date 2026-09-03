@@ -77,7 +77,7 @@ describe('commission Phase 2 owner write workspace', () => {
     }
     expect(existsSync(join(migrationsDir, '039_commission_lifecycle.sql'))).toBe(false)
     const numbered = readdirSync(migrationsDir).filter((name) => /^\d{3}_/.test(name)).sort()
-    expect(numbered).toHaveLength(53)
+    expect(numbered).toHaveLength(54)
     expect(numbered[0]).toBe('001_extensions_and_enums.sql')
     expect(numbered[43]).toBe('044_policy_application_requirements.sql')
     expect(numbered[44]).toBe('045_policy_post_placement_lifecycle.sql')
@@ -101,7 +101,8 @@ describe('commission Phase 2 owner write workspace', () => {
     expect(numbered.filter((name) => name.startsWith('051_'))).toEqual(['051_intake_archive_workflow.sql'])
     expect(numbered.filter((name) => name.startsWith('052_'))).toEqual(['052_fix_intake_archive_activity_order.sql'])
     expect(numbered.filter((name) => name.startsWith('053_'))).toEqual(['053_bulk_lead_import_writer.sql'])
-    expect(numbered.filter((name) => name.startsWith('054_'))).toEqual([])
+    expect(numbered.filter((name) => name.startsWith('054_'))).toEqual(['054_home_buyer_report_card_ingest.sql'])
+    expect(numbered.filter((name) => name.startsWith('055_'))).toEqual([])
     expect(numbered).toContain('040_commission_pending_import.sql')
     expect(numbered).toContain('043_public_report_card_ingest.sql')
   })

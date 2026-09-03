@@ -179,7 +179,7 @@ function mapHousehold(value: unknown): IntakeHouseholdSummary | null {
 
 /**
  * Loads public intake leads visible under RLS via an explicit allowlist:
- * Family / Business / Retirement / Student Loan / Credit Report Cards,
+ * Family / Business / Retirement / Student Loan / Credit / Home Buyer Report Cards,
  * Protection Gap, and Digital Identity.
  * Soft-deleted leads are excluded. Onboarding assessments are never selected.
  * Manual Contact and any future/unrelated lead_type cannot enter Intake via

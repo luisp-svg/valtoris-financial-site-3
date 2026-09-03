@@ -38,9 +38,10 @@ function read(relativePath: string): string {
 describe('commission Phase E1 contracts', () => {
   it('does not add a commission 053 or change compensation schema', () => {
     const numbered = readdirSync(migrationsDir).filter((name) => /^\d{3}_/.test(name)).sort()
-    expect(numbered).toHaveLength(53)
+    expect(numbered).toHaveLength(54)
     expect(numbered.filter((name) => name.startsWith('053_'))).toEqual(['053_bulk_lead_import_writer.sql'])
-    expect(numbered.filter((name) => name.startsWith('054_'))).toEqual([])
+    expect(numbered.filter((name) => name.startsWith('054_'))).toEqual(['054_home_buyer_report_card_ingest.sql'])
+    expect(numbered.filter((name) => name.startsWith('055_'))).toEqual([])
     expect(existsSync(join(migrationsDir, '053_commission_eligible_released.sql'))).toBe(false)
     expect(sha256(`supabase/migrations/${MIGRATION_034_FILENAME}`)).toBe(SHA_034)
     expect(sha256(`supabase/migrations/${MIGRATION_035_FILENAME}`)).toBe(SHA_035)

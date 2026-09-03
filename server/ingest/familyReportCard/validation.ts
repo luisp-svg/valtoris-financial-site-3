@@ -301,6 +301,12 @@ function validateAnswersForType(
   if (assessmentType === 'retirement') return validateRetirementAnswers(value)
   if (assessmentType === 'student_loan') return validateStudentLoanAnswers(value)
   if (assessmentType === 'credit') return validateCreditAnswers(value)
+  if (assessmentType === 'home_buyer') {
+    return fail(
+      'home_buyer_answers_unavailable',
+      'Home Buyer diagnostic answers are not enabled yet.',
+    )
+  }
   return validateProtectionAnswers(value)
 }
 
@@ -326,7 +332,7 @@ export type ValidationOptions = {
  * Strict, allow-listed validation for the public Report Card ingest
  * request body. No schema library is used (matches the rest of the project) —
  * every field is checked explicitly and unknown top-level keys are rejected.
- * assessmentType is allowlisted to family | business | retirement | protection | student_loan | credit.
+ * assessmentType is allowlisted to family | business | retirement | protection | student_loan | credit | home_buyer.
  */
 export function validateFamilyReportCardIngestRequest(
   rawBody: unknown,
@@ -391,7 +397,7 @@ export function validateFamilyReportCardIngestRequest(
     if (!isPublicReportCardAssessmentType(rawBody.assessmentType)) {
       return fail(
         'invalid_assessment_type',
-        'assessmentType must be family, business, retirement, protection, student_loan, or credit.',
+        'assessmentType must be family, business, retirement, protection, student_loan, credit, or home_buyer.',
       )
     }
     assessmentType = rawBody.assessmentType

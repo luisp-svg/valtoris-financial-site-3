@@ -168,7 +168,7 @@ describe('Student Loan Phase A foundation', () => {
   it('keeps specialized product identity separate from Family and does not create Opportunities', () => {
     expect(canSubmitStudentLoanToCrm()).toBe(true)
     expect(PUBLIC_REPORT_CARD_ASSESSMENT_TYPES).toContain('student_loan')
-    expect(SPECIALIZED_ASSESSMENT_PRODUCTS).toEqual(['student_loan', 'credit'])
+    expect(SPECIALIZED_ASSESSMENT_PRODUCTS).toEqual(['student_loan', 'credit', 'home_buyer'])
     expect(STUDENT_LOAN_ASSESSMENT_TYPE).toBe('student_loan')
     expect(WORKSPACE_ASSESSMENT_TYPES).toContain('student_loan')
 
@@ -187,7 +187,7 @@ describe('Student Loan Phase A foundation', () => {
 
   it('leaves 047–049 byte-identical and does not add Migration 051', () => {
     const files = readdirSync(MIGRATIONS_DIR).filter((name) => name.endsWith('.sql')).sort()
-    expect(files).toHaveLength(53)
+    expect(files).toHaveLength(54)
     expect(files[46]).toBe('047_credit_repair_student_loan_sales_catalog.sql')
     expect(files[47]).toBe('048_student_loan_report_card_ingest.sql')
     expect(files[48]).toBe('049_specialize_public_report_card_follow_up_copy.sql')
@@ -195,7 +195,7 @@ describe('Student Loan Phase A foundation', () => {
     expect(files.some((name) => name.startsWith('051_'))).toBe(true)
     expect(files.some((name) => name.startsWith('052_'))).toBe(true)
     expect(files.some((name) => name.startsWith('053_'))).toBe(true)
-    expect(files.some((name) => name.startsWith('054_'))).toBe(false)
+    expect(files.some((name) => name.startsWith('054_'))).toBe(true)
     expect(fileSha256('supabase/migrations/047_credit_repair_student_loan_sales_catalog.sql')).toBe(SHA_047)
     expect(fileSha256('supabase/migrations/048_student_loan_report_card_ingest.sql')).toBe(SHA_048)
     expect(fileSha256('supabase/migrations/049_specialize_public_report_card_follow_up_copy.sql')).toBe(SHA_049)

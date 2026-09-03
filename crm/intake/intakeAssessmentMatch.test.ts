@@ -107,6 +107,7 @@ describe('intakeAssessmentDetailKind dispatch', () => {
     ['Protection Gap', 'protection'],
     ['Student Loan Report Card', 'student_loan'],
     ['Credit Report Card', 'credit'],
+    ['Home Buyer Report Card', 'home_buyer'],
   ] as const
 
   it.each(types)('maps %s to %s detail', (leadType, assessmentType) => {

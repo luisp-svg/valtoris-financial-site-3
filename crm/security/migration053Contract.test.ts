@@ -47,12 +47,12 @@ function createReplaceCount(sql: string, name: string): number {
 }
 
 describe('migration 053 owner-only bulk lead import writer', () => {
-  it('is the only 053 file, follows 052, freezes 001–053, and rejects 054', () => {
+  it('is the only 053 file, follows 052, freezes 001–054, and rejects 055', () => {
     expect(MIGRATION_053_FILENAME).toBe('053_bulk_lead_import_writer.sql')
     expect(MIGRATION_053_RPC).toBe('import_bulk_lead_consumer')
     const files = numberedMigrations()
     expect(files).toEqual([...EXPECTED_NUMBERED_MIGRATIONS])
-    expect(files).toHaveLength(53)
+    expect(files).toHaveLength(54)
     expect(files[0]).toBe('001_extensions_and_enums.sql')
     expect(files[44]).toBe(MIGRATION_045_FILENAME)
     expect(files[45]).toBe(MIGRATION_046_FILENAME)
@@ -65,7 +65,8 @@ describe('migration 053 owner-only bulk lead import writer', () => {
     expect(files[52]).toBe(MIGRATION_053_FILENAME)
     expect(files.filter((f) => f.startsWith('052_'))).toEqual([MIGRATION_052_FILENAME])
     expect(files.filter((f) => f.startsWith('053_'))).toEqual([MIGRATION_053_FILENAME])
-    expect(files.filter((f) => f.startsWith('054_'))).toEqual([])
+    expect(files.filter((f) => f.startsWith('054_'))).toEqual(['054_home_buyer_report_card_ingest.sql'])
+    expect(files.filter((f) => f.startsWith('055_'))).toEqual([])
   })
 
   it('adds the writer RPC, internal match helpers, and a narrow archive_intake_lead replace', () => {

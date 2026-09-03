@@ -248,6 +248,10 @@ function buildCanonicalResult(
     }
   }
 
+  if (assessmentType === 'home_buyer') {
+    throw new Error('home_buyer scoring requires Batch 2')
+  }
+
   const gap = recalculateProtectionGapResult(answers as CalculatorAnswers)
   return {
     overallScore: null,
@@ -271,7 +275,7 @@ function buildCanonicalResult(
 }
 
 /**
- * Orchestrates public Report Card ingest for family, business, retirement, protection, student_loan, and credit:
+ * Orchestrates public Report Card ingest for family, business, retirement, protection, student_loan, credit, and home_buyer:
  * validate → resolve optional Digital Identity card attribution → normalize →
  * recalculate score/gap server-side → find CRM candidates → classify identity
  * match → persist atomically via RPC → secondary Sheets write → follow-up task.

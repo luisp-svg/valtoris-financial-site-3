@@ -40,7 +40,8 @@ describe('Life & Annuity Case Management Phase A contracts', () => {
   it('does not add a Case 053, a cases table, or a /crm/cases route', () => {
     const files = readdirSync(migrationsDir).filter((name) => name.endsWith('.sql')).sort()
     expect(files.filter((name) => name.startsWith('053_'))).toEqual(['053_bulk_lead_import_writer.sql'])
-    expect(files.filter((name) => name.startsWith('054_'))).toEqual([])
+    expect(files.filter((name) => name.startsWith('054_'))).toEqual(['054_home_buyer_report_card_ingest.sql'])
+    expect(files.filter((name) => name.startsWith('055_'))).toEqual([])
     expect(existsSync(join(migrationsDir, '053_case_management.sql'))).toBe(false)
     expect(caseWorkspace).toContain('No public.cases table')
     expect(appRoutes).not.toMatch(/path=["']cases["']/)

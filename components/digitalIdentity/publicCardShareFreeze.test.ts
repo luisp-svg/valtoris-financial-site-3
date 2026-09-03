@@ -71,9 +71,9 @@ describe('DI-A public share freeze', () => {
     const files = readdirSync(join(ROOT, 'supabase/migrations')).filter((name) =>
       name.endsWith('.sql'),
     )
-    expect(files).toHaveLength(53)
+    expect(files).toHaveLength(54)
     expect(files.some((name) => name.startsWith('053_bulk_lead_import_writer'))).toBe(true)
-    expect(files.some((name) => name.startsWith('054'))).toBe(false)
+    expect(files.some((name) => name.startsWith('054'))).toBe(true)
     expect(existsSync(join(ROOT, 'supabase/migrations/053_digital_identity.sql'))).toBe(false)
     expect(getModule('credit_repair')?.featureFlag.enabled).toBe(false)
     expect(source(FROZEN.catalog)).toContain("key: 'credit_repair'")

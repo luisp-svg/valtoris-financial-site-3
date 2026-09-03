@@ -257,6 +257,15 @@ describe('intake formatters', () => {
         }),
       ),
     ).toBe('Credit Report Card')
+    expect(
+      intakeProductLabel(
+        makeItem({
+          leadType: 'Home Buyer Report Card',
+          diagnostic: null,
+          assessmentDetail: null,
+        }),
+      ),
+    ).toBe('Home Buyer Report Card')
   })
 
   it('extracts submitted identity from raw payload snapshots', () => {

@@ -14,7 +14,7 @@ function read(name: string): string {
 describe('commission Phase C pending read contracts', () => {
   it('does not add a pending-dashboard migration and keeps 001–046 intact', () => {
     const numbered = readdirSync(migrationsDir).filter((name) => /^\d{3}_/.test(name)).sort()
-    expect(numbered).toHaveLength(53)
+    expect(numbered).toHaveLength(54)
     expect(numbered[0]).toBe('001_extensions_and_enums.sql')
     expect(numbered[43]).toBe('044_policy_application_requirements.sql')
     expect(numbered[44]).toBe('045_policy_post_placement_lifecycle.sql')
@@ -38,7 +38,8 @@ describe('commission Phase C pending read contracts', () => {
     expect(numbered.filter((name) => name.startsWith('051_'))).toEqual(['051_intake_archive_workflow.sql'])
     expect(numbered.filter((name) => name.startsWith('052_'))).toEqual(['052_fix_intake_archive_activity_order.sql'])
     expect(numbered.filter((name) => name.startsWith('053_'))).toEqual(['053_bulk_lead_import_writer.sql'])
-    expect(numbered.filter((name) => name.startsWith('054_'))).toEqual([])
+    expect(numbered.filter((name) => name.startsWith('054_'))).toEqual(['054_home_buyer_report_card_ingest.sql'])
+    expect(numbered.filter((name) => name.startsWith('055_'))).toEqual([])
     expect(numbered).toContain('040_commission_pending_import.sql')
     expect(numbered).toContain('041_commission_pending_review.sql')
     expect(numbered).toContain('042_writing_receivable_eligibility.sql')
@@ -101,7 +102,7 @@ describe('commission Phase C pending read contracts', () => {
     expect(sql).toContain('USING (public.crm_is_owner())')
     expect(sql).not.toContain('crm_is_advisor')
     const numbered = readdirSync(migrationsDir).filter((name) => /^\d{3}_/.test(name)).sort()
-    expect(numbered).toHaveLength(53)
+    expect(numbered).toHaveLength(54)
     expect(numbered[43]).toBe('044_policy_application_requirements.sql')
     expect(numbered[44]).toBe('045_policy_post_placement_lifecycle.sql')
     expect(numbered.filter((name) => name.startsWith('045_'))).toEqual([
@@ -124,7 +125,8 @@ describe('commission Phase C pending read contracts', () => {
     expect(numbered.filter((name) => name.startsWith('051_'))).toEqual(['051_intake_archive_workflow.sql'])
     expect(numbered.filter((name) => name.startsWith('052_'))).toEqual(['052_fix_intake_archive_activity_order.sql'])
     expect(numbered.filter((name) => name.startsWith('053_'))).toEqual(['053_bulk_lead_import_writer.sql'])
-    expect(numbered.filter((name) => name.startsWith('054_'))).toEqual([])
+    expect(numbered.filter((name) => name.startsWith('054_'))).toEqual(['054_home_buyer_report_card_ingest.sql'])
+    expect(numbered.filter((name) => name.startsWith('055_'))).toEqual([])
     expect(numbered).toContain('042_writing_receivable_eligibility.sql')
     expect(numbered).toContain('043_public_report_card_ingest.sql')
     expect(existsSync(join(migrationsDir, '042_commission_pending_dashboard.sql'))).toBe(false)

@@ -119,6 +119,9 @@ export async function completePublicReportCardCrmSubmission(input: {
     const scored = scoreCreditAssessment((input.answers as CreditAssessmentAnswers).diagnostic)
     clientReportedScore = scored.overallScore
     clientReportedGrade = scored.grade
+  } else if (input.assessmentType === 'home_buyer') {
+    clientReportedScore = null
+    clientReportedGrade = null
   }
 
   const consentSnapshot = buildFamilyConsentSnapshot({
@@ -138,7 +141,9 @@ export async function completePublicReportCardCrmSubmission(input: {
             ? ROUTES.studentLoanAssessment
             : input.assessmentType === 'credit'
               ? ROUTES.creditAssessment
-              : ROUTES.protectionGap
+              : input.assessmentType === 'home_buyer'
+                ? ROUTES.homeBuyerAssessment
+                : ROUTES.protectionGap
 
   const payload = buildFamilyReportCardIngestPayload({
     submissionId,

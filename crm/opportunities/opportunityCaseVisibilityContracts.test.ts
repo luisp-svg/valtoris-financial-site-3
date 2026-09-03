@@ -140,7 +140,7 @@ describe('Phase 3 Opportunity ↔ Case visibility contracts', () => {
 
   it('does not add Migration 047, commissions, production stage sync, or a new mutation path', () => {
     const files = readdirSync(migrationsDir).filter((name) => name.endsWith('.sql')).sort()
-    expect(files).toHaveLength(53)
+    expect(files).toHaveLength(54)
     expect(files.filter((name) => name.startsWith('047_'))).toEqual([
       '047_credit_repair_student_loan_sales_catalog.sql',
     ])
@@ -152,7 +152,8 @@ describe('Phase 3 Opportunity ↔ Case visibility contracts', () => {
     expect(files.filter((name) => name.startsWith('051_'))).toEqual(['051_intake_archive_workflow.sql'])
     expect(files.filter((name) => name.startsWith('052_'))).toEqual(['052_fix_intake_archive_activity_order.sql'])
     expect(files.filter((name) => name.startsWith('053_'))).toEqual(['053_bulk_lead_import_writer.sql'])
-    expect(files.filter((name) => name.startsWith('054_'))).toEqual([])
+    expect(files.filter((name) => name.startsWith('054_'))).toEqual(['054_home_buyer_report_card_ingest.sql'])
+    expect(files.filter((name) => name.startsWith('055_'))).toEqual([])
     expect(page).not.toContain('SERVICE_ROLE')
     expect(widget).not.toContain('SERVICE_ROLE')
     expect(page).not.toContain('createTask')
