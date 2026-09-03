@@ -3,6 +3,8 @@
  * Public destinations always use /c/k/{publicKey} — never slug, never campaign UUID.
  */
 
+import { ROUTES } from '../../constants/routes.js'
+import { isValidIdentityPublicKey } from './slug.js'
 import { buildAbsolutePublicCardUrl } from './vcard.js'
 import { buildPublicCardPath } from './urls.js'
 import type { IdentitySourceChannel } from './types.js'
@@ -208,6 +210,101 @@ export function buildCampaignQrDestinationUrl(
   const path = buildCampaignQrDestinationPath(publicKey, attribution)
   if (!path.startsWith('/c/k/')) return null
   return buildAbsolutePublicCardUrl(origin, path)
+}
+
+export const REPORT_CARD_SHARE_TYPES = [
+  'family',
+  'business',
+  'protection',
+  'student_loan',
+  'credit',
+  'home_buyer',
+] as const
+
+export type ReportCardShareType = (typeof REPORT_CARD_SHARE_TYPES)[number]
+
+export const REPORT_CARD_SHARE_LABELS = {
+  family: 'Family',
+  business: 'Business',
+  protection: 'Protection',
+  student_loan: 'Student Loan',
+  credit: 'Credit',
+  home_buyer: 'Home Buyer',
+} as const satisfies Record<ReportCardShareType, string>
+
+/** Canonical public landings — never assessment or results routes. */
+export const REPORT_CARD_SHARE_LANDINGS = {
+  family: ROUTES.reportCard,
+  business: ROUTES.businessReportCard,
+  protection: ROUTES.protectionGap,
+  student_loan: ROUTES.studentLoanReportCard,
+  credit: ROUTES.creditReportCard,
+  home_buyer: ROUTES.homeBuyerReportCard,
+} as const satisfies Record<ReportCardShareType, string>
+
+export function isReportCardShareType(value: unknown): value is ReportCardShareType {
+  return (
+    value === 'family' ||
+    value === 'business' ||
+    value === 'protection' ||
+    value === 'student_loan' ||
+    value === 'credit' ||
+    value === 'home_buyer'
+  )
+}
+
+/**
+ * Personal Report Card share path: landing + card={publicKey} plus optional
+ * allowlisted attribution. Never includes advisor UUIDs or /r/ vanity routes.
+ */
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+function isShareableCardPublicKey(value: string): boolean {
+  const trimmed = value.trim()
+  if (!isValidIdentityPublicKey(trimmed) || UUID_RE.test(trimmed)) return false
+  return true
+}
+
+export function buildReportCardSharePath(
+  publicKey: string,
+  reportCardType: unknown,
+  attribution: CampaignAttributionQuery = {},
+): string | null {
+  const key = publicKey.trim()
+  if (!isShareableCardPublicKey(key)) return null
+  if (!isReportCardShareType(reportCardType)) return null
+  return appendCardAttributionToPath(
+    REPORT_CARD_SHARE_LANDINGS[reportCardType],
+    key,
+    attribution,
+  )
+}
+
+export function reportCardShareSideEffects(): {
+  writesAnalytics: false
+  writesDigitalCardEvents: false
+  createsLead: false
+  createsHousehold: false
+  createsActivity: false
+  createsTask: false
+  createsCase: false
+  usesAdvisorUuid: false
+  rotatesPublicKey: false
+  introducesVanityRoute: false
+} {
+  return {
+    writesAnalytics: false,
+    writesDigitalCardEvents: false,
+    createsLead: false,
+    createsHousehold: false,
+    createsActivity: false,
+    createsTask: false,
+    createsCase: false,
+    usesAdvisorUuid: false,
+    rotatesPublicKey: false,
+    introducesVanityRoute: false,
+  }
 }
 
 /** Referrer host only — never full URL with path/query. */

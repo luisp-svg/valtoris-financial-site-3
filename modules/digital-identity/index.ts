@@ -118,14 +118,21 @@ export {
   buildDefaultCardLink,
   buildEventLink,
   buildPublicCardPathWithAttribution,
+  buildReportCardSharePath,
   buildShareLink,
   extractReferrerHost,
+  isReportCardShareType,
   normalizeCampaignAttributionQuery,
   parseCampaignAttributionFromSearch,
+  reportCardShareSideEffects,
+  REPORT_CARD_SHARE_LABELS,
+  REPORT_CARD_SHARE_LANDINGS,
+  REPORT_CARD_SHARE_TYPES,
 } from './campaignUrls.js'
 export type {
   CampaignAttributionQuery,
   NormalizedCampaignAttribution,
+  ReportCardShareType,
 } from './campaignUrls.js'
 
 export {

@@ -22,6 +22,7 @@ import {
   type OwnAdvisorIdentity,
   type OwnDigitalCard,
 } from './cardsApi'
+import ShareReportCardControl from './ShareReportCardControl'
 
 type AdvisorDigitalCardPanelProps = {
   supabase: SupabaseClient
@@ -319,6 +320,11 @@ export default function AdvisorDigitalCardPanel({
                 </button>
               ))}
             </div>
+            <ShareReportCardControl
+              publicKey={card.publicKey}
+              onCopied={setMessage}
+              onCopyFailed={setError}
+            />
           </div>
         </div>
       ) : null}
