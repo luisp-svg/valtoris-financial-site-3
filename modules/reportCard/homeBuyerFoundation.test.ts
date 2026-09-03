@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { ROUTES } from '../../constants/routes'
-import { validIngestRequestBodyFixture } from '../../server/ingest/familyReportCard/testFixtures'
+import {
+  validHomeBuyerIngestRequestBodyFixture,
+  validIngestRequestBodyFixture,
+} from '../../server/ingest/familyReportCard/testFixtures'
 import { validateFamilyReportCardIngestRequest } from '../../server/ingest/familyReportCard/validation'
 import { HOME_BUYER_REPORT_CARD_SCORING_VERSION } from '../../server/ingest/familyReportCard/types'
 import {
@@ -70,12 +73,16 @@ describe('Home Buyer Batch 1 catalog foundation', () => {
     expect(Object.values(ROUTES)).not.toContain('/home-buyer')
   })
 
-  it('accepts home_buyer as an assessment type and rejects answers until Batch 2', () => {
-    const acceptedType = validateFamilyReportCardIngestRequest(
+  it('accepts a valid Home Buyer payload and still rejects unsupported types', () => {
+    const accepted = validateFamilyReportCardIngestRequest(validHomeBuyerIngestRequestBodyFixture())
+    expect(accepted.ok).toBe(true)
+    if (accepted.ok) expect(accepted.value.assessmentType).toBe('home_buyer')
+
+    const familyShape = validateFamilyReportCardIngestRequest(
       validIngestRequestBodyFixture({ assessmentType: 'home_buyer' }),
     )
-    expect(acceptedType.ok).toBe(false)
-    if (!acceptedType.ok) expect(acceptedType.code).toBe('home_buyer_answers_unavailable')
+    expect(familyShape.ok).toBe(false)
+    if (!familyShape.ok) expect(familyShape.code).toBe('unknown_home_buyer_field')
 
     const unsupported = validateFamilyReportCardIngestRequest(
       validIngestRequestBodyFixture({ assessmentType: 'household_onboarding' }),

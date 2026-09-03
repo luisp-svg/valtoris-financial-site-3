@@ -4,6 +4,9 @@ import { scoreRetirementAssessment } from '../../../components/assessment/scorin
 import { creditCopy } from '../../../components/assessment/credit/copy.js'
 import { scoreCreditAssessment } from '../../../components/assessment/credit/scoreCreditAssessment.js'
 import type { CreditAssessmentAnswers } from '../../../components/assessment/credit/types.js'
+import { homeBuyerCopy } from '../../../components/assessment/homeBuyer/copy.js'
+import { scoreHomeBuyerAssessment } from '../../../components/assessment/homeBuyer/scoreHomeBuyerAssessment.js'
+import type { HomeBuyerAssessmentAnswers } from '../../../components/assessment/homeBuyer/types.js'
 import { studentLoanCopy } from '../../../components/assessment/studentLoan/copy.js'
 import { scoreStudentLoanAssessment } from '../../../components/assessment/studentLoan/scoreStudentLoanAssessment.js'
 import type { StudentLoanAssessmentAnswers } from '../../../components/assessment/studentLoan/types.js'
@@ -22,6 +25,7 @@ import {
   PROTECTION_GAP_RESULT_VERSION,
   RETIREMENT_REPORT_CARD_SCORING_VERSION,
   CREDIT_REPORT_CARD_SCORING_VERSION,
+  HOME_BUYER_REPORT_CARD_SCORING_VERSION,
   STUDENT_LOAN_REPORT_CARD_SCORING_VERSION,
 } from './types.js'
 
@@ -404,5 +408,80 @@ export function recalculateCreditReportCardScore(
     })),
     primaryGoal: answers.diagnostic.credit_goal,
     urgency: answers.diagnostic.urgency,
+  }
+}
+
+function homeBuyerEnglish(key: string): string {
+  return homeBuyerCopy.en?.results[key] ?? key
+}
+
+export type HomeBuyerReportCardServerScore = {
+  overallScore: number
+  overallGrade: string
+  scoringVersion: number
+  statusLabelKey: string
+  statusLabel: string
+  categories: Array<{ id: string; title: string; score: number; max: number }>
+  flags: Array<{ id: string; severity: string; label: string; categoryId: string }>
+  strengths: Array<{ id: string; title: string; why: string; severity: string; categoryId: string }>
+  barriers: Array<{ id: string; title: string; why: string; severity: string; categoryId: string }>
+  nextActions: Array<{ id: string; title: string; why: string; severity: string; categoryId: string }>
+  priorities: FamilyReportCardPrioritySummary[]
+  targetTiming: string
+  occupancy: string
+  creditDataSource: 'public_self_report'
+}
+
+/**
+ * Server-authoritative Home Buyer score. Reuses the Phase B pure scorer.
+ * Client-reported scores are never used here.
+ */
+export function recalculateHomeBuyerReportCardScore(
+  answers: HomeBuyerAssessmentAnswers,
+): HomeBuyerReportCardServerScore {
+  const result = scoreHomeBuyerAssessment(answers.diagnostic)
+  const categories = result.categories.map((category) => ({
+    id: category.id,
+    title: homeBuyerEnglish(category.labelKey),
+    score: category.score,
+    max: category.max,
+  }))
+  const flags = result.flags.map((flag) => ({
+    id: flag.id,
+    severity: flag.severity,
+    label: homeBuyerEnglish(flag.labelKey),
+    categoryId: flag.categoryId,
+  }))
+  const mapInsight = (insight: (typeof result.barriers)[number]) => ({
+    id: insight.id,
+    title: homeBuyerEnglish(insight.titleKey),
+    why: homeBuyerEnglish(insight.explanationKey),
+    severity: insight.severity,
+    categoryId: insight.categoryId,
+  })
+  const strengths = result.strengths.map(mapInsight)
+  const barriers = result.barriers.map(mapInsight)
+  const nextActions = result.nextActions.map(mapInsight)
+
+  return {
+    overallScore: result.overallScore,
+    overallGrade: result.grade,
+    scoringVersion: HOME_BUYER_REPORT_CARD_SCORING_VERSION,
+    statusLabelKey: result.statusLabelKey,
+    statusLabel: homeBuyerEnglish(result.statusLabelKey),
+    categories,
+    flags,
+    strengths,
+    barriers,
+    nextActions,
+    priorities: nextActions.map((action) => ({
+      level: action.severity,
+      title: action.title,
+      why: action.why,
+      timeline: 'Advisor review',
+    })),
+    targetTiming: answers.diagnostic.target_timing,
+    occupancy: answers.diagnostic.intended_occupancy,
+    creditDataSource: 'public_self_report',
   }
 }

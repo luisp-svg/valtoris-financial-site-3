@@ -2,9 +2,11 @@ import { scoreBusinessAssessment } from '../../assessment/scoring/scoreBusinessA
 import { scoreFamilyAssessment } from '../../assessment/scoring/scoreFamilyAssessment'
 import { scoreRetirementAssessment } from '../../assessment/scoring/scoreRetirementAssessment'
 import { scoreCreditAssessment } from '../../assessment/credit/scoreCreditAssessment'
+import { scoreHomeBuyerAssessment } from '../../assessment/homeBuyer/scoreHomeBuyerAssessment'
 import { scoreStudentLoanAssessment } from '../../assessment/studentLoan/scoreStudentLoanAssessment'
 import type { BusinessAssessmentAnswers } from '../../assessment/business/types'
 import type { CreditAssessmentAnswers } from '../../assessment/credit/types'
+import type { HomeBuyerAssessmentAnswers } from '../../assessment/homeBuyer/types'
 import type { RetirementAssessmentAnswers } from '../../assessment/retirement/types'
 import type { StudentLoanAssessmentAnswers } from '../../assessment/studentLoan/types'
 import type { DemoAssessmentAnswers } from '../../assessment/types'
@@ -60,6 +62,7 @@ export async function completePublicReportCardCrmSubmission(input: {
     | CalculatorAnswers
     | StudentLoanAssessmentAnswers
     | CreditAssessmentAnswers
+    | HomeBuyerAssessmentAnswers
   consent: FamilyConsentState
   session: FamilyIngestSession
   honeypotWebsite?: string
@@ -120,8 +123,9 @@ export async function completePublicReportCardCrmSubmission(input: {
     clientReportedScore = scored.overallScore
     clientReportedGrade = scored.grade
   } else if (input.assessmentType === 'home_buyer') {
-    clientReportedScore = null
-    clientReportedGrade = null
+    const scored = scoreHomeBuyerAssessment((input.answers as HomeBuyerAssessmentAnswers).diagnostic)
+    clientReportedScore = scored.overallScore
+    clientReportedGrade = scored.grade
   }
 
   const consentSnapshot = buildFamilyConsentSnapshot({

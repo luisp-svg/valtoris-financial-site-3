@@ -31,6 +31,7 @@ import {
 import { normalizeConsentSnapshot } from './consent.js'
 import type { ConsentSnapshot, FamilyReportCardIngestRequest, PublicReportCardAnswers } from './types.js'
 import { validateCreditAnswers } from './validateCreditAnswers.js'
+import { validateHomeBuyerAnswers } from './validateHomeBuyerAnswers.js'
 import { validateStudentLoanAnswers } from './validateStudentLoanAnswers.js'
 
 export type ValidationOk<T> = { ok: true; value: T }
@@ -301,12 +302,7 @@ function validateAnswersForType(
   if (assessmentType === 'retirement') return validateRetirementAnswers(value)
   if (assessmentType === 'student_loan') return validateStudentLoanAnswers(value)
   if (assessmentType === 'credit') return validateCreditAnswers(value)
-  if (assessmentType === 'home_buyer') {
-    return fail(
-      'home_buyer_answers_unavailable',
-      'Home Buyer diagnostic answers are not enabled yet.',
-    )
-  }
+  if (assessmentType === 'home_buyer') return validateHomeBuyerAnswers(value)
   return validateProtectionAnswers(value)
 }
 

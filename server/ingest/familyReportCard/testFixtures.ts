@@ -5,6 +5,11 @@ import {
   type CreditDiagnosticAnswers,
 } from '../../../components/assessment/credit/types'
 import {
+  INITIAL_HOME_BUYER_ANSWERS,
+  type HomeBuyerAssessmentAnswers,
+  type HomeBuyerDiagnosticAnswers,
+} from '../../../components/assessment/homeBuyer/types'
+import {
   INITIAL_STUDENT_LOAN_ANSWERS,
   type StudentLoanAssessmentAnswers,
   type StudentLoanDiagnosticAnswers,
@@ -251,6 +256,62 @@ export function validCreditIngestRequestBodyFixture(
     assessmentType: 'credit',
     answers: validCreditAnswersFixture(),
     sourcePage: '/credit-assessment',
+    ...overrides,
+  })
+}
+
+export function validHomeBuyerDiagnosticFixture(
+  overrides?: Partial<HomeBuyerDiagnosticAnswers>,
+): HomeBuyerDiagnosticAnswers {
+  return {
+    ...INITIAL_HOME_BUYER_ANSWERS.diagnostic,
+    self_reported_score_range: '740_plus',
+    last_reviewed: 'last_30_days',
+    credit_risk_flags: ['none'],
+    household_income_band: '150k_plus',
+    employment_income_type: 'w2',
+    tenure_stability: '2_plus_years',
+    monthly_debt_burden: 'comfortable',
+    estimated_dti_readiness: 'under_36',
+    liquid_savings_band: '50k_plus',
+    emergency_reserve_months: '6_plus',
+    housing_cost_burden: 'under_30',
+    cash_flow_cushion: 'leftover_comfortable',
+    down_payment_saved_pct: '20_plus',
+    gift_assistance_availability: 'available',
+    documentation_ready: ['income_docs', 'bank_statements', 'tax_docs', 'government_id'],
+    buyer_history: 'repeat',
+    intended_occupancy: 'primary',
+    current_housing: 'renting',
+    target_timing: 'exploring',
+    readiness_confidence: 'very_ready',
+    ...overrides,
+  }
+}
+
+export function validHomeBuyerAnswersFixture(
+  overrides?: Partial<HomeBuyerAssessmentAnswers>,
+): HomeBuyerAssessmentAnswers {
+  return {
+    diagnostic: validHomeBuyerDiagnosticFixture(),
+    contact: {
+      firstName: 'Jamie',
+      lastName: 'Rivera',
+      email: 'jamie.rivera@example.com',
+      phone: '555-201-4488',
+    },
+    ...overrides,
+  }
+}
+
+export function validHomeBuyerIngestRequestBodyFixture(
+  overrides?: Record<string, unknown>,
+): Record<string, unknown> {
+  return validIngestRequestBodyFixture({
+    submissionId: '550e8400-e29b-41d4-a716-446655440006',
+    assessmentType: 'home_buyer',
+    answers: validHomeBuyerAnswersFixture(),
+    sourcePage: '/home-buyer-assessment',
     ...overrides,
   })
 }

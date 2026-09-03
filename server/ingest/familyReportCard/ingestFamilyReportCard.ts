@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { BusinessAssessmentAnswers } from '../../../components/assessment/business/types.js'
 import type { RetirementAssessmentAnswers } from '../../../components/assessment/retirement/types.js'
 import type { CreditAssessmentAnswers } from '../../../components/assessment/credit/types.js'
+import type { HomeBuyerAssessmentAnswers } from '../../../components/assessment/homeBuyer/types.js'
 import type { StudentLoanAssessmentAnswers } from '../../../components/assessment/studentLoan/types.js'
 import type { DemoAssessmentAnswers } from '../../../components/assessment/types.js'
 import type { CalculatorAnswers } from '../../../components/calculator/types.js'
@@ -25,6 +26,7 @@ import {
   recalculateProtectionGapResult,
   recalculateRetirementReportCardScore,
   recalculateCreditReportCardScore,
+  recalculateHomeBuyerReportCardScore,
   recalculateStudentLoanReportCardScore,
 } from './score.js'
 import {
@@ -33,6 +35,7 @@ import {
   buildProtectionGapSheetsPayload,
   buildRetirementReportCardSheetsPayload,
   buildCreditReportCardSheetsPayload,
+  buildHomeBuyerReportCardSheetsPayload,
   buildStudentLoanReportCardSheetsPayload,
   writePublicReportCardToSheets,
 } from './sheets.js'
@@ -77,12 +80,16 @@ function persistableAssessmentAnswers(
 ):
   | PublicReportCardAnswers
   | { diagnostic: StudentLoanAssessmentAnswers['diagnostic'] }
-  | { diagnostic: CreditAssessmentAnswers['diagnostic'] } {
+  | { diagnostic: CreditAssessmentAnswers['diagnostic'] }
+  | { diagnostic: HomeBuyerAssessmentAnswers['diagnostic'] } {
   if (assessmentType === 'student_loan') {
     return { diagnostic: (answers as StudentLoanAssessmentAnswers).diagnostic }
   }
   if (assessmentType === 'credit') {
     return { diagnostic: (answers as CreditAssessmentAnswers).diagnostic }
+  }
+  if (assessmentType === 'home_buyer') {
+    return { diagnostic: (answers as HomeBuyerAssessmentAnswers).diagnostic }
   }
   return answers
 }
@@ -249,7 +256,38 @@ function buildCanonicalResult(
   }
 
   if (assessmentType === 'home_buyer') {
-    throw new Error('home_buyer scoring requires Batch 2')
+    const serverScore = recalculateHomeBuyerReportCardScore(answers as HomeBuyerAssessmentAnswers)
+    const scoreComparison = compareClientScore({
+      clientReportedScore,
+      clientReportedGrade,
+      server: { overallScore: serverScore.overallScore, overallGrade: serverScore.overallGrade },
+    })
+    return {
+      overallScore: serverScore.overallScore,
+      overallGrade: serverScore.overallGrade,
+      scoringVersion: serverScore.scoringVersion,
+      priorities: serverScore.priorities,
+      derivedMetrics: {
+        categories: serverScore.categories,
+        criticalFlags: serverScore.flags,
+        strengths: serverScore.strengths,
+        barriers: serverScore.barriers,
+        prioritizedNextActions: serverScore.nextActions,
+        hardRiskFlags: serverScore.flags,
+        targetTiming: serverScore.targetTiming,
+        occupancy: serverScore.occupancy,
+        creditDataSource: serverScore.creditDataSource,
+        statusLabelKey: serverScore.statusLabelKey,
+        statusLabel: serverScore.statusLabel,
+        scoreComparison,
+      },
+      sheetsPayload: buildHomeBuyerReportCardSheetsPayload({
+        answers: answers as HomeBuyerAssessmentAnswers,
+        score: serverScore,
+        sourcePage,
+        submittedAt,
+      }),
+    }
   }
 
   const gap = recalculateProtectionGapResult(answers as CalculatorAnswers)

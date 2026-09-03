@@ -2,6 +2,7 @@ import { normalizeEmail, normalizePhone } from '../../../crm/households/normaliz
 import type { BusinessAssessmentAnswers } from '../../../components/assessment/business/types.js'
 import type { RetirementAssessmentAnswers } from '../../../components/assessment/retirement/types.js'
 import type { CreditAssessmentAnswers } from '../../../components/assessment/credit/types.js'
+import type { HomeBuyerAssessmentAnswers } from '../../../components/assessment/homeBuyer/types.js'
 import type { StudentLoanAssessmentAnswers } from '../../../components/assessment/studentLoan/types.js'
 import type { DemoAssessmentAnswers } from '../../../components/assessment/types.js'
 import type { CalculatorAnswers } from '../../../components/calculator/types.js'
@@ -115,6 +116,12 @@ export function normalizeCreditContact(
   return fromContactFields(answers.contact)
 }
 
+export function normalizeHomeBuyerContact(
+  answers: HomeBuyerAssessmentAnswers,
+): NormalizedSubmittedContact {
+  return fromContactFields(answers.contact)
+}
+
 export function normalizePublicReportCardContact(
   assessmentType: PublicReportCardAssessmentType,
   answers: PublicReportCardAnswers,
@@ -133,6 +140,6 @@ export function normalizePublicReportCardContact(
     case 'credit':
       return normalizeCreditContact(answers as CreditAssessmentAnswers)
     case 'home_buyer':
-      throw new Error('home_buyer contact normalization requires Batch 2 answers')
+      return normalizeHomeBuyerContact(answers as HomeBuyerAssessmentAnswers)
   }
 }
