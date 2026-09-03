@@ -86,6 +86,7 @@ export const GOAL_OPTIONS = [
   { value: 'retire', label: 'Retire comfortably' },
   { value: 'college', label: 'Pay for college' },
   { value: 'legacy', label: 'Leave a legacy' },
+  { value: 'buy-home', label: 'Buy a Home / Homeownership' },
 ] as const
 
 export const DEMO_ANSWERS_STORAGE_KEY = 'valtoris-demo-answers'

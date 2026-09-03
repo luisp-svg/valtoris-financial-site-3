@@ -36,6 +36,7 @@ const GOAL_CATEGORY_BOOST: Record<string, keyof typeof CATEGORY_WEIGHTS> = {
   retire: 'retirement',
   college: 'emergency',
   legacy: 'estate',
+  'buy-home': 'cashflow',
 }
 
 const BLUEPRINT_BY_CATEGORY: Record<string, string> = {

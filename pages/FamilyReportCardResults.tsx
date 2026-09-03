@@ -66,6 +66,19 @@ export default function FamilyReportCardResults() {
 
         <ReportDashboard data={buildLocalizedFamilyDashboard(firstName, greeting, answers, t)} />
 
+        {answers.goals.selected.includes('buy-home') ? (
+          <section className="rd-cta" data-testid="family-home-buyer-recommendation">
+            <h2 className="rd-cta-title">{t('ui', 'resultsHomeBuyerCta')}</h2>
+            <p className="rd-cta-copy">{t('ui', 'resultsHomeBuyerCopy')}</p>
+            <Link
+              className="platform-btn platform-btn-secondary"
+              to={withLocale(ROUTES.homeBuyerReportCard)}
+            >
+              {t('ui', 'resultsHomeBuyerCta')}
+            </Link>
+          </section>
+        ) : null}
+
         <section className="rd-cta">
           <h2 className="rd-cta-title">{t('ui', 'resultsScheduleTitle')}</h2>
           <p className="rd-cta-copy">{t('ui', 'resultsScheduleCopy')}</p>
