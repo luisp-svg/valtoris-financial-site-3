@@ -7330,6 +7330,16 @@ p { color: var(--muted); line-height: 1.7; }
   font: inherit;
 }
 
+.crm-digital-card-share-qr {
+  display: block;
+  width: 160px;
+  height: 160px;
+  padding: 8px;
+  background: #fff;
+  border: 1px solid var(--crm-border);
+  border-radius: 16px;
+}
+
 .crm-digital-card-photo-preview {
   width: 96px;
   height: 96px;

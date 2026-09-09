@@ -102,6 +102,33 @@ describe('downloadPublicCardQr', () => {
     }
   })
 
+  it('passes allowlisted Report Card type as rc without changing card-key QR URLs', async () => {
+    const fetchImpl = vi.fn(
+      async () =>
+        new Response('<svg xmlns="http://www.w3.org/2000/svg"></svg>', {
+          status: 200,
+          headers: {
+            'Content-Type': 'image/svg+xml',
+            'X-Valtoris-QR-Destination':
+              'https://valtoris.example/home-buyer-report-card?card=pk_live_abcdefghijklmnop',
+          },
+        }),
+    )
+    const result = await downloadPublicCardQr(
+      {
+        key: 'pk_live_abcdefghijklmnop',
+        format: 'svg',
+        reportCardType: 'home_buyer',
+      },
+      { fetchImpl: fetchImpl as never },
+    )
+    expect(result.ok).toBe(true)
+    expect(fetchImpl).toHaveBeenCalledWith(
+      '/api/digital-identity/card/qr?key=pk_live_abcdefghijklmnop&format=svg&rc=home_buyer',
+      expect.objectContaining({ method: 'GET' }),
+    )
+  })
+
   it('maps unavailable and network failures safely', async () => {
     const unavailable = await downloadPublicCardQr(
       { key: 'pk_live_abcdefghijklmnop', format: 'svg' },

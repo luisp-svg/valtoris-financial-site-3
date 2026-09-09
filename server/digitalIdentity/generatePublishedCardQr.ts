@@ -2,18 +2,23 @@
  * SERVER ONLY — generate QR assets for published digital cards.
  * Never import from browser/Vite client code.
  *
- * Destination is always /c/k/{publicKey} (never slug).
+ * Destination is /c/k/{publicKey} or an allowlisted Report Card share URL.
  * No analytics / campaign / CRM side effects.
  */
 
 import QRCode from 'qrcode'
 import {
   buildQrDestinationUrl,
+  buildReportCardShareQrDestinationUrl,
   getQrRenderSpec,
+  isAllowedQrDestination,
   isKeyBasedQrDestination,
+  isReportCardShareType,
   parsePublicCardQrFormat,
+  REPORT_CARD_SHARE_LABELS,
   sanitizeQrFilename,
   type PublicCardQrFormat,
+  type ReportCardShareType,
 } from '../../modules/digital-identity/index.js'
 import { isValidIdentityPublicKey } from '../../modules/digital-identity/index.js'
 import {
@@ -30,6 +35,8 @@ export type GeneratePublishedCardQrQuery = {
   /** Optional trusted campaign/event codes (validated against card). */
   campaignCode?: string | null
   eventCode?: string | null
+  /** Optional allowlisted Report Card type. Destination becomes the Batch 1 share URL. */
+  reportCardType?: string | null
 }
 
 export type GeneratePublishedCardQrSuccess = {
@@ -150,19 +157,42 @@ export async function generatePublishedCardQr(
     return { status: 'invalid_request', reason: 'invalid_campaign' }
   }
 
+  const requestedReportCardType =
+    typeof query.reportCardType === 'string' && query.reportCardType.trim()
+      ? query.reportCardType.trim()
+      : null
+  let shareType: ReportCardShareType | null = null
+  if (requestedReportCardType) {
+    if (!isReportCardShareType(requestedReportCardType)) {
+      return { status: 'invalid_request', reason: 'invalid_report_card_type' }
+    }
+    shareType = requestedReportCardType
+  }
+
   // Prefer durable key from the published card record (not request echo alone).
-  const canonicalUrl = buildQrDestinationUrl(origin, lookup.card.publicKey, attribution)
-  if (!canonicalUrl || !isKeyBasedQrDestination(canonicalUrl)) {
-    return { status: 'server_error' }
+  const canonicalUrl = shareType
+    ? buildReportCardShareQrDestinationUrl(origin, lookup.card.publicKey, shareType, attribution)
+    : buildQrDestinationUrl(origin, lookup.card.publicKey, attribution)
+  if (
+    !canonicalUrl ||
+    !isAllowedQrDestination(canonicalUrl, lookup.card.publicKey, { origin })
+  ) {
+    return shareType ? { status: 'invalid_request', reason: 'invalid_destination' } : { status: 'server_error' }
   }
 
   // Defense: never encode a slug path even if helpers regress.
   if (canonicalUrl.includes('/c/') && !canonicalUrl.includes('/c/k/')) {
     return { status: 'server_error' }
   }
+  if (shareType && isKeyBasedQrDestination(canonicalUrl)) {
+    return { status: 'invalid_request', reason: 'invalid_destination' }
+  }
 
   const spec = getQrRenderSpec(format)
-  const filename = sanitizeQrFilename(lookup.card.displayName, format)
+  const filename = sanitizeQrFilename(
+    shareType ? `${lookup.card.displayName} ${REPORT_CARD_SHARE_LABELS[shareType]}` : lookup.card.displayName,
+    format,
+  )
   const renderer = deps.qrcode ?? QRCode
 
   try {

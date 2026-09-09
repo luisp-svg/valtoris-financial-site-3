@@ -2,14 +2,20 @@
  * Digital Identity QR Platform contracts — pure helpers only.
  * Actual raster/vector rendering stays server-side (never import qrcode here).
  *
- * QR codes ALWAYS encode the durable public_key route:
- *   /c/k/{publicKey}
- * Never encode slug routes — slugs may change.
+ * QR destinations are allowlisted:
+ *   /c/k/{publicKey}  (existing Digital Identity card)
+ *   the six Report Card landings with card={publicKey}
+ * Never encode slug routes — slugs may change. Never encode arbitrary URLs.
  */
 
 import {
   buildCampaignQrDestinationPath,
   buildCampaignQrDestinationUrl,
+  buildReportCardSharePath,
+  isReportCardShareType,
+  isShareableCardPublicKey,
+  REPORT_CARD_SHARE_LANDINGS,
+  REPORT_CARD_SHARE_TYPES,
   type CampaignAttributionQuery,
 } from './campaignUrls.js'
 import { buildAbsolutePublicCardUrl } from './vcard.js'
@@ -187,6 +193,105 @@ export function isKeyBasedQrDestination(urlOrPath: string): boolean {
   } catch {
     return false
   }
+}
+
+const ALLOWED_QR_QUERY_KEYS = new Set([
+  'card',
+  'c',
+  'e',
+  'src',
+  'utm_source',
+  'utm_medium',
+  'utm_campaign',
+  'utm_term',
+  'utm_content',
+])
+
+function parseDestination(urlOrPath: string): URL | null {
+  try {
+    if (urlOrPath.startsWith('/') && !urlOrPath.startsWith('//')) {
+      return new URL(urlOrPath, 'https://valtoris.local')
+    }
+    return new URL(urlOrPath)
+  } catch {
+    return null
+  }
+}
+
+function reportCardTypeForLanding(pathname: string): string | null {
+  for (const type of REPORT_CARD_SHARE_TYPES) {
+    if (REPORT_CARD_SHARE_LANDINGS[type] === pathname) return type
+  }
+  return null
+}
+
+/**
+ * Strict QR destination allowlist. Existing /c/k/{publicKey} stays valid.
+ * Report Card destinations must be one of the six landings with card={publicKey}.
+ * Arbitrary hosts, assessment/results paths, UUIDs, and extra query keys fail.
+ */
+export function isAllowedQrDestination(
+  urlOrPath: string,
+  publicKey: string,
+  options: { origin?: string | null } = {},
+): boolean {
+  if (isKeyBasedQrDestination(urlOrPath)) return true
+  if (!isShareableCardPublicKey(publicKey)) return false
+
+  const parsed = parseDestination(urlOrPath)
+  if (!parsed) return false
+  if (!urlOrPath.startsWith('/') || urlOrPath.startsWith('//')) {
+    const trusted = options.origin?.trim()
+    if (!trusted) return false
+    try {
+      if (parsed.origin !== new URL(trusted).origin) return false
+    } catch {
+      return false
+    }
+  }
+
+  const type = reportCardTypeForLanding(parsed.pathname)
+  if (!type || !isReportCardShareType(type)) return false
+
+  const card = parsed.searchParams.get('card')
+  if (card !== publicKey.trim()) return false
+
+  for (const key of parsed.searchParams.keys()) {
+    if (!ALLOWED_QR_QUERY_KEYS.has(key)) return false
+  }
+
+  const expected = buildReportCardSharePath(publicKey, type, {
+    campaignCode: parsed.searchParams.get('c'),
+    eventCode: parsed.searchParams.get('e'),
+    sourceChannel: parsed.searchParams.get('src'),
+    utmSource: parsed.searchParams.get('utm_source'),
+    utmMedium: parsed.searchParams.get('utm_medium'),
+    utmCampaign: parsed.searchParams.get('utm_campaign'),
+    utmTerm: parsed.searchParams.get('utm_term'),
+    utmContent: parsed.searchParams.get('utm_content'),
+  })
+  if (!expected) return false
+
+  const expectedUrl = parseDestination(expected)
+  if (!expectedUrl) return false
+  if (expectedUrl.pathname !== parsed.pathname) return false
+  const expectedKeys = [...expectedUrl.searchParams.keys()].sort()
+  const actualKeys = [...parsed.searchParams.keys()].sort()
+  if (expectedKeys.join('|') !== actualKeys.join('|')) return false
+  return expectedKeys.every((key) => expectedUrl.searchParams.get(key) === parsed.searchParams.get(key))
+}
+
+export function buildReportCardShareQrDestinationUrl(
+  origin: string,
+  publicKey: string,
+  reportCardType: unknown,
+  attribution: CampaignAttributionQuery = {},
+): string | null {
+  const path = buildReportCardSharePath(publicKey, reportCardType, attribution)
+  if (!path) return null
+  const absolute = buildAbsolutePublicCardUrl(origin, path)
+  if (!absolute || !isAllowedQrDestination(absolute, publicKey, { origin })) return null
+  return absolute
 }
 
 export function qrGenerationSideEffects(): {

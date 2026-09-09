@@ -121,6 +121,39 @@ describe('GET /api/digital-identity/card/qr', () => {
     }
   })
 
+  it('forwards allowlisted Report Card type to the existing generator', async () => {
+    const res = mockRes()
+    const generate = vi.fn(async () => ({
+      status: 'found' as const,
+      format: 'svg' as const,
+      contentType: 'image/svg+xml; charset=utf-8',
+      filename: 'Luis-Perez-Family-QR.svg',
+      destinationUrl: 'https://valtoris.example/report-card?card=pk_test_public_key01',
+      body: '<svg xmlns="http://www.w3.org/2000/svg"></svg>',
+    }))
+    await handleDigitalIdentityQrRequest(
+      {
+        method: 'GET',
+        query: { key: 'pk_test_public_key01', format: 'svg', rc: 'family' },
+        headers: { host: 'valtoris.example', 'x-forwarded-proto': 'https' },
+      } as never,
+      res,
+      { generate },
+    )
+    expect(generate).toHaveBeenCalledWith({
+      key: 'pk_test_public_key01',
+      format: 'svg',
+      origin: 'https://valtoris.example',
+      campaignCode: null,
+      eventCode: null,
+      reportCardType: 'family',
+    })
+    expect(res.status).toHaveBeenCalledWith(200)
+    expect(res.headers['X-Valtoris-QR-Destination']).toBe(
+      'https://valtoris.example/report-card?card=pk_test_public_key01',
+    )
+  })
+
   it('rejects slug-based QR requests', async () => {
     const generate = vi.fn()
     const res = mockRes()

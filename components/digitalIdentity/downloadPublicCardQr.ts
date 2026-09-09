@@ -102,6 +102,8 @@ export async function downloadPublicCardQr(
     campaignCode?: string | null
     /** Optional event code (validated server-side against the campaign). */
     eventCode?: string | null
+    /** Optional allowlisted Report Card type (Batch 1 share destination). */
+    reportCardType?: string | null
   },
   options: DownloadPublicCardQrOptions = {},
 ): Promise<DownloadPublicCardQrResult> {
@@ -126,6 +128,8 @@ export async function downloadPublicCardQr(
   if (campaignCode) params.set('c', campaignCode)
   const eventCode = input.eventCode?.trim()
   if (eventCode) params.set('e', eventCode)
+  const reportCardType = input.reportCardType?.trim()
+  if (reportCardType) params.set('rc', reportCardType)
 
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs)

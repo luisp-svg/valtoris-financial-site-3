@@ -260,6 +260,50 @@ describe('generatePublishedCardQr', () => {
     expect(result.status).toBe('unavailable')
   })
 
+  it('encodes allowlisted Report Card share destinations and rejects unsupported types', async () => {
+    const toString = vi.fn(async (text: string) => {
+      expect(text).toBe('https://valtoris.example/report-card?card=pk_test_public_key01')
+      return '<svg xmlns="http://www.w3.org/2000/svg"></svg>'
+    })
+    const family = await generatePublishedCardQr(
+      {
+        key: 'pk_test_public_key01',
+        format: 'svg',
+        origin: 'https://valtoris.example',
+        reportCardType: 'family',
+      },
+      {
+        lookupByKey: async () => found,
+        qrcode: { toString, toBuffer: vi.fn() },
+      },
+    )
+    expect(family.status).toBe('found')
+    if (family.status === 'found') {
+      expect(family.destinationUrl).toBe(
+        'https://valtoris.example/report-card?card=pk_test_public_key01',
+      )
+      expect(family.filename).toBe('Luis-Perez-Family-QR.svg')
+      expect(family.destinationUrl).not.toContain('/c/k/')
+    }
+
+    const rejected = await generatePublishedCardQr(
+      {
+        key: 'pk_test_public_key01',
+        format: 'svg',
+        origin: 'https://valtoris.example',
+        reportCardType: 'retirement',
+      },
+      {
+        lookupByKey: async () => found,
+        qrcode: { toString: vi.fn(), toBuffer: vi.fn() },
+      },
+    )
+    expect(rejected.status).toBe('invalid_request')
+    if (rejected.status === 'invalid_request') {
+      expect(rejected.reason).toBe('invalid_report_card_type')
+    }
+  })
+
   it('declares no analytics or CRM side effects', () => {
     expect(publishedCardQrSideEffects()).toEqual({
       writesAnalytics: false,

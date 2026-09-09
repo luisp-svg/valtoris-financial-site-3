@@ -260,7 +260,7 @@ export function isReportCardShareType(value: unknown): value is ReportCardShareT
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
-function isShareableCardPublicKey(value: string): boolean {
+export function isShareableCardPublicKey(value: string): boolean {
   const trimmed = value.trim()
   if (!isValidIdentityPublicKey(trimmed) || UUID_RE.test(trimmed)) return false
   return true

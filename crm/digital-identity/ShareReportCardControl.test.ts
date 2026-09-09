@@ -10,12 +10,14 @@ import {
 } from '../../modules/digital-identity'
 import ShareReportCardControl, {
   copyReportCardShareLink,
+  isSafeReportCardQrDestination,
   shareReportCardControlSideEffects,
 } from './ShareReportCardControl'
 
 const ROOT = process.cwd()
 const KEY = 'pk_live_abcdefghijklmnop'
 const ADVISOR_UUID = '11111111-2222-4333-8444-555555555555'
+const ORIGIN = 'https://valtoris.example'
 
 function source(relativePath: string): string {
   return readFileSync(join(ROOT, relativePath), 'utf8')
@@ -28,12 +30,10 @@ describe('Share a Report Card CRM control', () => {
     )
     expect(html).toContain('Share a Report Card')
     expect(html).toContain('crm-share-report-card-copy')
+    expect(html).toContain('crm-share-report-card-qr-svg')
+    expect(html).toContain('crm-share-report-card-qr-png')
     expect(html).toContain(`${ROUTES.reportCard}?card=${KEY}`)
     expect(html).toContain('value="family"')
-    expect(html).toContain('value="business"')
-    expect(html).toContain('value="protection"')
-    expect(html).toContain('value="student_loan"')
-    expect(html).toContain('value="credit"')
     expect(html).toContain('value="home_buyer"')
     expect(html).not.toContain('retirement')
     expect(html).not.toContain(ADVISOR_UUID)
@@ -41,7 +41,7 @@ describe('Share a Report Card CRM control', () => {
     expect(REPORT_CARD_SHARE_TYPES).toHaveLength(6)
   })
 
-  it('copies the generated share URL and does not write CRM records', async () => {
+  it('copies the generated share URL unchanged from Batch 1', async () => {
     const writeText = vi.fn().mockResolvedValue(undefined)
     const path = buildReportCardSharePath(KEY, 'family')
     expect(path).toBe(`${ROUTES.reportCard}?card=${KEY}`)
@@ -49,27 +49,42 @@ describe('Share a Report Card CRM control', () => {
     expect(copied).toBe(`https://valtoris.example${path}`)
     expect(writeText).toHaveBeenCalledWith(`https://valtoris.example${path}`)
     expect(await copyReportCardShareLink('https://valtoris.example', ADVISOR_UUID, writeText)).toBeNull()
-    expect(shareReportCardControlSideEffects().createsLead).toBe(false)
-    expect(shareReportCardControlSideEffects().createsActivity).toBe(false)
-    expect(shareReportCardControlSideEffects().createsHousehold).toBe(false)
-    expect(shareReportCardControlSideEffects().downloadsQr).toBe(false)
     expect(source('crm/digital-identity/ShareReportCardControl.tsx')).toContain(
       'copyReportCardShareLink(window.location.origin, sharePath)',
     )
   })
 
-  it('is wired into the Campaigns Digital Identity area without a new page or ingest writes', () => {
-    const panel = source('crm/digital-identity/AdvisorDigitalCardPanel.tsx')
-    const campaigns = source('pages/crm/CrmCampaignsPage.tsx')
+  it('accepts only allowlisted QR destinations for the same public key', () => {
+    expect(
+      isSafeReportCardQrDestination(`${ORIGIN}${ROUTES.reportCard}?card=${KEY}`, KEY, ORIGIN),
+    ).toBe(true)
+    expect(isSafeReportCardQrDestination(`${ORIGIN}/c/k/${KEY}`, KEY, ORIGIN)).toBe(true)
+    expect(
+      isSafeReportCardQrDestination(`https://evil.example${ROUTES.reportCard}?card=${KEY}`, KEY, ORIGIN),
+    ).toBe(false)
+    expect(isSafeReportCardQrDestination(`${ORIGIN}${ROUTES.reportCard}?card=${ADVISOR_UUID}`, KEY, ORIGIN)).toBe(
+      false,
+    )
+  })
+
+  it('reuses the existing QR download API and does not write CRM records', () => {
     const control = source('crm/digital-identity/ShareReportCardControl.tsx')
-    expect(panel).toContain('ShareReportCardControl')
-    expect(panel).toContain('publicKey={card.publicKey}')
-    expect(campaigns).toContain('AdvisorDigitalCardPanel')
-    expect(campaigns).not.toContain('ShareReportCardControl')
-    expect(control).toContain('buildReportCardSharePath')
+    expect(control).toContain('downloadPublicCardQr')
+    expect(control).toContain('reportCardType')
+    expect(control).toContain("format: 'svg'")
+    expect(control).toContain("format: 'png'")
+    expect(control).toContain('crm-share-report-card-qr-${item.format}')
+    expect(control).toContain("{ format: 'svg', label: 'SVG' }")
+    expect(control).toContain("{ format: 'png', label: 'PNG' }")
     expect(control).not.toMatch(/advisorProfileId|advisor_profile_id/)
     expect(control).not.toMatch(/from '\.\.\/\.\.\/server\/ingest/)
     expect(control).not.toContain('/r/')
-    expect(control).not.toContain('downloadPublicCardQr')
+    expect(shareReportCardControlSideEffects().createsLead).toBe(false)
+    expect(shareReportCardControlSideEffects().createsActivity).toBe(false)
+    expect(shareReportCardControlSideEffects().createsHousehold).toBe(false)
+    expect(shareReportCardControlSideEffects().writesAnalytics).toBe(false)
+    expect(shareReportCardControlSideEffects().writesCampaigns).toBe(false)
+    expect(source('pages/crm/CrmCampaignsPage.tsx')).toContain('AdvisorDigitalCardPanel')
+    expect(source('pages/crm/CrmCampaignsPage.tsx')).not.toContain('ShareReportCardControl')
   })
 })
