@@ -341,6 +341,6 @@ describe('public site foundation chrome', () => {
     expect(source('platform/registry/catalog.ts')).toContain('featureFlag: { enabled: false }')
     expect(source('components/SiteHeader.tsx')).not.toContain('scoreFamilyAssessment')
     expect(source('components/SiteFooter.tsx')).not.toContain('ingestFamilyReportCard')
-    expect(source('modules/digital-identity/cta.ts')).toContain("label: 'Future Credit Assessment'")
+    expect(source('modules/digital-identity/cta.ts')).toContain("label: 'Credit Report Card'")
   })
 })

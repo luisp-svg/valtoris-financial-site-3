@@ -44,6 +44,9 @@ const HELP_TILE_ICONS: Record<PublicCardHelpTileKey, HomeCardIconVariant> = {
   protection_gap: 'emergency',
   grow_business: 'strategy',
   prepare_retirement: 'retirement',
+  student_loan: 'debt',
+  improve_credit: 'credit',
+  home_buyer: 'blueprint',
 }
 
 function heroActionClassName(key: PublicCardHeroAction['key']): string {

@@ -11859,6 +11859,7 @@ a.public-card-outcome:focus-visible {
   font-size: 1.08rem;
   letter-spacing: -0.015em;
   color: var(--brand);
+  overflow-wrap: break-word;
 }
 
 .public-card-outcome p {
@@ -11866,6 +11867,7 @@ a.public-card-outcome:focus-visible {
   color: #475569;
   font-size: 0.9rem;
   line-height: 1.45;
+  overflow-wrap: break-word;
 }
 
 .public-card-outcome-link {

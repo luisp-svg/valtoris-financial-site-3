@@ -209,16 +209,14 @@ describe('publicCardViewModel', () => {
     ])
   })
 
-  it('includes API diagnostic CTAs and Credit Assessment coming soon', () => {
+  it('includes API diagnostic CTAs that are enabled on the published card', () => {
     const diagnostics = buildDiagnosticActions(sampleCard())
     expect(diagnostics.map((d) => d.key)).toEqual([
       'family_report_card',
       'business_report_card',
       'protection_gap',
-      'credit_assessment',
     ])
-    const credit = diagnostics.find((d) => d.key === 'credit_assessment')
-    expect(credit?.mode).toBe('coming_soon')
+    expect(diagnostics.every((d) => d.mode === 'link')).toBe(true)
   })
 
   it('groups outcomes by goals and marks credit as coming soon', () => {
@@ -233,7 +231,7 @@ describe('publicCardViewModel', () => {
     expect(credit.every((o) => o.href === null)).toBe(true)
   })
 
-  it('selects only the four primary How I Can Help tiles for the public card', () => {
+  it('selects only the four primary How I Can Help tiles when extra Report Cards are disabled', () => {
     const catalog = buildOutcomeSections(sampleCard())
     expect(catalog.map((o) => o.title)).toEqual([
       'Protect Your Family',

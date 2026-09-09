@@ -11,6 +11,9 @@ export function createDefaultAdvisorCardCtas(input?: {
   familyReportCardHref?: string | null
   businessReportCardHref?: string | null
   protectionGapHref?: string | null
+  studentLoanReportCardHref?: string | null
+  creditReportCardHref?: string | null
+  homeBuyerReportCardHref?: string | null
 }): IdentityCtaConfiguration {
   const items: IdentityCtaConfigItem[] = [
     {
@@ -48,10 +51,22 @@ export function createDefaultAdvisorCardCtas(input?: {
       href: input?.protectionGapHref ?? '/protection-gap',
     },
     {
+      key: 'student_loan_report_card',
+      label: 'Student Loan Report Card',
+      enabled: true,
+      href: input?.studentLoanReportCardHref ?? '/student-loan-report-card',
+    },
+    {
       key: 'credit_assessment',
-      label: 'Future Credit Assessment',
-      enabled: false,
-      href: null,
+      label: 'Credit Report Card',
+      enabled: true,
+      href: input?.creditReportCardHref ?? '/credit-report-card',
+    },
+    {
+      key: 'home_buyer_report_card',
+      label: 'Home Buyer Readiness',
+      enabled: true,
+      href: input?.homeBuyerReportCardHref ?? '/home-buyer-report-card',
     },
   ]
 
@@ -65,4 +80,23 @@ export function getEnabledPublicCtas(
   config: IdentityCtaConfiguration,
 ): readonly IdentityCtaConfigItem[] {
   return config.items.filter((item) => item.enabled)
+}
+
+/** Clicking a public Digital Card Report Card CTA only navigates. */
+export function publicCardCtaClickSideEffects(): {
+  createsLead: false
+  createsHousehold: false
+  createsOpportunity: false
+  createsActivity: false
+  sendsSms: false
+  sendsEmail: false
+} {
+  return {
+    createsLead: false,
+    createsHousehold: false,
+    createsOpportunity: false,
+    createsActivity: false,
+    sendsSms: false,
+    sendsEmail: false,
+  }
 }

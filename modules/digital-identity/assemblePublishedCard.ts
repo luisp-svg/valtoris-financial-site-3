@@ -23,7 +23,9 @@ const CTA_KEYS: readonly IdentityCtaKey[] = [
   'family_report_card',
   'business_report_card',
   'protection_gap',
+  'student_loan_report_card',
   'credit_assessment',
+  'home_buyer_report_card',
 ] as const
 
 const DEFAULT_CTA_LABELS: Record<IdentityCtaKey, string> = {
@@ -33,7 +35,9 @@ const DEFAULT_CTA_LABELS: Record<IdentityCtaKey, string> = {
   family_report_card: 'Family Financial Report Card',
   business_report_card: 'Business Financial Report Card',
   protection_gap: 'Protection Gap',
-  credit_assessment: 'Future Credit Assessment',
+  student_loan_report_card: 'Student Loan Report Card',
+  credit_assessment: 'Credit Report Card',
+  home_buyer_report_card: 'Home Buyer Readiness',
 }
 
 export type AdvisorProfilePublicSource = {
@@ -126,7 +130,8 @@ function normalizeSpecialties(value: unknown): string[] {
 
 /**
  * Normalize stored cta_config JSON into enabled public CTA items.
- * Always forces primary label to Let's Connect and credit_assessment disabled.
+ * Always forces the primary label to Let's Connect.
+ * Legacy credit_assessment placeholders (no href) take the current default destination.
  */
 export function normalizePublicCtaItems(raw: unknown, calendlyUrl: string | null): IdentityCtaConfigItem[] {
   const defaults = createDefaultAdvisorCardCtas({ calendlyUrl })
@@ -146,8 +151,13 @@ export function normalizePublicCtaItems(raw: unknown, calendlyUrl: string | null
     if (!keyRaw || !(CTA_KEYS as readonly string[]).includes(keyRaw)) continue
     const key = keyRaw as IdentityCtaKey
     const fallback = byKey.get(key)!
-    const href = normalizePublicHref(row.href) ?? fallback.href ?? null
-    const enabled = key === 'credit_assessment' ? false : readBoolean(row.enabled, fallback.enabled)
+    const storedHref = normalizePublicHref(row.href)
+    if (key === 'credit_assessment' && !storedHref) {
+      byKey.set(key, { ...fallback })
+      continue
+    }
+    const href = storedHref ?? fallback.href ?? null
+    const enabled = readBoolean(row.enabled, fallback.enabled)
     const label =
       key === 'lets_connect'
         ? LETS_CONNECT_CTA_LABEL
@@ -170,12 +180,12 @@ export function normalizePublicCtaItems(raw: unknown, calendlyUrl: string | null
     enabled: true,
     href: null,
   })
-  byKey.set('credit_assessment', {
-    key: 'credit_assessment',
-    label: DEFAULT_CTA_LABELS.credit_assessment,
-    enabled: false,
-    href: null,
-  })
+
+  const credit = byKey.get('credit_assessment')!
+  const creditDefault = defaultByKey.get('credit_assessment')!
+  if (!credit.href) {
+    byKey.set('credit_assessment', { ...creditDefault })
+  }
 
   return CTA_KEYS.map((key) => byKey.get(key)!).filter((item) => item.enabled)
 }
@@ -260,9 +270,6 @@ function assertAllowlistedDto(dto: IdentitySurfacePublicDto): void {
   }
   if (dto.primaryConnectLabel !== LETS_CONNECT_CTA_LABEL) {
     throw new Error('primaryConnectLabel must be exactly Let\'s Connect')
-  }
-  if (dto.ctas.some((item) => item.key === 'credit_assessment' && item.enabled)) {
-    throw new Error('credit_assessment CTA must remain disabled in public DTO')
   }
 }
 

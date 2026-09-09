@@ -43,7 +43,10 @@ describe('assemblePublishedCardDto', () => {
     expect(dto?.primaryConnectLabel).toBe(LETS_CONNECT_CTA_LABEL)
     expect(dto?.cardUrl).toBe('/c/k/pk_test_public_key01')
     expect(dto?.ctas.some((item) => item.key === 'lets_connect')).toBe(true)
-    expect(dto?.ctas.some((item) => item.key === 'credit_assessment')).toBe(false)
+    expect(dto?.ctas.some((item) => item.key === 'credit_assessment')).toBe(true)
+    expect(dto?.ctas.find((item) => item.key === 'credit_assessment')?.href).toBe(
+      '/credit-report-card',
+    )
     expect(dto?.approvedTitle).toBe('Financial Strategist')
     expect(dto?.approvedCompany).toBe('Valtoris Financial')
     expect(dto?.headshotUrl).toBe('https://cdn.example.com/jane.jpg')
@@ -193,13 +196,13 @@ describe('assemblePublishedCardDto', () => {
 })
 
 describe('normalizePublicCtaItems', () => {
-  it('keeps Let\'s Connect exact and forces credit assessment disabled', () => {
+  it('keeps Let\'s Connect exact and upgrades placeholder Credit CTAs', () => {
     const items = normalizePublicCtaItems(
       {
         primaryConnectLabel: 'Share Contact',
         items: [
           { key: 'lets_connect', label: 'Share Contact', enabled: true },
-          { key: 'credit_assessment', label: 'Credit', enabled: true, href: '/credit' },
+          { key: 'credit_assessment', label: 'Future Credit Assessment', enabled: false, href: null },
           { key: 'not_a_real_cta', label: 'Nope', enabled: true },
         ],
       },
@@ -207,7 +210,22 @@ describe('normalizePublicCtaItems', () => {
     )
     const connect = items.find((item) => item.key === 'lets_connect')
     expect(connect?.label).toBe("Let's Connect")
-    expect(items.some((item) => item.key === 'credit_assessment')).toBe(false)
+    const credit = items.find((item) => item.key === 'credit_assessment')
+    expect(credit?.enabled).toBe(true)
+    expect(credit?.label).toBe('Credit Report Card')
+    expect(credit?.href).toBe('/credit-report-card')
     expect(items.map((item) => item.key)).not.toContain('not_a_real_cta')
+  })
+
+  it('respects an explicit stored disable when Credit already has a destination', () => {
+    const items = normalizePublicCtaItems(
+      {
+        items: [
+          { key: 'credit_assessment', label: 'Credit Report Card', enabled: false, href: '/credit-report-card' },
+        ],
+      },
+      null,
+    )
+    expect(items.some((item) => item.key === 'credit_assessment')).toBe(false)
   })
 })

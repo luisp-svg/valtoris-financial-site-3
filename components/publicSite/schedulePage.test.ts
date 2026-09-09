@@ -127,7 +127,7 @@ describe('generic strategy-meeting schedule page', () => {
     expect(fileSha256('supabase/migrations/051_intake_archive_workflow.sql')).toBe(SHA_051)
     expect(fileSha256('supabase/migrations/052_fix_intake_archive_activity_order.sql')).toBe(SHA_052)
     expect(getModule('credit_repair')?.featureFlag.enabled).toBe(false)
-    expect(source('modules/digital-identity/cta.ts')).toContain("label: 'Future Credit Assessment'")
+    expect(source('modules/digital-identity/cta.ts')).toContain("label: 'Credit Report Card'")
     expect(source('pages/CheckupPage.tsx')).toContain('Family Financial Report Card™')
     expect(source('components/LeadForm.tsx')).toContain('credit-repair')
     expect(source('src/App.tsx')).toContain(

@@ -227,7 +227,7 @@ describe('service-led bilingual homepage', () => {
     expect(source('pages/HomePage.tsx')).not.toContain('scoreFamilyAssessment')
     expect(source('pages/HomePage.tsx')).not.toContain('ingestFamilyReportCard')
     expect(source('components/publicSite/home/HomeHero.tsx')).not.toContain('scoreFamilyAssessment')
-    expect(source('modules/digital-identity/cta.ts')).toContain("label: 'Future Credit Assessment'")
+    expect(source('modules/digital-identity/cta.ts')).toContain("label: 'Credit Report Card'")
     expect(source('src/App.tsx')).toContain('path={ROUTES.solutions}')
     expect(source('src/App.tsx')).toContain('path={ROUTES.checkup}')
   })

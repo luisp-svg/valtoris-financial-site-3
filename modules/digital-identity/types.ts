@@ -42,6 +42,8 @@ export type IdentityCtaKey =
   | 'business_report_card'
   | 'protection_gap'
   | 'credit_assessment'
+  | 'student_loan_report_card'
+  | 'home_buyer_report_card'
 
 export type IdentityCtaConfigItem = {
   key: IdentityCtaKey

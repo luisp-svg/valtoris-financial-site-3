@@ -114,7 +114,7 @@ describe('digital_identity module registry alignment', () => {
 })
 
 describe('CTA configuration', () => {
-  it('uses exact Let’s Connect primary label and disables credit assessment by default', () => {
+  it('uses exact Let’s Connect primary label and enables the Credit Report Card CTA', () => {
     const ctas = createDefaultAdvisorCardCtas()
     expect(ctas.primaryConnectLabel).toBe(LETS_CONNECT_CTA_LABEL)
     expect(LETS_CONNECT_CTA_LABEL).toBe("Let's Connect")
@@ -122,8 +122,9 @@ describe('CTA configuration', () => {
     expect(connect?.label).toBe("Let's Connect")
     expect(connect?.enabled).toBe(true)
     const credit = ctas.items.find((item) => item.key === 'credit_assessment')
-    expect(credit?.enabled).toBe(false)
-    expect(credit?.label).toBe('Future Credit Assessment')
+    expect(credit?.enabled).toBe(true)
+    expect(credit?.label).toBe('Credit Report Card')
+    expect(credit?.href).toBe('/credit-report-card')
   })
 })
 

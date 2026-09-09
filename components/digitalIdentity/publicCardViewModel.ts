@@ -68,6 +68,9 @@ const DIAGNOSTIC_KEYS: readonly IdentityCtaKey[] = [
   'family_report_card',
   'business_report_card',
   'protection_gap',
+  'student_loan_report_card',
+  'credit_assessment',
+  'home_buyer_report_card',
 ]
 
 function ctaByKey(
@@ -241,7 +244,7 @@ export function buildHeroActions(card: IdentitySurfacePublicDto): PublicCardHero
 }
 
 /**
- * Diagnostic CTAs from API config, plus Credit Assessment as Coming Soon.
+ * Diagnostic CTAs from API config. Only enabled items from the published card appear.
  */
 export function buildDiagnosticActions(
   card: IdentitySurfacePublicDto,
@@ -259,13 +262,6 @@ export function buildDiagnosticActions(
     })
   }
 
-  actions.push({
-    key: 'credit_assessment',
-    label: 'Credit Assessment',
-    href: null,
-    mode: 'coming_soon',
-  })
-
   return actions
 }
 
@@ -277,6 +273,9 @@ export function buildOutcomeSections(card: IdentitySurfacePublicDto): PublicCard
   const family = ctaByKey(card.ctas, 'family_report_card')
   const protection = ctaByKey(card.ctas, 'protection_gap')
   const business = ctaByKey(card.ctas, 'business_report_card')
+  const studentLoan = ctaByKey(card.ctas, 'student_loan_report_card')
+  const credit = ctaByKey(card.ctas, 'credit_assessment')
+  const homeBuyer = ctaByKey(card.ctas, 'home_buyer_report_card')
 
   if (family) {
     outcomes.push({
@@ -332,14 +331,50 @@ export function buildOutcomeSections(card: IdentitySurfacePublicDto): PublicCard
     actionLabel: business?.label || 'Business Report Card',
   })
 
-  outcomes.push({
-    key: 'improve_credit',
-    title: 'Improve Credit',
-    description: 'A focused credit pathway for personal financial mobility.',
-    href: null,
-    comingSoon: true,
-    actionLabel: 'Coming Soon',
-  })
+  if (studentLoan) {
+    outcomes.push({
+      key: 'student_loan',
+      title: 'Student Loan Report Card',
+      description:
+        'Review your loans, repayment strategy, and potential opportunities.',
+      href: studentLoan.href?.trim() || ROUTES.studentLoanReportCard,
+      comingSoon: false,
+      actionLabel: studentLoan.label,
+    })
+  }
+
+  if (credit) {
+    outcomes.push({
+      key: 'improve_credit',
+      title: 'Credit Report Card',
+      description:
+        "See what's helping or hurting your credit profile and where to focus next.",
+      href: credit.href?.trim() || ROUTES.creditReportCard,
+      comingSoon: false,
+      actionLabel: credit.label,
+    })
+  } else {
+    outcomes.push({
+      key: 'improve_credit',
+      title: 'Improve Credit',
+      description: 'A focused credit pathway for personal financial mobility.',
+      href: null,
+      comingSoon: true,
+      actionLabel: 'Coming Soon',
+    })
+  }
+
+  if (homeBuyer) {
+    outcomes.push({
+      key: 'home_buyer',
+      title: 'Home Buyer Readiness',
+      description:
+        'See how prepared you are across credit, income, debt, savings, cash flow, and down payment readiness.',
+      href: homeBuyer.href?.trim() || ROUTES.homeBuyerReportCard,
+      comingSoon: false,
+      actionLabel: homeBuyer.label,
+    })
+  }
 
   outcomes.push({
     key: 'build_business_credit',
@@ -359,6 +394,9 @@ export const PUBLIC_CARD_HELP_TILE_KEYS = [
   'protection_gap',
   'grow_business',
   'prepare_retirement',
+  'student_loan',
+  'improve_credit',
+  'home_buyer',
 ] as const
 
 export type PublicCardHelpTileKey = (typeof PUBLIC_CARD_HELP_TILE_KEYS)[number]
@@ -374,7 +412,7 @@ export function selectPublicCardHelpTiles(
   const selected: PublicCardOutcome[] = []
   for (const key of PUBLIC_CARD_HELP_TILE_KEYS) {
     const row = byKey.get(key)
-    if (row) selected.push(row)
+    if (row && !row.comingSoon) selected.push(row)
   }
   return selected
 }

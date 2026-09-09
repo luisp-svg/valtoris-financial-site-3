@@ -40,7 +40,11 @@ export {
 } from './consent.js'
 export type { DigitalIdentityConsentValidation } from './consent.js'
 
-export { createDefaultAdvisorCardCtas, getEnabledPublicCtas } from './cta.js'
+export {
+  createDefaultAdvisorCardCtas,
+  getEnabledPublicCtas,
+  publicCardCtaClickSideEffects,
+} from './cta.js'
 
 export {
   anonymousEventCreatesCrmRecord,
