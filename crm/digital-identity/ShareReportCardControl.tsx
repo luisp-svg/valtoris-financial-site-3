@@ -7,16 +7,21 @@ import {
 import {
   buildReportCardSharePath,
   isAllowedQrDestination,
+  isReportCardShareSourceChannel,
   isReportCardShareType,
   REPORT_CARD_SHARE_LABELS,
+  REPORT_CARD_SHARE_SOURCE_CHANNELS,
   REPORT_CARD_SHARE_TYPES,
   reportCardShareSideEffects,
+  resolveReportCardShareAttribution,
   type PublicCardQrFormat,
+  type ReportCardShareCampaign,
   type ReportCardShareType,
 } from '../../modules/digital-identity'
 
 type ShareReportCardControlProps = {
   publicKey: string
+  campaigns?: readonly ReportCardShareCampaign[]
   onCopied?: (message: string) => void
   onCopyFailed?: (message: string) => void
 }
@@ -26,6 +31,13 @@ const SHARE_QR_DOWNLOAD_FORMATS: readonly { format: Exclude<PublicCardQrFormat, 
     { format: 'svg', label: 'SVG' },
     { format: 'png', label: 'PNG' },
   ]
+
+const SOURCE_LABELS = {
+  link: 'Link',
+  qr: 'QR',
+  nfc: 'NFC',
+  share: 'Share',
+} as const
 
 export function shareReportCardControlSideEffects() {
   return {
@@ -56,17 +68,75 @@ export function isSafeReportCardQrDestination(
   return isAllowedQrDestination(destinationUrl, publicKey, { origin })
 }
 
+export function reportCardQrMatchesSharePath(
+  destinationUrl: string | null,
+  sharePath: string | null,
+  origin: string,
+): boolean {
+  if (!destinationUrl || !sharePath) return false
+  const trimmedOrigin = origin.trim().replace(/\/$/, '')
+  if (destinationUrl === `${trimmedOrigin}${sharePath}`) return true
+  try {
+    const parsed = destinationUrl.startsWith('/')
+      ? new URL(destinationUrl, 'https://valtoris.local')
+      : new URL(destinationUrl)
+    return `${parsed.pathname}${parsed.search}` === sharePath
+  } catch {
+    return false
+  }
+}
+
+export function selectShareableReportCardCampaigns(
+  campaigns: readonly ReportCardShareCampaign[] | null | undefined,
+  publicKey: string,
+): ReportCardShareCampaign[] {
+  return (campaigns ?? []).filter((campaign) => {
+    if (campaign.status === 'disabled') return false
+    if (campaign.cardPublicKey && campaign.cardPublicKey !== publicKey) return false
+    return Boolean(resolveReportCardShareAttribution(campaign).campaignCode)
+  })
+}
+
 export default function ShareReportCardControl({
   publicKey,
+  campaigns,
   onCopied,
   onCopyFailed,
 }: ShareReportCardControlProps) {
   const [reportCardType, setReportCardType] = useState<ReportCardShareType>('family')
+  const [campaignCode, setCampaignCode] = useState('')
+  const [includeEvent, setIncludeEvent] = useState(true)
+  const [sourceChannel, setSourceChannel] = useState('link')
   const [qrObjectUrl, setQrObjectUrl] = useState<string | null>(null)
   const [qrLoading, setQrLoading] = useState(false)
+
+  const shareableCampaigns = useMemo(
+    () => selectShareableReportCardCampaigns(campaigns, publicKey),
+    [campaigns, publicKey],
+  )
+  const selectedCampaign = useMemo(
+    () => shareableCampaigns.find((item) => item.campaignCode === campaignCode) ?? null,
+    [shareableCampaigns, campaignCode],
+  )
+
+  useEffect(() => {
+    if (!selectedCampaign) return
+    setIncludeEvent(Boolean(selectedCampaign.eventCode))
+    const defaultSource = selectedCampaign.sourceChannelDefault
+    setSourceChannel(isReportCardShareSourceChannel(defaultSource) ? defaultSource : 'link')
+  }, [selectedCampaign])
+
+  const attribution = useMemo(
+    () =>
+      resolveReportCardShareAttribution(selectedCampaign, {
+        includeEvent,
+        sourceChannel: selectedCampaign ? sourceChannel : null,
+      }),
+    [selectedCampaign, includeEvent, sourceChannel],
+  )
   const sharePath = useMemo(
-    () => buildReportCardSharePath(publicKey, reportCardType),
-    [publicKey, reportCardType],
+    () => buildReportCardSharePath(publicKey, reportCardType, attribution),
+    [publicKey, reportCardType, attribution],
   )
 
   useEffect(() => {
@@ -84,7 +154,14 @@ export default function ShareReportCardControl({
 
     void (async () => {
       const result = await downloadPublicCardQr(
-        { key: publicKey, format: 'svg', reportCardType },
+        {
+          key: publicKey,
+          format: 'svg',
+          reportCardType,
+          campaignCode: attribution.campaignCode,
+          eventCode: attribution.eventCode,
+          sourceChannel: attribution.sourceChannel,
+        },
         { signal: controller.signal },
       )
       if (cancelled) return
@@ -95,7 +172,8 @@ export default function ShareReportCardControl({
           result.destinationUrl,
           publicKey,
           window.location.origin,
-        )
+        ) ||
+        !reportCardQrMatchesSharePath(result.destinationUrl, sharePath, window.location.origin)
       ) {
         return
       }
@@ -110,7 +188,7 @@ export default function ShareReportCardControl({
       cancelled = true
       controller.abort()
     }
-  }, [publicKey, reportCardType, sharePath])
+  }, [publicKey, reportCardType, sharePath, attribution])
 
   useEffect(() => {
     return () => {
@@ -144,13 +222,17 @@ export default function ShareReportCardControl({
       key: publicKey,
       format,
       reportCardType,
+      campaignCode: attribution.campaignCode,
+      eventCode: attribution.eventCode,
+      sourceChannel: attribution.sourceChannel,
     })
     if (!result.ok) {
       onCopyFailed?.(qrDownloadErrorCopy(result.code))
       return
     }
     if (
-      !isSafeReportCardQrDestination(result.destinationUrl, publicKey, window.location.origin)
+      !isSafeReportCardQrDestination(result.destinationUrl, publicKey, window.location.origin) ||
+      !reportCardQrMatchesSharePath(result.destinationUrl, sharePath, window.location.origin)
     ) {
       onCopyFailed?.('Unable to download Report Card QR.')
       return
@@ -168,7 +250,7 @@ export default function ShareReportCardControl({
       <h3 className="crm-digital-card-profile-title">Share a Report Card</h3>
       <p className="crm-muted">
         Copy a personal landing link or download a QR. Attribution uses your Digital Identity
-        public key only.
+        public key. A campaign is optional.
       </p>
       <label>
         Report Card
@@ -187,6 +269,57 @@ export default function ShareReportCardControl({
           ))}
         </select>
       </label>
+      {shareableCampaigns.length > 0 ? (
+        <div className="crm-digital-card-share-attribution">
+          <label>
+            Campaign
+            <select
+              data-testid="crm-share-report-card-campaign"
+              value={campaignCode}
+              onChange={(event) => setCampaignCode(event.target.value)}
+            >
+              <option value="">None (personal link)</option>
+              {shareableCampaigns.map((campaign) => (
+                <option key={campaign.campaignCode} value={campaign.campaignCode}>
+                  {campaign.label ? `${campaign.label} (${campaign.campaignCode})` : campaign.campaignCode}
+                </option>
+              ))}
+            </select>
+          </label>
+          {selectedCampaign?.eventCode ? (
+            <label>
+              Event
+              <select
+                data-testid="crm-share-report-card-event"
+                value={includeEvent ? selectedCampaign.eventCode : ''}
+                onChange={(event) => setIncludeEvent(Boolean(event.target.value))}
+              >
+                <option value="">Omit event</option>
+                <option value={selectedCampaign.eventCode}>{selectedCampaign.eventCode}</option>
+              </select>
+            </label>
+          ) : null}
+          {selectedCampaign ? (
+            <label>
+              Source
+              <select
+                data-testid="crm-share-report-card-source"
+                value={sourceChannel}
+                onChange={(event) => {
+                  const next = event.target.value
+                  if (isReportCardShareSourceChannel(next)) setSourceChannel(next)
+                }}
+              >
+                {REPORT_CARD_SHARE_SOURCE_CHANNELS.map((channel) => (
+                  <option key={channel} value={channel}>
+                    {SOURCE_LABELS[channel]}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
+        </div>
+      ) : null}
       <p className="crm-muted" data-testid="crm-share-report-card-url">
         {sharePath ?? 'A published digital card is required to generate a share link.'}
       </p>

@@ -104,6 +104,8 @@ export async function downloadPublicCardQr(
     eventCode?: string | null
     /** Optional allowlisted Report Card type (Batch 1 share destination). */
     reportCardType?: string | null
+    /** Optional allowlisted source channel (Report Card QR/share parity). */
+    sourceChannel?: string | null
   },
   options: DownloadPublicCardQrOptions = {},
 ): Promise<DownloadPublicCardQrResult> {
@@ -130,6 +132,8 @@ export async function downloadPublicCardQr(
   if (eventCode) params.set('e', eventCode)
   const reportCardType = input.reportCardType?.trim()
   if (reportCardType) params.set('rc', reportCardType)
+  const sourceChannel = input.sourceChannel?.trim()
+  if (sourceChannel) params.set('src', sourceChannel)
 
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs)

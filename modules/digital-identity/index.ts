@@ -125,18 +125,23 @@ export {
   buildReportCardSharePath,
   buildShareLink,
   extractReferrerHost,
+  isReportCardShareSourceChannel,
   isReportCardShareType,
   isShareableCardPublicKey,
   normalizeCampaignAttributionQuery,
   parseCampaignAttributionFromSearch,
   reportCardShareSideEffects,
+  resolveReportCardShareAttribution,
   REPORT_CARD_SHARE_LABELS,
   REPORT_CARD_SHARE_LANDINGS,
+  REPORT_CARD_SHARE_SOURCE_CHANNELS,
   REPORT_CARD_SHARE_TYPES,
 } from './campaignUrls.js'
 export type {
   CampaignAttributionQuery,
   NormalizedCampaignAttribution,
+  ReportCardShareCampaign,
+  ReportCardShareSourceChannel,
   ReportCardShareType,
 } from './campaignUrls.js'
 

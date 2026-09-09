@@ -20,6 +20,7 @@ type GenerateFn = (input: {
   campaignCode?: string | null
   eventCode?: string | null
   reportCardType?: string | null
+  sourceChannel?: string | null
 }) => Promise<GeneratePublishedCardQrResult>
 
 export type DigitalIdentityQrHandlerDeps = {
@@ -106,6 +107,7 @@ export async function handleDigitalIdentityQrRequest(
   const campaignCode = readQueryParam(req.query.c || req.query.campaignCode).trim()
   const eventCode = readQueryParam(req.query.e || req.query.eventCode).trim()
   const reportCardType = readQueryParam(req.query.rc || req.query.reportCardType).trim()
+  const sourceChannel = readQueryParam(req.query.src || req.query.sourceChannel).trim()
 
   // QR Platform is key-only — slug addressing is rejected (slugs may change).
   if (slug) {
@@ -131,6 +133,7 @@ export async function handleDigitalIdentityQrRequest(
       campaignCode: campaignCode || null,
       eventCode: eventCode || null,
       ...(reportCardType ? { reportCardType } : {}),
+      ...(sourceChannel ? { sourceChannel } : {}),
     })
   } catch {
     result = { status: 'server_error' }

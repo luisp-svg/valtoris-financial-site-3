@@ -304,6 +304,71 @@ describe('generatePublishedCardQr', () => {
     }
   })
 
+  it('encodes a trusted campaign Report Card QR with the same helper attribution', async () => {
+    const maybeSingleCampaign = vi.fn(async () => ({
+      data: {
+        campaign_code: 'summit',
+        event_code: 'day1',
+        status: 'active',
+      },
+      error: null,
+    }))
+    const maybeSingleCard = vi.fn(async () => ({
+      data: { id: 'card-1' },
+      error: null,
+    }))
+    const admin = {
+      from: vi.fn((table: string) => {
+        if (table === 'digital_cards') {
+          return {
+            select: vi.fn(() => ({
+              eq: vi.fn(() => ({
+                is: vi.fn(() => ({ maybeSingle: maybeSingleCard })),
+              })),
+            })),
+          }
+        }
+        return {
+          select: vi.fn(() => ({
+            eq: vi.fn(() => ({
+              eq: vi.fn(() => ({
+                is: vi.fn(() => ({ maybeSingle: maybeSingleCampaign })),
+              })),
+            })),
+          })),
+        }
+      }),
+    }
+    const toString = vi.fn(async (text: string) => {
+      expect(text).toBe(
+        'https://valtoris.example/report-card?c=summit&e=day1&src=link&card=pk_test_public_key01',
+      )
+      return '<svg xmlns="http://www.w3.org/2000/svg"></svg>'
+    })
+    const result = await generatePublishedCardQr(
+      {
+        key: 'pk_test_public_key01',
+        format: 'svg',
+        origin: 'https://valtoris.example',
+        reportCardType: 'family',
+        campaignCode: 'summit',
+        eventCode: 'day1',
+        sourceChannel: 'link',
+      },
+      {
+        admin: admin as never,
+        lookupByKey: async () => found,
+        qrcode: { toString, toBuffer: vi.fn() },
+      },
+    )
+    expect(result.status).toBe('found')
+    if (result.status === 'found') {
+      expect(result.destinationUrl).toBe(
+        'https://valtoris.example/report-card?c=summit&e=day1&src=link&card=pk_test_public_key01',
+      )
+    }
+  })
+
   it('declares no analytics or CRM side effects', () => {
     expect(publishedCardQrSideEffects()).toEqual({
       writesAnalytics: false,

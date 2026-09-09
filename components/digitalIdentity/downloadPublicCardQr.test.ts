@@ -129,6 +129,35 @@ describe('downloadPublicCardQr', () => {
     )
   })
 
+  it('forwards Report Card campaign codes and source on the existing QR endpoint', async () => {
+    const fetchImpl = vi.fn(
+      async () =>
+        new Response('<svg xmlns="http://www.w3.org/2000/svg"></svg>', {
+          status: 200,
+          headers: {
+            'Content-Type': 'image/svg+xml',
+            'X-Valtoris-QR-Destination':
+              'https://valtoris.example/credit-report-card?c=summit&e=day1&src=link&card=pk_live_abcdefghijklmnop',
+          },
+        }),
+    )
+    await downloadPublicCardQr(
+      {
+        key: 'pk_live_abcdefghijklmnop',
+        format: 'svg',
+        reportCardType: 'credit',
+        campaignCode: 'summit',
+        eventCode: 'day1',
+        sourceChannel: 'link',
+      },
+      { fetchImpl: fetchImpl as never },
+    )
+    expect(fetchImpl).toHaveBeenCalledWith(
+      '/api/digital-identity/card/qr?key=pk_live_abcdefghijklmnop&format=svg&c=summit&e=day1&rc=credit&src=link',
+      expect.objectContaining({ method: 'GET' }),
+    )
+  })
+
   it('maps unavailable and network failures safely', async () => {
     const unavailable = await downloadPublicCardQr(
       { key: 'pk_live_abcdefghijklmnop', format: 'svg' },

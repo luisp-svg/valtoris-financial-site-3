@@ -266,6 +266,50 @@ export function isShareableCardPublicKey(value: string): boolean {
   return true
 }
 
+export const REPORT_CARD_SHARE_SOURCE_CHANNELS = ['link', 'qr', 'nfc', 'share'] as const
+
+export type ReportCardShareSourceChannel = (typeof REPORT_CARD_SHARE_SOURCE_CHANNELS)[number]
+
+export type ReportCardShareCampaign = {
+  campaignCode: string
+  eventCode?: string | null
+  label?: string | null
+  status?: string | null
+  sourceChannelDefault?: string | null
+  cardPublicKey?: string | null
+}
+
+export function isReportCardShareSourceChannel(
+  value: unknown,
+): value is ReportCardShareSourceChannel {
+  return (
+    value === 'link' || value === 'qr' || value === 'nfc' || value === 'share'
+  )
+}
+
+/**
+ * Attribution for Report Card share/QR from a trusted CRM campaign row only.
+ * Invalid codes and unknown source channels are omitted, not echoed.
+ */
+export function resolveReportCardShareAttribution(
+  campaign: ReportCardShareCampaign | null | undefined,
+  options: { includeEvent?: boolean; sourceChannel?: string | null } = {},
+): CampaignAttributionQuery {
+  if (!campaign || campaign.status === 'disabled') return {}
+  const includeEvent = options.includeEvent !== false
+  const normalized = normalizeCampaignAttributionQuery({
+    campaignCode: campaign.campaignCode,
+    eventCode: includeEvent ? campaign.eventCode : null,
+    sourceChannel: options.sourceChannel ?? campaign.sourceChannelDefault ?? 'link',
+  })
+  if (!normalized.campaignCode) return {}
+  return {
+    campaignCode: normalized.campaignCode,
+    ...(normalized.eventCode ? { eventCode: normalized.eventCode } : {}),
+    ...(normalized.sourceChannel ? { sourceChannel: normalized.sourceChannel } : {}),
+  }
+}
+
 export function buildReportCardSharePath(
   publicKey: string,
   reportCardType: unknown,

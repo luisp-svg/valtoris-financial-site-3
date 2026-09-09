@@ -230,7 +230,19 @@ export default function CrmCampaignsPage() {
       </header>
 
       {user ? (
-        <AdvisorDigitalCardPanel supabase={supabase} userId={user.id} onPublished={() => void reload()} />
+        <AdvisorDigitalCardPanel
+          supabase={supabase}
+          userId={user.id}
+          campaigns={campaigns.map((row) => ({
+            campaignCode: row.campaignCode,
+            eventCode: row.eventCode,
+            label: row.label,
+            status: row.status,
+            sourceChannelDefault: row.sourceChannelDefault,
+            cardPublicKey: row.cardPublicKey,
+          }))}
+          onPublished={() => void reload()}
+        />
       ) : null}
 
       {error ? (

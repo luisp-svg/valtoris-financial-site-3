@@ -14,6 +14,7 @@ import {
   isAllowedQrDestination,
   isKeyBasedQrDestination,
   isReportCardShareType,
+  normalizeCampaignAttributionQuery,
   parsePublicCardQrFormat,
   REPORT_CARD_SHARE_LABELS,
   sanitizeQrFilename,
@@ -37,6 +38,8 @@ export type GeneratePublishedCardQrQuery = {
   eventCode?: string | null
   /** Optional allowlisted Report Card type. Destination becomes the Batch 1 share URL. */
   reportCardType?: string | null
+  /** Optional allowlisted source channel. Used for Report Card QR so it matches the share helper. */
+  sourceChannel?: string | null
 }
 
 export type GeneratePublishedCardQrSuccess = {
@@ -116,6 +119,22 @@ export async function generatePublishedCardQr(
   if (lookup.status === 'server_error') return { status: 'server_error' }
   if (lookup.status !== 'found') return { status: 'unavailable' }
 
+  const requestedReportCardType =
+    typeof query.reportCardType === 'string' && query.reportCardType.trim()
+      ? query.reportCardType.trim()
+      : null
+  let shareType: ReportCardShareType | null = null
+  if (requestedReportCardType) {
+    if (!isReportCardShareType(requestedReportCardType)) {
+      return { status: 'invalid_request', reason: 'invalid_report_card_type' }
+    }
+    shareType = requestedReportCardType
+  }
+
+  const requestedSource = normalizeCampaignAttributionQuery({
+    sourceChannel: query.sourceChannel,
+  }).sourceChannel
+
   let attribution: { campaignCode?: string; eventCode?: string; sourceChannel?: string } = {}
   if (campaignCode) {
     try {
@@ -147,26 +166,18 @@ export async function generatePublishedCardQr(
       }
       attribution = {
         campaignCode: campaign.campaign_code,
-        eventCode: eventCode || campaign.event_code || undefined,
-        sourceChannel: 'qr',
+        eventCode: shareType
+          ? eventCode && campaign.event_code === eventCode
+            ? campaign.event_code
+            : undefined
+          : eventCode || campaign.event_code || undefined,
+        sourceChannel: shareType ? requestedSource || undefined : 'qr',
       }
     } catch {
       return { status: 'server_error' }
     }
   } else if (eventCode) {
     return { status: 'invalid_request', reason: 'invalid_campaign' }
-  }
-
-  const requestedReportCardType =
-    typeof query.reportCardType === 'string' && query.reportCardType.trim()
-      ? query.reportCardType.trim()
-      : null
-  let shareType: ReportCardShareType | null = null
-  if (requestedReportCardType) {
-    if (!isReportCardShareType(requestedReportCardType)) {
-      return { status: 'invalid_request', reason: 'invalid_report_card_type' }
-    }
-    shareType = requestedReportCardType
   }
 
   // Prefer durable key from the published card record (not request echo alone).

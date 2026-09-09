@@ -13,6 +13,7 @@ import {
   type PublicCardQrFormat,
   type PublicSocialDrafts,
   type PublicSocialNetworkKey,
+  type ReportCardShareCampaign,
 } from '../../modules/digital-identity'
 import {
   loadOwnDigitalCard,
@@ -27,12 +28,14 @@ import ShareReportCardControl from './ShareReportCardControl'
 type AdvisorDigitalCardPanelProps = {
   supabase: SupabaseClient
   userId: string
+  campaigns?: readonly ReportCardShareCampaign[]
   onPublished?: () => void
 }
 
 export default function AdvisorDigitalCardPanel({
   supabase,
   userId,
+  campaigns,
   onPublished,
 }: AdvisorDigitalCardPanelProps) {
   const [loading, setLoading] = useState(true)
@@ -322,6 +325,7 @@ export default function AdvisorDigitalCardPanel({
             </div>
             <ShareReportCardControl
               publicKey={card.publicKey}
+              campaigns={campaigns}
               onCopied={setMessage}
               onCopyFailed={setError}
             />
