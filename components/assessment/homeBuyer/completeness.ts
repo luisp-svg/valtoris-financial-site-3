@@ -1,12 +1,12 @@
-import { isQuestionComplete } from '../specialized/answers'
+import { isQuestionComplete } from '../specialized/answers.js'
 import type { SpecializedAnswerMap } from '../specialized/types'
 import {
   HOME_BUYER_CONTACT_STEP,
   HOME_BUYER_DIAGNOSTIC_QUESTION_IDS,
   HOME_BUYER_FIRST_DIAGNOSTIC_STEP,
   HOME_BUYER_LAST_DIAGNOSTIC_STEP,
-} from './constants'
-import { HOME_BUYER_QUESTIONS } from './questions'
+} from './constants.js'
+import { HOME_BUYER_QUESTIONS } from './questions.js'
 import type { HomeBuyerAssessmentAnswers, HomeBuyerDiagnosticAnswers } from './types'
 
 export function diagnosticToAnswerMap(diagnostic: HomeBuyerDiagnosticAnswers): SpecializedAnswerMap {

@@ -7,7 +7,7 @@
  * Credit inputs remain self-reported / public_self_report.
  */
 
-import { scoreToGrade } from '../scoring/scoreFamilyAssessment'
+import { scoreToGrade } from '../scoring/scoreFamilyAssessment.js'
 import type { HomeBuyerDiagnosticAnswers } from './types'
 
 export const HOME_BUYER_SCORING_VERSION = 1
