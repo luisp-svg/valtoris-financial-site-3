@@ -19,6 +19,17 @@ export type ServiceOfferPlan = {
   readonly badge?: string
 }
 
+export type ServicePackage = {
+  readonly name: string
+  readonly price: string
+  readonly paymentNote: string
+  readonly description: string
+  readonly features: readonly string[]
+  readonly cta: string
+  readonly featured?: boolean
+  readonly badge?: string
+}
+
 export type ServiceCopy = {
   metaTitle: string
   metaDescription: string
@@ -57,6 +68,10 @@ export type ServiceCopy = {
   offerPriceNote?: string
   offerPlans?: readonly ServiceOfferPlan[]
   offerCta?: string
+  packagesHeading?: string
+  packagesLead?: string
+  packagesNote?: string
+  packages?: readonly ServicePackage[]
   partnerKicker?: string
   partnerTitle?: string
   partnerName?: string
@@ -118,6 +133,63 @@ export const studentLoanServiceCopy: Record<PublicLocale, ServiceCopy> = {
       {
         title: 'Next-Step Planning',
         body: 'Identify priorities and prepare for a more informed strategy conversation with Valtoris.',
+      },
+    ],
+    packagesHeading: 'Student Loan Services and Pricing',
+    packagesLead:
+      'Start with the Report Card so we can understand your loan picture before the consultation confirms the appropriate service.',
+    packagesNote:
+      'Package fit is confirmed during intake. Pricing does not include payments owed to a loan servicer or government agency, and no outcome is guaranteed.',
+    packages: [
+      {
+        name: 'Income-Driven Repayment (IDR)',
+        price: '$299',
+        paymentNote: 'one-time',
+        description: 'Support for borrowers reviewing an income-driven repayment path.',
+        features: [
+          'Student-loan situation review',
+          'IDR option and documentation review',
+          'Guided next-step checklist',
+        ],
+        cta: 'Start with the Report Card',
+      },
+      {
+        name: 'Default + IDR',
+        price: '$1,200',
+        paymentNote: 'service-specific support',
+        description: 'Guided support for borrowers addressing default before moving toward an IDR path.',
+        features: [
+          'Default-status situation review',
+          'IDR planning and document checklist',
+          'Scheduled strategy follow-ups',
+        ],
+        cta: 'Start with the Report Card',
+        featured: true,
+        badge: 'Guided support',
+      },
+      {
+        name: 'Public Service Loan Forgiveness (PSLF)',
+        price: 'Starting at $799',
+        paymentNote: 'final scope confirmed after consultation',
+        description: 'Support for borrowers reviewing public-service employment and PSLF requirements.',
+        features: [
+          'Employment and loan-picture review',
+          'PSLF documentation checklist',
+          'Guided next-step strategy',
+        ],
+        cta: 'Start with the Report Card',
+      },
+      {
+        name: 'Special Cases',
+        price: 'Custom pricing',
+        paymentNote: 'based on complexity and scope',
+        description: 'A consultation-led path for situations that do not fit the standard service categories.',
+        features: [
+          'Situation and document review',
+          'Defined support scope',
+          'Pricing explained before engagement',
+        ],
+        cta: 'Start with the Report Card',
       },
     ],
     processHeading: 'How Valtoris Works',
@@ -213,6 +285,63 @@ export const studentLoanServiceCopy: Record<PublicLocale, ServiceCopy> = {
       {
         title: 'Planificación del siguiente paso',
         body: 'Identificar prioridades y prepararse para una conversación de estrategia más informada con Valtoris.',
+      },
+    ],
+    packagesHeading: 'Servicios y precios de préstamos estudiantiles',
+    packagesLead:
+      'Empiece con el Reporte para que podamos entender sus préstamos antes de que la consulta confirme el servicio adecuado.',
+    packagesNote:
+      'La opción adecuada se confirma durante la admisión. Los precios no incluyen pagos adeudados a un administrador de préstamos o agencia gubernamental, y no se garantiza ningún resultado.',
+    packages: [
+      {
+        name: 'Pago basado en los ingresos (IDR)',
+        price: '$299',
+        paymentNote: 'pago único',
+        description: 'Apoyo para quienes están revisando una opción de pago basada en los ingresos.',
+        features: [
+          'Revisión de la situación de préstamos estudiantiles',
+          'Revisión de opciones y documentos de IDR',
+          'Lista guiada de próximos pasos',
+        ],
+        cta: 'Empezar con el Reporte',
+      },
+      {
+        name: 'Incumplimiento + IDR',
+        price: '$1,200',
+        paymentNote: 'apoyo específico para el servicio',
+        description: 'Apoyo guiado para abordar el incumplimiento antes de avanzar hacia una opción IDR.',
+        features: [
+          'Revisión de la situación de incumplimiento',
+          'Planificación de IDR y lista de documentos',
+          'Seguimientos estratégicos programados',
+        ],
+        cta: 'Empezar con el Reporte',
+        featured: true,
+        badge: 'Apoyo guiado',
+      },
+      {
+        name: 'Condonación de Préstamos por Servicio Público (PSLF)',
+        price: 'Desde $799',
+        paymentNote: 'el alcance final se confirma después de la consulta',
+        description: 'Apoyo para revisar el empleo de servicio público y los requisitos de PSLF.',
+        features: [
+          'Revisión del empleo y los préstamos',
+          'Lista de documentos de PSLF',
+          'Estrategia guiada de próximos pasos',
+        ],
+        cta: 'Empezar con el Reporte',
+      },
+      {
+        name: 'Casos especiales',
+        price: 'Precio personalizado',
+        paymentNote: 'según la complejidad y el alcance',
+        description: 'Un camino guiado por consulta para situaciones fuera de las categorías estándar.',
+        features: [
+          'Revisión de la situación y documentos',
+          'Alcance de apoyo definido',
+          'Precio explicado antes de contratar',
+        ],
+        cta: 'Empezar con el Reporte',
       },
     ],
     processHeading: 'Cómo trabaja Valtoris',
