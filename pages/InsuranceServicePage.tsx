@@ -6,12 +6,12 @@ import { insuranceServiceCopy } from '../components/publicSite/services/insuranc
 import type { ServiceLinks } from '../components/publicSite/services/serviceLinks'
 
 const INSURANCE_LINKS: ServiceLinks = {
-  primaryTo: ROUTES.protectionAnalysis,
-  secondaryTo: ROUTES.schedule,
-  bridgePrimaryTo: ROUTES.protectionAnalysis,
-  bridgeSecondaryTo: ROUTES.schedule,
-  finalPrimaryTo: ROUTES.protectionAnalysis,
-  finalSecondaryTo: ROUTES.schedule,
+  primaryTo: ROUTES.schedule,
+  secondaryTo: ROUTES.solutions,
+  bridgePrimaryTo: ROUTES.schedule,
+  bridgeSecondaryTo: ROUTES.solutions,
+  finalPrimaryTo: ROUTES.schedule,
+  finalSecondaryTo: ROUTES.solutions,
 }
 
 export default function InsuranceServicePage() {

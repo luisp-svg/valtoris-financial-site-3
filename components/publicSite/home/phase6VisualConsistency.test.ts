@@ -42,7 +42,7 @@ function section(html: string, id: string) {
 }
 
 function heroActions(html: string) {
-  return html.match(/class="site-home-hero site-service-hero"[\s\S]*?<\/section>/)?.[0] ?? ''
+  return html.match(/class="site-home-hero site-service-hero[^"]*"[\s\S]*?<\/section>/)?.[0] ?? ''
 }
 
 const SERVICE_PAGES = [

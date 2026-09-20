@@ -99,7 +99,7 @@ describe('service-led bilingual homepage', () => {
     expect(html).toContain('Credit')
     expect(html).toContain('Student Loans')
     expect(html).toContain('Business Planning')
-    expect(html).toContain('Insurance &amp; Risk Management')
+    expect(html).toContain('Property &amp; Business Insurance')
     expect(html).toContain('Estate / Legacy Coordination')
     expect(html).toContain('Tax Strategy Coordination')
     expect(html).toContain('Diagnose')

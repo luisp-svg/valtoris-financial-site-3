@@ -233,7 +233,7 @@ describe('Phase 5 estate and tax strategy service pages', () => {
     const health = renderAt('/health-disability', createElement(HealthDisabilityServicePage))
     expect(sl).toContain(`href="${ROUTES.studentLoanReportCard}"`)
     expect(credit).toContain(`href="${ROUTES.creditReportCard}"`)
-    expect(insurance).toContain(`href="${ROUTES.protectionAnalysis}"`)
+    expect(insurance).toContain(`href="${ROUTES.schedule}"`)
     expect(health).toContain(`href="${ROUTES.schedule}"`)
   })
 

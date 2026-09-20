@@ -39,6 +39,8 @@ export type ServiceCopy = {
   heroPrimaryCta: string
   heroSecondaryCta: string
   heroTertiaryCta: string
+  heroImage?: string
+  heroImageAlt?: string
   audienceHeading: string
   audienceLead: string
   audienceItems: readonly string[]
