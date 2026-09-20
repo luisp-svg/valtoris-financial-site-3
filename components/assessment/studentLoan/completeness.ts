@@ -2,6 +2,8 @@ import { isQuestionComplete } from '../specialized/answers'
 import type { SpecializedAnswerMap } from '../specialized/types'
 import {
   STUDENT_LOAN_CONTACT_STEP,
+  STUDENT_LOAN_CONNECT_STEP,
+  STUDENT_LOAN_CONSENT_STEP,
   STUDENT_LOAN_DIAGNOSTIC_QUESTION_IDS,
   STUDENT_LOAN_FIRST_DIAGNOSTIC_STEP,
   STUDENT_LOAN_LAST_DIAGNOSTIC_STEP,
@@ -78,6 +80,8 @@ export function isStudentLoanStepComplete(
 ): boolean {
   if (step === STUDENT_LOAN_WELCOME_STEP) return true
   if (step === STUDENT_LOAN_CONTACT_STEP) return isStudentLoanContactComplete(answers)
+  if (step === STUDENT_LOAN_CONNECT_STEP) return answers.verification.status !== 'not_connected'
+  if (step === STUDENT_LOAN_CONSENT_STEP) return isStudentLoanDiagnosticComplete(answers.diagnostic)
   if (step < STUDENT_LOAN_FIRST_DIAGNOSTIC_STEP || step > STUDENT_LOAN_LAST_DIAGNOSTIC_STEP) {
     return false
   }

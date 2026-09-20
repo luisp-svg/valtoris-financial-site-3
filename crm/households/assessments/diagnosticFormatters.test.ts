@@ -156,6 +156,38 @@ describe('diagnostic formatters', () => {
     expect(flags.some((flag) => flag.id === 'flag_default' && flag.label === 'Immediate Review')).toBe(true)
   })
 
+  it('surfaces the minimized Spinwheel summary for consultation review', () => {
+    const fixture = validStudentLoanAnswersFixture()
+    const answers = extractStudentLoanSubmittedAnswers({
+      diagnostic: fixture.diagnostic,
+      verification: {
+        source: 'spinwheel_sandbox',
+        status: 'verified',
+        totalOutstandingBalance: 42100,
+        loanCount: 3,
+        loanStatuses: ['REPAYMENT', 'DEFERMENT'],
+        servicers: ['MOHELA'],
+        loanTypes: ['DIRECT'],
+      },
+    })
+    expect(answers).toContainEqual({
+      id: 'verification_source',
+      label: 'Loan data source',
+      value: 'Verified through Spinwheel sandbox',
+    })
+    expect(answers).toContainEqual({
+      id: 'verified_balance',
+      label: 'Verified outstanding balance',
+      value: '$42,100',
+    })
+    expect(answers).toContainEqual({
+      id: 'verified_loan_count',
+      label: 'Verified loans found',
+      value: '3',
+    })
+    expect(JSON.stringify(answers)).not.toMatch(/dateOfBirth|userId|accountNumber|ssn/i)
+  })
+
   it('maps list and detail without exposing raw capture_channel text', () => {
     const list = mapPublicFamilyDiagnosticListItem(publicRow, {
       householdId: 'hh-1',

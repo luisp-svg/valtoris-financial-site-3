@@ -36,13 +36,13 @@ describe('Contacts routes and navigation', () => {
     expect(contactsIdx).toBeLessThan(campaignsIdx)
   })
 
-  it('wires App routes under CrmProtectedGate and keeps function count at 10', () => {
+  it('wires App routes under CrmProtectedGate and keeps function count within budget', () => {
     const app = readFileSync(join(ROOT, 'src/App.tsx'), 'utf8')
     expect(app).toMatch(/path="contacts"/)
     expect(app).toMatch(/path="contacts\/new"/)
     expect(app).toMatch(/path="contacts\/:leadId"/)
     expect(app.indexOf('CrmProtectedGate')).toBeLessThan(app.indexOf('contacts'))
-    expect(countApiHandlers(ROOT)).toBe(10)
+    expect(countApiHandlers(ROOT)).toBe(11)
   })
 })
 

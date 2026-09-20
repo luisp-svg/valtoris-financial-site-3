@@ -24,9 +24,20 @@ export type StudentLoanContactAnswers = {
   phone: string
 }
 
+export type StudentLoanVerificationAnswers = {
+  source: 'spinwheel_sandbox' | 'self_reported'
+  status: 'not_connected' | 'verified' | 'skipped' | 'unavailable'
+  totalOutstandingBalance: number | null
+  loanCount: number | null
+  loanStatuses: string[]
+  servicers: string[]
+  loanTypes: string[]
+}
+
 export type StudentLoanAssessmentAnswers = {
   diagnostic: StudentLoanDiagnosticAnswers
   contact: StudentLoanContactAnswers
+  verification: StudentLoanVerificationAnswers
 }
 
 export const INITIAL_STUDENT_LOAN_DIAGNOSTIC: StudentLoanDiagnosticAnswers = {
@@ -55,7 +66,18 @@ export const INITIAL_STUDENT_LOAN_CONTACT: StudentLoanContactAnswers = {
   phone: '',
 }
 
+export const INITIAL_STUDENT_LOAN_VERIFICATION: StudentLoanVerificationAnswers = {
+  source: 'self_reported',
+  status: 'not_connected',
+  totalOutstandingBalance: null,
+  loanCount: null,
+  loanStatuses: [],
+  servicers: [],
+  loanTypes: [],
+}
+
 export const INITIAL_STUDENT_LOAN_ANSWERS: StudentLoanAssessmentAnswers = {
   diagnostic: { ...INITIAL_STUDENT_LOAN_DIAGNOSTIC },
   contact: { ...INITIAL_STUDENT_LOAN_CONTACT },
+  verification: { ...INITIAL_STUDENT_LOAN_VERIFICATION },
 }

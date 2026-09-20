@@ -354,7 +354,10 @@ describe('Student Loan Phase C ingest', () => {
     expect(payload?.last_name).toBe('Rivera')
     expect(payload?.email).toBe('jamie.rivera@example.com')
     expect(payload?.phone).toBe('555-201-4488')
-    expect(payload?.answers).toEqual({ diagnostic: answers.diagnostic })
+    expect(payload?.answers).toEqual({
+      diagnostic: answers.diagnostic,
+      verification: answers.verification,
+    })
     expect(payload?.answers).not.toHaveProperty('contact')
     expect(JSON.stringify(payload?.answers)).not.toContain('firstName')
     expect(JSON.stringify(payload?.answers)).not.toContain('lastName')

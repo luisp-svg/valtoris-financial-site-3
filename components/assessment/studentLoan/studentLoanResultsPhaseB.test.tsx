@@ -27,6 +27,7 @@ function answersFrom(diagnostic = strongDiagnostic()): StudentLoanAssessmentAnsw
       email: 'alex@example.com',
       phone: '5551112222',
     },
+    verification: { ...INITIAL_STUDENT_LOAN_ANSWERS.verification },
   }
 }
 

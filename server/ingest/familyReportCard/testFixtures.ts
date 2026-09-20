@@ -186,6 +186,15 @@ export function validStudentLoanAnswersFixture(
 ): StudentLoanAssessmentAnswers {
   return {
     diagnostic: validStudentLoanDiagnosticFixture(),
+    verification: {
+      source: 'self_reported',
+      status: 'skipped',
+      totalOutstandingBalance: null,
+      loanCount: null,
+      loanStatuses: [],
+      servicers: [],
+      loanTypes: [],
+    },
     contact: {
       firstName: 'Jamie',
       lastName: 'Rivera',

@@ -238,12 +238,50 @@ function formatStudentLoanFieldValue(fieldId: string, raw: unknown): string | nu
   return raw
 }
 
-/**
- * Student Loan assessment JSONB is diagnostic-only. Contact PII is not read here.
- */
+/** Student Loan JSONB contains diagnostic answers plus a minimized verification summary. */
 export function extractStudentLoanSubmittedAnswers(answers: unknown): DiagnosticSubmittedAnswer[] {
-  const diagnostic = asRecord(asRecord(answers).diagnostic)
+  const root = asRecord(answers)
+  const diagnostic = asRecord(root.diagnostic)
+  const verification = asRecord(root.verification)
   const items: DiagnosticSubmittedAnswer[] = []
+  const verified = verification.status === 'verified' && verification.source === 'spinwheel_sandbox'
+  items.push({
+    id: 'verification_source',
+    label: 'Loan data source',
+    value: verified ? 'Verified through Spinwheel sandbox' : 'Client-reported / needs verification',
+  })
+  if (verified) {
+    const balance = typeof verification.totalOutstandingBalance === 'number'
+      && Number.isFinite(verification.totalOutstandingBalance)
+      ? new Intl.NumberFormat('en-US', {
+          style: 'currency',
+          currency: 'USD',
+          maximumFractionDigits: 0,
+        }).format(verification.totalOutstandingBalance)
+      : 'Needs verification'
+    items.push({ id: 'verified_balance', label: 'Verified outstanding balance', value: balance })
+    items.push({
+      id: 'verified_loan_count',
+      label: 'Verified loans found',
+      value: typeof verification.loanCount === 'number' ? String(verification.loanCount) : 'Needs verification',
+    })
+    const statuses = Array.isArray(verification.loanStatuses)
+      ? verification.loanStatuses.filter((item): item is string => typeof item === 'string' && Boolean(item.trim()))
+      : []
+    const servicers = Array.isArray(verification.servicers)
+      ? verification.servicers.filter((item): item is string => typeof item === 'string' && Boolean(item.trim()))
+      : []
+    items.push({
+      id: 'verified_statuses',
+      label: 'Verified loan status',
+      value: statuses.join(', ') || 'Needs verification',
+    })
+    items.push({
+      id: 'verified_servicers',
+      label: 'Verified servicer(s)',
+      value: servicers.join(', ') || 'Needs verification',
+    })
+  }
   for (const question of STUDENT_LOAN_QUESTIONS) {
     for (const field of question.fields) {
       const value = formatStudentLoanFieldValue(field.id, diagnostic[field.id])

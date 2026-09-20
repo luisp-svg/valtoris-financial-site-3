@@ -174,7 +174,7 @@ export default function PublicFamilyDiagnosticDetailView({
         </h2>
         <p className="crm-muted">
           {detail.assessmentType === 'student_loan'
-            ? 'Diagnostic answers stored on this Student Loan Report Card. Contact details live on the household, member, and lead records.'
+            ? 'Verified loan summary and diagnostic answers stored on this Student Loan Report Card. Contact details live on the household, member, and lead records.'
             : detail.assessmentType === 'credit'
               ? 'Diagnostic answers stored on this Credit Report Card. Contact details live on the household, member, and lead records.'
               : 'Information submitted at the time of this diagnostic. This is not the household’s current canonical CRM record.'}

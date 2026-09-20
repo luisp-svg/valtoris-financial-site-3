@@ -7,8 +7,9 @@ import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 import { STUDENTAID_GOV_URL } from '../../../constants/urls'
 import StepStudentLoanContact from '../steps/studentLoan/StepStudentLoanContact'
+import StepStudentLoanConnect from '../steps/studentLoan/StepStudentLoanConnect'
 import StepStudentLoanWelcome from '../steps/studentLoan/StepStudentLoanWelcome'
-import { INITIAL_STUDENT_LOAN_CONTACT } from './types'
+import { INITIAL_STUDENT_LOAN_CONTACT, INITIAL_STUDENT_LOAN_VERIFICATION } from './types'
 import StudentLoanReportCardPage from '../../../pages/StudentLoanReportCardPage'
 import StudentLoanReportCardResults from '../../../pages/StudentLoanReportCardResults'
 import { resolveSpecializedCopy } from '../specialized/locale'
@@ -222,6 +223,23 @@ describe('Student Loan launch compliance', () => {
       }),
     )
     expect(html.match(/This field is required\./g)?.length).toBe(4)
+  })
+
+  it('renders consent-first Spinwheel connection with a manual fallback', () => {
+    const html = renderToStaticMarkup(
+      createElement(StepStudentLoanConnect, {
+        phone: '5551112222',
+        t,
+        verification: INITIAL_STUDENT_LOAN_VERIFICATION,
+        onChange: () => undefined,
+      }),
+    )
+    expect(html).toContain('Connect Your Student Loan Profile')
+    expect(html).toContain('Spinwheel End User Agreement')
+    expect(html).toContain('providing “written instructions”')
+    expect(html).toContain('Continue without connecting')
+    expect(html).toContain('Valtoris does not save your date of birth')
+    expect(html).not.toMatch(/SPINWHEEL_SECRET_KEY|Authorization: Bearer|StudentAid\.gov password[^<]*input/i)
   })
 
   it('does not show an SSN or DOB disclaimer on the first Student Loan step', () => {

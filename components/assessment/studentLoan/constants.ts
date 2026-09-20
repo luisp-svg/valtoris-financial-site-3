@@ -17,12 +17,14 @@ export const STUDENT_LOAN_CONTACT_STEP_ID = 'contact'
 
 export const STUDENT_LOAN_DIAGNOSTIC_QUESTION_COUNT = STUDENT_LOAN_DIAGNOSTIC_QUESTION_IDS.length
 
-/** Welcome + 10 diagnostic groups + contact/consent. Contact is not a diagnostic question. */
+/** Welcome + contact + Spinwheel connection + 10 diagnostic groups + final acknowledgments. */
 export const STUDENT_LOAN_WELCOME_STEP = 1
-export const STUDENT_LOAN_FIRST_DIAGNOSTIC_STEP = 2
-export const STUDENT_LOAN_LAST_DIAGNOSTIC_STEP = 11
-export const STUDENT_LOAN_CONTACT_STEP = 12
-export const STUDENT_LOAN_ASSESSMENT_STEPS = 12
+export const STUDENT_LOAN_CONTACT_STEP = 2
+export const STUDENT_LOAN_CONNECT_STEP = 3
+export const STUDENT_LOAN_FIRST_DIAGNOSTIC_STEP = 4
+export const STUDENT_LOAN_LAST_DIAGNOSTIC_STEP = 13
+export const STUDENT_LOAN_CONSENT_STEP = 14
+export const STUDENT_LOAN_ASSESSMENT_STEPS = 14
 
 export const STUDENT_LOAN_SERVICER_MAX_LENGTH = 80
 

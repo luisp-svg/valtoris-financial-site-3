@@ -137,14 +137,14 @@ const STUDENT_LOAN_COPY_EN: SpecializedCopyCatalog = {
   ui: {
     welcomeTitle: 'Start Your Student Loan Report Card™',
     welcomeBody:
-      'Complete the Student Loan Report Card about your loans, payments, and goals. Contact details come after the diagnostic and are not part of the score.',
+      'Complete the Student Loan Report Card about your loans, payments, and goals. You can optionally verify your loan profile before answering the diagnostic questions.',
     backToOverview: 'Back to Overview',
     back: 'Back',
     continue: 'Continue',
     viewResults: 'View My Student Loan Report Card',
     saving: 'Saving your Student Loan Report Card…',
-    contactTitle: 'Contact & Acknowledgments',
-    contactBody: 'Share how we can reach you. Required acknowledgments are marked with an asterisk.',
+    contactTitle: 'Your Contact Details',
+    contactBody: 'Share how we can reach you, then choose whether to securely connect your student-loan profile.',
     firstName: 'First Name',
     lastName: 'Last Name',
     email: 'Email',
@@ -153,6 +153,36 @@ const STUDENT_LOAN_COPY_EN: SpecializedCopyCatalog = {
     lastNamePlaceholder: 'Last name',
     emailPlaceholder: 'you@email.com',
     phonePlaceholder: '(555) 555-5555',
+    spinwheelTitle: 'Connect Your Student Loan Profile',
+    spinwheelBody:
+      'Verify by text so we can retrieve your loan balance and status before your consultation. This secure sandbox connection is optional.',
+    spinwheelDobLabel: 'Date of Birth',
+    spinwheelDobNote:
+      'Used only for this Spinwheel identity check. Valtoris does not save your date of birth, verification code, or raw credit report.',
+    spinwheelConsentBefore: 'By continuing you agree to the',
+    spinwheelAgreement: 'Spinwheel End User Agreement',
+    spinwheelConsentAfter:
+      '. Further, you are providing “written instructions” to Spinwheel Solutions, Inc. authorizing it to obtain your credit profile from any consumer reporting agency.',
+    spinwheelConnect: 'Text Me a Verification Code',
+    spinwheelSending: 'Sending Secure Code…',
+    spinwheelCodeLabel: '6-Digit Verification Code',
+    spinwheelCodeHelp: 'The code expires after 5 minutes. Never share a StudentAid.gov password here.',
+    spinwheelVerify: 'Verify and Retrieve My Loans',
+    spinwheelChecking: 'Retrieving Loan Profile…',
+    spinwheelSkip: 'Continue without connecting',
+    spinwheelSkipped:
+      'You chose not to connect. The remaining loan details will be labeled as client-reported and can be verified during your consultation.',
+    spinwheelUnavailable: 'Secure loan connection is temporarily unavailable. You can continue without connecting.',
+    spinwheelMemoryOnly:
+      'Only this normalized summary is kept with your Report Card. Your DOB, code, raw report, and Spinwheel identifiers are not stored.',
+    verifiedSource: 'Verified through Spinwheel sandbox',
+    verifiedReviewSource: 'Spinwheel-verified starting point — review and confirm',
+    selfReportedSource: 'Client-reported',
+    needsVerification: 'Needs verification',
+    verifiedBalance: 'Outstanding student-loan balance',
+    verifiedLoanCount: 'Loans found',
+    verifiedStatuses: 'Loan status',
+    verifiedServicers: 'Servicer(s)',
     consentIntro:
       'Your Student Loan Report Card™ is based on the information you shared. Required acknowledgments are marked with an asterisk.',
     ingestUnavailable:
@@ -258,7 +288,7 @@ const STUDENT_LOAN_COPY_EN: SpecializedCopyCatalog = {
       'From your first answers to a scored report — without creating a CRM Opportunity automatically.',
     landingHow1Title: 'Complete the Assessment',
     landingHow1Description:
-      'Share loan, payment, and goal details. Contact information is collected after the diagnostic.',
+      'Add contact details, optionally verify your loan profile by text, then review the remaining loan, payment, and goal questions.',
     landingHow2Title: 'Acknowledge Privacy',
     landingHow2Description: 'Required storage and privacy acknowledgments use the existing public consent controls.',
     landingHow3Title: 'See Your Results',
@@ -273,7 +303,7 @@ const STUDENT_LOAN_COPY_EN: SpecializedCopyCatalog = {
     landingFaqA1: 'Most people finish the assessment, including contact details, in a few minutes.',
     landingFaq2: 'Will you ask for my FSA login or Social Security number?',
     landingFaqA2:
-      'No. We never collect SSN, date of birth, FSA credentials, loan account numbers, or document uploads.',
+      'We never ask for your SSN, FSA credentials, loan account numbers, or StudentAid.gov password. If you choose the secure Spinwheel connection, your date of birth is used transiently for identity verification and is not stored by Valtoris.',
     landingFaq3: 'Do I get a score today?',
     landingFaqA3:
       'Yes. You receive a Valtoris Student Loan Report Card Score, grade, flags, and review areas after you complete the assessment and acknowledgments.',
@@ -495,14 +525,14 @@ const STUDENT_LOAN_COPY_ES: SpecializedCopyCatalog = {
   ui: {
     welcomeTitle: 'Comience su Reporte de Préstamos Estudiantiles™',
     welcomeBody:
-      'Complete el Reporte de Préstamos Estudiantiles sobre sus préstamos, pagos y metas. Los datos de contacto se piden después del diagnóstico y no forman parte del puntaje.',
+      'Complete el Reporte de Préstamos Estudiantiles sobre sus préstamos, pagos y metas. Puede verificar opcionalmente su perfil de préstamos antes de responder las preguntas del diagnóstico.',
     backToOverview: 'Volver al resumen',
     back: 'Atrás',
     continue: 'Continuar',
     viewResults: 'Ver mi Reporte de Préstamos Estudiantiles',
     saving: 'Guardando su Reporte de Préstamos Estudiantiles…',
-    contactTitle: 'Contacto y reconocimientos',
-    contactBody: 'Indique cómo podemos comunicarnos con usted. Los reconocimientos obligatorios están marcados con un asterisco.',
+    contactTitle: 'Sus datos de contacto',
+    contactBody: 'Indique cómo podemos comunicarnos con usted y luego elija si desea conectar de forma segura su perfil de préstamos estudiantiles.',
     firstName: 'Nombre',
     lastName: 'Apellido',
     email: 'Correo electrónico',
@@ -511,6 +541,36 @@ const STUDENT_LOAN_COPY_ES: SpecializedCopyCatalog = {
     lastNamePlaceholder: 'Apellido',
     emailPlaceholder: 'usted@email.com',
     phonePlaceholder: '(555) 555-5555',
+    spinwheelTitle: 'Conecte su perfil de préstamos estudiantiles',
+    spinwheelBody:
+      'Verifique por mensaje de texto para obtener el saldo y estado de sus préstamos antes de la consulta. Esta conexión segura de sandbox es opcional.',
+    spinwheelDobLabel: 'Fecha de nacimiento',
+    spinwheelDobNote:
+      'Se usa solo para esta verificación de identidad de Spinwheel. Valtoris no guarda su fecha de nacimiento, código de verificación ni informe crediticio sin procesar.',
+    spinwheelConsentBefore: 'By continuing you agree to the',
+    spinwheelAgreement: 'Spinwheel End User Agreement',
+    spinwheelConsentAfter:
+      '. Further, you are providing “written instructions” to Spinwheel Solutions, Inc. authorizing it to obtain your credit profile from any consumer reporting agency.',
+    spinwheelConnect: 'Enviarme un código por texto',
+    spinwheelSending: 'Enviando código seguro…',
+    spinwheelCodeLabel: 'Código de verificación de 6 dígitos',
+    spinwheelCodeHelp: 'El código vence después de 5 minutos. Nunca comparta aquí una contraseña de StudentAid.gov.',
+    spinwheelVerify: 'Verificar y obtener mis préstamos',
+    spinwheelChecking: 'Obteniendo perfil de préstamos…',
+    spinwheelSkip: 'Continuar sin conectar',
+    spinwheelSkipped:
+      'Eligió no conectarse. Los datos restantes se identificarán como informados por el cliente y podrán verificarse durante su consulta.',
+    spinwheelUnavailable: 'La conexión segura no está disponible temporalmente. Puede continuar sin conectar.',
+    spinwheelMemoryOnly:
+      'Solo este resumen normalizado se conserva con su Reporte. No se guardan su fecha de nacimiento, código, informe sin procesar ni identificadores de Spinwheel.',
+    verifiedSource: 'Verificado mediante el sandbox de Spinwheel',
+    verifiedReviewSource: 'Punto de partida verificado por Spinwheel — revise y confirme',
+    selfReportedSource: 'Informado por el cliente',
+    needsVerification: 'Necesita verificación',
+    verifiedBalance: 'Saldo pendiente de préstamos estudiantiles',
+    verifiedLoanCount: 'Préstamos encontrados',
+    verifiedStatuses: 'Estado de los préstamos',
+    verifiedServicers: 'Administrador(es)',
     consentIntro:
       'Su Reporte de Préstamos Estudiantiles™ se basa en la información que compartió. Los reconocimientos obligatorios están marcados con un asterisco.',
     ingestUnavailable:
@@ -615,7 +675,7 @@ const STUDENT_LOAN_COPY_ES: SpecializedCopyCatalog = {
     landingHowLead: 'Desde sus primeras respuestas hasta un reporte con puntaje — sin crear automáticamente una Oportunidad en el CRM.',
     landingHow1Title: 'Complete la evaluación',
     landingHow1Description:
-      'Comparta datos de préstamo, pagos y metas. La información de contacto se pide después del diagnóstico.',
+      'Agregue sus datos de contacto, verifique opcionalmente su perfil por texto y luego revise las preguntas restantes sobre préstamos, pagos y metas.',
     landingHow2Title: 'Reconozca la privacidad',
     landingHow2Description: 'Los reconocimientos obligatorios de almacenamiento y privacidad usan los controles públicos actuales.',
     landingHow3Title: 'Vea sus resultados',
@@ -630,7 +690,7 @@ const STUDENT_LOAN_COPY_ES: SpecializedCopyCatalog = {
     landingFaqA1: 'La mayoría de las personas termina la evaluación, incluidos los datos de contacto, en unos minutos.',
     landingFaq2: '¿Me pedirán acceso a FSA o mi número de Seguro Social?',
     landingFaqA2:
-      'No. Nunca pedimos SSN, fecha de nacimiento, credenciales de FSA, números de cuenta ni documentos.',
+      'Nunca pedimos su SSN, credenciales de FSA, números de cuenta ni contraseña de StudentAid.gov. Si elige la conexión segura de Spinwheel, su fecha de nacimiento se usa temporalmente para verificar su identidad y Valtoris no la guarda.',
     landingFaq3: '¿Recibo un puntaje hoy?',
     landingFaqA3:
       'Sí. Recibe un Puntaje del Reporte de Préstamos Estudiantiles de Valtoris, calificación, señales y áreas de revisión después de completar la evaluación y los reconocimientos.',

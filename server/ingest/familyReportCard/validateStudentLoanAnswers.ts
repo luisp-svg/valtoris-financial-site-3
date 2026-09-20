@@ -13,6 +13,7 @@ import {
   type StudentLoanAssessmentAnswers,
   type StudentLoanContactAnswers,
   type StudentLoanDiagnosticAnswers,
+  type StudentLoanVerificationAnswers,
 } from '../../../components/assessment/studentLoan/types.js'
 import type { ValidationResult } from './validation.js'
 
@@ -20,7 +21,16 @@ const MAX_NAME_LENGTH = 100
 
 const DIAGNOSTIC_KEYS = Object.keys(INITIAL_STUDENT_LOAN_DIAGNOSTIC)
 const CONTACT_KEYS = ['firstName', 'lastName', 'email', 'phone'] as const
-const ANSWERS_KEYS = ['diagnostic', 'contact'] as const
+const ANSWERS_KEYS = ['diagnostic', 'contact', 'verification'] as const
+const VERIFICATION_KEYS = [
+  'source',
+  'status',
+  'totalOutstandingBalance',
+  'loanCount',
+  'loanStatuses',
+  'servicers',
+  'loanTypes',
+] as const
 
 function fail(code: string, error: string): ValidationResult<never> {
   return { ok: false, error, code }
@@ -260,6 +270,58 @@ function validateContactObject(value: unknown): ValidationResult<StudentLoanCont
   return { ok: true, value: contact }
 }
 
+function validateVerificationObject(value: unknown): ValidationResult<StudentLoanVerificationAnswers> {
+  if (!isPlainObject(value) || !exactKeySet(value, VERIFICATION_KEYS)) {
+    return fail('invalid_student_loan_verification', 'answers.verification is invalid.')
+  }
+  if (value.source !== 'spinwheel_sandbox' && value.source !== 'self_reported') {
+    return fail('invalid_student_loan_verification', 'Verification source is invalid.')
+  }
+  if (!['not_connected', 'verified', 'skipped', 'unavailable'].includes(String(value.status))) {
+    return fail('invalid_student_loan_verification', 'Verification status is invalid.')
+  }
+  if (value.status !== 'verified' && value.status !== 'skipped') {
+    return fail('incomplete_student_loan_verification', 'Choose verified or self-reported loan details.')
+  }
+  const total = value.totalOutstandingBalance
+  if (total !== null && (typeof total !== 'number' || !Number.isFinite(total) || total < 0 || total > 10_000_000)) {
+    return fail('invalid_student_loan_verification', 'Verified balance is invalid.')
+  }
+  const count = value.loanCount
+  if (count !== null && (!Number.isInteger(count) || (count as number) < 0 || (count as number) > 500)) {
+    return fail('invalid_student_loan_verification', 'Verified loan count is invalid.')
+  }
+  const readList = (candidate: unknown): string[] | null => {
+    if (!Array.isArray(candidate) || candidate.length > 50) return null
+    if (candidate.some((item) => typeof item !== 'string' || !item.trim() || item.length > 120)) return null
+    return candidate as string[]
+  }
+  const loanStatuses = readList(value.loanStatuses)
+  const servicers = readList(value.servicers)
+  const loanTypes = readList(value.loanTypes)
+  if (!loanStatuses || !servicers || !loanTypes) {
+    return fail('invalid_student_loan_verification', 'Verified loan summary is invalid.')
+  }
+  if (value.status === 'verified' && value.source !== 'spinwheel_sandbox') {
+    return fail('invalid_student_loan_verification', 'Verified data source is invalid.')
+  }
+  if (value.status !== 'verified' && (total !== null || count !== null || loanStatuses.length || servicers.length || loanTypes.length)) {
+    return fail('invalid_student_loan_verification', 'Unverified data must not include a verified summary.')
+  }
+  return {
+    ok: true,
+    value: {
+      source: value.source,
+      status: value.status as StudentLoanVerificationAnswers['status'],
+      totalOutstandingBalance: total as number | null,
+      loanCount: count as number | null,
+      loanStatuses,
+      servicers,
+      loanTypes,
+    },
+  }
+}
+
 /**
  * Strict server-side Student Loan answer contract.
  * Rejects unknown keys, invalid enums, hidden follow-up leakage, and forbidden fields.
@@ -284,11 +346,15 @@ export function validateStudentLoanAnswers(
   const contactResult = validateContactObject(value.contact)
   if (!contactResult.ok) return contactResult
 
+  const verificationResult = validateVerificationObject(value.verification)
+  if (!verificationResult.ok) return verificationResult
+
   return {
     ok: true,
     value: {
       diagnostic: diagnosticResult.value,
       contact: contactResult.value,
+      verification: verificationResult.value,
     },
   }
 }

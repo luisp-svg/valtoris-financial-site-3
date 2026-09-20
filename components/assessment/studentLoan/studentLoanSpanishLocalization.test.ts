@@ -188,6 +188,7 @@ describe('Student Loan Spanish localization', () => {
   })
 
   it('renders Spanish results with the same score and review IDs', () => {
+    const verification = validStudentLoanAnswersFixture().verification
     const session = buildStudentLoanResultsSession({
       diagnostic: phaseDStudentLoanDiagnostic(),
       contact: {
@@ -196,6 +197,7 @@ describe('Student Loan Spanish localization', () => {
         email: 'qa@example.com',
         phone: '5550148900',
       },
+      verification,
     })
     const html = renderToStaticMarkup(
       createElement(

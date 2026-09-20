@@ -39,6 +39,7 @@ describe('Intake / Households / dashboard Manual Contact separation', () => {
       'Protection Gap',
       'Student Loan Report Card',
       'Credit Report Card',
+      'Home Buyer Report Card',
       'Digital Identity',
       BULK_LEAD_IMPORT_LEAD_TYPE,
     ])

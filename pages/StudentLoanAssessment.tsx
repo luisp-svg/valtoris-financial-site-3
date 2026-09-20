@@ -4,6 +4,7 @@ import AssessmentLayout from '../components/assessment/AssessmentLayout'
 import NavigationButtons from '../components/assessment/NavigationButtons'
 import FamilyConsentSection from '../components/assessment/steps/FamilyConsentSection'
 import StepStudentLoanContact from '../components/assessment/steps/studentLoan/StepStudentLoanContact'
+import StepStudentLoanConnect from '../components/assessment/steps/studentLoan/StepStudentLoanConnect'
 import StepStudentLoanWelcome from '../components/assessment/steps/studentLoan/StepStudentLoanWelcome'
 import { applyFieldChange } from '../components/assessment/specialized/answers'
 import SpecializedLocaleSwitcher, {
@@ -27,6 +28,8 @@ import {
 import {
   STUDENT_LOAN_ANSWERS_STORAGE_KEY,
   STUDENT_LOAN_ASSESSMENT_STEPS,
+  STUDENT_LOAN_CONNECT_STEP,
+  STUDENT_LOAN_CONSENT_STEP,
   STUDENT_LOAN_CONTACT_STEP,
   STUDENT_LOAN_FIRST_DIAGNOSTIC_STEP,
   STUDENT_LOAN_INGEST_SESSION_KEY,
@@ -37,7 +40,14 @@ import { studentLoanCopy } from '../components/assessment/studentLoan/copy'
 import { canSubmitStudentLoanToCrm } from '../components/assessment/studentLoan/ingestBoundary'
 import { buildStudentLoanResultsSession } from '../components/assessment/studentLoan/resultsModel'
 import { STUDENT_LOAN_QUESTIONS } from '../components/assessment/studentLoan/questions'
-import { INITIAL_STUDENT_LOAN_ANSWERS, type StudentLoanAssessmentAnswers, type StudentLoanContactAnswers } from '../components/assessment/studentLoan/types'
+import {
+  INITIAL_STUDENT_LOAN_ANSWERS,
+  INITIAL_STUDENT_LOAN_VERIFICATION,
+  type StudentLoanAssessmentAnswers,
+  type StudentLoanContactAnswers,
+  type StudentLoanDiagnosticAnswers,
+  type StudentLoanVerificationAnswers,
+} from '../components/assessment/studentLoan/types'
 import { completePublicReportCardCrmSubmission } from '../components/reportCard/familyIngest/completeFamilyReportCardSubmission'
 import {
   applyPhoneChangeToConsent,
@@ -52,6 +62,48 @@ import {
   type FamilyIngestSession,
 } from '../components/reportCard/familyIngest/submissionSession'
 import { ROUTES } from '../constants/routes'
+
+function balanceBucket(value: number | null): string {
+  if (value === null) return ''
+  if (value < 25_000) return 'under_25k'
+  if (value < 50_000) return '25k_50k'
+  if (value < 100_000) return '50k_100k'
+  return 'over_100k'
+}
+
+function statusBucket(statuses: string[]): string {
+  const value = statuses.join(' ').toLowerCase()
+  if (value.includes('default')) return 'default'
+  if (value.includes('delinquen') || value.includes('late')) return 'delinquent'
+  if (value.includes('defer') || value.includes('forbear')) return 'deferment_forbearance'
+  return statuses.length > 0 ? 'repayment' : ''
+}
+
+function loanTypeBuckets(types: string[]): string[] {
+  const value = types.join(' ').toLowerCase()
+  const matches: string[] = []
+  if (value.includes('parent') && value.includes('plus')) matches.push('parent_plus')
+  if (value.includes('private')) matches.push('private')
+  if (value.includes('ffel')) matches.push('ffelp')
+  if (value.includes('direct')) matches.push('direct')
+  return matches.length > 0 ? matches : types.length > 0 ? ['not_sure'] : []
+}
+
+function applyVerifiedLoanSummary(
+  current: StudentLoanDiagnosticAnswers,
+  verification: StudentLoanVerificationAnswers,
+): StudentLoanDiagnosticAnswers {
+  if (verification.status !== 'verified') return current
+  const servicer = verification.servicers[0]?.slice(0, 80) ?? ''
+  return {
+    ...current,
+    loan_types: loanTypeBuckets(verification.loanTypes),
+    total_balance: balanceBucket(verification.totalOutstandingBalance),
+    loan_status: statusBucket(verification.loanStatuses),
+    servicer_mode: servicer ? 'named' : '',
+    servicer_name: servicer,
+  }
+}
 
 export default function StudentLoanAssessment() {
   const navigate = useNavigate()
@@ -132,6 +184,13 @@ export default function StudentLoanAssessment() {
     setAnswers((current) => {
       if (field === 'phone') {
         setConsent((prev) => applyPhoneChangeToConsent(prev, value))
+        if (value !== current.contact.phone) {
+          return {
+            ...current,
+            contact: { ...current.contact, phone: value },
+            verification: { ...INITIAL_STUDENT_LOAN_VERIFICATION },
+          }
+        }
       }
       return { ...current, contact: { ...current.contact, [field]: value } }
     })
@@ -149,6 +208,15 @@ export default function StudentLoanAssessment() {
     setSubmitError(null)
   }
 
+  function updateVerification(verification: StudentLoanVerificationAnswers) {
+    setAnswers((current) => ({
+      ...current,
+      verification,
+      diagnostic: applyVerifiedLoanSummary(current.diagnostic, verification),
+    }))
+    setShowFieldErrors(false)
+  }
+
   function handleBegin() {
     const session = beginNewFamilyAssessmentSession({
       search: location.search,
@@ -163,7 +231,8 @@ export default function StudentLoanAssessment() {
     setConsentMissing([])
     setSubmitError(null)
     setIsSubmitting(false)
-    setCurrentStep(STUDENT_LOAN_FIRST_DIAGNOSTIC_STEP)
+    setAnswers(INITIAL_STUDENT_LOAN_ANSWERS)
+    setCurrentStep(STUDENT_LOAN_CONTACT_STEP)
   }
 
   function handleBack() {
@@ -222,7 +291,7 @@ export default function StudentLoanAssessment() {
   }
 
   async function handleContinue() {
-    if (currentStep < STUDENT_LOAN_CONTACT_STEP) {
+    if (currentStep < STUDENT_LOAN_CONSENT_STEP) {
       if (isSubmitting) return
       if (!canContinue) {
         setShowFieldErrors(true)
@@ -277,11 +346,11 @@ export default function StudentLoanAssessment() {
               void handleContinue()
             }}
             backLabel={t('ui', 'back')}
-            continueDisabled={(!canContinue && currentStep !== STUDENT_LOAN_CONTACT_STEP) || isSubmitting}
+            continueDisabled={!canContinue || isSubmitting}
             continueLabel={
               isSubmitting
                 ? t('ui', 'saving')
-                : currentStep === STUDENT_LOAN_CONTACT_STEP
+                : currentStep === STUDENT_LOAN_CONSENT_STEP
                   ? t('ui', 'viewResults')
                   : t('ui', 'continue')
             }
@@ -298,23 +367,42 @@ export default function StudentLoanAssessment() {
       ) : null}
 
       {diagnosticQuestion ? (
-        <SpecializedQuestionRenderer
-          question={diagnosticQuestion}
-          values={diagnosticToAnswerMap(answers.diagnostic)}
-          t={t}
-          showErrors={showFieldErrors}
-          onChange={updateDiagnosticField}
-        />
+        <>
+          <p className={`student-loan-source-badge ${answers.verification.status === 'verified' && ['loan_types', 'total_balance', 'loan_status', 'loan_servicer'].includes(diagnosticQuestion.id) ? '' : 'student-loan-source-badge--reported'}`}>
+            {answers.verification.status === 'verified' && ['loan_types', 'total_balance', 'loan_status', 'loan_servicer'].includes(diagnosticQuestion.id)
+              ? t('ui', 'verifiedReviewSource')
+              : t('ui', 'selfReportedSource')}
+          </p>
+          <SpecializedQuestionRenderer
+            question={diagnosticQuestion}
+            values={diagnosticToAnswerMap(answers.diagnostic)}
+            t={t}
+            showErrors={showFieldErrors}
+            onChange={updateDiagnosticField}
+          />
+        </>
       ) : null}
 
       {currentStep === STUDENT_LOAN_CONTACT_STEP ? (
+        <StepStudentLoanContact
+          contact={answers.contact}
+          t={t}
+          showErrors={showFieldErrors}
+          onChange={updateContact}
+        />
+      ) : null}
+
+      {currentStep === STUDENT_LOAN_CONNECT_STEP ? (
+        <StepStudentLoanConnect
+          phone={answers.contact.phone}
+          t={t}
+          verification={answers.verification}
+          onChange={updateVerification}
+        />
+      ) : null}
+
+      {currentStep === STUDENT_LOAN_CONSENT_STEP ? (
         <>
-          <StepStudentLoanContact
-            contact={answers.contact}
-            t={t}
-            showErrors={showFieldErrors}
-            onChange={updateContact}
-          />
           <FamilyConsentSection
             consent={consent}
             phone={answers.contact.phone}

@@ -79,11 +79,18 @@ function persistableAssessmentAnswers(
   answers: PublicReportCardAnswers,
 ):
   | PublicReportCardAnswers
-  | { diagnostic: StudentLoanAssessmentAnswers['diagnostic'] }
+  | {
+      diagnostic: StudentLoanAssessmentAnswers['diagnostic']
+      verification: StudentLoanAssessmentAnswers['verification']
+    }
   | { diagnostic: CreditAssessmentAnswers['diagnostic'] }
   | { diagnostic: HomeBuyerAssessmentAnswers['diagnostic'] } {
   if (assessmentType === 'student_loan') {
-    return { diagnostic: (answers as StudentLoanAssessmentAnswers).diagnostic }
+    const studentLoanAnswers = answers as StudentLoanAssessmentAnswers
+    return {
+      diagnostic: studentLoanAnswers.diagnostic,
+      verification: studentLoanAnswers.verification,
+    }
   }
   if (assessmentType === 'credit') {
     return { diagnostic: (answers as CreditAssessmentAnswers).diagnostic }

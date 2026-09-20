@@ -58,7 +58,7 @@ function studentLoanRow(overrides: Record<string, unknown> = {}): Record<string,
     ],
     answers: {
       diagnostic: validStudentLoanAnswersFixture().diagnostic,
-      contact: validStudentLoanAnswersFixture().contact,
+      verification: validStudentLoanAnswersFixture().verification,
     },
     derived_metrics: {
       categories: [
@@ -115,6 +115,11 @@ describe('Intake diagnostic display models', () => {
     expect(detail?.priorities.length).toBeLessThanOrEqual(3)
     expect(detail?.submittedAnswers.some((item) => item.id === 'primary_goal')).toBe(true)
     expect(detail?.submittedAnswers.some((item) => item.id === 'urgency')).toBe(true)
+    expect(detail?.submittedAnswers).toContainEqual({
+      id: 'verification_source',
+      label: 'Loan data source',
+      value: 'Client-reported / needs verification',
+    })
     expect(JSON.stringify(detail?.submittedAnswers)).not.toMatch(
       /firstName|lastName|jamie\.rivera@example.com|555-201-4488/,
     )

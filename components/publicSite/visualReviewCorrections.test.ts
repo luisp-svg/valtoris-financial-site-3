@@ -241,7 +241,7 @@ describe('visual review corrections', () => {
   })
 
   it('does not change Student Loan or Credit assessment steps, scoring, or ingest', () => {
-    expect(STUDENT_LOAN_ASSESSMENT_STEPS).toBe(12)
+    expect(STUDENT_LOAN_ASSESSMENT_STEPS).toBe(14)
     expect(STUDENT_LOAN_DIAGNOSTIC_QUESTION_COUNT).toBe(10)
     expect(CREDIT_ASSESSMENT_STEPS).toBe(12)
     expect(CREDIT_DIAGNOSTIC_QUESTION_COUNT).toBe(10)
