@@ -10,6 +10,7 @@ type HomeAudiencePathsProps = {
 export default function HomeAudiencePaths({ copy }: HomeAudiencePathsProps) {
   return (
     <SiteHomeSection
+      id="home-diagnostics"
       tone="blue"
       titleId="home-audience-heading"
       title={copy.audienceHeading}

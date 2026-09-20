@@ -56,11 +56,11 @@ const SERVICE_PAGES = [
 ]
 
 describe('Phase 6 public CTA hierarchy and alignment', () => {
-  it('gives each homepage diagnostic card one consistent action', () => {
+  it('gives each homepage diagnostic path one consistent action', () => {
     const html = renderAt('/', createElement(HomePage))
-    const diagnostics = section(html, 'home-diagnostics-heading')
-    expect(diagnostics.match(/class="site-home-card site-home-card--centered"/g)?.length).toBe(6)
-    expect(diagnostics.match(/class="site-home-card-link"/g)?.length).toBe(6)
+    const diagnostics = section(html, 'home-audience-heading')
+    expect(diagnostics.match(/class="site-home-card site-home-card--centered"/g)?.length).toBe(4)
+    expect(diagnostics.match(/class="site-home-card-link"/g)?.length).toBe(4)
     expect(diagnostics).not.toContain('platform-btn')
     expect(diagnostics).not.toContain('Also available')
   })

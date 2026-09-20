@@ -10,11 +10,18 @@ export type HomeCopy = {
   heroPrimaryCta: string
   heroSecondaryCta: string
   heroTertiaryCta: string
+  heroMicrocopy: string
+  heroImageAlt: string
   heroPanelLabel: string
   heroPanelProtection: string
   heroPanelRetirement: string
   heroPanelCredit: string
   heroPanelStudentLoans: string
+  trustLabel: string
+  trustEducation: string
+  trustBilingual: string
+  trustCoordinated: string
+  trustNoObligation: string
   audienceHeading: string
   audienceLead: string
   audienceFamiliesTitle: string
@@ -71,6 +78,17 @@ export type HomeCopy = {
   diagnosticsRetirementBody: string
   diagnosticsProtectionTitle: string
   diagnosticsProtectionBody: string
+  showcaseKicker: string
+  showcaseHeading: string
+  showcaseLead: string
+  showcaseBenefitOne: string
+  showcaseBenefitTwo: string
+  showcaseBenefitThree: string
+  showcaseCta: string
+  showcaseSecondaryCta: string
+  showcasePreviewLabel: string
+  showcasePreviewBadge: string
+  showcasePreviewDisclaimer: string
   journeysHeading: string
   journeysLead: string
   journeyFamilyTitle: string
@@ -94,6 +112,13 @@ export type HomeCopy = {
   whyPrioritiesBody: string
   whyReviewTitle: string
   whyReviewBody: string
+  founderKicker: string
+  founderHeading: string
+  founderBody: string
+  founderName: string
+  founderRole: string
+  founderCta: string
+  founderImageAlt: string
   finalHeading: string
   finalLead: string
   finalPrimaryCta: string
@@ -113,11 +138,18 @@ export const homeCopy: Record<PublicLocale, HomeCopy> = {
     heroPrimaryCta: 'Find Out Where I Stand',
     heroSecondaryCta: 'Book a Meeting',
     heroTertiaryCta: 'Explore Solutions',
+    heroMicrocopy: 'Free educational assessment · About 3–5 minutes · No obligation',
+    heroImageAlt: 'Luis Perez and his wife reviewing a financial strategy together',
     heroPanelLabel: 'We diagnose first',
     heroPanelProtection: 'Diagnose',
     heroPanelRetirement: 'Prioritize',
     heroPanelCredit: 'Build',
     heroPanelStudentLoans: 'Then coordinate solutions',
+    trustLabel: 'What clients can expect from Valtoris',
+    trustEducation: 'Education before products',
+    trustBilingual: 'English and Spanish support',
+    trustCoordinated: 'One coordinated strategy',
+    trustNoObligation: 'No-obligation starting point',
     audienceHeading: 'Where Do You Want More Clarity?',
     audienceLead:
       'Choose the diagnostic that matches the picture you want to understand first. Each Report Card is an educational starting point—not a product pitch.',
@@ -184,6 +216,19 @@ export const homeCopy: Record<PublicLocale, HomeCopy> = {
     diagnosticsProtectionTitle: 'Protection Gap',
     diagnosticsProtectionBody:
       'Compare estimated coverage need with current protection and see where a gap may exist.',
+    showcaseKicker: 'See what you receive',
+    showcaseHeading: 'A Score Is Only Useful When It Leads to Clear Next Steps.',
+    showcaseLead:
+      'Your Report Card turns scattered financial information into a simple view of your strengths, risks, and priorities.',
+    showcaseBenefitOne: 'A personalized score and grade',
+    showcaseBenefitTwo: 'Your strongest areas and highest priorities',
+    showcaseBenefitThree: 'Clear topics to review with a Financial Strategist',
+    showcaseCta: 'Get My Free Financial Score',
+    showcaseSecondaryCta: 'Explore every Report Card',
+    showcasePreviewLabel: 'Illustrative Family Financial Report Card preview',
+    showcasePreviewBadge: 'Sample Report Card Preview',
+    showcasePreviewDisclaimer:
+      'Illustrative sample only. Your personalized results will reflect your answers.',
     journeysHeading: 'Explore Solutions for You',
     journeysLead:
       'Explore the areas where Valtoris can help you build a more coordinated financial strategy.',
@@ -214,6 +259,14 @@ export const homeCopy: Record<PublicLocale, HomeCopy> = {
       'The strategy should reflect the household or business owner’s actual goals, risks, and timeline.',
     whyReviewTitle: 'Ongoing Review',
     whyReviewBody: 'Financial plans evolve as life, business, markets, and priorities change.',
+    founderKicker: 'A strategy built around real life',
+    founderHeading: 'Meet Luis Perez, Financial Strategist and Founder.',
+    founderBody:
+      'Valtoris was built around a simple belief: families and business owners deserve to understand their full financial picture before being asked to buy a product. Luis brings the perspective of a business owner and father to every strategy conversation—helping clients turn disconnected decisions into a plan built around the people and goals that matter most.',
+    founderName: 'Luis Perez',
+    founderRole: 'Founder · Financial Strategist',
+    founderCta: 'Meet With Luis',
+    founderImageAlt: 'Luis Perez and his wife in professional business attire',
     finalHeading: "You Can't Improve What You Haven't Measured.",
     finalLead:
       'Find out where you stand, understand your priorities and determine what deserves attention next.',
@@ -232,11 +285,18 @@ export const homeCopy: Record<PublicLocale, HomeCopy> = {
     heroPrimaryCta: 'Descubre en qué punto estás',
     heroSecondaryCta: 'Agendar una reunión',
     heroTertiaryCta: 'Explorar soluciones',
+    heroMicrocopy: 'Evaluación educativa gratuita · Aproximadamente 3–5 minutos · Sin compromiso',
+    heroImageAlt: 'Luis Perez y su esposa revisando juntos una estrategia financiera',
     heroPanelLabel: 'Primero diagnosticamos',
     heroPanelProtection: 'Diagnosticar',
     heroPanelRetirement: 'Priorizar',
     heroPanelCredit: 'Construir',
     heroPanelStudentLoans: 'Luego coordinar soluciones',
+    trustLabel: 'Lo que los clientes pueden esperar de Valtoris',
+    trustEducation: 'Educación antes de productos',
+    trustBilingual: 'Atención en inglés y español',
+    trustCoordinated: 'Una estrategia coordinada',
+    trustNoObligation: 'Un comienzo sin compromiso',
     audienceHeading: '¿En qué quieres más claridad?',
     audienceLead:
       'Elige el diagnóstico que corresponde al panorama que quieres entender primero. Cada Report Card es un punto de partida educativo, no una oferta de producto.',
@@ -306,6 +366,19 @@ export const homeCopy: Record<PublicLocale, HomeCopy> = {
     diagnosticsProtectionTitle: 'Protection Gap',
     diagnosticsProtectionBody:
       'Compare la cobertura estimada que necesita con la protección actual y vea dónde puede haber una brecha.',
+    showcaseKicker: 'Vea lo que recibirá',
+    showcaseHeading: 'Una puntuación solo es útil cuando conduce a próximos pasos claros.',
+    showcaseLead:
+      'Su Report Card convierte información financiera dispersa en una vista sencilla de sus fortalezas, riesgos y prioridades.',
+    showcaseBenefitOne: 'Una puntuación y calificación personalizadas',
+    showcaseBenefitTwo: 'Sus áreas más fuertes y sus prioridades principales',
+    showcaseBenefitThree: 'Temas claros para revisar con un Financial Strategist',
+    showcaseCta: 'Obtener mi puntuación financiera gratuita',
+    showcaseSecondaryCta: 'Explorar todos los Report Cards',
+    showcasePreviewLabel: 'Vista previa ilustrativa del Family Financial Report Card',
+    showcasePreviewBadge: 'Vista previa de muestra',
+    showcasePreviewDisclaimer:
+      'Muestra ilustrativa solamente. Sus resultados personalizados reflejarán sus respuestas.',
     journeysHeading: 'Explore soluciones para usted',
     journeysLead:
       'Explore las áreas en las que Valtoris puede ayudarle a construir una estrategia financiera más coordinada.',
@@ -336,6 +409,14 @@ export const homeCopy: Record<PublicLocale, HomeCopy> = {
       'La estrategia debe reflejar las metas, los riesgos y el plazo reales del hogar o del dueño del negocio.',
     whyReviewTitle: 'Revisión continua',
     whyReviewBody: 'Los planes financieros evolucionan cuando cambian la vida, el negocio, los mercados y las prioridades.',
+    founderKicker: 'Una estrategia construida alrededor de la vida real',
+    founderHeading: 'Conozca a Luis Perez, Financial Strategist y fundador.',
+    founderBody:
+      'Valtoris nació de una idea sencilla: las familias y los dueños de negocio merecen entender todo su panorama financiero antes de que se les pida comprar un producto. Luis aporta a cada conversación la perspectiva de un dueño de negocio y padre, ayudando a convertir decisiones desconectadas en un plan alrededor de las personas y metas que más importan.',
+    founderName: 'Luis Perez',
+    founderRole: 'Fundador · Financial Strategist',
+    founderCta: 'Reunirse con Luis',
+    founderImageAlt: 'Luis Perez y su esposa con vestimenta profesional de negocios',
     finalHeading: 'No puedes mejorar lo que no has medido.',
     finalLead:
       'Descubre en qué punto estás, entiende tus prioridades y determina qué merece atención a continuación.',

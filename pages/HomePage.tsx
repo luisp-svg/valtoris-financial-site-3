@@ -1,9 +1,10 @@
 import { useLocation } from 'react-router-dom'
 import HomeAudiencePaths from '../components/publicSite/home/HomeAudiencePaths'
-import HomeDiagnostics from '../components/publicSite/home/HomeDiagnostics'
 import HomeFinalCta from '../components/publicSite/home/HomeFinalCta'
+import HomeFounderStory from '../components/publicSite/home/HomeFounderStory'
 import HomeHero from '../components/publicSite/home/HomeHero'
 import HomeProcess from '../components/publicSite/home/HomeProcess'
+import HomeReportCardShowcase from '../components/publicSite/home/HomeReportCardShowcase'
 import HomeServiceGrid from '../components/publicSite/home/HomeServiceGrid'
 import HomeWhyValtoris from '../components/publicSite/home/HomeWhyValtoris'
 import { homeCopy } from '../components/publicSite/home/copy'
@@ -21,9 +22,10 @@ export default function HomePage() {
       <HomeHero copy={copy} />
       <HomeAudiencePaths copy={copy} />
       <HomeProcess copy={copy} />
-      <HomeDiagnostics copy={copy} />
+      <HomeReportCardShowcase copy={copy} />
       <HomeServiceGrid copy={copy} />
       <HomeWhyValtoris copy={copy} />
+      <HomeFounderStory copy={copy} />
       <HomeFinalCta copy={copy} />
     </div>
   )
