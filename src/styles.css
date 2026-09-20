@@ -5377,6 +5377,81 @@ p { color: var(--muted); line-height: 1.7; }
 .site-service-page #service-process {
   scroll-margin-top: 96px;
 }
+.site-service-package-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 30px;
+}
+.site-service-package {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  padding: 28px 24px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: 0 12px 30px rgba(7, 20, 77, 0.06);
+}
+.site-service-package--featured {
+  border: 2px solid var(--brand);
+  box-shadow: 0 18px 42px rgba(7, 20, 77, 0.12);
+}
+.site-service-package-badge {
+  align-self: flex-start;
+  margin: 0 0 14px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--brand);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.site-service-package-name {
+  margin: 0;
+  color: var(--brand);
+  font-size: 1.35rem;
+}
+.site-service-package-price {
+  margin: 16px 0 0;
+  color: var(--brand);
+  font-size: clamp(1.9rem, 4vw, 2.45rem);
+  font-weight: 800;
+  line-height: 1;
+}
+.site-service-package-payment,
+.site-service-package-description,
+.site-service-package-note {
+  color: var(--platform-muted);
+  line-height: 1.55;
+}
+.site-service-package-payment {
+  min-height: 3em;
+  margin: 8px 0 0;
+  font-size: 0.92rem;
+}
+.site-service-package-description {
+  margin: 18px 0 0;
+}
+.site-service-package-features {
+  display: grid;
+  gap: 10px;
+  margin: 20px 0 24px;
+  padding-left: 20px;
+  color: var(--brand);
+  line-height: 1.45;
+}
+.site-service-package .platform-btn {
+  width: 100%;
+  margin-top: auto;
+}
+.site-service-package-note {
+  max-width: 72ch;
+  margin: 22px auto 0;
+  text-align: center;
+}
 .site-service-audience-list {
   display: grid;
   gap: 12px;
@@ -5568,6 +5643,12 @@ p { color: var(--muted); line-height: 1.7; }
   .site-home-process,
   .site-service-process {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .site-service-package-grid {
+    grid-template-columns: 1fr;
+    max-width: 680px;
+    margin-right: auto;
+    margin-left: auto;
   }
 }
 
