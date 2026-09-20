@@ -10,6 +10,17 @@ export type ServiceProcessStep = {
   readonly body: string
 }
 
+export type ServicePackage = {
+  readonly name: string
+  readonly price: string
+  readonly paymentNote: string
+  readonly description: string
+  readonly features: readonly string[]
+  readonly cta: string
+  readonly featured?: boolean
+  readonly badge?: string
+}
+
 export type ServiceCopy = {
   metaTitle: string
   metaDescription: string
@@ -42,6 +53,10 @@ export type ServiceCopy = {
   finalLead: string
   finalPrimaryCta: string
   finalSecondaryCta: string
+  packagesHeading?: string
+  packagesLead?: string
+  packagesNote?: string
+  packages?: readonly ServicePackage[]
   partnerKicker?: string
   partnerTitle?: string
   partnerName?: string
@@ -103,6 +118,51 @@ export const studentLoanServiceCopy: Record<PublicLocale, ServiceCopy> = {
       {
         title: 'Next-Step Planning',
         body: 'Identify priorities and prepare for a more informed strategy conversation with Valtoris.',
+      },
+    ],
+    packagesHeading: 'Choose the Level of Support That Fits Your Situation',
+    packagesLead:
+      'Start with the Report Card so we can understand your loan picture before you select a service level or make a payment.',
+    packagesNote:
+      'Package fit is confirmed during intake. Pricing does not include payments owed to a loan servicer or government agency, and no outcome is guaranteed.',
+    packages: [
+      {
+        name: 'Basic',
+        price: '$297',
+        paymentNote: 'one-time',
+        description: 'A focused review for borrowers who need clarity and an organized next-step plan.',
+        features: [
+          'Student-loan situation review',
+          'Repayment and program education',
+          'Personalized next-step summary',
+        ],
+        cta: 'Start with the Report Card',
+      },
+      {
+        name: 'Pro',
+        price: '$1,200',
+        paymentNote: '$300 down, then three payments of $300',
+        description: 'More guided support for borrowers with multiple decisions or follow-up needs.',
+        features: [
+          'Everything in Basic',
+          'Guided document and action checklist',
+          'Scheduled strategy follow-ups',
+        ],
+        cta: 'Start My Pro Review',
+        featured: true,
+        badge: 'Most guided',
+      },
+      {
+        name: 'Premium',
+        price: '$1,500',
+        paymentNote: 'one-time, or three payments of $579',
+        description: 'Extended support for complex situations that may require a longer review path.',
+        features: [
+          'Everything in Pro',
+          'Extended strategy support',
+          'Additional progress check-ins',
+        ],
+        cta: 'Start My Premium Review',
       },
     ],
     processHeading: 'How Valtoris Works',
@@ -198,6 +258,51 @@ export const studentLoanServiceCopy: Record<PublicLocale, ServiceCopy> = {
       {
         title: 'Planificación del siguiente paso',
         body: 'Identificar prioridades y prepararse para una conversación de estrategia más informada con Valtoris.',
+      },
+    ],
+    packagesHeading: 'Elija el nivel de apoyo que se adapte a su situación',
+    packagesLead:
+      'Empiece con el Reporte para que podamos entender sus préstamos antes de elegir un nivel de servicio o realizar un pago.',
+    packagesNote:
+      'La opción adecuada se confirma durante la admisión. Los precios no incluyen pagos adeudados a un administrador de préstamos o agencia gubernamental, y no se garantiza ningún resultado.',
+    packages: [
+      {
+        name: 'Básico',
+        price: '$297',
+        paymentNote: 'pago único',
+        description: 'Una revisión enfocada para quienes necesitan claridad y un plan organizado de próximos pasos.',
+        features: [
+          'Revisión de la situación de préstamos estudiantiles',
+          'Educación sobre pagos y programas',
+          'Resumen personalizado de próximos pasos',
+        ],
+        cta: 'Empezar con el Reporte',
+      },
+      {
+        name: 'Pro',
+        price: '$1,200',
+        paymentNote: '$300 iniciales y después tres pagos de $300',
+        description: 'Más apoyo guiado para personas con varias decisiones o necesidades de seguimiento.',
+        features: [
+          'Todo lo incluido en Básico',
+          'Lista guiada de documentos y acciones',
+          'Seguimientos estratégicos programados',
+        ],
+        cta: 'Empezar mi revisión Pro',
+        featured: true,
+        badge: 'Mayor orientación',
+      },
+      {
+        name: 'Premium',
+        price: '$1,500',
+        paymentNote: 'pago único o tres pagos de $579',
+        description: 'Apoyo extendido para situaciones complejas que pueden requerir una revisión más larga.',
+        features: [
+          'Todo lo incluido en Pro',
+          'Apoyo estratégico extendido',
+          'Revisiones adicionales de progreso',
+        ],
+        cta: 'Empezar mi revisión Premium',
       },
     ],
     processHeading: 'Cómo trabaja Valtoris',
