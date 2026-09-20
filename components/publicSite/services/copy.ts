@@ -10,6 +10,15 @@ export type ServiceProcessStep = {
   readonly body: string
 }
 
+export type ServiceOfferPlan = {
+  readonly name: string
+  readonly price: string
+  readonly cadence: string
+  readonly description: string
+  readonly features: readonly string[]
+  readonly badge?: string
+}
+
 export type ServiceCopy = {
   metaTitle: string
   metaDescription: string
@@ -42,6 +51,12 @@ export type ServiceCopy = {
   finalLead: string
   finalPrimaryCta: string
   finalSecondaryCta: string
+  offerKicker?: string
+  offerTitle?: string
+  offerLead?: string
+  offerPriceNote?: string
+  offerPlans?: readonly ServiceOfferPlan[]
+  offerCta?: string
   partnerKicker?: string
   partnerTitle?: string
   partnerName?: string
@@ -328,6 +343,56 @@ export const creditServiceCopy: Record<PublicLocale, ServiceCopy> = {
         body: 'Decide what to monitor, what to verify, and whether a later strategy conversation would help.',
       },
     ],
+    offerKicker: 'Credit improvement service',
+    offerTitle: 'Choose the Level of Support That Fits You',
+    offerLead:
+      'Start with self-guided tools or choose professional support after your consultation. We review your actual reports, explain the scope, and help you select the right level without promising a score increase or removal of accurate information.',
+    offerPriceNote:
+      'IDIQ features remain subject to the final vendor plan. No payment is collected through the Credit Report Card. Professional credit-repair fees are billed only after the applicable work is performed and after required disclosures and a written agreement.',
+    offerPlans: [
+      {
+        name: 'DIY Credit Builder',
+        price: '$39',
+        cadence: 'per month',
+        description: 'For clients who want monitoring, education, and a plan they can carry out themselves.',
+        features: [
+          'IDIQ monitoring access',
+          'Credit Report Card™ and DIY action checklist',
+          'Educational dispute-letter templates',
+          'Utilization and rebuilding guidance',
+          'You prepare and submit your own disputes',
+        ],
+      },
+      {
+        name: 'Basic Credit Support',
+        price: '$99',
+        cadence: 'per month',
+        description: 'For clients who want professional review and focused support on their highest-priority items.',
+        badge: 'Most popular',
+        features: [
+          'Everything in DIY',
+          'Professional three-bureau report review',
+          'Targeted dispute work when appropriate',
+          'Monthly progress review',
+          'Updated action plan and standard support',
+        ],
+      },
+      {
+        name: 'Premium Credit Restoration',
+        price: '$149',
+        cadence: 'per month',
+        description: 'For complex credit files that need more hands-on review, follow-up, and planning.',
+        features: [
+          'Everything in Basic',
+          'More comprehensive dispute strategy',
+          'Appropriate bureau and direct-creditor correspondence',
+          'Priority document review and support',
+          'Monthly one-on-one strategy review',
+          'Home-buying or financing readiness planning',
+        ],
+      },
+    ],
+    offerCta: 'Book My Credit Consultation',
     bridgeKicker: 'Educational diagnostic',
     bridgeTitle: 'Credit Report Card™',
     bridgeBody:
@@ -427,6 +492,56 @@ export const creditServiceCopy: Record<PublicLocale, ServiceCopy> = {
         body: 'Decida qué vigilar, qué verificar y si una conversación de estrategia posterior le ayudaría.',
       },
     ],
+    offerKicker: 'Servicio de mejoramiento de crédito',
+    offerTitle: 'Elija el nivel de apoyo adecuado para usted',
+    offerLead:
+      'Comience con herramientas de autoservicio o elija apoyo profesional después de su consulta. Revisamos sus reportes reales, explicamos el alcance y le ayudamos a elegir el nivel adecuado sin prometer un aumento de puntaje ni la eliminación de información precisa.',
+    offerPriceNote:
+      'Las funciones de IDIQ están sujetas al plan final del proveedor. No se cobra ningún pago mediante el Reporte de Crédito. Los cargos profesionales de reparación de crédito se facturan solamente después de realizar el trabajo correspondiente y después de las divulgaciones requeridas y un acuerdo por escrito.',
+    offerPlans: [
+      {
+        name: 'Constructor de Crédito DIY',
+        price: '$39',
+        cadence: 'al mes',
+        description: 'Para clientes que desean monitoreo, educación y un plan que puedan ejecutar por sí mismos.',
+        features: [
+          'Acceso al monitoreo de IDIQ',
+          'Reporte de Crédito™ y lista de acciones DIY',
+          'Modelos educativos de cartas de disputa',
+          'Orientación sobre utilización y reconstrucción',
+          'Usted prepara y presenta sus propias disputas',
+        ],
+      },
+      {
+        name: 'Apoyo de Crédito Básico',
+        price: '$99',
+        cadence: 'al mes',
+        description: 'Para clientes que desean revisión profesional y apoyo enfocado en sus asuntos prioritarios.',
+        badge: 'Más popular',
+        features: [
+          'Todo lo incluido en DIY',
+          'Revisión profesional de los reportes de las tres agencias',
+          'Trabajo de disputa dirigido cuando corresponda',
+          'Revisión mensual del progreso',
+          'Plan de acción actualizado y apoyo estándar',
+        ],
+      },
+      {
+        name: 'Restauración de Crédito Premium',
+        price: '$149',
+        cadence: 'al mes',
+        description: 'Para expedientes complejos que necesitan más revisión, seguimiento y planificación personalizada.',
+        features: [
+          'Todo lo incluido en Básico',
+          'Estrategia de disputas más completa',
+          'Correspondencia apropiada con agencias y acreedores directos',
+          'Revisión prioritaria de documentos y apoyo',
+          'Revisión estratégica individual cada mes',
+          'Planificación para comprar vivienda o solicitar financiamiento',
+        ],
+      },
+    ],
+    offerCta: 'Agendar mi consulta de crédito',
     bridgeKicker: 'Diagnóstico educativo',
     bridgeTitle: 'Credit Report Card™',
     bridgeBody:
