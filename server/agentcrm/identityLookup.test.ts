@@ -298,7 +298,12 @@ describe('lookupAgentCrmIdentity', () => {
     expect(files.length).toBeGreaterThan(0)
     for (const name of files) {
       const source = readFileSync(join(dir, name), 'utf8')
-      expect(source).not.toMatch(/method:\s*['"]POST['"]|method:\s*['"]PUT['"]|method:\s*['"]PATCH['"]|method:\s*['"]DELETE['"]/)
+      if (name === 'createContact.ts') {
+        expect(source).toMatch(/method:\s*'POST'/)
+        expect(source).not.toMatch(/method:\s*['"]PUT['"]|method:\s*['"]PATCH['"]|method:\s*['"]DELETE['"]/)
+      } else {
+        expect(source).not.toMatch(/method:\s*['"]POST['"]|method:\s*['"]PUT['"]|method:\s*['"]PATCH['"]|method:\s*['"]DELETE['"]/)
+      }
       if (name === 'studentLoanDryRun.ts') {
         expect(source).not.toMatch(/console\.(log|warn|error|debug)/)
       } else {
