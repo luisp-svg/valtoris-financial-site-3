@@ -40,7 +40,7 @@ describe('credit repair / student loan sales catalog contracts', () => {
     const files = readdirSync(migrationsDir)
       .filter((name) => /^\d{3}_.+\.sql$/.test(name))
       .sort()
-    expect(files).toHaveLength(54)
+    expect(files).toHaveLength(55)
     expect(files[46]).toBe(MIGRATION_047_FILENAME)
     expect(files[47]).toBe('048_student_loan_report_card_ingest.sql')
     expect(files.filter((name) => name.startsWith('048_'))).toEqual([
@@ -52,7 +52,8 @@ describe('credit repair / student loan sales catalog contracts', () => {
     expect(files.filter((name) => name.startsWith('052_'))).toEqual(['052_fix_intake_archive_activity_order.sql'])
     expect(files.filter((name) => name.startsWith('053_'))).toEqual(['053_bulk_lead_import_writer.sql'])
     expect(files.filter((name) => name.startsWith('054_'))).toEqual(['054_home_buyer_report_card_ingest.sql'])
-    expect(files.filter((name) => name.startsWith('055_'))).toEqual([])
+    expect(files.filter((name) => name.startsWith('055_'))).toEqual(['055_integration_contact_links.sql'])
+    expect(files.filter((name) => name.startsWith('056_'))).toEqual([])
     expect(existsSync(join(migrationsDir, '048_service_cases.sql'))).toBe(false)
     expect(sql047).not.toContain('CREATE TABLE')
     expect(sql047).not.toContain('ALTER TABLE')

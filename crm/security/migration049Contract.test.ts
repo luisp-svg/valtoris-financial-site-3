@@ -38,11 +38,11 @@ function createReplaceCount(sql: string, name: string): number {
 }
 
 describe('migration 049 public report-card follow-up copy specialization', () => {
-  it('is the only 049 file, follows 048, is followed by 050, is followed by 051, is followed by 052, and is followed by 053, is followed by 054, and rejects 055', () => {
+  it('is the only 049 file, follows 048, is followed by 050, is followed by 051, is followed by 052, and is followed by 053, is followed by 054, and rejects 056', () => {
     expect(MIGRATION_049_FILENAME).toBe('049_specialize_public_report_card_follow_up_copy.sql')
     const files = numberedMigrations()
     expect(files).toEqual([...EXPECTED_NUMBERED_MIGRATIONS])
-    expect(files).toHaveLength(54)
+    expect(files).toHaveLength(55)
     expect(files[0]).toBe('001_extensions_and_enums.sql')
     expect(files[44]).toBe(MIGRATION_045_FILENAME)
     expect(files[45]).toBe(MIGRATION_046_FILENAME)
@@ -56,7 +56,8 @@ describe('migration 049 public report-card follow-up copy specialization', () =>
     expect(files.filter((f) => f.startsWith('052_'))).toEqual(['052_fix_intake_archive_activity_order.sql'])
     expect(files.filter((f) => f.startsWith('053_'))).toEqual(['053_bulk_lead_import_writer.sql'])
     expect(files.filter((f) => f.startsWith('054_'))).toEqual(['054_home_buyer_report_card_ingest.sql'])
-    expect(files.filter((f) => f.startsWith('055_'))).toEqual([])
+    expect(files.filter((f) => f.startsWith('055_'))).toEqual(['055_integration_contact_links.sql'])
+    expect(files.filter((f) => f.startsWith('056_'))).toEqual([])
   })
 
   it('replaces the existing follow-up function and does not add a new RPC', () => {

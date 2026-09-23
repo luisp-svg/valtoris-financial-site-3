@@ -246,7 +246,7 @@ describe('Phase 8 solutions hub', () => {
     const files = readdirSync(join(ROOT, 'supabase/migrations'))
       .filter((name) => name.endsWith('.sql'))
       .sort()
-    expect(files).toHaveLength(54)
+    expect(files).toHaveLength(55)
     expect(files.some((name) => name.startsWith('053_'))).toBe(true)
     expect(files.some((name) => name.startsWith('054_'))).toBe(true)
     expect(existsSync(join(ROOT, 'supabase/migrations/053_solutions_hub.sql'))).toBe(false)

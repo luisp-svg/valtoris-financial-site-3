@@ -262,7 +262,7 @@ describe('Student Loan Spanish localization', () => {
 
   it('leaves 047–049 unchanged and does not add Migration 051', () => {
     const files = readdirSync(join(ROOT, 'supabase/migrations')).filter((name) => name.endsWith('.sql')).sort()
-    expect(files).toHaveLength(54)
+    expect(files).toHaveLength(55)
     expect(files[49]).toBe('050_credit_report_card_ingest.sql')
     expect(files.some((name) => name.startsWith('051_'))).toBe(true)
     expect(files.some((name) => name.startsWith('052_'))).toBe(true)
