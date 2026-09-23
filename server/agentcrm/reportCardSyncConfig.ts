@@ -4,11 +4,17 @@ export const STUDENT_LOAN_CONTACT_SOURCE = 'Student Loan Report Card'
 /** Existing AgentCRM source label for the Credit Report Card. */
 export const CREDIT_CONTACT_SOURCE = 'Credit Report Card'
 
+/** Existing AgentCRM source label for the Home Buyer Report Card. */
+export const HOME_BUYER_CONTACT_SOURCE = 'Home Buyer Report Card'
+
 /** Existing AgentCRM tag. This module does not create a tag definition. */
 export const STUDENT_LOAN_SERVICE_TAG = 'service-student-loans'
 
 /** Existing AgentCRM tag. This module does not create a tag definition. */
 export const CREDIT_SERVICE_TAG = 'service-credit-improvement'
+
+/** Existing AgentCRM tag. This module does not create a tag definition. */
+export const HOME_BUYER_SERVICE_TAG = 'service-home-buyer-readiness'
 
 export type ReportCardAgentCrmConfig =
   | {
@@ -21,6 +27,12 @@ export type ReportCardAgentCrmConfig =
       assessmentType: 'credit'
       source: typeof CREDIT_CONTACT_SOURCE
       serviceTag: typeof CREDIT_SERVICE_TAG
+      enabled: boolean
+    }
+  | {
+      assessmentType: 'home_buyer'
+      source: typeof HOME_BUYER_CONTACT_SOURCE
+      serviceTag: typeof HOME_BUYER_SERVICE_TAG
       enabled: boolean
     }
 
@@ -38,9 +50,17 @@ const CREDIT_CONFIG: ReportCardAgentCrmConfig = {
   enabled: true,
 }
 
+const HOME_BUYER_CONFIG: ReportCardAgentCrmConfig = {
+  assessmentType: 'home_buyer',
+  source: HOME_BUYER_CONTACT_SOURCE,
+  serviceTag: HOME_BUYER_SERVICE_TAG,
+  enabled: true,
+}
+
 const ENABLED_CONFIGS: Record<string, ReportCardAgentCrmConfig> = {
   student_loan: STUDENT_LOAN_CONFIG,
   credit: CREDIT_CONFIG,
+  home_buyer: HOME_BUYER_CONFIG,
 }
 
 /** Returns the sync configuration for an enabled Report Card. Every other type stays inactive. */

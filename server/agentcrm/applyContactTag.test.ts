@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it, vi } from 'vitest'
 import { applyReportCardServiceTag, applyStudentLoanServiceTag, STUDENT_LOAN_SERVICE_TAG } from './applyContactTag'
-import { CREDIT_SERVICE_TAG } from './reportCardSyncConfig'
+import { CREDIT_SERVICE_TAG, HOME_BUYER_SERVICE_TAG } from './reportCardSyncConfig'
 import { AGENTCRM_CONTACT_TAGGING_ENV } from './contactTaggingGate'
 import { LeadConnectorError } from './errors'
 
@@ -71,7 +71,22 @@ describe('applyStudentLoanServiceTag', () => {
     await expect(
       applyReportCardServiceTag(CONTACT_ID, 'credit-service', { env: enabledEnv(), fetchImpl }),
     ).rejects.toMatchObject({ category: 'forbidden' })
+    await expect(
+      applyReportCardServiceTag(CONTACT_ID, 'service-home-auto', { env: enabledEnv(), fetchImpl }),
+    ).rejects.toMatchObject({ category: 'forbidden' })
     expect(fetchImpl).not.toHaveBeenCalled()
+  })
+
+  it('posts only the existing Home Buyer service tag', async () => {
+    const fetchImpl = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) =>
+      jsonResponse({ tags: [HOME_BUYER_SERVICE_TAG, 'service-student-loans'] }),
+    )
+    await applyReportCardServiceTag(CONTACT_ID, HOME_BUYER_SERVICE_TAG, { env: enabledEnv(), fetchImpl })
+    const init = fetchImpl.mock.calls[0]?.[1]
+    if (!init) throw new Error('expected a tag request')
+    expect(JSON.parse(String(init.body))).toEqual({ tags: [HOME_BUYER_SERVICE_TAG] })
+    expect(JSON.parse(String(init.body)).tags).not.toContain('service-home-auto')
+    expect(JSON.parse(String(init.body)).tags).not.toContain('service-credit-improvement')
   })
 
   it('does not update a contact or send a message', () => {
@@ -82,6 +97,8 @@ describe('applyStudentLoanServiceTag', () => {
     expect(source).not.toMatch(/\/contacts\/upsert|\/conversations\/messages|opportunity|workflow/)
     expect(config).toContain(STUDENT_LOAN_SERVICE_TAG)
     expect(config).toContain(CREDIT_SERVICE_TAG)
+    expect(config).toContain(HOME_BUYER_SERVICE_TAG)
+    expect(config).not.toContain('service-home-auto')
     expect(source).not.toMatch(/aa-student|student loan leads|sl-reportcard-sent/)
   })
 })

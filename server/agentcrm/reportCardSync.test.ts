@@ -381,7 +381,10 @@ describe('runReportCardAgentCrmSync', () => {
     expect(engine).not.toMatch(/method:\s*['"]POST['"]|method:\s*['"]PUT['"]|method:\s*['"]PATCH['"]|method:\s*['"]DELETE['"]/)
     expect(engine).not.toMatch(/tags:|customFields:|\/conversations\/messages|opportunity|workflow|dnd/)
     expect(config).toContain('credit')
-    expect(config).not.toMatch(/family|business|protection|home_buyer|retirement/)
+    expect(config).toContain('home_buyer')
+    expect(config).toContain('service-home-buyer-readiness')
+    expect(config).not.toContain('service-home-auto')
+    expect(config).not.toMatch(/\bfamily\b|\bbusiness\b|\bprotection\b|\bretirement\b/)
   })
 
   it('uses the Student Loan source and service tag through the real writers on CRM-dev', async () => {
@@ -630,6 +633,250 @@ describe('runReportCardAgentCrmSync', () => {
       expect(JSON.parse(String(createInit.body))).toMatchObject({ source: 'Credit Report Card' })
       expect(JSON.parse(String(tagInit.body))).toEqual({ tags: ['service-credit-improvement'] })
       expect(JSON.stringify(createInit.body)).not.toMatch(/firstName.*update|customFields|opportunity/)
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
+
+  it('does nothing for Family, Business, Protection, or Retirement', async () => {
+    const lookupIdentity = vi.fn()
+    const createContact = vi.fn()
+    const applyTag = vi.fn()
+    const links = linked()
+    for (const assessmentType of ['family', 'business', 'protection', 'retirement']) {
+      const decision = await runReportCardAgentCrmSync(
+        { ...INPUT, assessmentType },
+        quiet({
+          linkingEnabled: true,
+          creationEnabled: true,
+          taggingEnabled: true,
+          lookupIdentity,
+          createContact,
+          applyTag,
+          links,
+        }),
+      )
+      expect(decision).toBeNull()
+    }
+    expect(lookupIdentity).not.toHaveBeenCalled()
+    expect(createContact).not.toHaveBeenCalled()
+    expect(applyTag).not.toHaveBeenCalled()
+    expect(links.findByMember).not.toHaveBeenCalled()
+    expect(links.saveVerifiedLink).not.toHaveBeenCalled()
+  })
+
+  it('creates, links, and tags a new Home Buyer person with the Home Buyer source and tag', async () => {
+    const order: string[] = []
+    const decision = await runReportCardAgentCrmSync(
+      { ...INPUT, assessmentType: 'home_buyer' },
+      quiet({
+        linkingEnabled: true,
+        creationEnabled: true,
+        taggingEnabled: true,
+        lookupIdentity: async () => ({ status: 'NO_CONTACT_FOUND' as const }),
+        createContact: async (input) => {
+          order.push('create')
+          expect(input.source).toBe('Home Buyer Report Card')
+          return { id: 'ext-home-buyer', sourceMatched: true }
+        },
+        applyTag: async () => {
+          order.push('tag')
+        },
+        links: {
+          findByMember: async () => ({ status: 'not_found' as const }),
+          saveVerifiedLink: async () => {
+            order.push('link')
+            return { status: 'created' as const }
+          },
+        },
+      }),
+    )
+    expect(decision).toEqual({ status: 'CREATED_AND_LINKED_CONTACT' })
+    expect(order).toEqual(['create', 'link', 'tag'])
+    expect(JSON.stringify(decision)).not.toContain('ext-home-buyer')
+  })
+
+  it('links an exact Home Buyer contact and does not update it', async () => {
+    const createContact = vi.fn()
+    const decision = await runReportCardAgentCrmSync(
+      { ...INPUT, assessmentType: 'home_buyer' },
+      quiet({
+        linkingEnabled: true,
+        taggingEnabled: true,
+        lookupIdentity: async () => ({ status: 'EXACT_EXISTING_CONTACT' as const, externalContactId: EXTERNAL_ID }),
+        createContact,
+        applyTag: async () => {},
+        links: {
+          findByMember: async () => ({ status: 'not_found' as const }),
+          saveVerifiedLink: async () => ({ status: 'created' as const }),
+        },
+      }),
+    )
+    expect(decision).toEqual({ status: 'LINKED_EXISTING_CONTACT' })
+    expect(createContact).not.toHaveBeenCalled()
+    expect(JSON.stringify(decision)).not.toContain(EXTERNAL_ID)
+  })
+
+  it('tags an already linked Home Buyer person twice without searching or creating', async () => {
+    const lookupIdentity = vi.fn()
+    const createContact = vi.fn()
+    const applyTag = vi.fn(async () => {})
+    const links = linked()
+    const first = await runReportCardAgentCrmSync(
+      { ...INPUT, assessmentType: 'home_buyer' },
+      quiet({ linkingEnabled: true, creationEnabled: true, taggingEnabled: true, lookupIdentity, createContact, applyTag, links }),
+    )
+    const second = await runReportCardAgentCrmSync(
+      { ...INPUT, assessmentType: 'home_buyer' },
+      quiet({ linkingEnabled: true, creationEnabled: true, taggingEnabled: true, lookupIdentity, createContact, applyTag, links }),
+    )
+    expect(first).toEqual({ status: 'ALREADY_LINKED' })
+    expect(second).toEqual({ status: 'ALREADY_LINKED' })
+    expect(applyTag).toHaveBeenCalledTimes(2)
+    expect(lookupIdentity).not.toHaveBeenCalled()
+    expect(createContact).not.toHaveBeenCalled()
+    expect(links.saveVerifiedLink).not.toHaveBeenCalled()
+  })
+
+  it('adds the Home Buyer tag to a contact already linked from Student Loan or Credit', async () => {
+    for (const prior of ['student_loan', 'credit'] as const) {
+      const lookupIdentity = vi.fn()
+      const createContact = vi.fn()
+      const applyTag = vi.fn(async () => {})
+      const student = await runReportCardAgentCrmSync(
+        { ...INPUT, assessmentType: prior },
+        quiet({
+          linkingEnabled: true,
+          creationEnabled: true,
+          taggingEnabled: true,
+          lookupIdentity: async () => ({ status: 'NO_CONTACT_FOUND' as const }),
+          createContact: async () => ({ id: EXTERNAL_ID, sourceMatched: true }),
+          applyTag,
+          links: {
+            findByMember: async () => ({ status: 'not_found' as const }),
+            saveVerifiedLink: async () => ({ status: 'created' as const }),
+          },
+        }),
+      )
+      const homeBuyer = await runReportCardAgentCrmSync(
+        { ...INPUT, assessmentType: 'home_buyer' },
+        quiet({
+          linkingEnabled: true,
+          creationEnabled: true,
+          taggingEnabled: true,
+          lookupIdentity,
+          createContact,
+          applyTag,
+          links: linked(),
+        }),
+      )
+      expect(student).toEqual({ status: 'CREATED_AND_LINKED_CONTACT' })
+      expect(homeBuyer).toEqual({ status: 'ALREADY_LINKED' })
+      expect(lookupIdentity).not.toHaveBeenCalled()
+      expect(createContact).not.toHaveBeenCalled()
+      expect(applyTag).toHaveBeenCalledTimes(2)
+      expect(applyTag).toHaveBeenLastCalledWith(EXTERNAL_ID)
+    }
+  })
+
+  it('keeps one contact and one link across Student Loan, Credit, and Home Buyer', async () => {
+    let stored: string | null = null
+    const createContact = vi.fn(async () => ({ id: EXTERNAL_ID, sourceMatched: true }))
+    const applyTag = vi.fn(async () => {})
+    const saveVerifiedLink = vi.fn(async () => {
+      stored = EXTERNAL_ID
+      return { status: 'created' as const }
+    })
+    const links = {
+      findByMember: async () =>
+        stored
+          ? { status: 'found' as const, link: { householdMemberId: MEMBER_ID, externalContactId: stored } }
+          : { status: 'not_found' as const },
+      saveVerifiedLink,
+    }
+    const decisions = []
+    for (const assessmentType of ['student_loan', 'credit', 'home_buyer'] as const) {
+      decisions.push(
+        await runReportCardAgentCrmSync(
+          { ...INPUT, assessmentType },
+          quiet({
+            linkingEnabled: true,
+            creationEnabled: true,
+            taggingEnabled: true,
+            lookupIdentity: async () => ({ status: 'NO_CONTACT_FOUND' as const }),
+            createContact,
+            applyTag,
+            links,
+          }),
+        ),
+      )
+    }
+    expect(decisions.map((decision) => decision?.status)).toEqual([
+      'CREATED_AND_LINKED_CONTACT',
+      'ALREADY_LINKED',
+      'ALREADY_LINKED',
+    ])
+    expect(createContact).toHaveBeenCalledTimes(1)
+    expect(saveVerifiedLink).toHaveBeenCalledTimes(1)
+    expect(applyTag).toHaveBeenCalledTimes(3)
+    expect(applyTag).toHaveBeenNthCalledWith(3, EXTERNAL_ID)
+  })
+
+  it('posts only the Home Buyer service tag and leaves Student Loan and Credit tags in place', async () => {
+    const fetchImpl = vi.fn(async (input: RequestInfo | URL, _init?: RequestInit) => {
+      const url = input instanceof URL ? input : new URL(String(input))
+      if (url.pathname === '/contacts/') {
+        return new Response(
+          JSON.stringify({
+            contact: {
+              id: 'syntheticContact1',
+              locationId: 'loc-test',
+              email: INPUT.email,
+              phone: INPUT.phone,
+              source: 'Home Buyer Report Card',
+            },
+          }),
+          { status: 201, headers: { 'Content-Type': 'application/json' } },
+        )
+      }
+      return new Response(
+        JSON.stringify({
+          tags: ['service-student-loans', 'service-credit-improvement', 'service-home-buyer-readiness'],
+        }),
+        { status: 201, headers: { 'Content-Type': 'application/json' } },
+      )
+    })
+    vi.stubGlobal('fetch', fetchImpl)
+    try {
+      const decision = await runReportCardAgentCrmSync(
+        { ...INPUT, assessmentType: 'home_buyer' },
+        {
+          log: () => {},
+          lookupIdentity: async () => ({ status: 'NO_CONTACT_FOUND' as const }),
+          links: {
+            findByMember: async () => ({ status: 'not_found' as const }),
+            saveVerifiedLink: async () => ({ status: 'created' as const }),
+          },
+          env: {
+            [AGENTCRM_CONTACT_LINKING_ENV]: 'true',
+            [AGENTCRM_CONTACT_CREATION_ENV]: 'true',
+            [AGENTCRM_CONTACT_TAGGING_ENV]: 'true',
+            SUPABASE_URL: CRM_DEV,
+            AGENTCRM_LOCATION_ID: 'loc-test',
+            AGENTCRM_PRIVATE_INTEGRATION_TOKEN: 'pit-test-placeholder',
+          },
+        },
+      )
+      expect(decision).toEqual({ status: 'CREATED_AND_LINKED_CONTACT' })
+      const createInit = fetchImpl.mock.calls[0]?.[1]
+      const tagInit = fetchImpl.mock.calls[1]?.[1]
+      if (!createInit || !tagInit) throw new Error('expected create and tag requests')
+      const tagBody = JSON.parse(String(tagInit.body)) as { tags: string[] }
+      expect(JSON.parse(String(createInit.body))).toMatchObject({ source: 'Home Buyer Report Card' })
+      expect(tagBody).toEqual({ tags: ['service-home-buyer-readiness'] })
+      expect(tagBody.tags).not.toContain('service-home-auto')
+      expect(tagBody.tags).not.toContain('service-credit-improvement')
+      expect(JSON.stringify(createInit.body)).not.toMatch(/customFields|opportunity|workflow/)
     } finally {
       vi.unstubAllGlobals()
     }

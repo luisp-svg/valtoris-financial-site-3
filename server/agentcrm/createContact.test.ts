@@ -191,10 +191,28 @@ describe('createAgentCrmContact', () => {
 
   it('does not create a contact for a source outside the enabled configuration', async () => {
     const fetchImpl = vi.fn()
-    await expect(
-      createAgentCrmContact({ ...INPUT, source: 'Family Report Card' }, { env: enabledEnv(), fetchImpl }),
-    ).rejects.toMatchObject({ category: 'forbidden' })
+    for (const source of ['Family Report Card', 'Business Report Card', 'Protection Gap', 'Retirement Report Card']) {
+      await expect(
+        createAgentCrmContact({ ...INPUT, source }, { env: enabledEnv(), fetchImpl }),
+      ).rejects.toMatchObject({ category: 'forbidden' })
+    }
     expect(fetchImpl).not.toHaveBeenCalled()
+  })
+
+  it('accepts the Home Buyer source and does not attach a tag on create', async () => {
+    const fetchImpl = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) =>
+      jsonResponse(contactBody({ source: 'Home Buyer Report Card' })),
+    )
+    const created = await createAgentCrmContact(
+      { ...INPUT, source: 'Home Buyer Report Card' },
+      { env: enabledEnv(), fetchImpl },
+    )
+    expect(created.sourceMatched).toBe(true)
+    const init = fetchImpl.mock.calls[0]?.[1]
+    if (!init) throw new Error('expected a create request')
+    const body = JSON.parse(String(init.body)) as { source?: string; tags?: unknown }
+    expect(body.source).toBe('Home Buyer Report Card')
+    expect(body.tags).toBeUndefined()
   })
 
   it('leaves the generic client on GET', () => {
