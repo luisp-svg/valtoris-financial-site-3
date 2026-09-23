@@ -18,11 +18,12 @@ const INPUT: StudentLoanDryRunInput = {
 }
 
 function off(deps: StudentLoanDryRunDeps = {}): StudentLoanDryRunDeps {
-  return { linkingEnabled: false, log: () => {}, ...deps }
+  return { syncEnabled: true, linkingEnabled: false, log: () => {}, ...deps }
 }
 
 function on(deps: StudentLoanDryRunDeps = {}): StudentLoanDryRunDeps {
   return {
+    syncEnabled: true,
     linkingEnabled: true,
     creationEnabled: false,
     taggingEnabled: false,
@@ -33,7 +34,7 @@ function on(deps: StudentLoanDryRunDeps = {}): StudentLoanDryRunDeps {
 }
 
 describe('runStudentLoanAgentCrmDryRun', () => {
-  it('maps an exact classifier result without keeping the external contact id when linking is off', async () => {
+  it('does not look up or link when the master switch is on and linking is off', async () => {
     const lookupIdentity = vi.fn(async () => ({
       status: 'EXACT_EXISTING_CONTACT' as const,
       externalContactId: EXTERNAL_ID,
@@ -44,20 +45,21 @@ describe('runStudentLoanAgentCrmDryRun', () => {
       INPUT,
       off({ lookupIdentity, links: { findByMember, saveVerifiedLink } }),
     )
-    expect(decision).toEqual({ status: 'EXACT_EXISTING_CONTACT' })
+    expect(decision).toEqual({ status: 'SKIP_LINKING_DISABLED' })
     expect(JSON.stringify(decision)).not.toContain(EXTERNAL_ID)
-    expect(lookupIdentity).toHaveBeenCalledTimes(1)
+    expect(lookupIdentity).not.toHaveBeenCalled()
     expect(findByMember).not.toHaveBeenCalled()
     expect(saveVerifiedLink).not.toHaveBeenCalled()
   })
 
-  it('maps no contact found', async () => {
+  it('does not look up a missing contact when linking is off', async () => {
     const lookupIdentity = vi.fn(async () => ({ status: 'NO_CONTACT_FOUND' as const }))
     const decision = await runStudentLoanAgentCrmDryRun(INPUT, off({ lookupIdentity }))
-    expect(decision).toEqual({ status: 'NO_CONTACT_FOUND' })
+    expect(decision).toEqual({ status: 'SKIP_LINKING_DISABLED' })
+    expect(lookupIdentity).not.toHaveBeenCalled()
   })
 
-  it('maps an exact result for exact_trusted_match when linking is off', async () => {
+  it('does not look up an exact trusted match when linking is off', async () => {
     const lookupIdentity = vi.fn(async () => ({
       status: 'EXACT_EXISTING_CONTACT' as const,
       externalContactId: 'hidden-id',
@@ -66,8 +68,8 @@ describe('runStudentLoanAgentCrmDryRun', () => {
       { ...INPUT, matchStatus: 'exact_trusted_match' },
       off({ lookupIdentity }),
     )
-    expect(decision).toEqual({ status: 'EXACT_EXISTING_CONTACT' })
-    expect(lookupIdentity).toHaveBeenCalledTimes(1)
+    expect(decision).toEqual({ status: 'SKIP_LINKING_DISABLED' })
+    expect(lookupIdentity).not.toHaveBeenCalled()
   })
 
   it('skips possible_match without calling the classifier or the link table', async () => {
@@ -141,7 +143,13 @@ describe('runStudentLoanAgentCrmDryRun', () => {
     const throwing = vi.fn(async () => {
       throw new Error(`timeout for ${INPUT.email}`)
     })
-    const thrown = await runStudentLoanAgentCrmDryRun(INPUT, off({ lookupIdentity: throwing }))
+    const thrown = await runStudentLoanAgentCrmDryRun(
+      INPUT,
+      on({
+        lookupIdentity: throwing,
+        links: { findByMember: async () => ({ status: 'not_found' }), saveVerifiedLink: vi.fn() },
+      }),
+    )
     expect(thrown).toEqual({ status: 'INTEGRATION_ERROR', category: 'network' })
     expect(JSON.stringify(thrown)).not.toContain(INPUT.email)
   })
@@ -257,7 +265,7 @@ describe('runStudentLoanAgentCrmDryRun', () => {
         createContact,
       }),
     )
-    expect(decision).toEqual({ status: 'NO_CONTACT_FOUND' })
+    expect(decision).toEqual({ status: 'SKIP_LINKING_DISABLED' })
     expect(createContact).not.toHaveBeenCalled()
   })
 
@@ -396,7 +404,7 @@ describe('runStudentLoanAgentCrmDryRun', () => {
     })
     expect(info).toHaveBeenCalledTimes(1)
     const payload = JSON.stringify(info.mock.calls[0])
-    expect(payload).toContain('NO_CONTACT_FOUND')
+    expect(payload).toContain('SKIP_SYNC_DISABLED')
     expect(payload).toContain(INPUT.submissionId)
     expect(payload).not.toContain(INPUT.email)
     expect(payload).not.toContain(INPUT.phone)
@@ -510,7 +518,7 @@ describe('runStudentLoanAgentCrmDryRun', () => {
       links: linked,
     })
     expect(disabled).toEqual({ status: 'ALREADY_LINKED' })
-    expect(production).toEqual({ status: 'ALREADY_LINKED' })
+    expect(production).toEqual({ status: 'SKIP_SYNC_DISABLED' })
     expect(applyTag).not.toHaveBeenCalled()
   })
 

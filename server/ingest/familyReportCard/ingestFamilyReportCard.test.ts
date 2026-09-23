@@ -318,7 +318,18 @@ describe('ingestFamilyReportCard', () => {
         errorCategory: null,
         needsManualReview: false,
       }),
-      runStudentLoanDryRun: (input) => runStudentLoanAgentCrmDryRun(input, { lookupIdentity, log: () => {} }),
+      runStudentLoanDryRun: (input) =>
+        runStudentLoanAgentCrmDryRun(input, {
+          syncEnabled: true,
+          linkingEnabled: true,
+          locationId: 'loc-test',
+          log: () => {},
+          lookupIdentity,
+          links: {
+            findByMember: async () => ({ status: 'not_found' }),
+            saveVerifiedLink: vi.fn(),
+          },
+        }),
     })
 
     expect(result.ok).toBe(true)
@@ -386,7 +397,7 @@ describe('ingestFamilyReportCard', () => {
       }),
       runStudentLoanDryRun: (input) =>
         runStudentLoanAgentCrmDryRun(input, {
-          linkingEnabled: true,
+          syncEnabled: true, linkingEnabled: true,
           locationId: 'loc-test',
           log: () => {},
           lookupIdentity,
@@ -427,7 +438,7 @@ describe('ingestFamilyReportCard', () => {
       }),
       runStudentLoanDryRun: (input) =>
         runStudentLoanAgentCrmDryRun(input, {
-          linkingEnabled: true,
+          syncEnabled: true, linkingEnabled: true,
           creationEnabled: true,
           locationId: 'loc-test',
           log: () => {},
@@ -467,7 +478,7 @@ describe('ingestFamilyReportCard', () => {
       }),
       runStudentLoanDryRun: (input) =>
         runStudentLoanAgentCrmDryRun(input, {
-          linkingEnabled: true,
+          syncEnabled: true, linkingEnabled: true,
           taggingEnabled: true,
           locationId: 'loc-test',
           log: () => {},
@@ -508,7 +519,7 @@ describe('ingestFamilyReportCard', () => {
       }),
       runStudentLoanDryRun: (input) =>
         runStudentLoanAgentCrmDryRun(input, {
-          linkingEnabled: true,
+          syncEnabled: true, linkingEnabled: true,
           locationId: 'loc-test',
           log: () => {},
           lookupIdentity: async () => ({ status: 'INTEGRATION_ERROR', category: 'timeout' }),
@@ -541,7 +552,7 @@ describe('ingestFamilyReportCard', () => {
       }),
       runStudentLoanDryRun: (input) =>
         runStudentLoanAgentCrmDryRun(input, {
-          linkingEnabled: true,
+          syncEnabled: true, linkingEnabled: true,
           locationId: 'loc-test',
           log: () => {},
           lookupIdentity: async () => ({ status: 'INTEGRATION_ERROR', category: 'timeout' }),
@@ -580,7 +591,7 @@ describe('ingestFamilyReportCard', () => {
       }),
       runStudentLoanDryRun: (input) =>
         runStudentLoanAgentCrmDryRun(input, {
-          linkingEnabled: true,
+          syncEnabled: true, linkingEnabled: true,
           locationId: 'loc-test',
           log: () => {},
           lookupIdentity: async () => ({ status: 'INTEGRATION_ERROR', category: 'timeout' }),
@@ -619,7 +630,7 @@ describe('ingestFamilyReportCard', () => {
       }),
       runStudentLoanDryRun: (input) =>
         runStudentLoanAgentCrmDryRun(input, {
-          linkingEnabled: true,
+          syncEnabled: true, linkingEnabled: true,
           locationId: 'loc-test',
           log: () => {},
           lookupIdentity: async () => ({ status: 'INTEGRATION_ERROR', category: 'timeout' }),
@@ -658,7 +669,7 @@ describe('ingestFamilyReportCard', () => {
       }),
       runStudentLoanDryRun: (input) =>
         runStudentLoanAgentCrmDryRun(input, {
-          linkingEnabled: true,
+          syncEnabled: true, linkingEnabled: true,
           locationId: 'loc-test',
           log: () => {},
           lookupIdentity: async () => ({ status: 'INTEGRATION_ERROR', category: 'timeout' }),
@@ -697,7 +708,7 @@ describe('ingestFamilyReportCard', () => {
       }),
       runStudentLoanDryRun: (input) =>
         runStudentLoanAgentCrmDryRun(input, {
-          linkingEnabled: true,
+          syncEnabled: true, linkingEnabled: true,
           locationId: 'loc-test',
           log: () => {},
           lookupIdentity: async () => ({ status: 'INTEGRATION_ERROR', category: 'timeout' }),
@@ -718,6 +729,31 @@ describe('ingestFamilyReportCard', () => {
       /INTEGRATION_ERROR|TAG_FAILED|externalContactId|service-retirement-planning|service-annuities-retirement|service-tax-strategies|service-wills-trusts|service-health-disability/,
     )
     expect(JSON.stringify(result)).not.toContain('alex.morgan@example.com')
+  })
+
+  it('keeps the public result when the master sync switch is unset', async () => {
+    const result = await ingestFamilyReportCard(validIngestRequestBodyFixture(), {
+      admin: makeAdminStub(async (fn) => {
+        if (fn === 'ingest_public_report_card') return { data: newProspectRpcResponse(), error: null }
+        return { data: null, error: null }
+      }),
+      sheetsWriter: vi.fn().mockResolvedValue({ status: 'succeeded' as const }),
+      findCandidates: async () => [],
+      orchestrateFollowUpTask: vi.fn().mockResolvedValue({
+        status: 'task_created',
+        taskId: 'task-1',
+        errorCategory: null,
+        needsManualReview: false,
+      }),
+    })
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.created).toBe(true)
+      expect(result).not.toHaveProperty('memberId')
+      expect(result).not.toHaveProperty('externalContactId')
+    }
+    expect(JSON.stringify(result)).not.toMatch(/SKIP_SYNC_DISABLED|SKIP_LINKING_DISABLED|INTEGRATION_ERROR|externalContactId|service-family-planning/)
+    expect(JSON.stringify(result)).not.toContain('jamie.rivera@example.com')
   })
 
   it('does not classify when the Report Card sync config is disabled', async () => {

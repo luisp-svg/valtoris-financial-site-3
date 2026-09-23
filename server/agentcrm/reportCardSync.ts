@@ -4,6 +4,7 @@ import { LeadConnectorClient } from './client.js'
 import { readAgentCrmConfig, readAgentCrmLocationId, type AgentCrmConfig } from './config.js'
 import { isAgentCrmContactCreationEnabled } from './contactCreationGate.js'
 import { isAgentCrmContactLinkingEnabled } from './contactLinkGate.js'
+import { isAgentCrmReportCardSyncEnabled } from './reportCardSyncGate.js'
 import {
   AGENTCRM_LINK_PROVIDER,
   createIntegrationContactLinkRepository,
@@ -31,6 +32,8 @@ import {
 export type ReportCardSyncDecision =
   | { status: 'SKIP_POSSIBLE_MATCH' }
   | { status: 'SKIP_REPLAY_WITHOUT_MEMBER' }
+  | { status: 'SKIP_SYNC_DISABLED' }
+  | { status: 'SKIP_LINKING_DISABLED' }
   | { status: 'ALREADY_LINKED' }
   | { status: 'LINKED_EXISTING_CONTACT' }
   | { status: 'CREATED_AND_LINKED_CONTACT' }
@@ -60,13 +63,15 @@ export type ReportCardSyncDeps = {
   /** Test double for the read-only classifier. Production uses lookupAgentCrmIdentity. */
   lookupIdentity?: (candidate: AgentCrmIdentityCandidate) => Promise<AgentCrmIdentityLookupResult>
   readConfig?: (env?: NodeJS.ProcessEnv) => AgentCrmConfig
-  /** Test override. Production reads AGENTCRM_CONTACT_LINKING_ENABLED and the CRM-dev host gate. */
+  /** Test override. Production reads AGENTCRM_REPORT_CARD_SYNC_ENABLED and the approved-host gate. */
+  syncEnabled?: boolean
+  /** Test override. Production reads AGENTCRM_CONTACT_LINKING_ENABLED, the master switch, and an approved host. */
   linkingEnabled?: boolean
-  /** Test override. Production reads AGENTCRM_CONTACT_CREATION_ENABLED and the CRM-dev host gate. */
+  /** Test override. Production reads AGENTCRM_CONTACT_CREATION_ENABLED only when master sync and linking are on. */
   creationEnabled?: boolean
   /** Test double. Production uses createAgentCrmContact. */
   createContact?: (input: CreateAgentCrmContactInput) => Promise<CreatedAgentCrmContact>
-  /** Test override. Production reads AGENTCRM_CONTACT_TAGGING_ENABLED and the CRM-dev host gate. */
+  /** Test override. Production reads AGENTCRM_CONTACT_TAGGING_ENABLED, the master switch, and an approved host. */
   taggingEnabled?: boolean
   /** Test double. Production uses applyReportCardServiceTag with the configured service tag. */
   applyTag?: (contactId: string) => Promise<void>
@@ -124,33 +129,17 @@ async function decide(
   const phone = typeof input.phone === 'string' ? input.phone.trim() : ''
   if (!email || !phone) return { status: 'AMBIGUOUS', reason: 'MISSING_IDENTITY_INPUT' }
 
+  const syncEnabled = deps.syncEnabled ?? isAgentCrmReportCardSyncEnabled(deps.env)
+  if (!syncEnabled) return { status: 'SKIP_SYNC_DISABLED' }
+
+  const linkingEnabled = deps.linkingEnabled ?? isAgentCrmContactLinkingEnabled(deps.env)
+  if (!linkingEnabled) return { status: 'SKIP_LINKING_DISABLED' }
+
   try {
-    const linkingEnabled = deps.linkingEnabled ?? isAgentCrmContactLinkingEnabled(deps.env)
-    if (!linkingEnabled) return await classifyWithoutLink(input, deps, email, phone)
     return await classifyAndLink(input, deps, card, memberId, email, phone)
   } catch {
     return { status: 'INTEGRATION_ERROR', category: 'network' }
   }
-}
-
-async function classifyWithoutLink(
-  input: ReportCardSyncInput,
-  deps: ReportCardSyncDeps,
-  email: string,
-  phone: string,
-): Promise<ReportCardSyncDecision> {
-  const lookup = deps.lookupIdentity ?? configuredLookup(deps)
-  if (!lookup) return { status: 'INTEGRATION_ERROR', category: 'not_configured' }
-  const result = await lookup({
-    firstName: input.firstName,
-    lastName: input.lastName,
-    email,
-    phone,
-  })
-  if (result.status === 'EXACT_EXISTING_CONTACT') return { status: 'EXACT_EXISTING_CONTACT' }
-  if (result.status === 'NO_CONTACT_FOUND') return { status: 'NO_CONTACT_FOUND' }
-  if (result.status === 'AMBIGUOUS') return { status: 'AMBIGUOUS', reason: result.reason }
-  return { status: 'INTEGRATION_ERROR', category: result.category }
 }
 
 async function classifyAndLink(

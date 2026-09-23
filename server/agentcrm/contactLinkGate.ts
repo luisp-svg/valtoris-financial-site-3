@@ -1,9 +1,9 @@
 import { assertAgentCrmServerOnly } from './config.js'
+import { isAgentCrmReportCardSyncEnabled, isApprovedAgentCrmSupabaseHost } from './reportCardSyncGate.js'
+
+export { CRM_DEV_SUPABASE_HOST, CRM_PROD_SUPABASE_HOST } from './reportCardSyncGate.js'
 
 export const AGENTCRM_CONTACT_LINKING_ENV = 'AGENTCRM_CONTACT_LINKING_ENABLED'
-
-/** CRM-dev only. Production does not have migration 055, so any other host stays off. */
-export const CRM_DEV_SUPABASE_HOST = 'cxgiaevervjttbuiramd.supabase.co'
 
 const FORBIDDEN_VITE_NAME = 'VITE_AGENTCRM_CONTACT_LINKING_ENABLED'
 
@@ -13,9 +13,8 @@ function readTrimmed(env: NodeJS.ProcessEnv, name: string): string {
 }
 
 /**
- * Durable link writes are off unless a server explicitly opts in AND the
- * Supabase URL is CRM-dev. Production, and every other host, cannot reach
- * integration_contact_links through this path.
+ * Durable link writes require the master sync switch, this flag exactly true,
+ * and an approved CRM-dev or CRM-prod host. Any other host stays off.
  */
 export function isAgentCrmContactLinkingEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
   assertAgentCrmServerOnly()
@@ -23,12 +22,6 @@ export function isAgentCrmContactLinkingEnabled(env: NodeJS.ProcessEnv = process
     throw new Error('AgentCRM settings must not use a VITE_ prefix.')
   }
   if (readTrimmed(env, AGENTCRM_CONTACT_LINKING_ENV) !== 'true') return false
-
-  const rawUrl = readTrimmed(env, 'SUPABASE_URL')
-  if (!rawUrl) return false
-  try {
-    return new URL(rawUrl).hostname === CRM_DEV_SUPABASE_HOST
-  } catch {
-    return false
-  }
+  if (!isApprovedAgentCrmSupabaseHost(env)) return false
+  return isAgentCrmReportCardSyncEnabled(env)
 }

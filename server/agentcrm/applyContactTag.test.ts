@@ -10,6 +10,7 @@ import {
   RETIREMENT_SERVICE_TAG,
 } from './reportCardSyncConfig'
 import { AGENTCRM_CONTACT_TAGGING_ENV } from './contactTaggingGate'
+import { AGENTCRM_REPORT_CARD_SYNC_ENV } from './reportCardSyncGate'
 import { LeadConnectorError } from './errors'
 
 const TOKEN = 'pit-test-placeholder'
@@ -17,6 +18,7 @@ const CONTACT_ID = 'syntheticContact1'
 
 function enabledEnv(): NodeJS.ProcessEnv {
   return {
+    [AGENTCRM_REPORT_CARD_SYNC_ENV]: 'true',
     [AGENTCRM_CONTACT_TAGGING_ENV]: 'true',
     SUPABASE_URL: 'https://cxgiaevervjttbuiramd.supabase.co',
     AGENTCRM_PRIVATE_INTEGRATION_TOKEN: TOKEN,

@@ -1,5 +1,6 @@
 import { assertAgentCrmServerOnly } from './config.js'
-import { CRM_DEV_SUPABASE_HOST } from './contactLinkGate.js'
+import { isAgentCrmContactLinkingEnabled } from './contactLinkGate.js'
+import { isApprovedAgentCrmSupabaseHost } from './reportCardSyncGate.js'
 
 export const AGENTCRM_CONTACT_CREATION_ENV = 'AGENTCRM_CONTACT_CREATION_ENABLED'
 
@@ -11,9 +12,9 @@ function readTrimmed(env: NodeJS.ProcessEnv, name: string): string {
 }
 
 /**
- * AgentCRM contact creation is a separate opt-in from Valtoris link writes.
- * It stays off unless the flag is exactly true and SUPABASE_URL is CRM-dev.
- * Production cannot enable this by setting the flag alone.
+ * Contact creation requires the master sync switch, durable linking, this
+ * flag exactly true, and an approved host. Linking off cannot create an
+ * unlinked AgentCRM contact.
  */
 export function isAgentCrmContactCreationEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
   assertAgentCrmServerOnly()
@@ -21,12 +22,6 @@ export function isAgentCrmContactCreationEnabled(env: NodeJS.ProcessEnv = proces
     throw new Error('AgentCRM settings must not use a VITE_ prefix.')
   }
   if (readTrimmed(env, AGENTCRM_CONTACT_CREATION_ENV) !== 'true') return false
-
-  const rawUrl = readTrimmed(env, 'SUPABASE_URL')
-  if (!rawUrl) return false
-  try {
-    return new URL(rawUrl).hostname === CRM_DEV_SUPABASE_HOST
-  } catch {
-    return false
-  }
+  if (!isApprovedAgentCrmSupabaseHost(env)) return false
+  return isAgentCrmContactLinkingEnabled(env)
 }

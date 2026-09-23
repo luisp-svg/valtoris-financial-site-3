@@ -2,6 +2,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { AGENTCRM_CONTACT_LINKING_ENV, isAgentCrmContactLinkingEnabled } from './contactLinkGate'
+import { AGENTCRM_REPORT_CARD_SYNC_ENV } from './reportCardSyncGate'
 
 const CRM_DEV = 'https://cxgiaevervjttbuiramd.supabase.co'
 const CRM_PROD = 'https://phanoknohbidqtgrpwvk.supabase.co'
@@ -31,20 +32,33 @@ describe('isAgentCrmContactLinkingEnabled', () => {
     expect(isAgentCrmContactLinkingEnabled({})).toBe(false)
   })
 
-  it('is on only for CRM-dev when the flag is exactly true', () => {
-    expect(
-      isAgentCrmContactLinkingEnabled({
-        [AGENTCRM_CONTACT_LINKING_ENV]: 'true',
-        SUPABASE_URL: CRM_DEV,
-      }),
-    ).toBe(true)
+  it('is on for an approved host only when the master switch and linking flag are exactly true', () => {
+    for (const host of [CRM_DEV, CRM_PROD]) {
+      expect(
+        isAgentCrmContactLinkingEnabled({
+          [AGENTCRM_REPORT_CARD_SYNC_ENV]: 'true',
+          [AGENTCRM_CONTACT_LINKING_ENV]: 'true',
+          SUPABASE_URL: host,
+        }),
+      ).toBe(true)
+    }
   })
 
-  it('stays off for production even when the flag is true', () => {
+  it('stays off for production when the master switch is missing', () => {
     expect(
       isAgentCrmContactLinkingEnabled({
         [AGENTCRM_CONTACT_LINKING_ENV]: 'true',
         SUPABASE_URL: CRM_PROD,
+      }),
+    ).toBe(false)
+  })
+
+  it('stays off for an unknown host', () => {
+    expect(
+      isAgentCrmContactLinkingEnabled({
+        [AGENTCRM_REPORT_CARD_SYNC_ENV]: 'true',
+        [AGENTCRM_CONTACT_LINKING_ENV]: 'true',
+        SUPABASE_URL: 'https://other.supabase.co',
       }),
     ).toBe(false)
   })

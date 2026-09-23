@@ -1,6 +1,8 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it, vi } from 'vitest'
 import { AGENTCRM_CONTACT_CREATION_ENV } from './contactCreationGate'
+import { AGENTCRM_CONTACT_LINKING_ENV } from './contactLinkGate'
+import { AGENTCRM_REPORT_CARD_SYNC_ENV } from './reportCardSyncGate'
 import { createAgentCrmContact, STUDENT_LOAN_CONTACT_SOURCE } from './createContact'
 import { LeadConnectorError } from './errors'
 
@@ -20,6 +22,8 @@ const INPUT = {
 
 function enabledEnv(overrides: NodeJS.ProcessEnv = {}): NodeJS.ProcessEnv {
   return {
+    [AGENTCRM_REPORT_CARD_SYNC_ENV]: 'true',
+    [AGENTCRM_CONTACT_LINKING_ENV]: 'true',
     [AGENTCRM_CONTACT_CREATION_ENV]: 'true',
     SUPABASE_URL: CRM_DEV,
     AGENTCRM_PRIVATE_INTEGRATION_TOKEN: TOKEN,
@@ -63,12 +67,33 @@ describe('createAgentCrmContact', () => {
     expect(fetchImpl).not.toHaveBeenCalled()
   })
 
-  it('does not POST for the production host even when the flag is true', async () => {
+  it('does not POST for production when the master switch or linking is off', async () => {
     const fetchImpl = vi.fn()
     await expect(
-      createAgentCrmContact(INPUT, { env: enabledEnv({ SUPABASE_URL: CRM_PROD }), fetchImpl }),
+      createAgentCrmContact(INPUT, {
+        env: enabledEnv({ SUPABASE_URL: CRM_PROD, [AGENTCRM_REPORT_CARD_SYNC_ENV]: 'false' }),
+        fetchImpl,
+      }),
+    ).rejects.toMatchObject({ category: 'forbidden' })
+    await expect(
+      createAgentCrmContact(INPUT, {
+        env: enabledEnv({ SUPABASE_URL: CRM_PROD, [AGENTCRM_CONTACT_LINKING_ENV]: 'false' }),
+        fetchImpl,
+      }),
     ).rejects.toMatchObject({ category: 'forbidden' })
     expect(fetchImpl).not.toHaveBeenCalled()
+  })
+
+  it('posts for production only when master, linking, and creation are exactly true', async () => {
+    const fetchImpl = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => jsonResponse(contactBody()))
+    const created = await createAgentCrmContact(INPUT, { env: enabledEnv({ SUPABASE_URL: CRM_PROD }), fetchImpl })
+    expect(created.id).toBe('synthetic-created-contact')
+    expect(fetchImpl).toHaveBeenCalledTimes(1)
+    const init = fetchImpl.mock.calls[0]?.[1]
+    if (!init) throw new Error('expected a create request')
+    const body = JSON.parse(String(init.body)) as Record<string, unknown>
+    expect(body.source).toBe(STUDENT_LOAN_CONTACT_SOURCE)
+    expect(body).not.toHaveProperty('tags')
   })
 
   it('does not POST for CRM-dev when the flag is false', async () => {

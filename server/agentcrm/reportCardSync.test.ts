@@ -3,6 +3,7 @@ import { resolve } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
 import { AGENTCRM_CONTACT_CREATION_ENV } from './contactCreationGate'
 import { AGENTCRM_CONTACT_LINKING_ENV } from './contactLinkGate'
+import { AGENTCRM_REPORT_CARD_SYNC_ENV } from './reportCardSyncGate'
 import { AGENTCRM_CONTACT_TAGGING_ENV } from './contactTaggingGate'
 import { runReportCardAgentCrmSync, type ReportCardSyncDeps, type ReportCardSyncInput } from './reportCardSync'
 
@@ -33,7 +34,7 @@ function linked(externalContactId = EXTERNAL_ID) {
 }
 
 function quiet(deps: ReportCardSyncDeps = {}): ReportCardSyncDeps {
-  return { log: () => {}, locationId: 'loc-test', ...deps }
+  return { log: () => {}, locationId: 'loc-test', syncEnabled: true, ...deps }
 }
 
 describe('runReportCardAgentCrmSync', () => {
@@ -200,13 +201,14 @@ describe('runReportCardAgentCrmSync', () => {
         },
       }),
     )
+    const linkingLookup = vi.fn(async () => ({ status: 'NO_CONTACT_FOUND' as const }))
     const linkingOff = await runReportCardAgentCrmSync(
       INPUT,
       quiet({
         linkingEnabled: false,
         creationEnabled: true,
         taggingEnabled: true,
-        lookupIdentity: async () => ({ status: 'NO_CONTACT_FOUND' as const }),
+        lookupIdentity: linkingLookup,
         createContact,
         applyTag,
         links: linked(),
@@ -222,7 +224,8 @@ describe('runReportCardAgentCrmSync', () => {
       }),
     )
     expect(creationOff).toEqual({ status: 'NO_CONTACT_FOUND' })
-    expect(linkingOff).toEqual({ status: 'NO_CONTACT_FOUND' })
+    expect(linkingOff).toEqual({ status: 'SKIP_LINKING_DISABLED' })
+    expect(linkingLookup).not.toHaveBeenCalled()
     expect(taggingOff).toEqual({ status: 'ALREADY_LINKED' })
     expect(createContact).not.toHaveBeenCalled()
     expect(applyTag).not.toHaveBeenCalled()
@@ -326,37 +329,140 @@ describe('runReportCardAgentCrmSync', () => {
     expect(JSON.stringify(decision)).not.toContain(INPUT.email ?? '')
   })
 
-  it('blocks linking, creation, and tagging on the production host', async () => {
-    const lookupIdentity = vi.fn(async () => ({ status: 'NO_CONTACT_FOUND' as const }))
-    const createContact = vi.fn()
-    const applyTag = vi.fn()
-    const links = linked()
-    const decision = await runReportCardAgentCrmSync(INPUT, {
-      log: () => {},
-      lookupIdentity,
-      createContact,
-      applyTag,
-      links,
-      env: {
-        [AGENTCRM_CONTACT_LINKING_ENV]: 'true',
-        [AGENTCRM_CONTACT_CREATION_ENV]: 'true',
-        [AGENTCRM_CONTACT_TAGGING_ENV]: 'true',
-        SUPABASE_URL: CRM_PROD,
-        AGENTCRM_LOCATION_ID: 'loc-test',
-        AGENTCRM_PRIVATE_INTEGRATION_TOKEN: 'pit-test-placeholder',
-      },
+  it('does not call AgentCRM when the master switch is missing or false', async () => {
+    for (const master of [undefined, 'false', 'TRUE', '1']) {
+      const lookupIdentity = vi.fn()
+      const createContact = vi.fn()
+      const applyTag = vi.fn()
+      const links = linked()
+      const decision = await runReportCardAgentCrmSync(INPUT, {
+        log: () => {},
+        lookupIdentity,
+        createContact,
+        applyTag,
+        links,
+        env: {
+          ...(master === undefined ? {} : { [AGENTCRM_REPORT_CARD_SYNC_ENV]: master }),
+          [AGENTCRM_CONTACT_LINKING_ENV]: 'true',
+          [AGENTCRM_CONTACT_CREATION_ENV]: 'true',
+          [AGENTCRM_CONTACT_TAGGING_ENV]: 'true',
+          SUPABASE_URL: CRM_DEV,
+          AGENTCRM_LOCATION_ID: 'loc-test',
+          AGENTCRM_PRIVATE_INTEGRATION_TOKEN: 'pit-test-placeholder',
+        },
+      })
+      expect(decision).toEqual({ status: 'SKIP_SYNC_DISABLED' })
+      expect(lookupIdentity).not.toHaveBeenCalled()
+      expect(createContact).not.toHaveBeenCalled()
+      expect(applyTag).not.toHaveBeenCalled()
+      expect(links.findByMember).not.toHaveBeenCalled()
+      expect(links.saveVerifiedLink).not.toHaveBeenCalled()
+    }
+  })
+
+  it('keeps production inert unless every required gate is explicitly true', async () => {
+    const flags = (
+      master: string | undefined,
+      linking: string | undefined,
+      creation: string | undefined,
+      tagging: string | undefined,
+      host = CRM_PROD,
+    ): NodeJS.ProcessEnv => ({
+      ...(master === undefined ? {} : { [AGENTCRM_REPORT_CARD_SYNC_ENV]: master }),
+      ...(linking === undefined ? {} : { [AGENTCRM_CONTACT_LINKING_ENV]: linking }),
+      ...(creation === undefined ? {} : { [AGENTCRM_CONTACT_CREATION_ENV]: creation }),
+      ...(tagging === undefined ? {} : { [AGENTCRM_CONTACT_TAGGING_ENV]: tagging }),
+      SUPABASE_URL: host,
+      AGENTCRM_LOCATION_ID: 'loc-test',
+      AGENTCRM_PRIVATE_INTEGRATION_TOKEN: 'pit-test-placeholder',
     })
-    expect(decision).toEqual({ status: 'NO_CONTACT_FOUND' })
-    expect(links.findByMember).not.toHaveBeenCalled()
-    expect(links.saveVerifiedLink).not.toHaveBeenCalled()
-    expect(createContact).not.toHaveBeenCalled()
-    expect(applyTag).not.toHaveBeenCalled()
-    expect(lookupIdentity).toHaveBeenCalledTimes(1)
+
+    const run = async (
+      env: NodeJS.ProcessEnv,
+      lookupStatus: 'NO_CONTACT_FOUND' | 'EXACT_EXISTING_CONTACT' = 'NO_CONTACT_FOUND',
+    ) => {
+      const lookupIdentity = vi.fn(async () =>
+        lookupStatus === 'EXACT_EXISTING_CONTACT'
+          ? ({ status: 'EXACT_EXISTING_CONTACT' as const, externalContactId: EXTERNAL_ID })
+          : ({ status: 'NO_CONTACT_FOUND' as const }),
+      )
+      const createContact = vi.fn(async () => ({ id: 'ext-created', sourceMatched: true }))
+      const applyTag = vi.fn(async () => {})
+      const findByMember = vi.fn(async () => ({ status: 'not_found' as const }))
+      const saveVerifiedLink = vi.fn(async () => ({ status: 'created' as const }))
+      const decision = await runReportCardAgentCrmSync(INPUT, {
+        log: () => {},
+        lookupIdentity,
+        createContact,
+        applyTag,
+        links: { findByMember, saveVerifiedLink },
+        env,
+      })
+      return { decision, lookupIdentity, createContact, applyTag, findByMember, saveVerifiedLink }
+    }
+
+    const missing = await run(flags(undefined, 'true', 'true', 'true'))
+    const disabled = await run(flags('false', 'true', 'true', 'true'))
+    const unknownHost = await run(flags('true', 'true', 'true', 'true', 'https://other.supabase.co'))
+    const suffixHost = await run(flags('true', 'true', 'true', 'true', 'https://phanoknohbidqtgrpwvk.supabase.co.evil.test'))
+    expect(missing.decision).toEqual({ status: 'SKIP_SYNC_DISABLED' })
+    expect(disabled.decision).toEqual({ status: 'SKIP_SYNC_DISABLED' })
+    expect(unknownHost.decision).toEqual({ status: 'SKIP_SYNC_DISABLED' })
+    expect(suffixHost.decision).toEqual({ status: 'SKIP_SYNC_DISABLED' })
+    for (const result of [missing, disabled, unknownHost, suffixHost]) {
+      expect(result.lookupIdentity).not.toHaveBeenCalled()
+      expect(result.findByMember).not.toHaveBeenCalled()
+      expect(result.createContact).not.toHaveBeenCalled()
+      expect(result.applyTag).not.toHaveBeenCalled()
+    }
+
+    const linkingOff = await run(flags('true', 'false', 'true', 'true'))
+    const linkingMissing = await run(flags('true', undefined, 'true', 'true'))
+    expect(linkingOff.decision).toEqual({ status: 'SKIP_LINKING_DISABLED' })
+    expect(linkingMissing.decision).toEqual({ status: 'SKIP_LINKING_DISABLED' })
+    expect(linkingOff.lookupIdentity).not.toHaveBeenCalled()
+    expect(linkingOff.findByMember).not.toHaveBeenCalled()
+    expect(linkingOff.createContact).not.toHaveBeenCalled()
+    expect(linkingOff.applyTag).not.toHaveBeenCalled()
+    expect(linkingMissing.createContact).not.toHaveBeenCalled()
+
+    const devRead = await run(flags('true', 'true', undefined, undefined, CRM_DEV))
+    expect(devRead.decision).toEqual({ status: 'NO_CONTACT_FOUND' })
+    expect(devRead.findByMember).toHaveBeenCalledTimes(1)
+    expect(devRead.lookupIdentity).toHaveBeenCalledTimes(1)
+    expect(devRead.createContact).not.toHaveBeenCalled()
+    expect(devRead.applyTag).not.toHaveBeenCalled()
+
+    const noCreate = await run(flags('true', 'true', 'false', 'true'))
+    const exact = await run(flags('true', 'true', 'false', 'true'), 'EXACT_EXISTING_CONTACT')
+    expect(noCreate.decision).toEqual({ status: 'NO_CONTACT_FOUND' })
+    expect(noCreate.createContact).not.toHaveBeenCalled()
+    expect(exact.decision).toEqual({ status: 'LINKED_EXISTING_CONTACT' })
+    expect(exact.saveVerifiedLink).toHaveBeenCalledTimes(1)
+    expect(exact.createContact).not.toHaveBeenCalled()
+    expect(exact.applyTag).toHaveBeenCalledTimes(1)
+
+    const noTag = await run(flags('true', 'true', 'true', 'false'))
+    expect(noTag.decision).toEqual({ status: 'CREATED_AND_LINKED_CONTACT' })
+    expect(noTag.createContact).toHaveBeenCalledTimes(1)
+    expect(noTag.saveVerifiedLink).toHaveBeenCalledTimes(1)
+    expect(noTag.applyTag).not.toHaveBeenCalled()
+
+    const authorized = await run(flags('true', 'true', 'true', 'true'))
+    expect(authorized.decision).toEqual({ status: 'CREATED_AND_LINKED_CONTACT' })
+    expect(authorized.findByMember).toHaveBeenCalledTimes(1)
+    expect(authorized.lookupIdentity).toHaveBeenCalledTimes(1)
+    expect(authorized.createContact).toHaveBeenCalledTimes(1)
+    expect(authorized.saveVerifiedLink).toHaveBeenCalledTimes(1)
+    expect(authorized.applyTag).toHaveBeenCalledTimes(1)
+    expect(JSON.stringify(authorized.decision)).not.toContain('ext-created')
+    expect(JSON.stringify(authorized.decision)).not.toContain(INPUT.email ?? '')
   })
 
   it('logs only the sanitized decision', async () => {
     const spy = vi.spyOn(console, 'info').mockImplementation(() => {})
     await runReportCardAgentCrmSync(INPUT, {
+      syncEnabled: true,
       linkingEnabled: true,
       taggingEnabled: true,
       locationId: 'loc-test',
@@ -440,7 +546,8 @@ describe('runReportCardAgentCrmSync', () => {
           saveVerifiedLink: async () => ({ status: 'created' as const }),
         },
         env: {
-          [AGENTCRM_CONTACT_LINKING_ENV]: 'true',
+                    [AGENTCRM_REPORT_CARD_SYNC_ENV]: 'true',
+[AGENTCRM_CONTACT_LINKING_ENV]: 'true',
           [AGENTCRM_CONTACT_CREATION_ENV]: 'true',
           [AGENTCRM_CONTACT_TAGGING_ENV]: 'true',
           SUPABASE_URL: CRM_DEV,
@@ -638,7 +745,8 @@ describe('runReportCardAgentCrmSync', () => {
             saveVerifiedLink: async () => ({ status: 'created' as const }),
           },
           env: {
-            [AGENTCRM_CONTACT_LINKING_ENV]: 'true',
+                        [AGENTCRM_REPORT_CARD_SYNC_ENV]: 'true',
+[AGENTCRM_CONTACT_LINKING_ENV]: 'true',
             [AGENTCRM_CONTACT_CREATION_ENV]: 'true',
             [AGENTCRM_CONTACT_TAGGING_ENV]: 'true',
             SUPABASE_URL: CRM_DEV,
@@ -879,7 +987,8 @@ describe('runReportCardAgentCrmSync', () => {
             saveVerifiedLink: async () => ({ status: 'created' as const }),
           },
           env: {
-            [AGENTCRM_CONTACT_LINKING_ENV]: 'true',
+                        [AGENTCRM_REPORT_CARD_SYNC_ENV]: 'true',
+[AGENTCRM_CONTACT_LINKING_ENV]: 'true',
             [AGENTCRM_CONTACT_CREATION_ENV]: 'true',
             [AGENTCRM_CONTACT_TAGGING_ENV]: 'true',
             SUPABASE_URL: CRM_DEV,
@@ -1038,7 +1147,7 @@ describe('runReportCardAgentCrmSync', () => {
     )
     const second = await runReportCardAgentCrmSync(
       { ...INPUT, assessmentType: 'protection' },
-      { linkingEnabled: true, creationEnabled: true, taggingEnabled: true, lookupIdentity, createContact, applyTag, links, locationId: 'loc-test' },
+      { syncEnabled: true, linkingEnabled: true, creationEnabled: true, taggingEnabled: true, lookupIdentity, createContact, applyTag, links, locationId: 'loc-test' },
     )
     const logged = JSON.stringify(spy.mock.calls)
     spy.mockRestore()
@@ -1180,7 +1289,8 @@ describe('runReportCardAgentCrmSync', () => {
             saveVerifiedLink: async () => ({ status: 'created' as const }),
           },
           env: {
-            [AGENTCRM_CONTACT_LINKING_ENV]: 'true',
+                        [AGENTCRM_REPORT_CARD_SYNC_ENV]: 'true',
+[AGENTCRM_CONTACT_LINKING_ENV]: 'true',
             [AGENTCRM_CONTACT_CREATION_ENV]: 'true',
             [AGENTCRM_CONTACT_TAGGING_ENV]: 'true',
             SUPABASE_URL: CRM_DEV,
@@ -1361,6 +1471,7 @@ describe('runReportCardAgentCrmSync', () => {
     const second = await runReportCardAgentCrmSync(
       { ...INPUT, assessmentType: 'business' },
       {
+        syncEnabled: true,
         linkingEnabled: true,
         creationEnabled: true,
         taggingEnabled: true,
@@ -1513,7 +1624,8 @@ describe('runReportCardAgentCrmSync', () => {
             saveVerifiedLink: async () => ({ status: 'created' as const }),
           },
           env: {
-            [AGENTCRM_CONTACT_LINKING_ENV]: 'true',
+                        [AGENTCRM_REPORT_CARD_SYNC_ENV]: 'true',
+[AGENTCRM_CONTACT_LINKING_ENV]: 'true',
             [AGENTCRM_CONTACT_CREATION_ENV]: 'true',
             [AGENTCRM_CONTACT_TAGGING_ENV]: 'true',
             SUPABASE_URL: CRM_DEV,
@@ -1731,6 +1843,7 @@ describe('runReportCardAgentCrmSync', () => {
       const second = await runReportCardAgentCrmSync(
         { ...INPUT, assessmentType: card.assessmentType },
         {
+          syncEnabled: true,
           linkingEnabled: true,
           creationEnabled: true,
           taggingEnabled: true,
@@ -1848,7 +1961,8 @@ describe('runReportCardAgentCrmSync', () => {
               saveVerifiedLink: async () => ({ status: 'created' as const }),
             },
             env: {
-              [AGENTCRM_CONTACT_LINKING_ENV]: 'true',
+                            [AGENTCRM_REPORT_CARD_SYNC_ENV]: 'true',
+[AGENTCRM_CONTACT_LINKING_ENV]: 'true',
               [AGENTCRM_CONTACT_CREATION_ENV]: 'true',
               [AGENTCRM_CONTACT_TAGGING_ENV]: 'true',
               SUPABASE_URL: CRM_DEV,
