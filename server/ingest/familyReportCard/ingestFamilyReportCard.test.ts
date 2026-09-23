@@ -317,7 +317,9 @@ describe('ingestFamilyReportCard', () => {
       expect(result.created).toBe(true)
       expect(result).not.toHaveProperty('memberId')
       expect(result).not.toHaveProperty('externalContactId')
-      expect(JSON.stringify(result)).not.toMatch(/EXACT_EXISTING_CONTACT|NO_CONTACT_FOUND|AMBIGUOUS|INTEGRATION_ERROR|SKIP_/)
+      expect(JSON.stringify(result)).not.toMatch(
+        /EXACT_EXISTING_CONTACT|NO_CONTACT_FOUND|AMBIGUOUS|INTEGRATION_ERROR|SKIP_|ALREADY_LINKED|LINKED_EXISTING_CONTACT|LINK_CONFLICT|externalContactId/,
+      )
     }
     expect(lookupIdentity).toHaveBeenCalledTimes(1)
     const rpcNames = (admin.rpc as ReturnType<typeof vi.fn>).mock.calls.map((call) => String(call[0]))
@@ -353,6 +355,48 @@ describe('ingestFamilyReportCard', () => {
     expect(replay.ok).toBe(true)
     if (replay.ok) expect(replay.created).toBe(false)
     expect(lookupIdentity).not.toHaveBeenCalled()
+  })
+
+  it('still succeeds when the durable link write fails', async () => {
+    const lookupIdentity = vi.fn(async () => ({
+      status: 'EXACT_EXISTING_CONTACT' as const,
+      externalContactId: 'ext-hidden',
+    }))
+    const result = await ingestFamilyReportCard(validStudentLoanIngestRequestBodyFixture(), {
+      admin: makeAdminStub(async (fn) => {
+        if (fn === 'ingest_public_report_card') return { data: newProspectRpcResponse(), error: null }
+        return { data: null, error: null }
+      }),
+      sheetsWriter: vi.fn().mockResolvedValue({ status: 'succeeded' as const }),
+      findCandidates: async () => [],
+      orchestrateFollowUpTask: vi.fn().mockResolvedValue({
+        status: 'task_created',
+        taskId: 'task-1',
+        errorCategory: null,
+        needsManualReview: false,
+      }),
+      runStudentLoanDryRun: (input) =>
+        runStudentLoanAgentCrmDryRun(input, {
+          linkingEnabled: true,
+          locationId: 'loc-test',
+          log: () => {},
+          lookupIdentity,
+          links: {
+            findByMember: async () => ({ status: 'not_found' }),
+            saveVerifiedLink: async () => {
+              throw new Error('insert failed ext-hidden')
+            },
+          },
+        }),
+    })
+
+    expect(result.ok).toBe(true)
+    if (result.ok) expect(result.created).toBe(true)
+    expect(result).not.toHaveProperty('memberId')
+    expect(result).not.toHaveProperty('externalContactId')
+    expect(JSON.stringify(result)).not.toContain('ext-hidden')
+    expect(JSON.stringify(result)).not.toMatch(/LINKED_EXISTING_CONTACT|LINK_CONFLICT|ALREADY_LINKED/)
+    expect(lookupIdentity).toHaveBeenCalledTimes(1)
   })
 
   it('does not classify a non-student-loan report card', async () => {

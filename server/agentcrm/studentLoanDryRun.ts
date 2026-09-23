@@ -1,5 +1,13 @@
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { LeadConnectorClient } from './client.js'
-import { readAgentCrmConfig, type AgentCrmConfig } from './config.js'
+import { isAgentCrmContactLinkingEnabled } from './contactLinkGate.js'
+import {
+  AGENTCRM_LINK_PROVIDER,
+  createIntegrationContactLinkRepository,
+  type IntegrationContactLinkAdmin,
+  type IntegrationContactLinkRepository,
+} from './contactLinks.js'
+import { readAgentCrmConfig, readAgentCrmLocationId, type AgentCrmConfig } from './config.js'
 import type { LeadConnectorErrorCategory } from './errors.js'
 import {
   lookupAgentCrmIdentity,
@@ -11,10 +19,16 @@ import {
 export type StudentLoanAgentCrmDryRunDecision =
   | { status: 'SKIP_POSSIBLE_MATCH' }
   | { status: 'SKIP_REPLAY_WITHOUT_MEMBER' }
+  | { status: 'ALREADY_LINKED' }
+  | { status: 'LINKED_EXISTING_CONTACT' }
   | { status: 'EXACT_EXISTING_CONTACT' }
   | { status: 'NO_CONTACT_FOUND' }
   | { status: 'AMBIGUOUS'; reason: AgentCrmIdentityAmbiguousReason }
-  | { status: 'INTEGRATION_ERROR'; category: LeadConnectorErrorCategory | 'not_configured' }
+  | { status: 'LINK_CONFLICT' }
+  | {
+      status: 'INTEGRATION_ERROR'
+      category: LeadConnectorErrorCategory | 'not_configured' | 'link_unavailable' | 'link_read_failed' | 'link_write_failed'
+    }
 
 export type StudentLoanDryRunInput = {
   assessmentType: string
@@ -31,6 +45,13 @@ export type StudentLoanDryRunDeps = {
   /** Test double for the read-only classifier. Production uses lookupAgentCrmIdentity. */
   lookupIdentity?: (candidate: AgentCrmIdentityCandidate) => Promise<AgentCrmIdentityLookupResult>
   readConfig?: (env?: NodeJS.ProcessEnv) => AgentCrmConfig
+  /** Test override. Production reads AGENTCRM_CONTACT_LINKING_ENABLED and the CRM-dev host gate. */
+  linkingEnabled?: boolean
+  /** Test override. Production reads AGENTCRM_LOCATION_ID. */
+  locationId?: string | null
+  links?: IntegrationContactLinkRepository
+  /** Service-role client already used to persist the Report Card. Unused while linking is off. */
+  admin?: SupabaseClient
   log?: (event: StudentLoanDryRunLogEvent) => void
 }
 
@@ -42,8 +63,9 @@ export type StudentLoanDryRunLogEvent = {
 }
 
 /**
- * Decides what a future Student Loan AgentCRM sync would do.
- * Reads only. Does not store an external contact link or send an AgentCRM request body.
+ * After a Student Loan Report Card is saved, decide whether a verified
+ * AgentCRM contact should be recorded in Valtoris. AgentCRM itself is read-only.
+ * The decision is not returned to the browser.
  */
 export async function runStudentLoanAgentCrmDryRun(
   input: StudentLoanDryRunInput,
@@ -75,21 +97,80 @@ async function decide(
   if (!email || !phone) return { status: 'AMBIGUOUS', reason: 'MISSING_IDENTITY_INPUT' }
 
   try {
-    const lookup = deps.lookupIdentity ?? configuredLookup(deps.readConfig)
-    if (!lookup) return { status: 'INTEGRATION_ERROR', category: 'not_configured' }
-    const result = await lookup({
-      firstName: input.firstName,
-      lastName: input.lastName,
-      email,
-      phone,
-    })
-    if (result.status === 'EXACT_EXISTING_CONTACT') return { status: 'EXACT_EXISTING_CONTACT' }
-    if (result.status === 'NO_CONTACT_FOUND') return { status: 'NO_CONTACT_FOUND' }
-    if (result.status === 'AMBIGUOUS') return { status: 'AMBIGUOUS', reason: result.reason }
-    return { status: 'INTEGRATION_ERROR', category: result.category }
+    const linkingEnabled = deps.linkingEnabled ?? isAgentCrmContactLinkingEnabled()
+    if (!linkingEnabled) return await classifyWithoutLink(input, deps, email, phone)
+    return await classifyAndLink(input, deps, memberId, email, phone)
   } catch {
     return { status: 'INTEGRATION_ERROR', category: 'network' }
   }
+}
+
+async function classifyWithoutLink(
+  input: StudentLoanDryRunInput,
+  deps: StudentLoanDryRunDeps,
+  email: string,
+  phone: string,
+): Promise<StudentLoanAgentCrmDryRunDecision> {
+  const lookup = deps.lookupIdentity ?? configuredLookup(deps.readConfig)
+  if (!lookup) return { status: 'INTEGRATION_ERROR', category: 'not_configured' }
+  const result = await lookup({
+    firstName: input.firstName,
+    lastName: input.lastName,
+    email,
+    phone,
+  })
+  if (result.status === 'EXACT_EXISTING_CONTACT') return { status: 'EXACT_EXISTING_CONTACT' }
+  if (result.status === 'NO_CONTACT_FOUND') return { status: 'NO_CONTACT_FOUND' }
+  if (result.status === 'AMBIGUOUS') return { status: 'AMBIGUOUS', reason: result.reason }
+  return { status: 'INTEGRATION_ERROR', category: result.category }
+}
+
+async function classifyAndLink(
+  input: StudentLoanDryRunInput,
+  deps: StudentLoanDryRunDeps,
+  memberId: string,
+  email: string,
+  phone: string,
+): Promise<StudentLoanAgentCrmDryRunDecision> {
+  const locationId = deps.locationId ?? readAgentCrmLocationId()
+  if (!locationId) return { status: 'INTEGRATION_ERROR', category: 'not_configured' }
+
+  const links = deps.links ?? (deps.admin ? createIntegrationContactLinkRepository(deps.admin as unknown as IntegrationContactLinkAdmin) : null)
+  if (!links) return { status: 'INTEGRATION_ERROR', category: 'link_unavailable' }
+
+  const existing = await links.findByMember({
+    provider: AGENTCRM_LINK_PROVIDER,
+    locationId,
+    householdMemberId: memberId,
+  })
+  if (existing.status === 'error') return { status: 'INTEGRATION_ERROR', category: 'link_read_failed' }
+  if (existing.status === 'found') return { status: 'ALREADY_LINKED' }
+
+  const lookup = deps.lookupIdentity ?? configuredLookup(deps.readConfig)
+  if (!lookup) return { status: 'INTEGRATION_ERROR', category: 'not_configured' }
+  const result = await lookup({
+    firstName: input.firstName,
+    lastName: input.lastName,
+    email,
+    phone,
+  })
+  if (result.status === 'NO_CONTACT_FOUND') return { status: 'NO_CONTACT_FOUND' }
+  if (result.status === 'AMBIGUOUS') return { status: 'AMBIGUOUS', reason: result.reason }
+  if (result.status === 'INTEGRATION_ERROR') return { status: 'INTEGRATION_ERROR', category: result.category }
+
+  const externalContactId = result.externalContactId.trim()
+  if (!externalContactId) return { status: 'INTEGRATION_ERROR', category: 'invalid_response' }
+
+  const saved = await links.saveVerifiedLink({
+    provider: AGENTCRM_LINK_PROVIDER,
+    locationId,
+    householdMemberId: memberId,
+    externalContactId,
+  })
+  if (saved.status === 'created') return { status: 'LINKED_EXISTING_CONTACT' }
+  if (saved.status === 'already_linked') return { status: 'ALREADY_LINKED' }
+  if (saved.status === 'conflict') return { status: 'LINK_CONFLICT' }
+  return { status: 'INTEGRATION_ERROR', category: 'link_write_failed' }
 }
 
 function configuredLookup(

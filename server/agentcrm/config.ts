@@ -43,3 +43,13 @@ export function readAgentCrmConfig(env: NodeJS.ProcessEnv = process.env): AgentC
   if (missing.length > 0) return { configured: false, missing }
   return { configured: true, token, locationId }
 }
+
+/** Location only. A missing token must not hide a location that a link lookup can use. */
+export function readAgentCrmLocationId(env: NodeJS.ProcessEnv = process.env): string | null {
+  assertAgentCrmServerOnly()
+  if (FORBIDDEN_VITE_NAMES.some((name) => readTrimmed(env, name) !== '')) {
+    throw new Error('AgentCRM settings must not use a VITE_ prefix.')
+  }
+  const locationId = readTrimmed(env, AGENTCRM_LOCATION_ENV)
+  return locationId || null
+}

@@ -1,12 +1,15 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
-import { runStudentLoanAgentCrmDryRun, type StudentLoanDryRunInput } from './studentLoanDryRun'
+import { runStudentLoanAgentCrmDryRun, type StudentLoanDryRunDeps, type StudentLoanDryRunInput } from './studentLoanDryRun'
+
+const MEMBER_ID = '11111111-1111-4111-8111-111111111111'
+const EXTERNAL_ID = 'ext-do-not-expose'
 
 const INPUT: StudentLoanDryRunInput = {
   assessmentType: 'student_loan',
   matchStatus: 'new_prospect',
-  memberId: 'member-1',
+  memberId: MEMBER_ID,
   submissionId: '550e8400-e29b-41d4-a716-446655440004',
   firstName: 'Jamie',
   lastName: 'Rivera',
@@ -14,89 +17,248 @@ const INPUT: StudentLoanDryRunInput = {
   phone: '+15552014488',
 }
 
+function off(deps: StudentLoanDryRunDeps = {}): StudentLoanDryRunDeps {
+  return { linkingEnabled: false, log: () => {}, ...deps }
+}
+
+function on(deps: StudentLoanDryRunDeps = {}): StudentLoanDryRunDeps {
+  return { linkingEnabled: true, locationId: 'loc-test', log: () => {}, ...deps }
+}
+
 describe('runStudentLoanAgentCrmDryRun', () => {
-  it('maps an exact classifier result without keeping the external contact id', async () => {
+  it('maps an exact classifier result without keeping the external contact id when linking is off', async () => {
     const lookupIdentity = vi.fn(async () => ({
       status: 'EXACT_EXISTING_CONTACT' as const,
-      externalContactId: 'do-not-keep-contact-id',
+      externalContactId: EXTERNAL_ID,
     }))
-    const decision = await runStudentLoanAgentCrmDryRun(INPUT, { lookupIdentity, log: () => {} })
+    const findByMember = vi.fn()
+    const saveVerifiedLink = vi.fn()
+    const decision = await runStudentLoanAgentCrmDryRun(
+      INPUT,
+      off({ lookupIdentity, links: { findByMember, saveVerifiedLink } }),
+    )
     expect(decision).toEqual({ status: 'EXACT_EXISTING_CONTACT' })
-    expect(JSON.stringify(decision)).not.toContain('do-not-keep-contact-id')
+    expect(JSON.stringify(decision)).not.toContain(EXTERNAL_ID)
     expect(lookupIdentity).toHaveBeenCalledTimes(1)
+    expect(findByMember).not.toHaveBeenCalled()
+    expect(saveVerifiedLink).not.toHaveBeenCalled()
   })
 
   it('maps no contact found', async () => {
     const lookupIdentity = vi.fn(async () => ({ status: 'NO_CONTACT_FOUND' as const }))
-    const decision = await runStudentLoanAgentCrmDryRun(INPUT, { lookupIdentity, log: () => {} })
+    const decision = await runStudentLoanAgentCrmDryRun(INPUT, off({ lookupIdentity }))
     expect(decision).toEqual({ status: 'NO_CONTACT_FOUND' })
   })
 
-  it('maps an exact result for exact_trusted_match', async () => {
+  it('maps an exact result for exact_trusted_match when linking is off', async () => {
     const lookupIdentity = vi.fn(async () => ({
       status: 'EXACT_EXISTING_CONTACT' as const,
       externalContactId: 'hidden-id',
     }))
     const decision = await runStudentLoanAgentCrmDryRun(
       { ...INPUT, matchStatus: 'exact_trusted_match' },
-      { lookupIdentity, log: () => {} },
+      off({ lookupIdentity }),
     )
     expect(decision).toEqual({ status: 'EXACT_EXISTING_CONTACT' })
     expect(lookupIdentity).toHaveBeenCalledTimes(1)
   })
 
-  it('skips possible_match without calling the classifier', async () => {
+  it('skips possible_match without calling the classifier or the link table', async () => {
     const lookupIdentity = vi.fn()
+    const findByMember = vi.fn()
     const decision = await runStudentLoanAgentCrmDryRun(
       { ...INPUT, matchStatus: 'possible_match' },
-      { lookupIdentity, log: () => {} },
+      on({ lookupIdentity, links: { findByMember, saveVerifiedLink: vi.fn() } }),
     )
     expect(decision).toEqual({ status: 'SKIP_POSSIBLE_MATCH' })
     expect(lookupIdentity).not.toHaveBeenCalled()
+    expect(findByMember).not.toHaveBeenCalled()
   })
 
-  it('skips a null member id without calling the classifier', async () => {
+  it('skips a null member id without calling the classifier or the link table', async () => {
     const lookupIdentity = vi.fn()
+    const findByMember = vi.fn()
     const decision = await runStudentLoanAgentCrmDryRun(
       { ...INPUT, memberId: null },
-      { lookupIdentity, log: () => {} },
+      on({ lookupIdentity, links: { findByMember, saveVerifiedLink: vi.fn() } }),
     )
     expect(decision).toEqual({ status: 'SKIP_REPLAY_WITHOUT_MEMBER' })
     expect(lookupIdentity).not.toHaveBeenCalled()
+    expect(findByMember).not.toHaveBeenCalled()
   })
 
-  it('maps an ambiguous classifier result', async () => {
-    const lookupIdentity = vi.fn(async () => ({ status: 'AMBIGUOUS' as const, reason: 'EMAIL_ONLY_MATCH' as const }))
-    const decision = await runStudentLoanAgentCrmDryRun(INPUT, { lookupIdentity, log: () => {} })
+  it('does not call AgentCRM when email or phone is missing', async () => {
+    const lookupIdentity = vi.fn()
+    const findByMember = vi.fn()
+    const decision = await runStudentLoanAgentCrmDryRun(
+      { ...INPUT, email: null },
+      on({ lookupIdentity, links: { findByMember, saveVerifiedLink: vi.fn() } }),
+    )
+    expect(decision).toEqual({ status: 'AMBIGUOUS', reason: 'MISSING_IDENTITY_INPUT' })
+    expect(lookupIdentity).not.toHaveBeenCalled()
+    expect(findByMember).not.toHaveBeenCalled()
+  })
+
+  it('maps an ambiguous classifier result and does not link', async () => {
+    const saveVerifiedLink = vi.fn()
+    const decision = await runStudentLoanAgentCrmDryRun(
+      INPUT,
+      on({
+        lookupIdentity: async () => ({ status: 'AMBIGUOUS', reason: 'EMAIL_ONLY_MATCH' }),
+        links: { findByMember: async () => ({ status: 'not_found' }), saveVerifiedLink },
+      }),
+    )
     expect(decision).toEqual({ status: 'AMBIGUOUS', reason: 'EMAIL_ONLY_MATCH' })
+    expect(saveVerifiedLink).not.toHaveBeenCalled()
   })
 
   it('maps an integration error and a thrown timeout without leaking the candidate', async () => {
-    const lookupIdentity = vi.fn(async () => ({ status: 'INTEGRATION_ERROR' as const, category: 'timeout' as const }))
-    const decision = await runStudentLoanAgentCrmDryRun(INPUT, { lookupIdentity, log: () => {} })
+    const saveVerifiedLink = vi.fn()
+    const decision = await runStudentLoanAgentCrmDryRun(
+      INPUT,
+      on({
+        lookupIdentity: async () => ({ status: 'INTEGRATION_ERROR', category: 'timeout' }),
+        links: { findByMember: async () => ({ status: 'not_found' }), saveVerifiedLink },
+      }),
+    )
     expect(decision).toEqual({ status: 'INTEGRATION_ERROR', category: 'timeout' })
+    expect(saveVerifiedLink).not.toHaveBeenCalled()
 
     const throwing = vi.fn(async () => {
       throw new Error(`timeout for ${INPUT.email}`)
     })
-    const thrown = await runStudentLoanAgentCrmDryRun(INPUT, { lookupIdentity: throwing, log: () => {} })
+    const thrown = await runStudentLoanAgentCrmDryRun(INPUT, off({ lookupIdentity: throwing }))
     expect(thrown).toEqual({ status: 'INTEGRATION_ERROR', category: 'network' })
     expect(JSON.stringify(thrown)).not.toContain(INPUT.email)
   })
 
-  it('does not call the classifier for a non-student-loan report card', async () => {
+  it('returns ALREADY_LINKED and does not call the classifier when a link exists', async () => {
     const lookupIdentity = vi.fn()
     const decision = await runStudentLoanAgentCrmDryRun(
+      INPUT,
+      on({
+        lookupIdentity,
+        links: {
+          findByMember: async () => ({
+            status: 'found',
+            link: { householdMemberId: MEMBER_ID, externalContactId: EXTERNAL_ID },
+          }),
+          saveVerifiedLink: vi.fn(),
+        },
+      }),
+    )
+    expect(decision).toEqual({ status: 'ALREADY_LINKED' })
+    expect(JSON.stringify(decision)).not.toContain(EXTERNAL_ID)
+    expect(lookupIdentity).not.toHaveBeenCalled()
+  })
+
+  it('links an exact existing contact and repeats that relationship without another search', async () => {
+    let saved: { householdMemberId: string; externalContactId: string } | null = null
+    const lookupIdentity = vi.fn(async () => ({
+      status: 'EXACT_EXISTING_CONTACT' as const,
+      externalContactId: EXTERNAL_ID,
+    }))
+    const links = {
+      findByMember: vi.fn(async () =>
+        saved
+          ? { status: 'found' as const, link: saved }
+          : { status: 'not_found' as const },
+      ),
+      saveVerifiedLink: vi.fn(async (input: { householdMemberId: string; externalContactId: string }) => {
+        saved = { householdMemberId: input.householdMemberId, externalContactId: input.externalContactId }
+        return { status: 'created' as const }
+      }),
+    }
+
+    const created = await runStudentLoanAgentCrmDryRun(INPUT, on({ lookupIdentity, links }))
+    const repeated = await runStudentLoanAgentCrmDryRun(INPUT, on({ lookupIdentity, links }))
+
+    expect(created).toEqual({ status: 'LINKED_EXISTING_CONTACT' })
+    expect(repeated).toEqual({ status: 'ALREADY_LINKED' })
+    expect(JSON.stringify(created)).not.toContain(EXTERNAL_ID)
+    expect(lookupIdentity).toHaveBeenCalledTimes(1)
+    expect(links.saveVerifiedLink).toHaveBeenCalledTimes(1)
+    expect(links.saveVerifiedLink).toHaveBeenCalledWith({
+      provider: 'agentcrm',
+      locationId: 'loc-test',
+      householdMemberId: MEMBER_ID,
+      externalContactId: EXTERNAL_ID,
+    })
+  })
+
+  it('maps a same-pair insert race to ALREADY_LINKED and a different mapping to LINK_CONFLICT', async () => {
+    const same = await runStudentLoanAgentCrmDryRun(
+      INPUT,
+      on({
+        lookupIdentity: async () => ({ status: 'EXACT_EXISTING_CONTACT', externalContactId: EXTERNAL_ID }),
+        links: {
+          findByMember: async () => ({ status: 'not_found' }),
+          saveVerifiedLink: async () => ({ status: 'already_linked' }),
+        },
+      }),
+    )
+    expect(same).toEqual({ status: 'ALREADY_LINKED' })
+
+    const saveVerifiedLink = vi.fn(async () => ({ status: 'conflict' as const }))
+    const conflict = await runStudentLoanAgentCrmDryRun(
+      INPUT,
+      on({
+        lookupIdentity: async () => ({ status: 'EXACT_EXISTING_CONTACT', externalContactId: EXTERNAL_ID }),
+        links: { findByMember: async () => ({ status: 'not_found' }), saveVerifiedLink },
+      }),
+    )
+    expect(conflict).toEqual({ status: 'LINK_CONFLICT' })
+    expect(JSON.stringify(conflict)).not.toContain(EXTERNAL_ID)
+    expect(saveVerifiedLink).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not link when no contact exists', async () => {
+    const saveVerifiedLink = vi.fn()
+    const decision = await runStudentLoanAgentCrmDryRun(
+      INPUT,
+      on({
+        lookupIdentity: async () => ({ status: 'NO_CONTACT_FOUND' }),
+        links: { findByMember: async () => ({ status: 'not_found' }), saveVerifiedLink },
+      }),
+    )
+    expect(decision).toEqual({ status: 'NO_CONTACT_FOUND' })
+    expect(saveVerifiedLink).not.toHaveBeenCalled()
+  })
+
+  it('returns an integration error when the link insert fails and does not leak the contact id', async () => {
+    const decision = await runStudentLoanAgentCrmDryRun(
+      INPUT,
+      on({
+        lookupIdentity: async () => ({ status: 'EXACT_EXISTING_CONTACT', externalContactId: EXTERNAL_ID }),
+        links: {
+          findByMember: async () => ({ status: 'not_found' }),
+          saveVerifiedLink: async () => {
+            throw new Error(`insert failed ${EXTERNAL_ID} ${INPUT.email}`)
+          },
+        },
+      }),
+    )
+    expect(decision).toEqual({ status: 'INTEGRATION_ERROR', category: 'network' })
+    expect(JSON.stringify(decision)).not.toContain(EXTERNAL_ID)
+    expect(JSON.stringify(decision)).not.toContain(INPUT.email)
+  })
+
+  it('does not call the classifier or the link table for a non-student-loan report card', async () => {
+    const lookupIdentity = vi.fn()
+    const findByMember = vi.fn()
+    const decision = await runStudentLoanAgentCrmDryRun(
       { ...INPUT, assessmentType: 'credit' },
-      { lookupIdentity, log: () => {} },
+      on({ lookupIdentity, links: { findByMember, saveVerifiedLink: vi.fn() } }),
     )
     expect(decision).toBeNull()
     expect(lookupIdentity).not.toHaveBeenCalled()
+    expect(findByMember).not.toHaveBeenCalled()
   })
 
   it('logs only the sanitized decision', async () => {
     const info = vi.spyOn(console, 'info').mockImplementation(() => {})
     await runStudentLoanAgentCrmDryRun(INPUT, {
+      linkingEnabled: false,
       lookupIdentity: async () => ({ status: 'NO_CONTACT_FOUND' }),
     })
     expect(info).toHaveBeenCalledTimes(1)
@@ -106,18 +268,23 @@ describe('runStudentLoanAgentCrmDryRun', () => {
     expect(payload).not.toContain(INPUT.email)
     expect(payload).not.toContain(INPUT.phone)
     expect(payload).not.toContain(INPUT.firstName)
-    expect(payload).not.toContain('member-1')
+    expect(payload).not.toContain(MEMBER_ID)
     info.mockRestore()
   })
 
-  it('does not write integration links or add an AgentCRM write method', () => {
+  it('keeps AgentCRM free of write methods and keeps the link table out of ingest', () => {
     const source = readFileSync(resolve(process.cwd(), 'server/agentcrm/studentLoanDryRun.ts'), 'utf8')
+    const links = readFileSync(resolve(process.cwd(), 'server/agentcrm/contactLinks.ts'), 'utf8')
     const ingest = readFileSync(
       resolve(process.cwd(), 'server/ingest/familyReportCard/ingestFamilyReportCard.ts'),
       'utf8',
     )
-    expect(source).not.toContain('integration_contact_links')
+    const writeMethod = /method:\s*['"]POST['"]|method:\s*['"]PUT['"]|method:\s*['"]PATCH['"]|method:\s*['"]DELETE['"]/
+    expect(source).not.toMatch(writeMethod)
+    expect(links).not.toMatch(writeMethod)
+    expect(links).not.toMatch(/\.update\s*\(|\.delete\s*\(|\.upsert\s*\(/)
     expect(ingest).not.toContain('integration_contact_links')
-    expect(source).not.toMatch(/method:\s*['"]POST['"]|method:\s*['"]PUT['"]|method:\s*['"]PATCH['"]|method:\s*['"]DELETE['"]/)
+    expect(links).toContain('integration_contact_links')
+    expect(links).not.toMatch(/email|phone|first_name|last_name|token/)
   })
 })
