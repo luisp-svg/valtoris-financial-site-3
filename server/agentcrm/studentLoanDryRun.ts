@@ -8,7 +8,13 @@ import {
   type IntegrationContactLinkRepository,
 } from './contactLinks.js'
 import { readAgentCrmConfig, readAgentCrmLocationId, type AgentCrmConfig } from './config.js'
-import type { LeadConnectorErrorCategory } from './errors.js'
+import { isAgentCrmContactCreationEnabled } from './contactCreationGate.js'
+import {
+  createAgentCrmContact,
+  type CreateAgentCrmContactInput,
+  type CreatedAgentCrmContact,
+} from './createContact.js'
+import { LeadConnectorError, type LeadConnectorErrorCategory } from './errors.js'
 import {
   lookupAgentCrmIdentity,
   type AgentCrmIdentityAmbiguousReason,
@@ -21,6 +27,8 @@ export type StudentLoanAgentCrmDryRunDecision =
   | { status: 'SKIP_REPLAY_WITHOUT_MEMBER' }
   | { status: 'ALREADY_LINKED' }
   | { status: 'LINKED_EXISTING_CONTACT' }
+  | { status: 'CREATED_AND_LINKED_CONTACT' }
+  | { status: 'CONTACT_CREATED_LINK_FAILED' }
   | { status: 'EXACT_EXISTING_CONTACT' }
   | { status: 'NO_CONTACT_FOUND' }
   | { status: 'AMBIGUOUS'; reason: AgentCrmIdentityAmbiguousReason }
@@ -47,6 +55,11 @@ export type StudentLoanDryRunDeps = {
   readConfig?: (env?: NodeJS.ProcessEnv) => AgentCrmConfig
   /** Test override. Production reads AGENTCRM_CONTACT_LINKING_ENABLED and the CRM-dev host gate. */
   linkingEnabled?: boolean
+  /** Test override. Production reads AGENTCRM_CONTACT_CREATION_ENABLED and the CRM-dev host gate. */
+  creationEnabled?: boolean
+  /** Test double. Production uses createAgentCrmContact, which is the only AgentCRM POST. */
+  createContact?: (input: CreateAgentCrmContactInput) => Promise<CreatedAgentCrmContact>
+  env?: NodeJS.ProcessEnv
   /** Test override. Production reads AGENTCRM_LOCATION_ID. */
   locationId?: string | null
   links?: IntegrationContactLinkRepository
@@ -63,9 +76,9 @@ export type StudentLoanDryRunLogEvent = {
 }
 
 /**
- * After a Student Loan Report Card is saved, decide whether a verified
- * AgentCRM contact should be recorded in Valtoris. AgentCRM itself is read-only.
- * The decision is not returned to the browser.
+ * After a Student Loan Report Card is saved, link a verified AgentCRM contact.
+ * A new contact is created only when both the creation gate and the linking
+ * gate are on. The decision is not returned to the browser.
  */
 export async function runStudentLoanAgentCrmDryRun(
   input: StudentLoanDryRunInput,
@@ -154,9 +167,11 @@ async function classifyAndLink(
     email,
     phone,
   })
-  if (result.status === 'NO_CONTACT_FOUND') return { status: 'NO_CONTACT_FOUND' }
   if (result.status === 'AMBIGUOUS') return { status: 'AMBIGUOUS', reason: result.reason }
   if (result.status === 'INTEGRATION_ERROR') return { status: 'INTEGRATION_ERROR', category: result.category }
+  if (result.status === 'NO_CONTACT_FOUND') {
+    return createAndLinkNewContact(input, deps, links, locationId, memberId)
+  }
 
   const externalContactId = result.externalContactId.trim()
   if (!externalContactId) return { status: 'INTEGRATION_ERROR', category: 'invalid_response' }
@@ -171,6 +186,51 @@ async function classifyAndLink(
   if (saved.status === 'already_linked') return { status: 'ALREADY_LINKED' }
   if (saved.status === 'conflict') return { status: 'LINK_CONFLICT' }
   return { status: 'INTEGRATION_ERROR', category: 'link_write_failed' }
+}
+
+async function createAndLinkNewContact(
+  input: StudentLoanDryRunInput,
+  deps: StudentLoanDryRunDeps,
+  links: IntegrationContactLinkRepository,
+  locationId: string,
+  memberId: string,
+): Promise<StudentLoanAgentCrmDryRunDecision> {
+  const creationEnabled = deps.creationEnabled ?? isAgentCrmContactCreationEnabled(deps.env)
+  if (!creationEnabled) return { status: 'NO_CONTACT_FOUND' }
+
+  let created: CreatedAgentCrmContact
+  try {
+    const create = deps.createContact ?? ((contact: CreateAgentCrmContactInput) => createAgentCrmContact(contact, { env: deps.env }))
+    created = await create({
+      firstName: input.firstName,
+      lastName: input.lastName,
+      email: input.email ?? '',
+      phone: input.phone ?? '',
+    })
+  } catch (error) {
+    if (error instanceof LeadConnectorError) {
+      return { status: 'INTEGRATION_ERROR', category: error.category }
+    }
+    return { status: 'INTEGRATION_ERROR', category: 'network' }
+  }
+
+  const externalContactId = created.id.trim()
+  if (!externalContactId) return { status: 'CONTACT_CREATED_LINK_FAILED' }
+
+  try {
+    const saved = await links.saveVerifiedLink({
+      provider: AGENTCRM_LINK_PROVIDER,
+      locationId,
+      householdMemberId: memberId,
+      externalContactId,
+    })
+    if (saved.status === 'created' || saved.status === 'already_linked') {
+      return { status: 'CREATED_AND_LINKED_CONTACT' }
+    }
+    return { status: 'CONTACT_CREATED_LINK_FAILED' }
+  } catch {
+    return { status: 'CONTACT_CREATED_LINK_FAILED' }
+  }
 }
 
 function configuredLookup(

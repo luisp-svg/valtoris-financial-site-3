@@ -22,7 +22,7 @@ function off(deps: StudentLoanDryRunDeps = {}): StudentLoanDryRunDeps {
 }
 
 function on(deps: StudentLoanDryRunDeps = {}): StudentLoanDryRunDeps {
-  return { linkingEnabled: true, locationId: 'loc-test', log: () => {}, ...deps }
+  return { linkingEnabled: true, creationEnabled: false, locationId: 'loc-test', log: () => {}, ...deps }
 }
 
 describe('runStudentLoanAgentCrmDryRun', () => {
@@ -90,13 +90,20 @@ describe('runStudentLoanAgentCrmDryRun', () => {
   it('does not call AgentCRM when email or phone is missing', async () => {
     const lookupIdentity = vi.fn()
     const findByMember = vi.fn()
+    const createContact = vi.fn()
     const decision = await runStudentLoanAgentCrmDryRun(
       { ...INPUT, email: null },
-      on({ lookupIdentity, links: { findByMember, saveVerifiedLink: vi.fn() } }),
+      on({
+        creationEnabled: true,
+        lookupIdentity,
+        createContact,
+        links: { findByMember, saveVerifiedLink: vi.fn() },
+      }),
     )
     expect(decision).toEqual({ status: 'AMBIGUOUS', reason: 'MISSING_IDENTITY_INPUT' })
     expect(lookupIdentity).not.toHaveBeenCalled()
     expect(findByMember).not.toHaveBeenCalled()
+    expect(createContact).not.toHaveBeenCalled()
   })
 
   it('maps an ambiguous classifier result and does not link', async () => {
@@ -134,10 +141,13 @@ describe('runStudentLoanAgentCrmDryRun', () => {
 
   it('returns ALREADY_LINKED and does not call the classifier when a link exists', async () => {
     const lookupIdentity = vi.fn()
+    const createContact = vi.fn()
     const decision = await runStudentLoanAgentCrmDryRun(
       INPUT,
       on({
+        creationEnabled: true,
         lookupIdentity,
+        createContact,
         links: {
           findByMember: async () => ({
             status: 'found',
@@ -150,6 +160,7 @@ describe('runStudentLoanAgentCrmDryRun', () => {
     expect(decision).toEqual({ status: 'ALREADY_LINKED' })
     expect(JSON.stringify(decision)).not.toContain(EXTERNAL_ID)
     expect(lookupIdentity).not.toHaveBeenCalled()
+    expect(createContact).not.toHaveBeenCalled()
   })
 
   it('links an exact existing contact and repeats that relationship without another search', async () => {
@@ -212,17 +223,131 @@ describe('runStudentLoanAgentCrmDryRun', () => {
     expect(saveVerifiedLink).toHaveBeenCalledTimes(1)
   })
 
-  it('does not link when no contact exists', async () => {
+  it('does not link when no contact exists and creation is disabled', async () => {
     const saveVerifiedLink = vi.fn()
+    const createContact = vi.fn()
     const decision = await runStudentLoanAgentCrmDryRun(
       INPUT,
       on({
+        creationEnabled: false,
         lookupIdentity: async () => ({ status: 'NO_CONTACT_FOUND' }),
+        createContact,
         links: { findByMember: async () => ({ status: 'not_found' }), saveVerifiedLink },
       }),
     )
     expect(decision).toEqual({ status: 'NO_CONTACT_FOUND' })
     expect(saveVerifiedLink).not.toHaveBeenCalled()
+    expect(createContact).not.toHaveBeenCalled()
+  })
+
+  it('does not create a contact when linking is disabled', async () => {
+    const createContact = vi.fn()
+    const decision = await runStudentLoanAgentCrmDryRun(
+      INPUT,
+      off({
+        creationEnabled: true,
+        lookupIdentity: async () => ({ status: 'NO_CONTACT_FOUND' }),
+        createContact,
+      }),
+    )
+    expect(decision).toEqual({ status: 'NO_CONTACT_FOUND' })
+    expect(createContact).not.toHaveBeenCalled()
+  })
+
+  it('creates one contact and links it when both gates are enabled', async () => {
+    const createContact = vi.fn(async (contact: { firstName: string; lastName: string; email: string; phone: string }) => {
+      expect(Object.keys(contact).sort()).toEqual(['email', 'firstName', 'lastName', 'phone'])
+      return { id: 'ext-created', sourceMatched: true }
+    })
+    const saveVerifiedLink = vi.fn(async () => ({ status: 'created' as const }))
+    const decision = await runStudentLoanAgentCrmDryRun(
+      INPUT,
+      on({
+        creationEnabled: true,
+        lookupIdentity: async () => ({ status: 'NO_CONTACT_FOUND' as const }),
+        createContact,
+        links: { findByMember: async () => ({ status: 'not_found' as const }), saveVerifiedLink },
+      }),
+    )
+    expect(decision).toEqual({ status: 'CREATED_AND_LINKED_CONTACT' })
+    expect(JSON.stringify(decision)).not.toContain('ext-created')
+    expect(createContact).toHaveBeenCalledTimes(1)
+    expect(saveVerifiedLink).toHaveBeenCalledWith({
+      provider: 'agentcrm',
+      locationId: 'loc-test',
+      householdMemberId: MEMBER_ID,
+      externalContactId: 'ext-created',
+    })
+  })
+
+  it('does not create or link an ambiguous or failed classifier result', async () => {
+    const createContact = vi.fn()
+    const saveVerifiedLink = vi.fn()
+    const ambiguous = await runStudentLoanAgentCrmDryRun(
+      INPUT,
+      on({
+        creationEnabled: true,
+        lookupIdentity: async () => ({ status: 'AMBIGUOUS', reason: 'EMAIL_ONLY_MATCH' }),
+        createContact,
+        links: { findByMember: async () => ({ status: 'not_found' }), saveVerifiedLink },
+      }),
+    )
+    const failed = await runStudentLoanAgentCrmDryRun(
+      INPUT,
+      on({
+        creationEnabled: true,
+        lookupIdentity: async () => ({ status: 'INTEGRATION_ERROR', category: 'timeout' }),
+        createContact,
+        links: { findByMember: async () => ({ status: 'not_found' }), saveVerifiedLink },
+      }),
+    )
+    expect(ambiguous).toEqual({ status: 'AMBIGUOUS', reason: 'EMAIL_ONLY_MATCH' })
+    expect(failed).toEqual({ status: 'INTEGRATION_ERROR', category: 'timeout' })
+    expect(createContact).not.toHaveBeenCalled()
+    expect(saveVerifiedLink).not.toHaveBeenCalled()
+  })
+
+  it('records a link failure after one create and recovers on the next search without creating again', async () => {
+    let agentContactId: string | null = null
+    let linked = false
+    const createContact = vi.fn(async () => {
+      agentContactId = 'ext-created'
+      return { id: 'ext-created', sourceMatched: true }
+    })
+    const lookupIdentity = vi.fn(async () =>
+      agentContactId
+        ? { status: 'EXACT_EXISTING_CONTACT' as const, externalContactId: agentContactId }
+        : { status: 'NO_CONTACT_FOUND' as const },
+    )
+    const links = {
+      findByMember: vi.fn(async () =>
+        linked
+          ? { status: 'found' as const, link: { householdMemberId: MEMBER_ID, externalContactId: 'ext-created' } }
+          : { status: 'not_found' as const },
+      ),
+      saveVerifiedLink: vi.fn(async () => {
+        if (!linked) return { status: 'error' as const }
+        return { status: 'created' as const }
+      }),
+    }
+    const deps = on({ creationEnabled: true, lookupIdentity, createContact, links })
+    const first = await runStudentLoanAgentCrmDryRun(INPUT, deps)
+    expect(first).toEqual({ status: 'CONTACT_CREATED_LINK_FAILED' })
+    expect(JSON.stringify(first)).not.toContain('ext-created')
+    expect(createContact).toHaveBeenCalledTimes(1)
+
+    links.saveVerifiedLink.mockImplementation(async () => {
+      linked = true
+      return { status: 'created' as const }
+    })
+    const second = await runStudentLoanAgentCrmDryRun(INPUT, deps)
+    expect(second).toEqual({ status: 'LINKED_EXISTING_CONTACT' })
+    expect(createContact).toHaveBeenCalledTimes(1)
+
+    const third = await runStudentLoanAgentCrmDryRun(INPUT, deps)
+    expect(third).toEqual({ status: 'ALREADY_LINKED' })
+    expect(createContact).toHaveBeenCalledTimes(1)
+    expect(lookupIdentity).toHaveBeenCalledTimes(2)
   })
 
   it('returns an integration error when the link insert fails and does not leak the contact id', async () => {
@@ -281,6 +406,7 @@ describe('runStudentLoanAgentCrmDryRun', () => {
     )
     const writeMethod = /method:\s*['"]POST['"]|method:\s*['"]PUT['"]|method:\s*['"]PATCH['"]|method:\s*['"]DELETE['"]/
     expect(source).not.toMatch(writeMethod)
+    expect(source).not.toMatch(/tags:|customFields:|\/conversations\/messages|opportunity/)
     expect(links).not.toMatch(writeMethod)
     expect(links).not.toMatch(/\.update\s*\(|\.delete\s*\(|\.upsert\s*\(/)
     expect(ingest).not.toContain('integration_contact_links')

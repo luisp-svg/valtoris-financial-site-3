@@ -318,7 +318,7 @@ describe('ingestFamilyReportCard', () => {
       expect(result).not.toHaveProperty('memberId')
       expect(result).not.toHaveProperty('externalContactId')
       expect(JSON.stringify(result)).not.toMatch(
-        /EXACT_EXISTING_CONTACT|NO_CONTACT_FOUND|AMBIGUOUS|INTEGRATION_ERROR|SKIP_|ALREADY_LINKED|LINKED_EXISTING_CONTACT|LINK_CONFLICT|externalContactId/,
+        /EXACT_EXISTING_CONTACT|NO_CONTACT_FOUND|AMBIGUOUS|INTEGRATION_ERROR|SKIP_|ALREADY_LINKED|LINKED_EXISTING_CONTACT|CREATED_AND_LINKED_CONTACT|CONTACT_CREATED_LINK_FAILED|LINK_CONFLICT|externalContactId/,
       )
     }
     expect(lookupIdentity).toHaveBeenCalledTimes(1)
@@ -395,8 +395,47 @@ describe('ingestFamilyReportCard', () => {
     expect(result).not.toHaveProperty('memberId')
     expect(result).not.toHaveProperty('externalContactId')
     expect(JSON.stringify(result)).not.toContain('ext-hidden')
-    expect(JSON.stringify(result)).not.toMatch(/LINKED_EXISTING_CONTACT|LINK_CONFLICT|ALREADY_LINKED/)
+    expect(JSON.stringify(result)).not.toMatch(/LINKED_EXISTING_CONTACT|LINK_CONFLICT|ALREADY_LINKED|CREATED_AND_LINKED_CONTACT|CONTACT_CREATED_LINK_FAILED/)
     expect(lookupIdentity).toHaveBeenCalledTimes(1)
+  })
+
+  it('still succeeds when AgentCRM contact creation fails', async () => {
+    const createContact = vi.fn(async () => {
+      throw new Error('create failed for hidden@example.invalid')
+    })
+    const result = await ingestFamilyReportCard(validStudentLoanIngestRequestBodyFixture(), {
+      admin: makeAdminStub(async (fn) => {
+        if (fn === 'ingest_public_report_card') return { data: newProspectRpcResponse(), error: null }
+        return { data: null, error: null }
+      }),
+      sheetsWriter: vi.fn().mockResolvedValue({ status: 'succeeded' as const }),
+      findCandidates: async () => [],
+      orchestrateFollowUpTask: vi.fn().mockResolvedValue({
+        status: 'task_created',
+        taskId: 'task-1',
+        errorCategory: null,
+        needsManualReview: false,
+      }),
+      runStudentLoanDryRun: (input) =>
+        runStudentLoanAgentCrmDryRun(input, {
+          linkingEnabled: true,
+          creationEnabled: true,
+          locationId: 'loc-test',
+          log: () => {},
+          lookupIdentity: async () => ({ status: 'NO_CONTACT_FOUND' }),
+          createContact,
+          links: {
+            findByMember: async () => ({ status: 'not_found' }),
+            saveVerifiedLink: vi.fn(),
+          },
+        }),
+    })
+
+    expect(result.ok).toBe(true)
+    if (result.ok) expect(result.created).toBe(true)
+    expect(JSON.stringify(result)).not.toContain('hidden@example.invalid')
+    expect(JSON.stringify(result)).not.toMatch(/CREATED_AND_LINKED_CONTACT|CONTACT_CREATED_LINK_FAILED|NO_CONTACT_FOUND/)
+    expect(createContact).toHaveBeenCalledTimes(1)
   })
 
   it('does not classify a non-student-loan report card', async () => {
