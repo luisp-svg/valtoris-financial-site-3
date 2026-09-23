@@ -2,8 +2,9 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { describe, expect, it, vi } from 'vitest'
+import { runStudentLoanAgentCrmDryRun } from '../../agentcrm/studentLoanDryRun'
 import { ingestFamilyReportCard } from './ingestFamilyReportCard'
-import { matchCandidateFixture, validIngestRequestBodyFixture } from './testFixtures'
+import { matchCandidateFixture, validIngestRequestBodyFixture, validStudentLoanIngestRequestBodyFixture } from './testFixtures'
 import type { MatchCandidate } from './types'
 
 function makeAdminStub(rpcImpl: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: unknown }>) {
@@ -288,5 +289,90 @@ describe('ingestFamilyReportCard', () => {
     expect(apiSource).toContain('return res.status(statusCode).json(result)')
     expect(apiSource).not.toContain('memberId')
     expect(apiSource).not.toContain('member_id')
+  })
+
+  it('keeps a Student Loan success response free of AgentCRM decisions when the dry-run errors', async () => {
+    const admin = makeAdminStub(async (fn) => {
+      if (fn === 'ingest_public_report_card') return { data: newProspectRpcResponse(), error: null }
+      return { data: null, error: null }
+    })
+    const lookupIdentity = vi.fn(async () => {
+      throw new Error('timeout')
+    })
+    const result = await ingestFamilyReportCard(validStudentLoanIngestRequestBodyFixture(), {
+      admin,
+      sheetsWriter: vi.fn().mockResolvedValue({ status: 'succeeded' as const }),
+      findCandidates: async () => [],
+      orchestrateFollowUpTask: vi.fn().mockResolvedValue({
+        status: 'task_created',
+        taskId: 'task-1',
+        errorCategory: null,
+        needsManualReview: false,
+      }),
+      runStudentLoanDryRun: (input) => runStudentLoanAgentCrmDryRun(input, { lookupIdentity, log: () => {} }),
+    })
+
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.created).toBe(true)
+      expect(result).not.toHaveProperty('memberId')
+      expect(result).not.toHaveProperty('externalContactId')
+      expect(JSON.stringify(result)).not.toMatch(/EXACT_EXISTING_CONTACT|NO_CONTACT_FOUND|AMBIGUOUS|INTEGRATION_ERROR|SKIP_/)
+    }
+    expect(lookupIdentity).toHaveBeenCalledTimes(1)
+    const rpcNames = (admin.rpc as ReturnType<typeof vi.fn>).mock.calls.map((call) => String(call[0]))
+    expect(rpcNames.join(' ')).not.toContain('integration_contact_links')
+  })
+
+  it('does not classify a possible match or a replay without a member', async () => {
+    const lookupIdentity = vi.fn()
+    const runStudentLoanDryRun = (input: Parameters<typeof runStudentLoanAgentCrmDryRun>[0]) =>
+      runStudentLoanAgentCrmDryRun(input, { lookupIdentity, log: () => {} })
+    const sheetsWriter = vi.fn().mockResolvedValue({ status: 'succeeded' as const })
+
+    const possible = await ingestFamilyReportCard(validStudentLoanIngestRequestBodyFixture(), {
+      admin: makeAdminStub(async () => ({
+        data: newProspectRpcResponse({ match_status: 'possible_match', member_id: 'member-possible' }),
+        error: null,
+      })),
+      sheetsWriter,
+      findCandidates: async () => [],
+      runStudentLoanDryRun,
+    })
+    expect(possible.ok).toBe(true)
+
+    const replay = await ingestFamilyReportCard(validStudentLoanIngestRequestBodyFixture(), {
+      admin: makeAdminStub(async () => ({
+        data: newProspectRpcResponse({ created: false, member_id: null, match_status: 'new_prospect' }),
+        error: null,
+      })),
+      sheetsWriter,
+      findCandidates: async () => [],
+      runStudentLoanDryRun,
+    })
+    expect(replay.ok).toBe(true)
+    if (replay.ok) expect(replay.created).toBe(false)
+    expect(lookupIdentity).not.toHaveBeenCalled()
+  })
+
+  it('does not classify a non-student-loan report card', async () => {
+    const lookupIdentity = vi.fn()
+    const result = await ingestFamilyReportCard(validIngestRequestBodyFixture(), {
+      admin: makeAdminStub(async (fn) => {
+        if (fn === 'ingest_public_report_card') return { data: newProspectRpcResponse(), error: null }
+        return { data: null, error: null }
+      }),
+      sheetsWriter: vi.fn().mockResolvedValue({ status: 'succeeded' as const }),
+      findCandidates: async () => [],
+      orchestrateFollowUpTask: vi.fn().mockResolvedValue({
+        status: 'skipped',
+        taskId: null,
+        errorCategory: null,
+        needsManualReview: false,
+      }),
+      runStudentLoanDryRun: (input) => runStudentLoanAgentCrmDryRun(input, { lookupIdentity, log: () => {} }),
+    })
+    expect(result.ok).toBe(true)
+    expect(lookupIdentity).not.toHaveBeenCalled()
   })
 })

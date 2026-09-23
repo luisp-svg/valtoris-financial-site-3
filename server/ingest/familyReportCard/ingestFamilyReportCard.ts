@@ -39,6 +39,7 @@ import {
   buildStudentLoanReportCardSheetsPayload,
   writePublicReportCardToSheets,
 } from './sheets.js'
+import { runStudentLoanAgentCrmDryRun } from '../../agentcrm/studentLoanDryRun.js'
 import { orchestrateIngestFollowUpTask } from './taskAutomation.js'
 import type {
   FamilyReportCardIngestResult,
@@ -58,6 +59,8 @@ export type IngestFamilyReportCardDeps = {
   findCandidates?: typeof findMatchCandidates
   /** Injectable for tests; defaults to orchestrateIngestFollowUpTask. */
   orchestrateFollowUpTask?: typeof orchestrateIngestFollowUpTask
+  /** Injectable for tests; defaults to the read-only Student Loan dry-run. */
+  runStudentLoanDryRun?: typeof runStudentLoanAgentCrmDryRun
   resolveCard?: typeof resolveCardForIngest
   resolveCampaign?: typeof resolveTrustedCampaignAttribution
 }
@@ -494,6 +497,21 @@ export async function ingestPublicReportCard(
 
   // persistResult.memberId is the RPC's member id, available here for later
   // server-side work. It is intentionally omitted from the public result.
+  const runDryRun = deps.runStudentLoanDryRun ?? runStudentLoanAgentCrmDryRun
+  try {
+    await runDryRun({
+      assessmentType: request.assessmentType,
+      matchStatus: persistResult.matchStatus || classification.status,
+      memberId: persistResult.memberId,
+      submissionId: request.submissionId,
+      firstName: contact.firstName,
+      lastName: contact.lastName,
+      email: contact.normalizedEmail,
+      phone: contact.normalizedPhone,
+    })
+  } catch {
+    // AgentCRM dry-run cannot fail a Report Card that Valtoris already saved.
+  }
 
   if (!persistResult.created) {
     return {

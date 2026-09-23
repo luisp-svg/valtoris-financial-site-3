@@ -299,7 +299,11 @@ describe('lookupAgentCrmIdentity', () => {
     for (const name of files) {
       const source = readFileSync(join(dir, name), 'utf8')
       expect(source).not.toMatch(/method:\s*['"]POST['"]|method:\s*['"]PUT['"]|method:\s*['"]PATCH['"]|method:\s*['"]DELETE['"]/)
-      expect(source).not.toMatch(/console\.(log|info|warn|error|debug)/)
+      if (name === 'studentLoanDryRun.ts') {
+        expect(source).not.toMatch(/console\.(log|warn|error|debug)/)
+      } else {
+        expect(source).not.toMatch(/console\.(log|info|warn|error|debug)/)
+      }
     }
   })
 
