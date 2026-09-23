@@ -14,6 +14,8 @@ export type PersistIngestSuccess = {
   created: boolean
   leadId: string
   householdId: string
+  /** Authoritative member id from the RPC row. Null when that response omits it. */
+  memberId: string | null
   assessmentId: string | null
   matchStatus: string
   sheetsSyncStatus: string | null
@@ -78,6 +80,7 @@ export async function persistFamilyReportCardIngest(
     created: Boolean(row.created),
     leadId: row.lead_id,
     householdId: row.household_id,
+    memberId: typeof row.member_id === 'string' ? row.member_id : null,
     assessmentId: typeof row.assessment_id === 'string' ? row.assessment_id : null,
     matchStatus: typeof row.match_status === 'string' ? row.match_status : '',
     sheetsSyncStatus: typeof row.sheets_sync_status === 'string' ? row.sheets_sync_status : null,

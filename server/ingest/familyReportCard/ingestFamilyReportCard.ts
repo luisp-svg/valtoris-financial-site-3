@@ -492,6 +492,9 @@ export async function ingestPublicReportCard(
     return { ok: false, error: persistResult.error, code: persistResult.code }
   }
 
+  // persistResult.memberId is the RPC's member id, available here for later
+  // server-side work. It is intentionally omitted from the public result.
+
   if (!persistResult.created) {
     return {
       ok: true,

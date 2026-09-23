@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { describe, expect, it, vi } from 'vitest'
 import { ingestFamilyReportCard } from './ingestFamilyReportCard'
@@ -70,7 +72,11 @@ describe('ingestFamilyReportCard', () => {
       expect(result.sheetsSync.status).toBe('succeeded')
       expect(result.assessmentId).toBe('assess-1')
       expect(result).not.toHaveProperty('householdId')
+      expect(result).not.toHaveProperty('leadId')
+      expect(result).not.toHaveProperty('memberId')
+      expect(result).not.toHaveProperty('member_id')
       expect(result).not.toHaveProperty('taskId')
+      expect(JSON.stringify(result)).not.toContain('member-1')
     }
 
     expect(orchestrateFollowUpTask).toHaveBeenCalledWith(
@@ -133,7 +139,13 @@ describe('ingestFamilyReportCard', () => {
     })
 
     expect(result.ok).toBe(true)
-    if (result.ok) expect(result.matchStatus).toBe('exact_trusted_match')
+    if (result.ok) {
+      expect(result.matchStatus).toBe('exact_trusted_match')
+      expect(result.assessmentId).toBe('assess-1')
+      expect(result).not.toHaveProperty('memberId')
+      expect(result).not.toHaveProperty('member_id')
+      expect(JSON.stringify(result)).not.toContain('member-1')
+    }
     expect(capturedPayload?.matched_household_id).toBe('hh-existing-1')
   })
 
@@ -187,6 +199,8 @@ describe('ingestFamilyReportCard', () => {
     if (result.ok) {
       expect(result.created).toBe(false)
       expect(result.sheetsSync.status).toBe('succeeded')
+      expect(result).not.toHaveProperty('memberId')
+      expect(result).not.toHaveProperty('member_id')
     }
     expect(sheetsWriter).not.toHaveBeenCalled()
   })
@@ -224,5 +238,55 @@ describe('ingestFamilyReportCard', () => {
     expect(result.ok).toBe(false)
     if (!result.ok) expect(result.code).toBe('candidate_lookup_failed')
     expect(admin.rpc).not.toHaveBeenCalled()
+  })
+
+  it('keeps a possible-match member id off the public result and does not call AgentCRM', async () => {
+    const admin = makeAdminStub(async (fn) => {
+      if (fn === 'ingest_public_report_card') {
+        return {
+          data: newProspectRpcResponse({
+            match_status: 'possible_match',
+            member_id: 'member-possible-1',
+            duplicate_review_id: 'review-1',
+          }),
+          error: null,
+        }
+      }
+      return { data: null, error: null }
+    })
+
+    const result = await ingestFamilyReportCard(validIngestRequestBodyFixture(), {
+      admin,
+      sheetsWriter: vi.fn().mockResolvedValue({ status: 'succeeded' as const }),
+      findCandidates: async () => [
+        matchCandidateFixture({
+          firstName: 'Morgan',
+          lastName: 'Lee',
+        }),
+      ],
+    })
+
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.matchStatus).toBe('possible_match')
+      expect(result.assessmentId).toBe('assess-1')
+      expect(result).not.toHaveProperty('memberId')
+      expect(result).not.toHaveProperty('member_id')
+      expect(JSON.stringify(result)).not.toContain('member-possible-1')
+    }
+    const rpcNames = (admin.rpc as ReturnType<typeof vi.fn>).mock.calls.map((call) => call[0])
+    expect(rpcNames).toContain('ingest_public_report_card')
+    expect(rpcNames.join(' ')).not.toMatch(/agentcrm|household_members/)
+
+    const ingestSource = readFileSync(
+      resolve(process.cwd(), 'server/ingest/familyReportCard/ingestFamilyReportCard.ts'),
+      'utf8',
+    )
+    const apiSource = readFileSync(resolve(process.cwd(), 'api/ingest-family-report-card.ts'), 'utf8')
+    expect(ingestSource).not.toContain('server/agentcrm')
+    expect(ingestSource).not.toMatch(/from\(['"]household_members/)
+    expect(apiSource).toContain('return res.status(statusCode).json(result)')
+    expect(apiSource).not.toContain('memberId')
+    expect(apiSource).not.toContain('member_id')
   })
 })
