@@ -8,16 +8,18 @@ import {
   HOME_BUYER_SERVICE_TAG,
   BUSINESS_CONTACT_SOURCE,
   BUSINESS_SERVICE_TAG,
+  FAMILY_CONTACT_SOURCE,
+  FAMILY_SERVICE_TAG,
   PROTECTION_CONTACT_SOURCE,
   PROTECTION_SERVICE_TAG,
+  RETIREMENT_CONTACT_SOURCE,
+  RETIREMENT_SERVICE_TAG,
   STUDENT_LOAN_CONTACT_SOURCE,
   STUDENT_LOAN_SERVICE_TAG,
 } from './reportCardSyncConfig'
 
-const INACTIVE = ['family', 'retirement'] as const
-
 describe('getReportCardAgentCrmConfig', () => {
-  it('enables Student Loan, Credit, Home Buyer, and Protection with their verified source labels', () => {
+  it('enables every current Report Card with its verified source label', () => {
     expect(getReportCardAgentCrmConfig('student_loan')).toEqual({
       assessmentType: 'student_loan',
       source: STUDENT_LOAN_CONTACT_SOURCE,
@@ -79,11 +81,48 @@ describe('getReportCardAgentCrmConfig', () => {
     ]) {
       expect(BUSINESS_SERVICE_TAG).not.toBe(specialist)
     }
+    expect(getReportCardAgentCrmConfig('family')).toEqual({
+      assessmentType: 'family',
+      source: FAMILY_CONTACT_SOURCE,
+      serviceTag: FAMILY_SERVICE_TAG,
+      enabled: true,
+    })
+    expect(FAMILY_CONTACT_SOURCE).toBe(LEAD_TYPE_BY_ASSESSMENT.family)
+    expect(FAMILY_CONTACT_SOURCE).toBe('Family Report Card')
+    expect(FAMILY_CONTACT_SOURCE).not.toBe('Initial Financial Diagnostic')
+    expect(FAMILY_SERVICE_TAG).toBe('service-family-planning')
+    for (const specialist of [
+      'service-life-insurance',
+      'service-wills-trusts',
+      'service-annuities-retirement',
+      'service-retirement-planning',
+      CREDIT_SERVICE_TAG,
+      HOME_BUYER_SERVICE_TAG,
+    ]) {
+      expect(FAMILY_SERVICE_TAG).not.toBe(specialist)
+    }
+    expect(getReportCardAgentCrmConfig('retirement')).toEqual({
+      assessmentType: 'retirement',
+      source: RETIREMENT_CONTACT_SOURCE,
+      serviceTag: RETIREMENT_SERVICE_TAG,
+      enabled: true,
+    })
+    expect(RETIREMENT_CONTACT_SOURCE).toBe(LEAD_TYPE_BY_ASSESSMENT.retirement)
+    expect(RETIREMENT_CONTACT_SOURCE).toBe('Retirement Report Card')
+    expect(RETIREMENT_SERVICE_TAG).toBe('service-retirement-planning')
+    expect(RETIREMENT_SERVICE_TAG).not.toBe('service-annuities-retirement')
+    for (const specialist of [
+      'service-annuities-retirement',
+      'service-tax-strategies',
+      'service-wills-trusts',
+      'service-health-disability',
+      'service-life-insurance',
+    ]) {
+      expect(RETIREMENT_SERVICE_TAG).not.toBe(specialist)
+    }
   })
 
-  it('leaves every other Report Card inactive', () => {
-    for (const assessmentType of INACTIVE) {
-      expect(getReportCardAgentCrmConfig(assessmentType)).toBeNull()
-    }
+  it('leaves an unknown assessment type inactive', () => {
+    expect(getReportCardAgentCrmConfig('not_a_report_card')).toBeNull()
   })
 })

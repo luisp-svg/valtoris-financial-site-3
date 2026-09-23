@@ -10,6 +10,7 @@ import {
   validBusinessIngestRequestBodyFixture,
   validHomeBuyerIngestRequestBodyFixture,
   validProtectionIngestRequestBodyFixture,
+  validRetirementIngestRequestBodyFixture,
   validIngestRequestBodyFixture,
   validStudentLoanIngestRequestBodyFixture,
 } from './testFixtures'
@@ -641,7 +642,85 @@ describe('ingestFamilyReportCard', () => {
     expect(JSON.stringify(result)).not.toContain('sample@example.com')
   })
 
-  it('does not classify an inactive report card', async () => {
+  it('still succeeds when Family AgentCRM identity lookup fails', async () => {
+    const result = await ingestFamilyReportCard(validIngestRequestBodyFixture(), {
+      admin: makeAdminStub(async (fn) => {
+        if (fn === 'ingest_public_report_card') return { data: newProspectRpcResponse(), error: null }
+        return { data: null, error: null }
+      }),
+      sheetsWriter: vi.fn().mockResolvedValue({ status: 'succeeded' as const }),
+      findCandidates: async () => [],
+      orchestrateFollowUpTask: vi.fn().mockResolvedValue({
+        status: 'task_created',
+        taskId: 'task-1',
+        errorCategory: null,
+        needsManualReview: false,
+      }),
+      runStudentLoanDryRun: (input) =>
+        runStudentLoanAgentCrmDryRun(input, {
+          linkingEnabled: true,
+          locationId: 'loc-test',
+          log: () => {},
+          lookupIdentity: async () => ({ status: 'INTEGRATION_ERROR', category: 'timeout' }),
+          links: {
+            findByMember: async () => ({ status: 'not_found' }),
+            saveVerifiedLink: vi.fn(),
+          },
+        }),
+    })
+
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.created).toBe(true)
+      expect(result).not.toHaveProperty('memberId')
+      expect(result).not.toHaveProperty('externalContactId')
+    }
+    expect(JSON.stringify(result)).not.toMatch(
+      /INTEGRATION_ERROR|TAG_FAILED|externalContactId|service-family-planning|service-life-insurance|service-wills-trusts|service-annuities-retirement/,
+    )
+    expect(JSON.stringify(result)).not.toContain('jamie.rivera@example.com')
+  })
+
+  it('still succeeds when Retirement AgentCRM identity lookup fails', async () => {
+    const result = await ingestFamilyReportCard(validRetirementIngestRequestBodyFixture(), {
+      admin: makeAdminStub(async (fn) => {
+        if (fn === 'ingest_public_report_card') return { data: newProspectRpcResponse(), error: null }
+        return { data: null, error: null }
+      }),
+      sheetsWriter: vi.fn().mockResolvedValue({ status: 'succeeded' as const }),
+      findCandidates: async () => [],
+      orchestrateFollowUpTask: vi.fn().mockResolvedValue({
+        status: 'task_created',
+        taskId: 'task-1',
+        errorCategory: null,
+        needsManualReview: false,
+      }),
+      runStudentLoanDryRun: (input) =>
+        runStudentLoanAgentCrmDryRun(input, {
+          linkingEnabled: true,
+          locationId: 'loc-test',
+          log: () => {},
+          lookupIdentity: async () => ({ status: 'INTEGRATION_ERROR', category: 'timeout' }),
+          links: {
+            findByMember: async () => ({ status: 'not_found' }),
+            saveVerifiedLink: vi.fn(),
+          },
+        }),
+    })
+
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.created).toBe(true)
+      expect(result).not.toHaveProperty('memberId')
+      expect(result).not.toHaveProperty('externalContactId')
+    }
+    expect(JSON.stringify(result)).not.toMatch(
+      /INTEGRATION_ERROR|TAG_FAILED|externalContactId|service-retirement-planning|service-annuities-retirement|service-tax-strategies|service-wills-trusts|service-health-disability/,
+    )
+    expect(JSON.stringify(result)).not.toContain('alex.morgan@example.com')
+  })
+
+  it('does not classify when the Report Card sync config is disabled', async () => {
     const lookupIdentity = vi.fn()
     const result = await ingestFamilyReportCard(validIngestRequestBodyFixture(), {
       admin: makeAdminStub(async (fn) => {
@@ -656,7 +735,17 @@ describe('ingestFamilyReportCard', () => {
         errorCategory: null,
         needsManualReview: false,
       }),
-      runStudentLoanDryRun: (input) => runStudentLoanAgentCrmDryRun(input, { lookupIdentity, log: () => {} }),
+      runStudentLoanDryRun: (input) =>
+        runStudentLoanAgentCrmDryRun(input, {
+          lookupIdentity,
+          log: () => {},
+          resolveConfig: () => ({
+            assessmentType: 'family',
+            source: 'Family Report Card',
+            serviceTag: 'service-family-planning',
+            enabled: false,
+          }),
+        }),
     })
     expect(result.ok).toBe(true)
     expect(lookupIdentity).not.toHaveBeenCalled()

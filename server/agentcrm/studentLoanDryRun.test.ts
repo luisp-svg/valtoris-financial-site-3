@@ -380,7 +380,7 @@ describe('runStudentLoanAgentCrmDryRun', () => {
     const lookupIdentity = vi.fn()
     const findByMember = vi.fn()
     const decision = await runStudentLoanAgentCrmDryRun(
-      { ...INPUT, assessmentType: 'family' },
+      { ...INPUT, assessmentType: 'not_a_report_card' },
       on({ lookupIdentity, links: { findByMember, saveVerifiedLink: vi.fn() } }),
     )
     expect(decision).toBeNull()
@@ -570,7 +570,7 @@ describe('runStudentLoanAgentCrmDryRun', () => {
         }),
       ),
       runStudentLoanAgentCrmDryRun(
-        { ...INPUT, assessmentType: 'family' },
+        { ...INPUT, assessmentType: 'not_a_report_card' },
         on({ taggingEnabled: true, applyTag }),
       ),
     ]
@@ -677,6 +677,13 @@ describe('runStudentLoanAgentCrmDryRun', () => {
     expect(cardConfig).toContain('service-life-insurance')
     expect(cardConfig).toContain('business:')
     expect(cardConfig).toContain('service-business-planning')
+    expect(cardConfig).toContain('family:')
+    expect(cardConfig).toContain('service-family-planning')
+    expect(cardConfig).toContain('retirement:')
+    expect(cardConfig).toContain('service-retirement-planning')
+    expect(cardConfig).not.toContain('Initial Financial Diagnostic')
+    expect(cardConfig).not.toContain('service-annuities-retirement')
+    expect(cardConfig).not.toContain('service-wills-trusts')
     expect(cardConfig).not.toContain('service-home-auto')
     expect(cardConfig).not.toContain('service-health-disability')
     expect(cardConfig).not.toContain('service-llc-setup')
@@ -684,7 +691,6 @@ describe('runStudentLoanAgentCrmDryRun', () => {
     expect(cardConfig).not.toContain('service-payment-processing')
     expect(cardConfig).not.toContain('service-commercial-insurance')
     expect(cardConfig).not.toContain('service-employee-benefits')
-    expect(cardConfig).not.toMatch(/family:|retirement:/)
     expect(links).not.toMatch(writeMethod)
     expect(links).not.toMatch(/\.update\s*\(|\.delete\s*\(|\.upsert\s*\(/)
     expect(ingest).not.toContain('integration_contact_links')

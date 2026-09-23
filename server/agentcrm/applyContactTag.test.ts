@@ -4,8 +4,10 @@ import { applyReportCardServiceTag, applyStudentLoanServiceTag, STUDENT_LOAN_SER
 import {
   BUSINESS_SERVICE_TAG,
   CREDIT_SERVICE_TAG,
+  FAMILY_SERVICE_TAG,
   HOME_BUYER_SERVICE_TAG,
   PROTECTION_SERVICE_TAG,
+  RETIREMENT_SERVICE_TAG,
 } from './reportCardSyncConfig'
 import { AGENTCRM_CONTACT_TAGGING_ENV } from './contactTaggingGate'
 import { LeadConnectorError } from './errors'
@@ -148,6 +150,40 @@ describe('applyStudentLoanServiceTag', () => {
     expect(fetchImpl).not.toHaveBeenCalled()
   })
 
+  it('posts only the existing family-planning and retirement-planning tags', async () => {
+    for (const [tag, forbidden] of [
+      [FAMILY_SERVICE_TAG, ['service-life-insurance', 'service-wills-trusts', 'service-annuities-retirement', 'service-retirement-planning']],
+      [RETIREMENT_SERVICE_TAG, ['service-annuities-retirement', 'service-tax-strategies', 'service-wills-trusts', 'service-health-disability', 'service-life-insurance']],
+    ] as const) {
+      const fetchImpl = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) =>
+        jsonResponse({ tags: [tag, 'service-student-loans'] }),
+      )
+      await applyReportCardServiceTag(CONTACT_ID, tag, { env: enabledEnv(), fetchImpl })
+      const init = fetchImpl.mock.calls[0]?.[1]
+      if (!init) throw new Error('expected a tag request')
+      const body = JSON.parse(String(init.body)) as { tags: string[] }
+      expect(body).toEqual({ tags: [tag] })
+      for (const specialist of forbidden) {
+        expect(body.tags).not.toContain(specialist)
+      }
+    }
+  })
+
+  it('does not apply a Family or Retirement specialist tag', async () => {
+    const fetchImpl = vi.fn()
+    for (const specialist of [
+      'service-wills-trusts',
+      'service-annuities-retirement',
+      'service-tax-strategies',
+      'service-health-disability',
+    ]) {
+      await expect(
+        applyReportCardServiceTag(CONTACT_ID, specialist, { env: enabledEnv(), fetchImpl }),
+      ).rejects.toMatchObject({ category: 'forbidden' })
+    }
+    expect(fetchImpl).not.toHaveBeenCalled()
+  })
+
   it('does not update a contact or send a message', () => {
     const source = readFileSync(new URL('./applyContactTag.ts', import.meta.url), 'utf8')
     const config = readFileSync(new URL('./reportCardSyncConfig.ts', import.meta.url), 'utf8')
@@ -159,6 +195,11 @@ describe('applyStudentLoanServiceTag', () => {
     expect(config).toContain(HOME_BUYER_SERVICE_TAG)
     expect(config).toContain(PROTECTION_SERVICE_TAG)
     expect(config).toContain(BUSINESS_SERVICE_TAG)
+    expect(config).toContain(FAMILY_SERVICE_TAG)
+    expect(config).toContain(RETIREMENT_SERVICE_TAG)
+    expect(config).not.toContain('service-annuities-retirement')
+    expect(config).not.toContain('service-wills-trusts')
+    expect(config).not.toContain('Initial Financial Diagnostic')
     expect(config).not.toContain('service-home-auto')
     expect(config).not.toContain('service-health-disability')
     expect(config).not.toContain('service-llc-setup')

@@ -43,7 +43,7 @@ describe('runReportCardAgentCrmSync', () => {
     const applyTag = vi.fn()
     const links = linked()
     const unsupported = await runReportCardAgentCrmSync(
-      { ...INPUT, assessmentType: 'family' },
+      { ...INPUT, assessmentType: 'not_a_report_card' },
       quiet({ linkingEnabled: true, creationEnabled: true, taggingEnabled: true, lookupIdentity, createContact, applyTag, links }),
     )
     const disabled = await runReportCardAgentCrmSync(
@@ -397,7 +397,15 @@ describe('runReportCardAgentCrmSync', () => {
     expect(config).not.toContain('service-payment-processing')
     expect(config).not.toContain('service-commercial-insurance')
     expect(config).not.toContain('service-employee-benefits')
-    expect(config).not.toMatch(/\bfamily\b|\bretirement\b/)
+    expect(config).toContain("assessmentType: 'family'")
+    expect(config).toContain('Family Report Card')
+    expect(config).not.toContain('Initial Financial Diagnostic')
+    expect(config).toContain('service-family-planning')
+    expect(config).toContain("assessmentType: 'retirement'")
+    expect(config).toContain('Retirement Report Card')
+    expect(config).toContain('service-retirement-planning')
+    expect(config).not.toContain('service-annuities-retirement')
+    expect(config).not.toContain('service-wills-trusts')
   })
 
   it('uses the Student Loan source and service tag through the real writers on CRM-dev', async () => {
@@ -651,12 +659,12 @@ describe('runReportCardAgentCrmSync', () => {
     }
   })
 
-  it('does nothing for Family or Retirement', async () => {
+  it('does nothing for an unknown assessment type', async () => {
     const lookupIdentity = vi.fn()
     const createContact = vi.fn()
     const applyTag = vi.fn()
     const links = linked()
-    for (const assessmentType of ['family', 'retirement']) {
+    for (const assessmentType of ['not_a_report_card']) {
       const decision = await runReportCardAgentCrmSync(
         { ...INPUT, assessmentType },
         quiet({
@@ -1529,6 +1537,341 @@ describe('runReportCardAgentCrmSync', () => {
       expect(JSON.stringify(createInit.body)).not.toMatch(/customFields|opportunity|workflow/)
     } finally {
       vi.unstubAllGlobals()
+    }
+  })
+
+  const NEUTRAL_CARDS = [
+    {
+      assessmentType: 'family',
+      source: 'Family Report Card',
+      tag: 'service-family-planning',
+      forbidden: [
+        'service-life-insurance',
+        'service-wills-trusts',
+        'service-annuities-retirement',
+        'service-retirement-planning',
+        'service-credit-improvement',
+        'service-home-buyer-readiness',
+      ],
+    },
+    {
+      assessmentType: 'retirement',
+      source: 'Retirement Report Card',
+      tag: 'service-retirement-planning',
+      forbidden: [
+        'service-annuities-retirement',
+        'service-tax-strategies',
+        'service-wills-trusts',
+        'service-health-disability',
+        'service-life-insurance',
+      ],
+    },
+  ] as const
+
+  it('does not sync a Family or Retirement possible match, missing member, or missing identity', async () => {
+    for (const card of NEUTRAL_CARDS) {
+      const lookupIdentity = vi.fn()
+      const createContact = vi.fn()
+      const applyTag = vi.fn()
+      const links = linked()
+      const deps = quiet({
+        linkingEnabled: true,
+        creationEnabled: true,
+        taggingEnabled: true,
+        lookupIdentity,
+        createContact,
+        applyTag,
+        links,
+      })
+      const possible = await runReportCardAgentCrmSync(
+        { ...INPUT, assessmentType: card.assessmentType, matchStatus: 'possible_match' },
+        deps,
+      )
+      const replay = await runReportCardAgentCrmSync(
+        { ...INPUT, assessmentType: card.assessmentType, memberId: null },
+        deps,
+      )
+      const noEmail = await runReportCardAgentCrmSync(
+        { ...INPUT, assessmentType: card.assessmentType, email: null },
+        deps,
+      )
+      const noPhone = await runReportCardAgentCrmSync(
+        { ...INPUT, assessmentType: card.assessmentType, phone: ' ' },
+        deps,
+      )
+      expect(possible).toEqual({ status: 'SKIP_POSSIBLE_MATCH' })
+      expect(replay).toEqual({ status: 'SKIP_REPLAY_WITHOUT_MEMBER' })
+      expect(noEmail).toEqual({ status: 'AMBIGUOUS', reason: 'MISSING_IDENTITY_INPUT' })
+      expect(noPhone).toEqual({ status: 'AMBIGUOUS', reason: 'MISSING_IDENTITY_INPUT' })
+      expect(lookupIdentity).not.toHaveBeenCalled()
+      expect(createContact).not.toHaveBeenCalled()
+      expect(applyTag).not.toHaveBeenCalled()
+      expect(links.findByMember).not.toHaveBeenCalled()
+    }
+  })
+
+  it('does not create, link, or tag an ambiguous or failed Family or Retirement lookup', async () => {
+    for (const card of NEUTRAL_CARDS) {
+      const lookupIdentity = vi.fn(async (): Promise<
+        | { status: 'AMBIGUOUS'; reason: 'EMAIL_ONLY_MATCH' }
+        | { status: 'INTEGRATION_ERROR'; category: 'timeout' }
+      > => ({ status: 'AMBIGUOUS', reason: 'EMAIL_ONLY_MATCH' }))
+      const createContact = vi.fn()
+      const applyTag = vi.fn()
+      const saveVerifiedLink = vi.fn()
+      const ambiguous = await runReportCardAgentCrmSync(
+        { ...INPUT, assessmentType: card.assessmentType },
+        quiet({
+          linkingEnabled: true,
+          creationEnabled: true,
+          taggingEnabled: true,
+          lookupIdentity,
+          createContact,
+          applyTag,
+          links: { findByMember: async () => ({ status: 'not_found' as const }), saveVerifiedLink },
+        }),
+      )
+      lookupIdentity.mockResolvedValueOnce({ status: 'INTEGRATION_ERROR', category: 'timeout' })
+      const failed = await runReportCardAgentCrmSync(
+        { ...INPUT, assessmentType: card.assessmentType },
+        quiet({
+          linkingEnabled: true,
+          creationEnabled: true,
+          taggingEnabled: true,
+          lookupIdentity,
+          createContact,
+          applyTag,
+          links: { findByMember: async () => ({ status: 'not_found' as const }), saveVerifiedLink },
+        }),
+      )
+      expect(ambiguous).toEqual({ status: 'AMBIGUOUS', reason: 'EMAIL_ONLY_MATCH' })
+      expect(failed).toEqual({ status: 'INTEGRATION_ERROR', category: 'timeout' })
+      expect(createContact).not.toHaveBeenCalled()
+      expect(applyTag).not.toHaveBeenCalled()
+      expect(saveVerifiedLink).not.toHaveBeenCalled()
+    }
+  })
+
+  it('creates, links, and tags a new Family or Retirement person with that card source', async () => {
+    for (const card of NEUTRAL_CARDS) {
+      const order: string[] = []
+      const decision = await runReportCardAgentCrmSync(
+        { ...INPUT, assessmentType: card.assessmentType },
+        quiet({
+          linkingEnabled: true,
+          creationEnabled: true,
+          taggingEnabled: true,
+          lookupIdentity: async () => ({ status: 'NO_CONTACT_FOUND' as const }),
+          createContact: async (input) => {
+            order.push('create')
+            expect(input.source).toBe(card.source)
+            return { id: `ext-${card.assessmentType}`, sourceMatched: true }
+          },
+          applyTag: async () => {
+            order.push('tag')
+          },
+          links: {
+            findByMember: async () => ({ status: 'not_found' as const }),
+            saveVerifiedLink: async () => {
+              order.push('link')
+              return { status: 'created' as const }
+            },
+          },
+        }),
+      )
+      expect(decision).toEqual({ status: 'CREATED_AND_LINKED_CONTACT' })
+      expect(order).toEqual(['create', 'link', 'tag'])
+      expect(JSON.stringify(decision)).not.toContain(`ext-${card.assessmentType}`)
+    }
+  })
+
+  it('links an exact Family or Retirement contact and does not update it', async () => {
+    for (const card of NEUTRAL_CARDS) {
+      const createContact = vi.fn()
+      const decision = await runReportCardAgentCrmSync(
+        { ...INPUT, assessmentType: card.assessmentType },
+        quiet({
+          linkingEnabled: true,
+          taggingEnabled: true,
+          lookupIdentity: async () => ({ status: 'EXACT_EXISTING_CONTACT' as const, externalContactId: EXTERNAL_ID }),
+          createContact,
+          applyTag: async () => {},
+          links: {
+            findByMember: async () => ({ status: 'not_found' as const }),
+            saveVerifiedLink: async () => ({ status: 'created' as const }),
+          },
+        }),
+      )
+      expect(decision).toEqual({ status: 'LINKED_EXISTING_CONTACT' })
+      expect(createContact).not.toHaveBeenCalled()
+      expect(JSON.stringify(decision)).not.toContain(EXTERNAL_ID)
+    }
+  })
+
+  it('tags an already linked Family or Retirement person twice without searching or creating', async () => {
+    for (const card of NEUTRAL_CARDS) {
+      const lookupIdentity = vi.fn()
+      const createContact = vi.fn()
+      const applyTag = vi.fn(async () => {})
+      const links = linked()
+      const spy = vi.spyOn(console, 'info').mockImplementation(() => {})
+      const first = await runReportCardAgentCrmSync(
+        { ...INPUT, assessmentType: card.assessmentType },
+        quiet({
+          linkingEnabled: true,
+          creationEnabled: true,
+          taggingEnabled: true,
+          lookupIdentity,
+          createContact,
+          applyTag,
+          links,
+          log: undefined,
+        }),
+      )
+      const second = await runReportCardAgentCrmSync(
+        { ...INPUT, assessmentType: card.assessmentType },
+        {
+          linkingEnabled: true,
+          creationEnabled: true,
+          taggingEnabled: true,
+          lookupIdentity,
+          createContact,
+          applyTag,
+          links,
+          locationId: 'loc-test',
+        },
+      )
+      const logged = JSON.stringify(spy.mock.calls)
+      spy.mockRestore()
+      expect(first).toEqual({ status: 'ALREADY_LINKED' })
+      expect(second).toEqual({ status: 'ALREADY_LINKED' })
+      expect(applyTag).toHaveBeenCalledTimes(2)
+      expect(lookupIdentity).not.toHaveBeenCalled()
+      expect(createContact).not.toHaveBeenCalled()
+      expect(links.saveVerifiedLink).not.toHaveBeenCalled()
+      expect(logged).toContain(card.assessmentType)
+      expect(logged).not.toContain(INPUT.email ?? '')
+      expect(logged).not.toContain(INPUT.phone ?? '')
+      expect(logged).not.toContain(EXTERNAL_ID)
+    }
+  })
+
+  it('keeps one contact and one link across all seven Report Cards', async () => {
+    let stored: string | null = null
+    const createContact = vi.fn(async () => ({ id: EXTERNAL_ID, sourceMatched: true }))
+    const applyTag = vi.fn(async () => {})
+    const saveVerifiedLink = vi.fn(async () => {
+      stored = EXTERNAL_ID
+      return { status: 'created' as const }
+    })
+    const links = {
+      findByMember: async () =>
+        stored
+          ? { status: 'found' as const, link: { householdMemberId: MEMBER_ID, externalContactId: stored } }
+          : { status: 'not_found' as const },
+      saveVerifiedLink,
+    }
+    const sequence = ['student_loan', 'credit', 'home_buyer', 'protection', 'business', 'family', 'retirement'] as const
+    const decisions = []
+    for (const assessmentType of sequence) {
+      decisions.push(
+        await runReportCardAgentCrmSync(
+          { ...INPUT, assessmentType },
+          quiet({
+            linkingEnabled: true,
+            creationEnabled: true,
+            taggingEnabled: true,
+            lookupIdentity: async () => ({ status: 'NO_CONTACT_FOUND' as const }),
+            createContact,
+            applyTag,
+            links,
+          }),
+        ),
+      )
+    }
+    expect(decisions.map((decision) => decision?.status)).toEqual([
+      'CREATED_AND_LINKED_CONTACT',
+      'ALREADY_LINKED',
+      'ALREADY_LINKED',
+      'ALREADY_LINKED',
+      'ALREADY_LINKED',
+      'ALREADY_LINKED',
+      'ALREADY_LINKED',
+    ])
+    expect(createContact).toHaveBeenCalledTimes(1)
+    expect(saveVerifiedLink).toHaveBeenCalledTimes(1)
+    expect(applyTag).toHaveBeenCalledTimes(7)
+    expect(applyTag).toHaveBeenNthCalledWith(7, EXTERNAL_ID)
+  })
+
+  it('posts only the neutral Family or Retirement tag', async () => {
+    for (const card of NEUTRAL_CARDS) {
+      const fetchImpl = vi.fn(async (input: RequestInfo | URL, _init?: RequestInit) => {
+        const url = input instanceof URL ? input : new URL(String(input))
+        if (url.pathname === '/contacts/') {
+          return new Response(
+            JSON.stringify({
+              contact: {
+                id: 'syntheticContact1',
+                locationId: 'loc-test',
+                email: INPUT.email,
+                phone: INPUT.phone,
+                source: card.source,
+              },
+            }),
+            { status: 201, headers: { 'Content-Type': 'application/json' } },
+          )
+        }
+        return new Response(
+          JSON.stringify({
+            tags: [
+              'service-student-loans',
+              'service-credit-improvement',
+              'service-home-buyer-readiness',
+              'service-life-insurance',
+              'service-business-planning',
+              card.tag,
+            ],
+          }),
+          { status: 201, headers: { 'Content-Type': 'application/json' } },
+        )
+      })
+      vi.stubGlobal('fetch', fetchImpl)
+      try {
+        const decision = await runReportCardAgentCrmSync(
+          { ...INPUT, assessmentType: card.assessmentType },
+          {
+            log: () => {},
+            lookupIdentity: async () => ({ status: 'NO_CONTACT_FOUND' as const }),
+            links: {
+              findByMember: async () => ({ status: 'not_found' as const }),
+              saveVerifiedLink: async () => ({ status: 'created' as const }),
+            },
+            env: {
+              [AGENTCRM_CONTACT_LINKING_ENV]: 'true',
+              [AGENTCRM_CONTACT_CREATION_ENV]: 'true',
+              [AGENTCRM_CONTACT_TAGGING_ENV]: 'true',
+              SUPABASE_URL: CRM_DEV,
+              AGENTCRM_LOCATION_ID: 'loc-test',
+              AGENTCRM_PRIVATE_INTEGRATION_TOKEN: 'pit-test-placeholder',
+            },
+          },
+        )
+        expect(decision).toEqual({ status: 'CREATED_AND_LINKED_CONTACT' })
+        const createInit = fetchImpl.mock.calls[0]?.[1]
+        const tagInit = fetchImpl.mock.calls[1]?.[1]
+        if (!createInit || !tagInit) throw new Error('expected create and tag requests')
+        const createBody = JSON.parse(String(createInit.body)) as Record<string, unknown>
+        const tagBody = JSON.parse(String(tagInit.body)) as { tags: string[] }
+        expect(createBody.source).toBe(card.source)
+        expect(createBody).not.toHaveProperty('tags')
+        expect(tagBody).toEqual({ tags: [card.tag] })
+        for (const specialist of card.forbidden) {
+          expect(tagBody.tags).not.toContain(specialist)
+        }
+      } finally {
+        vi.unstubAllGlobals()
+      }
     }
   })
 })
