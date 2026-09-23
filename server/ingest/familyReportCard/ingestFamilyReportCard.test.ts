@@ -7,6 +7,7 @@ import { ingestFamilyReportCard } from './ingestFamilyReportCard'
 import {
   matchCandidateFixture,
   validCreditIngestRequestBodyFixture,
+  validBusinessIngestRequestBodyFixture,
   validHomeBuyerIngestRequestBodyFixture,
   validProtectionIngestRequestBodyFixture,
   validIngestRequestBodyFixture,
@@ -599,6 +600,45 @@ describe('ingestFamilyReportCard', () => {
       /INTEGRATION_ERROR|TAG_FAILED|externalContactId|service-life-insurance|service-health-disability|service-home-auto|service-credit-improvement/,
     )
     expect(JSON.stringify(result)).not.toContain('jamie.rivera@example.com')
+  })
+
+  it('still succeeds when Business AgentCRM identity lookup fails', async () => {
+    const result = await ingestFamilyReportCard(validBusinessIngestRequestBodyFixture(), {
+      admin: makeAdminStub(async (fn) => {
+        if (fn === 'ingest_public_report_card') return { data: newProspectRpcResponse(), error: null }
+        return { data: null, error: null }
+      }),
+      sheetsWriter: vi.fn().mockResolvedValue({ status: 'succeeded' as const }),
+      findCandidates: async () => [],
+      orchestrateFollowUpTask: vi.fn().mockResolvedValue({
+        status: 'task_created',
+        taskId: 'task-1',
+        errorCategory: null,
+        needsManualReview: false,
+      }),
+      runStudentLoanDryRun: (input) =>
+        runStudentLoanAgentCrmDryRun(input, {
+          linkingEnabled: true,
+          locationId: 'loc-test',
+          log: () => {},
+          lookupIdentity: async () => ({ status: 'INTEGRATION_ERROR', category: 'timeout' }),
+          links: {
+            findByMember: async () => ({ status: 'not_found' }),
+            saveVerifiedLink: vi.fn(),
+          },
+        }),
+    })
+
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.created).toBe(true)
+      expect(result).not.toHaveProperty('memberId')
+      expect(result).not.toHaveProperty('externalContactId')
+    }
+    expect(JSON.stringify(result)).not.toMatch(
+      /INTEGRATION_ERROR|TAG_FAILED|externalContactId|service-business-planning|service-llc-setup|service-tax-strategies|service-payment-processing|service-commercial-insurance|service-employee-benefits/,
+    )
+    expect(JSON.stringify(result)).not.toContain('sample@example.com')
   })
 
   it('does not classify an inactive report card', async () => {

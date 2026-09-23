@@ -1,7 +1,12 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it, vi } from 'vitest'
 import { applyReportCardServiceTag, applyStudentLoanServiceTag, STUDENT_LOAN_SERVICE_TAG } from './applyContactTag'
-import { CREDIT_SERVICE_TAG, HOME_BUYER_SERVICE_TAG, PROTECTION_SERVICE_TAG } from './reportCardSyncConfig'
+import {
+  BUSINESS_SERVICE_TAG,
+  CREDIT_SERVICE_TAG,
+  HOME_BUYER_SERVICE_TAG,
+  PROTECTION_SERVICE_TAG,
+} from './reportCardSyncConfig'
 import { AGENTCRM_CONTACT_TAGGING_ENV } from './contactTaggingGate'
 import { LeadConnectorError } from './errors'
 
@@ -106,6 +111,43 @@ describe('applyStudentLoanServiceTag', () => {
     expect(body.tags).not.toContain('service-credit-improvement')
   })
 
+  it('posts only the existing business-planning tag', async () => {
+    const fetchImpl = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) =>
+      jsonResponse({ tags: [BUSINESS_SERVICE_TAG, 'service-life-insurance'] }),
+    )
+    await applyReportCardServiceTag(CONTACT_ID, BUSINESS_SERVICE_TAG, { env: enabledEnv(), fetchImpl })
+    const init = fetchImpl.mock.calls[0]?.[1]
+    if (!init) throw new Error('expected a tag request')
+    const body = JSON.parse(String(init.body)) as { tags: string[] }
+    expect(body).toEqual({ tags: ['service-business-planning'] })
+    for (const specialist of [
+      'service-llc-setup',
+      'service-tax-strategies',
+      'service-payment-processing',
+      'service-commercial-insurance',
+      'service-employee-benefits',
+      'service-credit-improvement',
+    ]) {
+      expect(body.tags).not.toContain(specialist)
+    }
+  })
+
+  it('does not apply a Business specialist tag', async () => {
+    const fetchImpl = vi.fn()
+    for (const specialist of [
+      'service-llc-setup',
+      'service-tax-strategies',
+      'service-payment-processing',
+      'service-commercial-insurance',
+      'service-employee-benefits',
+    ]) {
+      await expect(
+        applyReportCardServiceTag(CONTACT_ID, specialist, { env: enabledEnv(), fetchImpl }),
+      ).rejects.toMatchObject({ category: 'forbidden' })
+    }
+    expect(fetchImpl).not.toHaveBeenCalled()
+  })
+
   it('does not update a contact or send a message', () => {
     const source = readFileSync(new URL('./applyContactTag.ts', import.meta.url), 'utf8')
     const config = readFileSync(new URL('./reportCardSyncConfig.ts', import.meta.url), 'utf8')
@@ -116,8 +158,14 @@ describe('applyStudentLoanServiceTag', () => {
     expect(config).toContain(CREDIT_SERVICE_TAG)
     expect(config).toContain(HOME_BUYER_SERVICE_TAG)
     expect(config).toContain(PROTECTION_SERVICE_TAG)
+    expect(config).toContain(BUSINESS_SERVICE_TAG)
     expect(config).not.toContain('service-home-auto')
     expect(config).not.toContain('service-health-disability')
+    expect(config).not.toContain('service-llc-setup')
+    expect(config).not.toContain('service-tax-strategies')
+    expect(config).not.toContain('service-payment-processing')
+    expect(config).not.toContain('service-commercial-insurance')
+    expect(config).not.toContain('service-employee-benefits')
     expect(source).not.toMatch(/aa-student|student loan leads|sl-reportcard-sent/)
   })
 })

@@ -6,13 +6,15 @@ import {
   getReportCardAgentCrmConfig,
   HOME_BUYER_CONTACT_SOURCE,
   HOME_BUYER_SERVICE_TAG,
+  BUSINESS_CONTACT_SOURCE,
+  BUSINESS_SERVICE_TAG,
   PROTECTION_CONTACT_SOURCE,
   PROTECTION_SERVICE_TAG,
   STUDENT_LOAN_CONTACT_SOURCE,
   STUDENT_LOAN_SERVICE_TAG,
 } from './reportCardSyncConfig'
 
-const INACTIVE = ['family', 'business', 'retirement'] as const
+const INACTIVE = ['family', 'retirement'] as const
 
 describe('getReportCardAgentCrmConfig', () => {
   it('enables Student Loan, Credit, Home Buyer, and Protection with their verified source labels', () => {
@@ -58,6 +60,25 @@ describe('getReportCardAgentCrmConfig', () => {
     expect(PROTECTION_SERVICE_TAG).not.toBe('service-health-disability')
     expect(PROTECTION_SERVICE_TAG).not.toBe('service-home-auto')
     expect(PROTECTION_SERVICE_TAG).not.toBe(CREDIT_SERVICE_TAG)
+    expect(getReportCardAgentCrmConfig('business')).toEqual({
+      assessmentType: 'business',
+      source: BUSINESS_CONTACT_SOURCE,
+      serviceTag: BUSINESS_SERVICE_TAG,
+      enabled: true,
+    })
+    expect(BUSINESS_CONTACT_SOURCE).toBe(LEAD_TYPE_BY_ASSESSMENT.business)
+    expect(BUSINESS_CONTACT_SOURCE).toBe('Business Report Card')
+    expect(BUSINESS_SERVICE_TAG).toBe('service-business-planning')
+    for (const specialist of [
+      'service-llc-setup',
+      'service-tax-strategies',
+      'service-payment-processing',
+      'service-commercial-insurance',
+      'service-employee-benefits',
+      'service-credit-improvement',
+    ]) {
+      expect(BUSINESS_SERVICE_TAG).not.toBe(specialist)
+    }
   })
 
   it('leaves every other Report Card inactive', () => {
