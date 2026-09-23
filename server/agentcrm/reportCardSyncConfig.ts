@@ -7,6 +7,9 @@ export const CREDIT_CONTACT_SOURCE = 'Credit Report Card'
 /** Existing AgentCRM source label for the Home Buyer Report Card. */
 export const HOME_BUYER_CONTACT_SOURCE = 'Home Buyer Report Card'
 
+/** Existing AgentCRM source label for the Protection Gap. */
+export const PROTECTION_CONTACT_SOURCE = 'Protection Gap'
+
 /** Existing AgentCRM tag. This module does not create a tag definition. */
 export const STUDENT_LOAN_SERVICE_TAG = 'service-student-loans'
 
@@ -15,6 +18,9 @@ export const CREDIT_SERVICE_TAG = 'service-credit-improvement'
 
 /** Existing AgentCRM tag. This module does not create a tag definition. */
 export const HOME_BUYER_SERVICE_TAG = 'service-home-buyer-readiness'
+
+/** Existing AgentCRM tag. This module does not create a tag definition. */
+export const PROTECTION_SERVICE_TAG = 'service-life-insurance'
 
 export type ReportCardAgentCrmConfig =
   | {
@@ -33,6 +39,12 @@ export type ReportCardAgentCrmConfig =
       assessmentType: 'home_buyer'
       source: typeof HOME_BUYER_CONTACT_SOURCE
       serviceTag: typeof HOME_BUYER_SERVICE_TAG
+      enabled: boolean
+    }
+  | {
+      assessmentType: 'protection'
+      source: typeof PROTECTION_CONTACT_SOURCE
+      serviceTag: typeof PROTECTION_SERVICE_TAG
       enabled: boolean
     }
 
@@ -57,10 +69,18 @@ const HOME_BUYER_CONFIG: ReportCardAgentCrmConfig = {
   enabled: true,
 }
 
+const PROTECTION_CONFIG: ReportCardAgentCrmConfig = {
+  assessmentType: 'protection',
+  source: PROTECTION_CONTACT_SOURCE,
+  serviceTag: PROTECTION_SERVICE_TAG,
+  enabled: true,
+}
+
 const ENABLED_CONFIGS: Record<string, ReportCardAgentCrmConfig> = {
   student_loan: STUDENT_LOAN_CONFIG,
   credit: CREDIT_CONFIG,
   home_buyer: HOME_BUYER_CONFIG,
+  protection: PROTECTION_CONFIG,
 }
 
 /** Returns the sync configuration for an enabled Report Card. Every other type stays inactive. */

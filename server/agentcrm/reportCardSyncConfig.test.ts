@@ -6,14 +6,16 @@ import {
   getReportCardAgentCrmConfig,
   HOME_BUYER_CONTACT_SOURCE,
   HOME_BUYER_SERVICE_TAG,
+  PROTECTION_CONTACT_SOURCE,
+  PROTECTION_SERVICE_TAG,
   STUDENT_LOAN_CONTACT_SOURCE,
   STUDENT_LOAN_SERVICE_TAG,
 } from './reportCardSyncConfig'
 
-const INACTIVE = ['family', 'business', 'protection', 'retirement'] as const
+const INACTIVE = ['family', 'business', 'retirement'] as const
 
 describe('getReportCardAgentCrmConfig', () => {
-  it('enables Student Loan, Credit, and Home Buyer with their verified source labels', () => {
+  it('enables Student Loan, Credit, Home Buyer, and Protection with their verified source labels', () => {
     expect(getReportCardAgentCrmConfig('student_loan')).toEqual({
       assessmentType: 'student_loan',
       source: STUDENT_LOAN_CONTACT_SOURCE,
@@ -43,6 +45,19 @@ describe('getReportCardAgentCrmConfig', () => {
     expect(HOME_BUYER_SERVICE_TAG).toBe('service-home-buyer-readiness')
     expect(HOME_BUYER_SERVICE_TAG).not.toBe('service-home-auto')
     expect(HOME_BUYER_SERVICE_TAG).not.toBe(CREDIT_SERVICE_TAG)
+    expect(getReportCardAgentCrmConfig('protection')).toEqual({
+      assessmentType: 'protection',
+      source: PROTECTION_CONTACT_SOURCE,
+      serviceTag: PROTECTION_SERVICE_TAG,
+      enabled: true,
+    })
+    expect(PROTECTION_CONTACT_SOURCE).toBe(LEAD_TYPE_BY_ASSESSMENT.protection)
+    expect(PROTECTION_CONTACT_SOURCE).toBe('Protection Gap')
+    expect(PROTECTION_CONTACT_SOURCE).not.toBe('Protection Report Card')
+    expect(PROTECTION_SERVICE_TAG).toBe('service-life-insurance')
+    expect(PROTECTION_SERVICE_TAG).not.toBe('service-health-disability')
+    expect(PROTECTION_SERVICE_TAG).not.toBe('service-home-auto')
+    expect(PROTECTION_SERVICE_TAG).not.toBe(CREDIT_SERVICE_TAG)
   })
 
   it('leaves every other Report Card inactive', () => {

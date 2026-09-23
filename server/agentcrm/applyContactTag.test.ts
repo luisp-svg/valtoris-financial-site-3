@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it, vi } from 'vitest'
 import { applyReportCardServiceTag, applyStudentLoanServiceTag, STUDENT_LOAN_SERVICE_TAG } from './applyContactTag'
-import { CREDIT_SERVICE_TAG, HOME_BUYER_SERVICE_TAG } from './reportCardSyncConfig'
+import { CREDIT_SERVICE_TAG, HOME_BUYER_SERVICE_TAG, PROTECTION_SERVICE_TAG } from './reportCardSyncConfig'
 import { AGENTCRM_CONTACT_TAGGING_ENV } from './contactTaggingGate'
 import { LeadConnectorError } from './errors'
 
@@ -74,6 +74,9 @@ describe('applyStudentLoanServiceTag', () => {
     await expect(
       applyReportCardServiceTag(CONTACT_ID, 'service-home-auto', { env: enabledEnv(), fetchImpl }),
     ).rejects.toMatchObject({ category: 'forbidden' })
+    await expect(
+      applyReportCardServiceTag(CONTACT_ID, 'service-health-disability', { env: enabledEnv(), fetchImpl }),
+    ).rejects.toMatchObject({ category: 'forbidden' })
     expect(fetchImpl).not.toHaveBeenCalled()
   })
 
@@ -89,6 +92,20 @@ describe('applyStudentLoanServiceTag', () => {
     expect(JSON.parse(String(init.body)).tags).not.toContain('service-credit-improvement')
   })
 
+  it('posts only the existing life-insurance tag for Protection', async () => {
+    const fetchImpl = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) =>
+      jsonResponse({ tags: [PROTECTION_SERVICE_TAG, 'service-student-loans'] }),
+    )
+    await applyReportCardServiceTag(CONTACT_ID, PROTECTION_SERVICE_TAG, { env: enabledEnv(), fetchImpl })
+    const init = fetchImpl.mock.calls[0]?.[1]
+    if (!init) throw new Error('expected a tag request')
+    const body = JSON.parse(String(init.body)) as { tags: string[] }
+    expect(body).toEqual({ tags: ['service-life-insurance'] })
+    expect(body.tags).not.toContain('service-health-disability')
+    expect(body.tags).not.toContain('service-home-auto')
+    expect(body.tags).not.toContain('service-credit-improvement')
+  })
+
   it('does not update a contact or send a message', () => {
     const source = readFileSync(new URL('./applyContactTag.ts', import.meta.url), 'utf8')
     const config = readFileSync(new URL('./reportCardSyncConfig.ts', import.meta.url), 'utf8')
@@ -98,7 +115,9 @@ describe('applyStudentLoanServiceTag', () => {
     expect(config).toContain(STUDENT_LOAN_SERVICE_TAG)
     expect(config).toContain(CREDIT_SERVICE_TAG)
     expect(config).toContain(HOME_BUYER_SERVICE_TAG)
+    expect(config).toContain(PROTECTION_SERVICE_TAG)
     expect(config).not.toContain('service-home-auto')
+    expect(config).not.toContain('service-health-disability')
     expect(source).not.toMatch(/aa-student|student loan leads|sl-reportcard-sent/)
   })
 })

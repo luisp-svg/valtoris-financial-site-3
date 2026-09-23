@@ -8,6 +8,7 @@ import {
   matchCandidateFixture,
   validCreditIngestRequestBodyFixture,
   validHomeBuyerIngestRequestBodyFixture,
+  validProtectionIngestRequestBodyFixture,
   validIngestRequestBodyFixture,
   validStudentLoanIngestRequestBodyFixture,
 } from './testFixtures'
@@ -557,6 +558,45 @@ describe('ingestFamilyReportCard', () => {
     }
     expect(JSON.stringify(result)).not.toMatch(
       /INTEGRATION_ERROR|TAG_FAILED|externalContactId|service-home-buyer-readiness|service-home-auto|service-credit-improvement/,
+    )
+    expect(JSON.stringify(result)).not.toContain('jamie.rivera@example.com')
+  })
+
+  it('still succeeds when Protection AgentCRM identity lookup fails', async () => {
+    const result = await ingestFamilyReportCard(validProtectionIngestRequestBodyFixture(), {
+      admin: makeAdminStub(async (fn) => {
+        if (fn === 'ingest_public_report_card') return { data: newProspectRpcResponse(), error: null }
+        return { data: null, error: null }
+      }),
+      sheetsWriter: vi.fn().mockResolvedValue({ status: 'succeeded' as const }),
+      findCandidates: async () => [],
+      orchestrateFollowUpTask: vi.fn().mockResolvedValue({
+        status: 'task_created',
+        taskId: 'task-1',
+        errorCategory: null,
+        needsManualReview: false,
+      }),
+      runStudentLoanDryRun: (input) =>
+        runStudentLoanAgentCrmDryRun(input, {
+          linkingEnabled: true,
+          locationId: 'loc-test',
+          log: () => {},
+          lookupIdentity: async () => ({ status: 'INTEGRATION_ERROR', category: 'timeout' }),
+          links: {
+            findByMember: async () => ({ status: 'not_found' }),
+            saveVerifiedLink: vi.fn(),
+          },
+        }),
+    })
+
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.created).toBe(true)
+      expect(result).not.toHaveProperty('memberId')
+      expect(result).not.toHaveProperty('externalContactId')
+    }
+    expect(JSON.stringify(result)).not.toMatch(
+      /INTEGRATION_ERROR|TAG_FAILED|externalContactId|service-life-insurance|service-health-disability|service-home-auto|service-credit-improvement/,
     )
     expect(JSON.stringify(result)).not.toContain('jamie.rivera@example.com')
   })

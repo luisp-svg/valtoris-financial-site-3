@@ -191,7 +191,7 @@ describe('createAgentCrmContact', () => {
 
   it('does not create a contact for a source outside the enabled configuration', async () => {
     const fetchImpl = vi.fn()
-    for (const source of ['Family Report Card', 'Business Report Card', 'Protection Gap', 'Retirement Report Card']) {
+    for (const source of ['Family Report Card', 'Business Report Card', 'Retirement Report Card', 'Protection Report Card']) {
       await expect(
         createAgentCrmContact({ ...INPUT, source }, { env: enabledEnv(), fetchImpl }),
       ).rejects.toMatchObject({ category: 'forbidden' })
@@ -212,6 +212,22 @@ describe('createAgentCrmContact', () => {
     if (!init) throw new Error('expected a create request')
     const body = JSON.parse(String(init.body)) as { source?: string; tags?: unknown }
     expect(body.source).toBe('Home Buyer Report Card')
+    expect(body.tags).toBeUndefined()
+  })
+
+  it('accepts the Protection Gap source and does not attach a tag on create', async () => {
+    const fetchImpl = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) =>
+      jsonResponse(contactBody({ source: 'Protection Gap' })),
+    )
+    const created = await createAgentCrmContact(
+      { ...INPUT, source: 'Protection Gap' },
+      { env: enabledEnv(), fetchImpl },
+    )
+    expect(created.sourceMatched).toBe(true)
+    const init = fetchImpl.mock.calls[0]?.[1]
+    if (!init) throw new Error('expected a create request')
+    const body = JSON.parse(String(init.body)) as { source?: string; tags?: unknown }
+    expect(body.source).toBe('Protection Gap')
     expect(body.tags).toBeUndefined()
   })
 
