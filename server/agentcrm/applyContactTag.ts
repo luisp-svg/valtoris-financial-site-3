@@ -6,9 +6,9 @@ import {
 import { readAgentCrmConfig } from './config.js'
 import { isAgentCrmContactTaggingEnabled } from './contactTaggingGate.js'
 import { categoryForStatus, LeadConnectorError } from './errors.js'
+import { isEnabledReportCardServiceTag, STUDENT_LOAN_SERVICE_TAG } from './reportCardSyncConfig.js'
 
-/** Existing AgentCRM tag. This module does not create a tag definition. */
-export const STUDENT_LOAN_SERVICE_TAG = 'service-student-loans'
+export { STUDENT_LOAN_SERVICE_TAG }
 
 export type ApplyStudentLoanServiceTagDeps = {
   env?: NodeJS.ProcessEnv
@@ -26,8 +26,24 @@ export async function applyStudentLoanServiceTag(
   contactId: string,
   deps: ApplyStudentLoanServiceTagDeps = {},
 ): Promise<void> {
+  return applyReportCardServiceTag(contactId, STUDENT_LOAN_SERVICE_TAG, deps)
+}
+
+/**
+ * Adds one enabled Report Card service tag to an existing contact.
+ * Official contract: POST /contacts/{contactId}/tags, body { tags: string[] }, HTTP 201.
+ */
+export async function applyReportCardServiceTag(
+  contactId: string,
+  serviceTag: string,
+  deps: ApplyStudentLoanServiceTagDeps = {},
+): Promise<void> {
   const env = deps.env ?? process.env
   if (!isAgentCrmContactTaggingEnabled(env)) {
+    throw new LeadConnectorError('forbidden', null)
+  }
+  const tag = serviceTag.trim()
+  if (!isEnabledReportCardServiceTag(tag)) {
     throw new LeadConnectorError('forbidden', null)
   }
 
@@ -56,7 +72,7 @@ export async function applyStudentLoanServiceTag(
         Authorization: `Bearer ${config.token}`,
         Version: LEADCONNECTOR_API_VERSION,
       },
-      body: JSON.stringify({ tags: [STUDENT_LOAN_SERVICE_TAG] }),
+      body: JSON.stringify({ tags: [tag] }),
       signal: controller.signal,
     })
   } catch (error) {
@@ -77,10 +93,10 @@ export async function applyStudentLoanServiceTag(
   } catch {
     throw new LeadConnectorError('invalid_response', response.status)
   }
-  assertTagApplied(payload)
+  assertTagApplied(payload, tag)
 }
 
-function assertTagApplied(payload: unknown): void {
+function assertTagApplied(payload: unknown, serviceTag: string): void {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
     throw new LeadConnectorError('invalid_response', 201)
   }
@@ -88,7 +104,7 @@ function assertTagApplied(payload: unknown): void {
   if (!Array.isArray(tags) || tags.some((tag) => typeof tag !== 'string')) {
     throw new LeadConnectorError('invalid_response', 201)
   }
-  if (!tags.includes(STUDENT_LOAN_SERVICE_TAG)) {
+  if (!tags.includes(serviceTag)) {
     throw new LeadConnectorError('invalid_response', 201)
   }
 }

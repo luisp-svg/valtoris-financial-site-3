@@ -7,15 +7,20 @@ import {
 import { readAgentCrmConfig } from './config.js'
 import { isAgentCrmContactCreationEnabled } from './contactCreationGate.js'
 import { categoryForStatus, LeadConnectorError } from './errors.js'
+import {
+  isEnabledReportCardContactSource,
+  STUDENT_LOAN_CONTACT_SOURCE,
+} from './reportCardSyncConfig.js'
 
-/** Fixed source for a future Student Loan contact. Not a tag or workflow. */
-export const STUDENT_LOAN_CONTACT_SOURCE = 'Student Loan Report Card'
+export { STUDENT_LOAN_CONTACT_SOURCE }
 
 export type CreateAgentCrmContactInput = {
   firstName: string
   lastName: string
   email: string
   phone: string
+  /** Enabled Report Card source. Defaults to the Student Loan source. */
+  source?: string
 }
 
 export type CreatedAgentCrmContact = {
@@ -32,8 +37,8 @@ export type CreateAgentCrmContactDeps = {
 }
 
 /**
- * Creates one AgentCRM contact with the minimum Student Loan identity payload.
- * The generic client stays GET-only. This function is the only POST.
+ * Creates one AgentCRM contact with the minimum identity payload and an enabled Report Card source.
+ * The generic client stays GET-only. This function posts only to create a contact.
  * It does not tag, enroll a workflow, or send a message.
  */
 export async function createAgentCrmContact(
@@ -56,13 +61,18 @@ export async function createAgentCrmContact(
     throw new LeadConnectorError('invalid_response', null)
   }
 
+  const source = (input.source ?? STUDENT_LOAN_CONTACT_SOURCE).trim()
+  if (!isEnabledReportCardContactSource(source)) {
+    throw new LeadConnectorError('forbidden', null)
+  }
+
   const body = {
     locationId: config.locationId,
     firstName,
     lastName,
     email,
     phone,
-    source: STUDENT_LOAN_CONTACT_SOURCE,
+    source,
   }
 
   const fetchImpl = deps.fetchImpl ?? fetch
@@ -104,12 +114,12 @@ export async function createAgentCrmContact(
     throw new LeadConnectorError('invalid_response', response.status)
   }
 
-  return parseCreatedContact(payload, { email, phone, locationId: config.locationId })
+  return parseCreatedContact(payload, { email, phone, locationId: config.locationId, source })
 }
 
 function parseCreatedContact(
   payload: unknown,
-  expected: { email: string; phone: string; locationId: string },
+  expected: { email: string; phone: string; locationId: string; source: string },
 ): CreatedAgentCrmContact {
   const root = asRecord(payload)
   const contact = root ? asRecord(root.contact) : null
@@ -129,7 +139,7 @@ function parseCreatedContact(
   let sourceMatched: boolean | null = null
   if (Object.prototype.hasOwnProperty.call(contact, 'source') && contact.source != null) {
     if (typeof contact.source !== 'string') throw new LeadConnectorError('invalid_response', 201)
-    sourceMatched = contact.source === STUDENT_LOAN_CONTACT_SOURCE
+    sourceMatched = contact.source === expected.source
   }
 
   return { id, sourceMatched }

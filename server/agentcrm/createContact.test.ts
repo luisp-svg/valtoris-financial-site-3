@@ -189,6 +189,14 @@ describe('createAgentCrmContact', () => {
     }
   })
 
+  it('does not create a contact for a source outside the enabled configuration', async () => {
+    const fetchImpl = vi.fn()
+    await expect(
+      createAgentCrmContact({ ...INPUT, source: 'Credit Report Card' }, { env: enabledEnv(), fetchImpl }),
+    ).rejects.toMatchObject({ category: 'forbidden' })
+    expect(fetchImpl).not.toHaveBeenCalled()
+  })
+
   it('leaves the generic client on GET', () => {
     const clientSource = readFileSync(new URL('./client.ts', import.meta.url), 'utf8')
     const createSource = readFileSync(new URL('./createContact.ts', import.meta.url), 'utf8')

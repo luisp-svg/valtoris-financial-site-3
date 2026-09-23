@@ -39,7 +39,7 @@ import {
   buildStudentLoanReportCardSheetsPayload,
   writePublicReportCardToSheets,
 } from './sheets.js'
-import { runStudentLoanAgentCrmDryRun } from '../../agentcrm/studentLoanDryRun.js'
+import { runReportCardAgentCrmSync } from '../../agentcrm/reportCardSync.js'
 import { orchestrateIngestFollowUpTask } from './taskAutomation.js'
 import type {
   FamilyReportCardIngestResult,
@@ -59,8 +59,8 @@ export type IngestFamilyReportCardDeps = {
   findCandidates?: typeof findMatchCandidates
   /** Injectable for tests; defaults to orchestrateIngestFollowUpTask. */
   orchestrateFollowUpTask?: typeof orchestrateIngestFollowUpTask
-  /** Injectable for tests; defaults to the Student Loan AgentCRM orchestration. */
-  runStudentLoanDryRun?: typeof runStudentLoanAgentCrmDryRun
+  /** Injectable for tests. Production uses the Report Card AgentCRM sync engine. */
+  runStudentLoanDryRun?: typeof runReportCardAgentCrmSync
   resolveCard?: typeof resolveCardForIngest
   resolveCampaign?: typeof resolveTrustedCampaignAttribution
 }
@@ -497,7 +497,7 @@ export async function ingestPublicReportCard(
 
   // persistResult.memberId is the RPC's member id, available here for later
   // server-side work. It is intentionally omitted from the public result.
-  const runDryRun = deps.runStudentLoanDryRun ?? runStudentLoanAgentCrmDryRun
+  const runDryRun = deps.runStudentLoanDryRun ?? runReportCardAgentCrmSync
   try {
     await runDryRun(
       {

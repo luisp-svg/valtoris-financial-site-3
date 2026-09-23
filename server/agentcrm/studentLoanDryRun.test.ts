@@ -262,8 +262,9 @@ describe('runStudentLoanAgentCrmDryRun', () => {
   })
 
   it('creates one contact and links it when both gates are enabled', async () => {
-    const createContact = vi.fn(async (contact: { firstName: string; lastName: string; email: string; phone: string }) => {
-      expect(Object.keys(contact).sort()).toEqual(['email', 'firstName', 'lastName', 'phone'])
+    const createContact = vi.fn(async (contact: { firstName: string; lastName: string; email: string; phone: string; source?: string }) => {
+      expect(Object.keys(contact).sort()).toEqual(['email', 'firstName', 'lastName', 'phone', 'source'])
+      expect(contact.source).toBe('Student Loan Report Card')
       return { id: 'ext-created', sourceMatched: true }
     })
     const saveVerifiedLink = vi.fn(async () => ({ status: 'created' as const }))
@@ -609,8 +610,54 @@ describe('runStudentLoanAgentCrmDryRun', () => {
     expect(saveVerifiedLink).not.toHaveBeenCalled()
   })
 
+  it('keeps the Student Loan source and service tag on the enabled configuration', async () => {
+    const { getReportCardAgentCrmConfig } = await import('./reportCardSyncConfig')
+    const config = getReportCardAgentCrmConfig('student_loan')
+    expect(config).toEqual({
+      assessmentType: 'student_loan',
+      source: 'Student Loan Report Card',
+      serviceTag: 'service-student-loans',
+      enabled: true,
+    })
+    const createContact = vi.fn(async (input: { source?: string }) => {
+      expect(input.source).toBe('Student Loan Report Card')
+      return { id: 'ext-created', sourceMatched: true }
+    })
+    const order: string[] = []
+    const decision = await runStudentLoanAgentCrmDryRun(
+      INPUT,
+      on({
+        creationEnabled: true,
+        taggingEnabled: true,
+        lookupIdentity: async () => ({ status: 'NO_CONTACT_FOUND' as const }),
+        createContact: async (input) => {
+          order.push('create')
+          return createContact(input)
+        },
+        applyTag: async () => {
+          order.push('tag')
+        },
+        links: {
+          findByMember: async () => {
+            order.push('lookup-link')
+            return { status: 'not_found' as const }
+          },
+          saveVerifiedLink: async () => {
+            order.push('link')
+            return { status: 'created' as const }
+          },
+        },
+      }),
+    )
+    expect(decision).toEqual({ status: 'CREATED_AND_LINKED_CONTACT' })
+    expect(order).toEqual(['lookup-link', 'create', 'link', 'tag'])
+    expect(createContact).toHaveBeenCalledTimes(1)
+  })
+
   it('keeps AgentCRM free of write methods and keeps the link table out of ingest', () => {
     const source = readFileSync(resolve(process.cwd(), 'server/agentcrm/studentLoanDryRun.ts'), 'utf8')
+    const engine = readFileSync(resolve(process.cwd(), 'server/agentcrm/reportCardSync.ts'), 'utf8')
+    const cardConfig = readFileSync(resolve(process.cwd(), 'server/agentcrm/reportCardSyncConfig.ts'), 'utf8')
     const links = readFileSync(resolve(process.cwd(), 'server/agentcrm/contactLinks.ts'), 'utf8')
     const ingest = readFileSync(
       resolve(process.cwd(), 'server/ingest/familyReportCard/ingestFamilyReportCard.ts'),
@@ -619,6 +666,11 @@ describe('runStudentLoanAgentCrmDryRun', () => {
     const writeMethod = /method:\s*['"]POST['"]|method:\s*['"]PUT['"]|method:\s*['"]PATCH['"]|method:\s*['"]DELETE['"]/
     expect(source).not.toMatch(writeMethod)
     expect(source).not.toMatch(/tags:|customFields:|\/conversations\/messages|opportunity/)
+    expect(engine).not.toMatch(writeMethod)
+    expect(engine).not.toMatch(/tags:|customFields:|\/conversations\/messages|opportunity/)
+    expect(cardConfig).not.toMatch(writeMethod)
+    expect(cardConfig).toContain('service-student-loans')
+    expect(cardConfig).not.toMatch(/family:|business:|protection:|home_buyer:|retirement:|credit:/)
     expect(links).not.toMatch(writeMethod)
     expect(links).not.toMatch(/\.update\s*\(|\.delete\s*\(|\.upsert\s*\(/)
     expect(ingest).not.toContain('integration_contact_links')

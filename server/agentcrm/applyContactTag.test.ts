@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it, vi } from 'vitest'
-import { applyStudentLoanServiceTag, STUDENT_LOAN_SERVICE_TAG } from './applyContactTag'
+import { applyReportCardServiceTag, applyStudentLoanServiceTag, STUDENT_LOAN_SERVICE_TAG } from './applyContactTag'
 import { AGENTCRM_CONTACT_TAGGING_ENV } from './contactTaggingGate'
 import { LeadConnectorError } from './errors'
 
@@ -65,12 +65,21 @@ describe('applyStudentLoanServiceTag', () => {
     }
   })
 
+  it('does not apply a tag outside the enabled Report Card configuration', async () => {
+    const fetchImpl = vi.fn()
+    await expect(
+      applyReportCardServiceTag(CONTACT_ID, 'credit-service', { env: enabledEnv(), fetchImpl }),
+    ).rejects.toMatchObject({ category: 'forbidden' })
+    expect(fetchImpl).not.toHaveBeenCalled()
+  })
+
   it('does not update a contact or send a message', () => {
     const source = readFileSync(new URL('./applyContactTag.ts', import.meta.url), 'utf8')
+    const config = readFileSync(new URL('./reportCardSyncConfig.ts', import.meta.url), 'utf8')
     expect(source).toMatch(/method:\s*'POST'/)
     expect(source).not.toMatch(/method:\s*['"]PUT['"]|method:\s*['"]PATCH['"]|method:\s*['"]DELETE['"]/)
     expect(source).not.toMatch(/\/contacts\/upsert|\/conversations\/messages|opportunity|workflow/)
-    expect(source).toContain(STUDENT_LOAN_SERVICE_TAG)
+    expect(config).toContain(STUDENT_LOAN_SERVICE_TAG)
     expect(source).not.toMatch(/aa-student|student loan leads|sl-reportcard-sent/)
   })
 })

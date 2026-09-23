@@ -304,7 +304,7 @@ describe('lookupAgentCrmIdentity', () => {
       } else {
         expect(source).not.toMatch(/method:\s*['"]POST['"]|method:\s*['"]PUT['"]|method:\s*['"]PATCH['"]|method:\s*['"]DELETE['"]/)
       }
-      if (name === 'studentLoanDryRun.ts') {
+      if (name === 'reportCardSync.ts') {
         expect(source).not.toMatch(/console\.(log|warn|error|debug)/)
       } else {
         expect(source).not.toMatch(/console\.(log|info|warn|error|debug)/)
