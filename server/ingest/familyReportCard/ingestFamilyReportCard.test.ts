@@ -318,7 +318,7 @@ describe('ingestFamilyReportCard', () => {
       expect(result).not.toHaveProperty('memberId')
       expect(result).not.toHaveProperty('externalContactId')
       expect(JSON.stringify(result)).not.toMatch(
-        /EXACT_EXISTING_CONTACT|NO_CONTACT_FOUND|AMBIGUOUS|INTEGRATION_ERROR|SKIP_|ALREADY_LINKED|LINKED_EXISTING_CONTACT|CREATED_AND_LINKED_CONTACT|CONTACT_CREATED_LINK_FAILED|LINK_CONFLICT|externalContactId/,
+        /EXACT_EXISTING_CONTACT|NO_CONTACT_FOUND|AMBIGUOUS|INTEGRATION_ERROR|SKIP_|ALREADY_LINKED|LINKED_EXISTING_CONTACT|CREATED_AND_LINKED_CONTACT|CONTACT_CREATED_LINK_FAILED|TAG_FAILED|LINK_CONFLICT|externalContactId/,
       )
     }
     expect(lookupIdentity).toHaveBeenCalledTimes(1)
@@ -436,6 +436,51 @@ describe('ingestFamilyReportCard', () => {
     expect(JSON.stringify(result)).not.toContain('hidden@example.invalid')
     expect(JSON.stringify(result)).not.toMatch(/CREATED_AND_LINKED_CONTACT|CONTACT_CREATED_LINK_FAILED|NO_CONTACT_FOUND/)
     expect(createContact).toHaveBeenCalledTimes(1)
+  })
+
+  it('still succeeds when tagging fails after the contact link is stored', async () => {
+    const saveVerifiedLink = vi.fn(async () => ({ status: 'created' as const }))
+    const applyTag = vi.fn(async () => {
+      throw new Error('tag failed ext-hidden hidden@example.invalid')
+    })
+    const result = await ingestFamilyReportCard(validStudentLoanIngestRequestBodyFixture(), {
+      admin: makeAdminStub(async (fn) => {
+        if (fn === 'ingest_public_report_card') return { data: newProspectRpcResponse(), error: null }
+        return { data: null, error: null }
+      }),
+      sheetsWriter: vi.fn().mockResolvedValue({ status: 'succeeded' as const }),
+      findCandidates: async () => [],
+      orchestrateFollowUpTask: vi.fn().mockResolvedValue({
+        status: 'task_created',
+        taskId: 'task-1',
+        errorCategory: null,
+        needsManualReview: false,
+      }),
+      runStudentLoanDryRun: (input) =>
+        runStudentLoanAgentCrmDryRun(input, {
+          linkingEnabled: true,
+          taggingEnabled: true,
+          locationId: 'loc-test',
+          log: () => {},
+          lookupIdentity: async () => ({
+            status: 'EXACT_EXISTING_CONTACT',
+            externalContactId: 'ext-hidden',
+          }),
+          applyTag,
+          links: {
+            findByMember: async () => ({ status: 'not_found' }),
+            saveVerifiedLink,
+          },
+        }),
+    })
+
+    expect(result.ok).toBe(true)
+    if (result.ok) expect(result.created).toBe(true)
+    expect(saveVerifiedLink).toHaveBeenCalledTimes(1)
+    expect(applyTag).toHaveBeenCalledTimes(1)
+    expect(JSON.stringify(result)).not.toContain('ext-hidden')
+    expect(JSON.stringify(result)).not.toContain('hidden@example.invalid')
+    expect(JSON.stringify(result)).not.toMatch(/TAG_FAILED|LINKED_EXISTING_CONTACT|externalContactId/)
   })
 
   it('does not classify a non-student-loan report card', async () => {

@@ -9,11 +9,13 @@ import {
 } from './contactLinks.js'
 import { readAgentCrmConfig, readAgentCrmLocationId, type AgentCrmConfig } from './config.js'
 import { isAgentCrmContactCreationEnabled } from './contactCreationGate.js'
+import { isAgentCrmContactTaggingEnabled } from './contactTaggingGate.js'
 import {
   createAgentCrmContact,
   type CreateAgentCrmContactInput,
   type CreatedAgentCrmContact,
 } from './createContact.js'
+import { applyStudentLoanServiceTag } from './applyContactTag.js'
 import { LeadConnectorError, type LeadConnectorErrorCategory } from './errors.js'
 import {
   lookupAgentCrmIdentity,
@@ -29,6 +31,7 @@ export type StudentLoanAgentCrmDryRunDecision =
   | { status: 'LINKED_EXISTING_CONTACT' }
   | { status: 'CREATED_AND_LINKED_CONTACT' }
   | { status: 'CONTACT_CREATED_LINK_FAILED' }
+  | { status: 'TAG_FAILED' }
   | { status: 'EXACT_EXISTING_CONTACT' }
   | { status: 'NO_CONTACT_FOUND' }
   | { status: 'AMBIGUOUS'; reason: AgentCrmIdentityAmbiguousReason }
@@ -57,8 +60,12 @@ export type StudentLoanDryRunDeps = {
   linkingEnabled?: boolean
   /** Test override. Production reads AGENTCRM_CONTACT_CREATION_ENABLED and the CRM-dev host gate. */
   creationEnabled?: boolean
-  /** Test double. Production uses createAgentCrmContact, which is the only AgentCRM POST. */
+  /** Test double. Production uses createAgentCrmContact, which posts only to create a contact. */
   createContact?: (input: CreateAgentCrmContactInput) => Promise<CreatedAgentCrmContact>
+  /** Test override. Production reads AGENTCRM_CONTACT_TAGGING_ENABLED and the CRM-dev host gate. */
+  taggingEnabled?: boolean
+  /** Test double. Production uses applyStudentLoanServiceTag. */
+  applyTag?: (contactId: string) => Promise<void>
   env?: NodeJS.ProcessEnv
   /** Test override. Production reads AGENTCRM_LOCATION_ID. */
   locationId?: string | null
@@ -78,7 +85,8 @@ export type StudentLoanDryRunLogEvent = {
 /**
  * After a Student Loan Report Card is saved, link a verified AgentCRM contact.
  * A new contact is created only when both the creation gate and the linking
- * gate are on. The decision is not returned to the browser.
+ * gate are on. The existing service tag is applied only after that link exists
+ * and only when the tagging gate is on. The decision is not returned to the browser.
  */
 export async function runStudentLoanAgentCrmDryRun(
   input: StudentLoanDryRunInput,
@@ -157,7 +165,9 @@ async function classifyAndLink(
     householdMemberId: memberId,
   })
   if (existing.status === 'error') return { status: 'INTEGRATION_ERROR', category: 'link_read_failed' }
-  if (existing.status === 'found') return { status: 'ALREADY_LINKED' }
+  if (existing.status === 'found') {
+    return tagLinkedContact(existing.link.externalContactId, deps, { status: 'ALREADY_LINKED' })
+  }
 
   const lookup = deps.lookupIdentity ?? configuredLookup(deps.readConfig)
   if (!lookup) return { status: 'INTEGRATION_ERROR', category: 'not_configured' }
@@ -182,8 +192,12 @@ async function classifyAndLink(
     householdMemberId: memberId,
     externalContactId,
   })
-  if (saved.status === 'created') return { status: 'LINKED_EXISTING_CONTACT' }
-  if (saved.status === 'already_linked') return { status: 'ALREADY_LINKED' }
+  if (saved.status === 'created') {
+    return tagLinkedContact(externalContactId, deps, { status: 'LINKED_EXISTING_CONTACT' })
+  }
+  if (saved.status === 'already_linked') {
+    return tagLinkedContact(externalContactId, deps, { status: 'ALREADY_LINKED' })
+  }
   if (saved.status === 'conflict') return { status: 'LINK_CONFLICT' }
   return { status: 'INTEGRATION_ERROR', category: 'link_write_failed' }
 }
@@ -225,11 +239,27 @@ async function createAndLinkNewContact(
       externalContactId,
     })
     if (saved.status === 'created' || saved.status === 'already_linked') {
-      return { status: 'CREATED_AND_LINKED_CONTACT' }
+      return tagLinkedContact(externalContactId, deps, { status: 'CREATED_AND_LINKED_CONTACT' })
     }
     return { status: 'CONTACT_CREATED_LINK_FAILED' }
   } catch {
     return { status: 'CONTACT_CREATED_LINK_FAILED' }
+  }
+}
+
+async function tagLinkedContact(
+  contactId: string,
+  deps: StudentLoanDryRunDeps,
+  success: StudentLoanAgentCrmDryRunDecision,
+): Promise<StudentLoanAgentCrmDryRunDecision> {
+  const taggingEnabled = deps.taggingEnabled ?? isAgentCrmContactTaggingEnabled(deps.env)
+  if (!taggingEnabled) return success
+  try {
+    const apply = deps.applyTag ?? ((id: string) => applyStudentLoanServiceTag(id, { env: deps.env }))
+    await apply(contactId)
+    return success
+  } catch {
+    return { status: 'TAG_FAILED' }
   }
 }
 

@@ -298,7 +298,7 @@ describe('lookupAgentCrmIdentity', () => {
     expect(files.length).toBeGreaterThan(0)
     for (const name of files) {
       const source = readFileSync(join(dir, name), 'utf8')
-      if (name === 'createContact.ts') {
+      if (name === 'createContact.ts' || name === 'applyContactTag.ts') {
         expect(source).toMatch(/method:\s*'POST'/)
         expect(source).not.toMatch(/method:\s*['"]PUT['"]|method:\s*['"]PATCH['"]|method:\s*['"]DELETE['"]/)
       } else {

@@ -22,7 +22,14 @@ function off(deps: StudentLoanDryRunDeps = {}): StudentLoanDryRunDeps {
 }
 
 function on(deps: StudentLoanDryRunDeps = {}): StudentLoanDryRunDeps {
-  return { linkingEnabled: true, creationEnabled: false, locationId: 'loc-test', log: () => {}, ...deps }
+  return {
+    linkingEnabled: true,
+    creationEnabled: false,
+    taggingEnabled: false,
+    locationId: 'loc-test',
+    log: () => {},
+    ...deps,
+  }
 }
 
 describe('runStudentLoanAgentCrmDryRun', () => {
@@ -395,6 +402,211 @@ describe('runStudentLoanAgentCrmDryRun', () => {
     expect(payload).not.toContain(INPUT.firstName)
     expect(payload).not.toContain(MEMBER_ID)
     info.mockRestore()
+  })
+
+  it('tags an already linked contact once and does not search or create', async () => {
+    const lookupIdentity = vi.fn()
+    const createContact = vi.fn()
+    const applyTag = vi.fn(async () => {})
+    const decision = await runStudentLoanAgentCrmDryRun(
+      INPUT,
+      on({
+        taggingEnabled: true,
+        lookupIdentity,
+        createContact,
+        applyTag,
+        links: {
+          findByMember: async () => ({
+            status: 'found',
+            link: { householdMemberId: MEMBER_ID, externalContactId: EXTERNAL_ID },
+          }),
+          saveVerifiedLink: vi.fn(),
+        },
+      }),
+    )
+    expect(decision).toEqual({ status: 'ALREADY_LINKED' })
+    expect(JSON.stringify(decision)).not.toContain(EXTERNAL_ID)
+    expect(applyTag).toHaveBeenCalledTimes(1)
+    expect(applyTag).toHaveBeenCalledWith(EXTERNAL_ID)
+    expect(lookupIdentity).not.toHaveBeenCalled()
+    expect(createContact).not.toHaveBeenCalled()
+  })
+
+  it('links an exact contact before tagging it', async () => {
+    const order: string[] = []
+    const decision = await runStudentLoanAgentCrmDryRun(
+      INPUT,
+      on({
+        taggingEnabled: true,
+        lookupIdentity: async () => ({ status: 'EXACT_EXISTING_CONTACT', externalContactId: EXTERNAL_ID }),
+        applyTag: async () => {
+          order.push('tag')
+        },
+        links: {
+          findByMember: async () => ({ status: 'not_found' }),
+          saveVerifiedLink: async () => {
+            order.push('link')
+            return { status: 'created' as const }
+          },
+        },
+      }),
+    )
+    expect(decision).toEqual({ status: 'LINKED_EXISTING_CONTACT' })
+    expect(order).toEqual(['link', 'tag'])
+  })
+
+  it('creates, links, and then tags a new contact', async () => {
+    const order: string[] = []
+    const decision = await runStudentLoanAgentCrmDryRun(
+      INPUT,
+      on({
+        creationEnabled: true,
+        taggingEnabled: true,
+        lookupIdentity: async () => ({ status: 'NO_CONTACT_FOUND' as const }),
+        createContact: async () => {
+          order.push('create')
+          return { id: 'ext-created', sourceMatched: true }
+        },
+        applyTag: async () => {
+          order.push('tag')
+        },
+        links: {
+          findByMember: async () => ({ status: 'not_found' as const }),
+          saveVerifiedLink: async () => {
+            order.push('link')
+            return { status: 'created' as const }
+          },
+        },
+      }),
+    )
+    expect(decision).toEqual({ status: 'CREATED_AND_LINKED_CONTACT' })
+    expect(JSON.stringify(decision)).not.toContain('ext-created')
+    expect(order).toEqual(['create', 'link', 'tag'])
+  })
+
+  it('does not tag when the tagging gate is off or the host is production', async () => {
+    const applyTag = vi.fn()
+    const linked = {
+      findByMember: async () => ({
+        status: 'found' as const,
+        link: { householdMemberId: MEMBER_ID, externalContactId: EXTERNAL_ID },
+      }),
+      saveVerifiedLink: vi.fn(),
+    }
+    const disabled = await runStudentLoanAgentCrmDryRun(
+      INPUT,
+      on({ taggingEnabled: false, applyTag, links: linked }),
+    )
+    const production = await runStudentLoanAgentCrmDryRun(INPUT, {
+      linkingEnabled: true,
+      locationId: 'loc-test',
+      log: () => {},
+      applyTag,
+      env: {
+        AGENTCRM_CONTACT_TAGGING_ENABLED: 'true',
+        SUPABASE_URL: 'https://phanoknohbidqtgrpwvk.supabase.co',
+      },
+      links: linked,
+    })
+    expect(disabled).toEqual({ status: 'ALREADY_LINKED' })
+    expect(production).toEqual({ status: 'ALREADY_LINKED' })
+    expect(applyTag).not.toHaveBeenCalled()
+  })
+
+  it('does not tag skipped, ambiguous, failed, or conflicting results', async () => {
+    const applyTag = vi.fn()
+    const cases = [
+      runStudentLoanAgentCrmDryRun(
+        { ...INPUT, matchStatus: 'possible_match' },
+        on({ taggingEnabled: true, applyTag }),
+      ),
+      runStudentLoanAgentCrmDryRun(
+        { ...INPUT, memberId: null },
+        on({ taggingEnabled: true, applyTag }),
+      ),
+      runStudentLoanAgentCrmDryRun(
+        INPUT,
+        on({
+          taggingEnabled: true,
+          applyTag,
+          lookupIdentity: async () => ({ status: 'AMBIGUOUS', reason: 'EMAIL_ONLY_MATCH' }),
+          links: { findByMember: async () => ({ status: 'not_found' }), saveVerifiedLink: vi.fn() },
+        }),
+      ),
+      runStudentLoanAgentCrmDryRun(
+        INPUT,
+        on({
+          taggingEnabled: true,
+          applyTag,
+          lookupIdentity: async () => ({ status: 'INTEGRATION_ERROR', category: 'timeout' }),
+          links: { findByMember: async () => ({ status: 'not_found' }), saveVerifiedLink: vi.fn() },
+        }),
+      ),
+      runStudentLoanAgentCrmDryRun(
+        INPUT,
+        on({
+          taggingEnabled: true,
+          applyTag,
+          lookupIdentity: async () => ({ status: 'EXACT_EXISTING_CONTACT', externalContactId: EXTERNAL_ID }),
+          links: {
+            findByMember: async () => ({ status: 'not_found' }),
+            saveVerifiedLink: async () => ({ status: 'conflict' as const }),
+          },
+        }),
+      ),
+      runStudentLoanAgentCrmDryRun(
+        INPUT,
+        on({
+          creationEnabled: true,
+          taggingEnabled: true,
+          applyTag,
+          lookupIdentity: async () => ({ status: 'NO_CONTACT_FOUND' as const }),
+          createContact: async () => ({ id: 'ext-created', sourceMatched: true }),
+          links: {
+            findByMember: async () => ({ status: 'not_found' as const }),
+            saveVerifiedLink: async () => ({ status: 'error' as const }),
+          },
+        }),
+      ),
+      runStudentLoanAgentCrmDryRun(
+        { ...INPUT, assessmentType: 'family' },
+        on({ taggingEnabled: true, applyTag }),
+      ),
+    ]
+    const results = await Promise.all(cases)
+    expect(results[4]).toEqual({ status: 'LINK_CONFLICT' })
+    expect(results[5]).toEqual({ status: 'CONTACT_CREATED_LINK_FAILED' })
+    expect(results[6]).toBeNull()
+    expect(applyTag).not.toHaveBeenCalled()
+    expect(JSON.stringify(results)).not.toContain('ext-created')
+    expect(JSON.stringify(results)).not.toContain(EXTERNAL_ID)
+  })
+
+  it('keeps the link when tagging fails and reapplies on the next linked run', async () => {
+    const applyTag = vi.fn()
+      .mockRejectedValueOnce(new Error(`tag failed ${EXTERNAL_ID} ${INPUT.email}`))
+      .mockResolvedValue(undefined)
+    const saveVerifiedLink = vi.fn(async () => ({ status: 'created' as const }))
+    const links = {
+      findByMember: async () => ({
+        status: 'found' as const,
+        link: { householdMemberId: MEMBER_ID, externalContactId: EXTERNAL_ID },
+      }),
+      saveVerifiedLink,
+    }
+    const lookupIdentity = vi.fn()
+    const createContact = vi.fn()
+    const deps = on({ taggingEnabled: true, applyTag, links, lookupIdentity, createContact })
+    const first = await runStudentLoanAgentCrmDryRun(INPUT, deps)
+    const second = await runStudentLoanAgentCrmDryRun(INPUT, deps)
+    expect(first).toEqual({ status: 'TAG_FAILED' })
+    expect(JSON.stringify(first)).not.toContain(EXTERNAL_ID)
+    expect(JSON.stringify(first)).not.toContain(INPUT.email)
+    expect(second).toEqual({ status: 'ALREADY_LINKED' })
+    expect(applyTag).toHaveBeenCalledTimes(2)
+    expect(lookupIdentity).not.toHaveBeenCalled()
+    expect(createContact).not.toHaveBeenCalled()
+    expect(saveVerifiedLink).not.toHaveBeenCalled()
   })
 
   it('keeps AgentCRM free of write methods and keeps the link table out of ingest', () => {
