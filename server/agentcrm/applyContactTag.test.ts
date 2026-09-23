@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it, vi } from 'vitest'
 import { applyReportCardServiceTag, applyStudentLoanServiceTag, STUDENT_LOAN_SERVICE_TAG } from './applyContactTag'
+import { CREDIT_SERVICE_TAG } from './reportCardSyncConfig'
 import { AGENTCRM_CONTACT_TAGGING_ENV } from './contactTaggingGate'
 import { LeadConnectorError } from './errors'
 
@@ -80,6 +81,7 @@ describe('applyStudentLoanServiceTag', () => {
     expect(source).not.toMatch(/method:\s*['"]PUT['"]|method:\s*['"]PATCH['"]|method:\s*['"]DELETE['"]/)
     expect(source).not.toMatch(/\/contacts\/upsert|\/conversations\/messages|opportunity|workflow/)
     expect(config).toContain(STUDENT_LOAN_SERVICE_TAG)
+    expect(config).toContain(CREDIT_SERVICE_TAG)
     expect(source).not.toMatch(/aa-student|student loan leads|sl-reportcard-sent/)
   })
 })

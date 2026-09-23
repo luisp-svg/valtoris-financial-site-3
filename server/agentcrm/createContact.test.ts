@@ -192,7 +192,7 @@ describe('createAgentCrmContact', () => {
   it('does not create a contact for a source outside the enabled configuration', async () => {
     const fetchImpl = vi.fn()
     await expect(
-      createAgentCrmContact({ ...INPUT, source: 'Credit Report Card' }, { env: enabledEnv(), fetchImpl }),
+      createAgentCrmContact({ ...INPUT, source: 'Family Report Card' }, { env: enabledEnv(), fetchImpl }),
     ).rejects.toMatchObject({ category: 'forbidden' })
     expect(fetchImpl).not.toHaveBeenCalled()
   })

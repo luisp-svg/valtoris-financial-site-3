@@ -376,11 +376,11 @@ describe('runStudentLoanAgentCrmDryRun', () => {
     expect(JSON.stringify(decision)).not.toContain(INPUT.email)
   })
 
-  it('does not call the classifier or the link table for a non-student-loan report card', async () => {
+  it('does not call the classifier or the link table for an inactive report card', async () => {
     const lookupIdentity = vi.fn()
     const findByMember = vi.fn()
     const decision = await runStudentLoanAgentCrmDryRun(
-      { ...INPUT, assessmentType: 'credit' },
+      { ...INPUT, assessmentType: 'family' },
       on({ lookupIdentity, links: { findByMember, saveVerifiedLink: vi.fn() } }),
     )
     expect(decision).toBeNull()
@@ -670,7 +670,8 @@ describe('runStudentLoanAgentCrmDryRun', () => {
     expect(engine).not.toMatch(/tags:|customFields:|\/conversations\/messages|opportunity/)
     expect(cardConfig).not.toMatch(writeMethod)
     expect(cardConfig).toContain('service-student-loans')
-    expect(cardConfig).not.toMatch(/family:|business:|protection:|home_buyer:|retirement:|credit:/)
+    expect(cardConfig).toContain('credit:')
+    expect(cardConfig).not.toMatch(/family:|business:|protection:|home_buyer:|retirement:/)
     expect(links).not.toMatch(writeMethod)
     expect(links).not.toMatch(/\.update\s*\(|\.delete\s*\(|\.upsert\s*\(/)
     expect(ingest).not.toContain('integration_contact_links')

@@ -43,7 +43,7 @@ describe('runReportCardAgentCrmSync', () => {
     const applyTag = vi.fn()
     const links = linked()
     const unsupported = await runReportCardAgentCrmSync(
-      { ...INPUT, assessmentType: 'credit' },
+      { ...INPUT, assessmentType: 'family' },
       quiet({ linkingEnabled: true, creationEnabled: true, taggingEnabled: true, lookupIdentity, createContact, applyTag, links }),
     )
     const disabled = await runReportCardAgentCrmSync(
@@ -380,7 +380,8 @@ describe('runReportCardAgentCrmSync', () => {
     const config = readFileSync(resolve(process.cwd(), 'server/agentcrm/reportCardSyncConfig.ts'), 'utf8')
     expect(engine).not.toMatch(/method:\s*['"]POST['"]|method:\s*['"]PUT['"]|method:\s*['"]PATCH['"]|method:\s*['"]DELETE['"]/)
     expect(engine).not.toMatch(/tags:|customFields:|\/conversations\/messages|opportunity|workflow|dnd/)
-    expect(config).not.toMatch(/credit|family|business|protection|home_buyer|retirement/)
+    expect(config).toContain('credit')
+    expect(config).not.toMatch(/family|business|protection|home_buyer|retirement/)
   })
 
   it('uses the Student Loan source and service tag through the real writers on CRM-dev', async () => {
@@ -433,6 +434,202 @@ describe('runReportCardAgentCrmSync', () => {
       expect(JSON.parse(String(tagInit.body))).toEqual({ tags: ['service-student-loans'] })
       expect(String(tagUrl)).toContain('/contacts/syntheticContact1/tags')
       expect(String(tagUrl)).not.toContain('pit-test-placeholder')
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
+
+  it('creates, links, and tags a new Credit person with the Credit source and tag', async () => {
+    const order: string[] = []
+    const decision = await runReportCardAgentCrmSync(
+      { ...INPUT, assessmentType: 'credit' },
+      quiet({
+        linkingEnabled: true,
+        creationEnabled: true,
+        taggingEnabled: true,
+        lookupIdentity: async () => ({ status: 'NO_CONTACT_FOUND' as const }),
+        createContact: async (input) => {
+          order.push('create')
+          expect(input.source).toBe('Credit Report Card')
+          return { id: 'ext-credit', sourceMatched: true }
+        },
+        applyTag: async () => {
+          order.push('tag')
+        },
+        links: {
+          findByMember: async () => ({ status: 'not_found' as const }),
+          saveVerifiedLink: async () => {
+            order.push('link')
+            return { status: 'created' as const }
+          },
+        },
+      }),
+    )
+    expect(decision).toEqual({ status: 'CREATED_AND_LINKED_CONTACT' })
+    expect(order).toEqual(['create', 'link', 'tag'])
+    expect(JSON.stringify(decision)).not.toContain('ext-credit')
+  })
+
+  it('links an exact Credit contact and does not update it', async () => {
+    const createContact = vi.fn()
+    const decision = await runReportCardAgentCrmSync(
+      { ...INPUT, assessmentType: 'credit' },
+      quiet({
+        linkingEnabled: true,
+        taggingEnabled: true,
+        lookupIdentity: async () => ({ status: 'EXACT_EXISTING_CONTACT' as const, externalContactId: EXTERNAL_ID }),
+        createContact,
+        applyTag: async () => {},
+        links: {
+          findByMember: async () => ({ status: 'not_found' as const }),
+          saveVerifiedLink: async () => ({ status: 'created' as const }),
+        },
+      }),
+    )
+    expect(decision).toEqual({ status: 'LINKED_EXISTING_CONTACT' })
+    expect(createContact).not.toHaveBeenCalled()
+    expect(JSON.stringify(decision)).not.toContain(EXTERNAL_ID)
+  })
+
+  it('does not sync a Credit possible match, ambiguous identity, or integration error', async () => {
+    const lookupIdentity = vi.fn(async (): Promise<
+      | { status: 'AMBIGUOUS'; reason: 'EMAIL_ONLY_MATCH' }
+      | { status: 'INTEGRATION_ERROR'; category: 'timeout' }
+    > => ({ status: 'AMBIGUOUS', reason: 'EMAIL_ONLY_MATCH' }))
+    const createContact = vi.fn()
+    const applyTag = vi.fn()
+    const saveVerifiedLink = vi.fn()
+    const possible = await runReportCardAgentCrmSync(
+      { ...INPUT, assessmentType: 'credit', matchStatus: 'possible_match' },
+      quiet({ linkingEnabled: true, creationEnabled: true, taggingEnabled: true, lookupIdentity, createContact, applyTag }),
+    )
+    const ambiguous = await runReportCardAgentCrmSync(
+      { ...INPUT, assessmentType: 'credit' },
+      quiet({
+        linkingEnabled: true,
+        creationEnabled: true,
+        taggingEnabled: true,
+        lookupIdentity,
+        createContact,
+        applyTag,
+        links: { findByMember: async () => ({ status: 'not_found' as const }), saveVerifiedLink },
+      }),
+    )
+    lookupIdentity.mockResolvedValueOnce({ status: 'INTEGRATION_ERROR', category: 'timeout' })
+    const failed = await runReportCardAgentCrmSync(
+      { ...INPUT, assessmentType: 'credit' },
+      quiet({
+        linkingEnabled: true,
+        creationEnabled: true,
+        taggingEnabled: true,
+        lookupIdentity,
+        createContact,
+        applyTag,
+        links: { findByMember: async () => ({ status: 'not_found' as const }), saveVerifiedLink },
+      }),
+    )
+    expect(possible).toEqual({ status: 'SKIP_POSSIBLE_MATCH' })
+    expect(ambiguous).toEqual({ status: 'AMBIGUOUS', reason: 'EMAIL_ONLY_MATCH' })
+    expect(failed).toEqual({ status: 'INTEGRATION_ERROR', category: 'timeout' })
+    expect(createContact).not.toHaveBeenCalled()
+    expect(applyTag).not.toHaveBeenCalled()
+    expect(saveVerifiedLink).not.toHaveBeenCalled()
+  })
+
+  it('tags an already linked Credit person without searching or creating', async () => {
+    const lookupIdentity = vi.fn()
+    const createContact = vi.fn()
+    const applyTag = vi.fn(async () => {})
+    const links = linked()
+    const first = await runReportCardAgentCrmSync(
+      { ...INPUT, assessmentType: 'credit' },
+      quiet({ linkingEnabled: true, creationEnabled: true, taggingEnabled: true, lookupIdentity, createContact, applyTag, links }),
+    )
+    const second = await runReportCardAgentCrmSync(
+      { ...INPUT, assessmentType: 'credit' },
+      quiet({ linkingEnabled: true, creationEnabled: true, taggingEnabled: true, lookupIdentity, createContact, applyTag, links }),
+    )
+    expect(first).toEqual({ status: 'ALREADY_LINKED' })
+    expect(second).toEqual({ status: 'ALREADY_LINKED' })
+    expect(applyTag).toHaveBeenCalledTimes(2)
+    expect(lookupIdentity).not.toHaveBeenCalled()
+    expect(createContact).not.toHaveBeenCalled()
+    expect(links.saveVerifiedLink).not.toHaveBeenCalled()
+  })
+
+  it('adds the Credit tag to the same contact already linked from Student Loan', async () => {
+    const lookupIdentity = vi.fn()
+    const createContact = vi.fn()
+    const applyTag = vi.fn(async () => {})
+    const decision = await runReportCardAgentCrmSync(
+      { ...INPUT, assessmentType: 'credit' },
+      quiet({
+        linkingEnabled: true,
+        creationEnabled: true,
+        taggingEnabled: true,
+        lookupIdentity,
+        createContact,
+        applyTag,
+        links: linked(),
+      }),
+    )
+    expect(decision).toEqual({ status: 'ALREADY_LINKED' })
+    expect(lookupIdentity).not.toHaveBeenCalled()
+    expect(createContact).not.toHaveBeenCalled()
+    expect(applyTag).toHaveBeenCalledTimes(1)
+    expect(applyTag).toHaveBeenCalledWith(EXTERNAL_ID)
+  })
+
+  it('posts only the Credit service tag and keeps an existing Student Loan tag in the response', async () => {
+    const fetchImpl = vi.fn(async (input: RequestInfo | URL, _init?: RequestInit) => {
+      const url = input instanceof URL ? input : new URL(String(input))
+      if (url.pathname === '/contacts/') {
+        return new Response(
+          JSON.stringify({
+            contact: {
+              id: 'syntheticContact1',
+              locationId: 'loc-test',
+              email: INPUT.email,
+              phone: INPUT.phone,
+              source: 'Credit Report Card',
+            },
+          }),
+          { status: 201, headers: { 'Content-Type': 'application/json' } },
+        )
+      }
+      return new Response(
+        JSON.stringify({ tags: ['service-student-loans', 'service-credit-improvement'] }),
+        { status: 201, headers: { 'Content-Type': 'application/json' } },
+      )
+    })
+    vi.stubGlobal('fetch', fetchImpl)
+    try {
+      const decision = await runReportCardAgentCrmSync(
+        { ...INPUT, assessmentType: 'credit' },
+        {
+          log: () => {},
+          lookupIdentity: async () => ({ status: 'NO_CONTACT_FOUND' as const }),
+          links: {
+            findByMember: async () => ({ status: 'not_found' as const }),
+            saveVerifiedLink: async () => ({ status: 'created' as const }),
+          },
+          env: {
+            [AGENTCRM_CONTACT_LINKING_ENV]: 'true',
+            [AGENTCRM_CONTACT_CREATION_ENV]: 'true',
+            [AGENTCRM_CONTACT_TAGGING_ENV]: 'true',
+            SUPABASE_URL: CRM_DEV,
+            AGENTCRM_LOCATION_ID: 'loc-test',
+            AGENTCRM_PRIVATE_INTEGRATION_TOKEN: 'pit-test-placeholder',
+          },
+        },
+      )
+      expect(decision).toEqual({ status: 'CREATED_AND_LINKED_CONTACT' })
+      const createInit = fetchImpl.mock.calls[0]?.[1]
+      const tagInit = fetchImpl.mock.calls[1]?.[1]
+      if (!createInit || !tagInit) throw new Error('expected create and tag requests')
+      expect(JSON.parse(String(createInit.body))).toMatchObject({ source: 'Credit Report Card' })
+      expect(JSON.parse(String(tagInit.body))).toEqual({ tags: ['service-credit-improvement'] })
+      expect(JSON.stringify(createInit.body)).not.toMatch(/firstName.*update|customFields|opportunity/)
     } finally {
       vi.unstubAllGlobals()
     }

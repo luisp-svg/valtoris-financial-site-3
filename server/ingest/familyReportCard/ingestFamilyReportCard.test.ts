@@ -4,7 +4,12 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { describe, expect, it, vi } from 'vitest'
 import { runStudentLoanAgentCrmDryRun } from '../../agentcrm/studentLoanDryRun'
 import { ingestFamilyReportCard } from './ingestFamilyReportCard'
-import { matchCandidateFixture, validIngestRequestBodyFixture, validStudentLoanIngestRequestBodyFixture } from './testFixtures'
+import {
+  matchCandidateFixture,
+  validCreditIngestRequestBodyFixture,
+  validIngestRequestBodyFixture,
+  validStudentLoanIngestRequestBodyFixture,
+} from './testFixtures'
 import type { MatchCandidate } from './types'
 
 function makeAdminStub(rpcImpl: (fn: string, args: Record<string, unknown>) => Promise<{ data: unknown; error: unknown }>) {
@@ -483,7 +488,40 @@ describe('ingestFamilyReportCard', () => {
     expect(JSON.stringify(result)).not.toMatch(/TAG_FAILED|LINKED_EXISTING_CONTACT|externalContactId/)
   })
 
-  it('does not classify a non-student-loan report card', async () => {
+  it('still succeeds when Credit AgentCRM identity lookup fails', async () => {
+    const result = await ingestFamilyReportCard(validCreditIngestRequestBodyFixture(), {
+      admin: makeAdminStub(async (fn) => {
+        if (fn === 'ingest_public_report_card') return { data: newProspectRpcResponse(), error: null }
+        return { data: null, error: null }
+      }),
+      sheetsWriter: vi.fn().mockResolvedValue({ status: 'succeeded' as const }),
+      findCandidates: async () => [],
+      orchestrateFollowUpTask: vi.fn().mockResolvedValue({
+        status: 'task_created',
+        taskId: 'task-1',
+        errorCategory: null,
+        needsManualReview: false,
+      }),
+      runStudentLoanDryRun: (input) =>
+        runStudentLoanAgentCrmDryRun(input, {
+          linkingEnabled: true,
+          locationId: 'loc-test',
+          log: () => {},
+          lookupIdentity: async () => ({ status: 'INTEGRATION_ERROR', category: 'timeout' }),
+          links: {
+            findByMember: async () => ({ status: 'not_found' }),
+            saveVerifiedLink: vi.fn(),
+          },
+        }),
+    })
+
+    expect(result.ok).toBe(true)
+    if (result.ok) expect(result.created).toBe(true)
+    expect(JSON.stringify(result)).not.toMatch(/INTEGRATION_ERROR|TAG_FAILED|externalContactId|service-credit-improvement/)
+    expect(JSON.stringify(result)).not.toContain('jamie.rivera@example.com')
+  })
+
+  it('does not classify an inactive report card', async () => {
     const lookupIdentity = vi.fn()
     const result = await ingestFamilyReportCard(validIngestRequestBodyFixture(), {
       admin: makeAdminStub(async (fn) => {
