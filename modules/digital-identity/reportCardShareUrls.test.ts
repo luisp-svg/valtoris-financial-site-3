@@ -118,7 +118,7 @@ describe('Report Card personal share links', () => {
     expect(helper).not.toMatch(/from '\.\.\/\.\.\/server\/ingest/)
     expect(helper).not.toMatch(/activities|ingest_public_report_card|createLead/)
     expect(
-      readdirSync(join(ROOT, 'supabase/migrations')).some((name) => name.startsWith('056_')),
-    ).toBe(false)
+      readdirSync(join(ROOT, 'supabase/migrations')).filter((name) => name.startsWith('056_')),
+    ).toEqual(['056_insurance_quote_intake.sql'])
   })
 })

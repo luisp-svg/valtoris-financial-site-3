@@ -61,10 +61,10 @@ describe.skipIf(!crmDevReady())('migration 051 CRM-dev Intake archive RPC (cxgia
       ORDER BY version
     `)
     const labels = versions.map((row) => String(row.version))
-    expect(labels).toEqual(['050', '051', '052', '053'])
-    expect(labels).not.toContain('054')
+    // Later migrations may be installed; retain this migration's prerequisites.
+    expect(labels).toEqual(expect.arrayContaining(['050', '051', '052', '053']))
     const total = queryLinked(`SELECT count(*)::int AS n FROM supabase_migrations.schema_migrations`)
-    expect(Number(total[0]?.n)).toBe(53)
+    expect(Number(total[0]?.n)).toBeGreaterThanOrEqual(53)
 
     const fns = queryLinked(`
       SELECT

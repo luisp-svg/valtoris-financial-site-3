@@ -1,0 +1,15 @@
+import { describe, expect, it, vi } from 'vitest'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import { quoteFixture } from '../../../modules/insuranceQuote/fixtures'
+import { ingestQuote } from './ingest'
+const success={data:{lead_id:'private-lead',household_id:'private-household'},error:null}
+function setup() { const rpc=vi.fn().mockResolvedValue(success); return {rpc,admin:{rpc} as unknown as SupabaseClient,findCandidates:vi.fn().mockResolvedValue([])} }
+describe('insurance CRM save',()=>{
+  it('saves via server-only RPC and returns no private identifiers',async()=>{const deps=setup(); const result=await ingestQuote(quoteFixture(),deps); expect(result).toEqual({status:200,body:{ok:true}}); expect(deps.rpc).toHaveBeenCalledWith('ingest_insurance_quote',expect.anything()); const payload=deps.rpc.mock.calls[0][1].p_payload; expect(payload.consent_snapshot.smsMarketingConsent).toBe(false); expect(payload.consent_snapshot.emailMarketingConsent).toBe(false); expect(payload.raw_payload.quoteKind).toBe('auto'); expect(payload.normalized_phone).toBe('+12025550148')})
+  it('does no DB work on invalid input',async()=>{const deps=setup(); expect((await ingestQuote({...quoteFixture(),householdId:'spoofed'},deps)).status).toBe(400);expect(deps.rpc).not.toHaveBeenCalled();expect(deps.findCandidates).not.toHaveBeenCalled()})
+  it('never acknowledges success on failed persistence or malformed response',async()=>{const deps=setup();deps.rpc.mockResolvedValue({data:null,error:{message:'private diagnostic'}});expect((await ingestQuote(quoteFixture(),deps))).toEqual({status:503,body:{ok:false,error:'Unable to save your request. Please try again.'}})})
+  it('retries stale matching safely with the same idempotency key',async()=>{const deps=setup();deps.rpc.mockResolvedValueOnce({data:null,error:{message:'retry_match'}});expect((await ingestQuote(quoteFixture(),deps)).status).toBe(200);expect(deps.rpc).toHaveBeenCalledTimes(2);expect(deps.rpc.mock.calls[0][1].p_payload.idempotency_key).toBe(deps.rpc.mock.calls[1][1].p_payload.idempotency_key)})
+  it('makes fingerprint stable across request key ordering and start time',async()=>{const deps=setup();const body=quoteFixture();await ingestQuote(body,deps);await ingestQuote({...body,formStartedAt:body.formStartedAt-1000,contact:{...body.contact}},deps);expect(deps.rpc.mock.calls[0][1].p_payload.fingerprint).toBe(deps.rpc.mock.calls[1][1].p_payload.fingerprint)})
+  it('holds a partial name match for owner review',async()=>{const deps=setup();deps.findCandidates.mockResolvedValue([{householdId:'candidate',firstName:'Different',lastName:'QuoteTest',normalizedEmail:'quote-test@example.invalid',normalizedPhone:'+12025550148'}]);await ingestQuote(quoteFixture(),deps);expect(deps.rpc.mock.calls[0][1].p_payload.match_status).toBe('possible_match')})
+  it('reports a changed-payload retry as conflict without claiming it saved',async()=>{const deps=setup();deps.rpc.mockResolvedValue({data:null,error:{message:'idempotency_conflict'}});expect((await ingestQuote(quoteFixture(),deps)).status).toBe(409)})
+})

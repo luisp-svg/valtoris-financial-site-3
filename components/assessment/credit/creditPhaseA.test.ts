@@ -331,7 +331,7 @@ describe('Credit Report Card Phase A foundation', () => {
     expect(source('pages/CreditAssessment.tsx')).not.toContain('credit_repair')
     expect(source('components/assessment/credit/questions.ts')).not.toContain('credit_repair')
     const files = readdirSync(MIGRATIONS_DIR).filter((name) => name.endsWith('.sql')).sort()
-    expect(files).toHaveLength(55)
+    expect(files).toHaveLength(56)
     expect(files[49]).toBe('050_credit_report_card_ingest.sql')
     expect(files.some((name) => name.startsWith('051_'))).toBe(true)
     expect(files.some((name) => name.startsWith('052_'))).toBe(true)

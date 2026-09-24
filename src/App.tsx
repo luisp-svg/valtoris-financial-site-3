@@ -7,6 +7,7 @@ import { ROUTES } from '../constants/routes'
 import { CrmAuthProvider } from '../crm/auth/CrmAuthContext'
 import { CrmLoginGate, CrmProtectedGate } from '../crm/components/CrmGate'
 import HomePage from '../pages/HomePage'
+import InsuranceQuotePage from '../pages/InsuranceQuotePage'
 import CheckupPage from '../pages/CheckupPage'
 import FamilyProtectionCalculator from '../pages/FamilyProtectionCalculator'
 import FamilyProtectionResults from '../pages/FamilyProtectionResults'
@@ -89,6 +90,7 @@ export default function App() {
     <>
       <ScrollToTop />
       <Routes>
+      {(['auto', 'home', 'commercial'] as const).map(kind => <Route key={kind} path={`/${kind}-quote`} element={<SiteLayout><InsuranceQuotePage key={kind} kind={kind} /></SiteLayout>} />)}
       <Route path={ROUTES.familyAssessment} element={<FinancialProtectionAssessment />} />
       <Route path="/assessment" element={<Navigate to={ROUTES.familyAssessment} replace />} />
       <Route path="/report" element={<Navigate to={ROUTES.familyAssessment} replace />} />

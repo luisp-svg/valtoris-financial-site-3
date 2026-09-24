@@ -1,3 +1,4 @@
+import { QUOTE_LEAD_TYPES } from '../../modules/insuranceQuote/catalog'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
@@ -39,8 +40,10 @@ describe('Intake / Households / dashboard Manual Contact separation', () => {
       'Protection Gap',
       'Student Loan Report Card',
       'Credit Report Card',
+      'Home Buyer Report Card',
       'Digital Identity',
       BULK_LEAD_IMPORT_LEAD_TYPE,
+      ...QUOTE_LEAD_TYPES,
     ])
     expect(leadsQuery.or).not.toHaveBeenCalled()
   })

@@ -1,3 +1,4 @@
+import { isQuoteLead } from '../../modules/insuranceQuote/catalog'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useCrmAuth } from '../../crm/auth/CrmAuthContext'
@@ -279,11 +280,12 @@ export default function CrmIntakePage() {
 
     try {
       const supabase = createSupabaseBrowserClient()
-      const result = isDigitalIdentityLead(selectedItem)
+      const result = (isDigitalIdentityLead(selectedItem) || isQuoteLead(selectedItem.leadType))
         ? await resolveDigitalIdentityDuplicateReview(supabase, {
             duplicateReviewId: selectedItem.duplicateReview.id,
             action: pendingAction,
             notes,
+            insuranceQuote: isQuoteLead(selectedItem.leadType),
           })
         : await resolveDuplicateReview(supabase, {
             duplicateReviewId: selectedItem.duplicateReview.id,

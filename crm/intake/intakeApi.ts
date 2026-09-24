@@ -1,3 +1,5 @@
+import { isQuoteKind, isQuoteLead, QUOTE_LEAD_TYPES } from '../../modules/insuranceQuote/catalog'
+import type { QuoteAnswers } from '../../modules/insuranceQuote/catalog'
 import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js'
 import { DIGITAL_IDENTITY_LEAD_TYPE } from '../../modules/digital-identity'
 import { BULK_LEAD_IMPORT_LEAD_TYPE } from '../../modules/bulkLeadImport'
@@ -195,7 +197,7 @@ export async function fetchIntakeQueue(
     .from('leads')
     .select(LEAD_SELECT)
     .is('deleted_at', null)
-    .in('lead_type', [...PUBLIC_REPORT_CARD_LEAD_TYPES, DIGITAL_IDENTITY_LEAD_TYPE, BULK_LEAD_IMPORT_LEAD_TYPE])
+    .in('lead_type', [...PUBLIC_REPORT_CARD_LEAD_TYPES, DIGITAL_IDENTITY_LEAD_TYPE, BULK_LEAD_IMPORT_LEAD_TYPE, ...QUOTE_LEAD_TYPES])
     .order('submitted_at', { ascending: false })
     .limit(limit)
 
@@ -478,6 +480,11 @@ export async function fetchIntakeQueue(
       consent,
       household,
       assignedAdvisor,
+      insuranceQuote: (() => {
+        const raw = row.raw_payload as Record<string, unknown> | null
+        if (!isQuoteLead(leadType) || !raw || !isQuoteKind(raw.quoteKind) || !raw.quoteAnswers || typeof raw.quoteAnswers !== 'object' || Array.isArray(raw.quoteAnswers)) return null
+        return { kind: raw.quoteKind, answers: raw.quoteAnswers as QuoteAnswers, preferredContact: typeof raw.preferredContact === 'string' ? raw.preferredContact : null }
+      })(),
       diagnostic: buildDiagnosticFromAssessmentRow(
         assessment,
         Number.isFinite(leadScore as number) ? (leadScore as number) : null,
@@ -671,6 +678,7 @@ export async function resolveDuplicateReview(
     duplicateReviewId: string
     action: DuplicateResolutionWriteAction
     notes?: string | null
+    insuranceQuote?: boolean
   },
 ): Promise<DuplicateResolutionResponse> {
   if (
@@ -747,6 +755,7 @@ export async function resolveDigitalIdentityDuplicateReview(
     duplicateReviewId: string
     action: DuplicateResolutionWriteAction
     notes?: string | null
+    insuranceQuote?: boolean
   },
 ): Promise<DuplicateResolutionResponse> {
   if (
@@ -799,6 +808,9 @@ export async function resolveDigitalIdentityDuplicateReview(
       message: 'Unable to resolve this duplicate review. Please try again.',
     }
   }
+
+  // Insurance quotes use the shared resolver but never create DI tasks.
+  if (input.insuranceQuote) return mapped
 
   // Best-effort follow-up task — never undoes resolution.
   try {

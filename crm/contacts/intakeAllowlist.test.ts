@@ -1,3 +1,4 @@
+import { QUOTE_LEAD_TYPES } from '../../modules/insuranceQuote/catalog'
 import { describe, expect, it, vi } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { fetchIntakeQueue } from '../intake/intakeApi'
@@ -38,6 +39,7 @@ describe('Intake lead_type allowlist', () => {
       'Home Buyer Report Card',
       DIGITAL_IDENTITY_LEAD_TYPE,
       BULK_LEAD_IMPORT_LEAD_TYPE,
+      ...QUOTE_LEAD_TYPES,
     ])
     expect(leadsQuery.or).not.toHaveBeenCalled()
     expect(leadsQuery.neq).not.toHaveBeenCalled()
@@ -54,6 +56,7 @@ describe('Intake lead_type allowlist', () => {
       'Home Buyer Report Card',
       DIGITAL_IDENTITY_LEAD_TYPE,
       BULK_LEAD_IMPORT_LEAD_TYPE,
+      ...QUOTE_LEAD_TYPES,
     ])
     for (const type of [null, undefined, 'Manual Contact', 'Future Widget', '']) {
       expect(allowed.has(type as string)).toBe(false)

@@ -262,7 +262,7 @@ describe('Home Buyer Phase C ingest', () => {
     expect(source('src/App.tsx')).toContain('homeBuyerAssessment')
     expect(WORKSPACE_ASSESSMENT_TYPES).not.toContain('home_buyer')
     const files = readdirSync(join(ROOT, 'supabase/migrations')).filter((name) => name.endsWith('.sql')).sort()
-    expect(files.some((name) => name.startsWith('056_'))).toBe(false)
+    expect(files.some((name) => name.startsWith('056_'))).toBe(true)
     expect(files.filter((name) => name.startsWith('054_'))).toEqual(['054_home_buyer_report_card_ingest.sql'])
     expect(source('server/ingest/familyReportCard/validation.ts')).not.toContain('home_buyer_answers_unavailable')
     expect(source('server/ingest/familyReportCard/ingestFamilyReportCard.ts')).not.toContain(

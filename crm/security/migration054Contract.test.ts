@@ -54,11 +54,11 @@ function createReplaceCount(sql: string, name: string): number {
 }
 
 describe('migration 054 home buyer report card ingest enablement', () => {
-  it('is the only 054 file, follows 053, freezes 001–055, and rejects 056', () => {
+  it('is the only 054 file, follows 053, preserves 001–055 and permits insurance 056, and permits the approved insurance 056', () => {
     expect(MIGRATION_054_FILENAME).toBe('054_home_buyer_report_card_ingest.sql')
     const files = numberedMigrations()
     expect(files).toEqual([...EXPECTED_NUMBERED_MIGRATIONS])
-    expect(files).toHaveLength(55)
+    expect(files).toHaveLength(56)
     expect(files[0]).toBe('001_extensions_and_enums.sql')
     expect(files[44]).toBe(MIGRATION_045_FILENAME)
     expect(files[45]).toBe(MIGRATION_046_FILENAME)
@@ -73,7 +73,7 @@ describe('migration 054 home buyer report card ingest enablement', () => {
     expect(files.filter((f) => f.startsWith('053_'))).toEqual([MIGRATION_053_FILENAME])
     expect(files.filter((f) => f.startsWith('054_'))).toEqual([MIGRATION_054_FILENAME])
     expect(files.filter((f) => f.startsWith('055_'))).toEqual(['055_integration_contact_links.sql'])
-    expect(files.filter((f) => f.startsWith('056_'))).toEqual([])
+    expect(files.filter((f) => f.startsWith('056_'))).toEqual(['056_insurance_quote_intake.sql'])
   })
 
   it('adds home_buyer to assessment_type and maps Home Buyer Report Card lead_type / lead_source', () => {

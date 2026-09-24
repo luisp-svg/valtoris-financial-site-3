@@ -70,10 +70,11 @@ const EXPECTED_MIGRATIONS = [
   '053_bulk_lead_import_writer.sql',
   '054_home_buyer_report_card_ingest.sql',
   '055_integration_contact_links.sql',
+  '056_insurance_quote_intake.sql',
 ]
 
 describe('Phase A production dashboard contracts', () => {
-  it('does not add a production dashboard or Case table migration and freezes 001–055', () => {
+  it('does not add a production dashboard or Case table migration and preserves 001–055 and permits insurance 056', () => {
     const files = readdirSync(migrationsDir).filter((name) => name.endsWith('.sql')).sort()
     expect(files).toEqual(EXPECTED_MIGRATIONS)
     expect(existsSync(join(migrationsDir, '044_case_management.sql'))).toBe(false)
@@ -99,7 +100,7 @@ describe('Phase A production dashboard contracts', () => {
     expect(files.filter((name) => name.startsWith('053_'))).toEqual(['053_bulk_lead_import_writer.sql'])
     expect(files.filter((name) => name.startsWith('054_'))).toEqual(['054_home_buyer_report_card_ingest.sql'])
     expect(files.filter((name) => name.startsWith('055_'))).toEqual(['055_integration_contact_links.sql'])
-    expect(files.filter((name) => name.startsWith('056_'))).toEqual([])
+    expect(files.filter((name) => name.startsWith('056_'))).toEqual(['056_insurance_quote_intake.sql'])
   })
 
   it('does not introduce drag/drop, pending commission stage, or stage mutation', () => {

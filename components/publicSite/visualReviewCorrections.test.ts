@@ -133,17 +133,15 @@ describe('visual review corrections', () => {
     expect(en).not.toContain('lang=en')
   })
 
-  it('renders all six diagnostic tools as equal cards and removes Also available', () => {
+  it('renders four homepage audience cards and preserves the separate six-tool catalog', () => {
     const html = renderAt('/', createElement(HomePage))
     const diagnostics = html.match(/id="home-diagnostics"[\s\S]*?<\/section>/)?.[0] ?? ''
-    expect(diagnostics).toContain('site-home-card-grid--3')
-    expect(diagnostics.match(/class="site-home-card site-home-card--centered"/g)?.length).toBe(6)
-    expect(diagnostics).toContain('Family Report Card™')
-    expect(diagnostics).toContain('Business Report Card™')
-    expect(diagnostics).toContain('Student Loan Report Card™')
-    expect(diagnostics).toContain('Credit Report Card™')
-    expect(diagnostics).toContain('Retirement Report Card™')
-    expect(diagnostics).toContain('Protection Gap')
+    expect(diagnostics).toContain('site-home-card-grid--4')
+    expect(diagnostics.match(/class="site-home-card site-home-card--centered"/g)?.length).toBe(4)
+    expect(diagnostics).toContain('Take the Family Financial Report Card')
+    expect(diagnostics).toContain('Take the Business Financial Report Card')
+    expect(diagnostics).toContain('Take the Student Loan Report Card')
+    expect(diagnostics).toContain('Take the Credit Report Card')
     expect(diagnostics).not.toContain('Also available')
     expect(diagnostics).not.toContain('site-home-more-tools')
     expect(HOME_FEATURED_DIAGNOSTICS.map((item) => item.id)).toEqual([
@@ -261,7 +259,7 @@ describe('visual review corrections', () => {
     const files = readdirSync(join(ROOT, 'supabase/migrations'))
       .filter((name) => name.endsWith('.sql'))
       .sort()
-    expect(files).toHaveLength(55)
+    expect(files).toHaveLength(56)
     expect(files.some((name) => name.startsWith('053_'))).toBe(true)
     expect(files.some((name) => name.startsWith('054_'))).toBe(true)
     expect(existsSync(join(ROOT, 'supabase/migrations/053_visual_review.sql'))).toBe(false)

@@ -46,7 +46,7 @@ export function parseConsentSnapshot(value: unknown): IntakeConsentSummary {
       : {}
 
   return {
-    assessmentStorageAcknowledged: record.assessmentStorageAcknowledged === true,
+    assessmentStorageAcknowledged: record.assessmentStorageAcknowledged === true || record.quoteStorageAcknowledged === true,
     contactPermission: record.contactPermission === true,
     emailMarketingConsent: record.emailMarketingConsent === true,
     smsMarketingConsent: record.smsMarketingConsent === true,

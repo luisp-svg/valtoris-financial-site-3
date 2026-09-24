@@ -45,12 +45,12 @@ function createTableBody(sql: string): string {
 }
 
 describe('migration 055 integration contact links', () => {
-  it('is the only 055 file, follows 054, freezes 001–055, and rejects 056', () => {
+  it('is the only 055 file, follows 054, preserves 001–055 and permits insurance 056, and permits the approved insurance 056', () => {
     expect(MIGRATION_055_FILENAME).toBe('055_integration_contact_links.sql')
     expect(MIGRATION_055_TABLE).toBe('integration_contact_links')
     const files = numberedMigrations()
     expect(files).toEqual([...EXPECTED_NUMBERED_MIGRATIONS])
-    expect(files).toHaveLength(55)
+    expect(files).toHaveLength(56)
     expect(files[0]).toBe('001_extensions_and_enums.sql')
     expect(files[44]).toBe(MIGRATION_045_FILENAME)
     expect(files[45]).toBe(MIGRATION_046_FILENAME)
@@ -65,7 +65,7 @@ describe('migration 055 integration contact links', () => {
     expect(files[54]).toBe(MIGRATION_055_FILENAME)
     expect(files.filter((f) => f.startsWith('054_'))).toEqual([MIGRATION_054_FILENAME])
     expect(files.filter((f) => f.startsWith('055_'))).toEqual([MIGRATION_055_FILENAME])
-    expect(files.filter((f) => f.startsWith('056_'))).toEqual([])
+    expect(files.filter((f) => f.startsWith('056_'))).toEqual(['056_insurance_quote_intake.sql'])
   })
 
   it('defines only the durable identity columns, both unique keys, and a member foreign key', () => {

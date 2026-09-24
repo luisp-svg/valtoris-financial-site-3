@@ -49,11 +49,11 @@ describe('Life & Annuity Case Management Phase C contracts', () => {
 
   it('does not add a second Case model, status system, or Migration 053', () => {
     const files = readdirSync(migrationsDir).filter((name) => name.endsWith('.sql')).sort()
-    expect(files).toHaveLength(55)
+    expect(files).toHaveLength(56)
     expect(files.filter((name) => name.startsWith('053_'))).toEqual(['053_bulk_lead_import_writer.sql'])
     expect(files.filter((name) => name.startsWith('054_'))).toEqual(['054_home_buyer_report_card_ingest.sql'])
     expect(files.filter((name) => name.startsWith('055_'))).toEqual(['055_integration_contact_links.sql'])
-    expect(files.filter((name) => name.startsWith('056_'))).toEqual([])
+    expect(files.filter((name) => name.startsWith('056_'))).toEqual(['056_insurance_quote_intake.sql'])
     expect(existsSync(join(migrationsDir, '053_case_management.sql'))).toBe(false)
     expect(nextAction).not.toMatch(/case_status|case_substatus|workflow_status/)
     expect(nextAction).toContain('Does not persist a next_action field')

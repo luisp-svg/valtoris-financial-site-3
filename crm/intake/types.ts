@@ -163,6 +163,7 @@ export type IntakeQueueItem = {
    */
   assessmentDetail: PublicFamilyDiagnosticDetail | null
   /** Present for Digital Identity / Let's Connect leads; null for assessment-backed diagnostics. */
+  insuranceQuote?: { kind: import('../../modules/insuranceQuote/catalog').QuoteKind; answers: import('../../modules/insuranceQuote/catalog').QuoteAnswers; preferredContact: string | null } | null
   digitalIdentity: IntakeDigitalIdentitySummary | null
   duplicateReview: IntakeDuplicateReviewSummary | null
   originalCampaign: string | null

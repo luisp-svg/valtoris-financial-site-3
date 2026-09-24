@@ -197,7 +197,7 @@ describe('Family Report Card homeownership goal linkage', () => {
     expect(results).toContain('ROUTES.homeBuyerReportCard')
     expect(results).not.toMatch(PROHIBITED_MORTGAGE_LANGUAGE)
     expect(readdirSync(join(ROOT, 'supabase/migrations')).some((name) => name.startsWith('056_'))).toBe(
-      false,
+      true,
     )
   })
 })

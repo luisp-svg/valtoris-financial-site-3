@@ -1,3 +1,5 @@
+import InsuranceQuoteDetail from './InsuranceQuoteDetail'
+import { isQuoteLead } from '../../modules/insuranceQuote/catalog'
 import { Link } from 'react-router-dom'
 import { crmHouseholdAssessmentDetailPath, crmHouseholdPath } from '../../constants/routes'
 import RelationshipPhotoViewer from '../components/RelationshipPhotoViewer'
@@ -95,6 +97,7 @@ export default function IntakeDetailPanel({
   onRequestCreateOpportunity,
 }: IntakeDetailPanelProps) {
   const isDi = isDigitalIdentityLead(item)
+  const isQuote = isQuoteLead(item.leadType)
   const digitalIdentity = item.digitalIdentity
   const productLabel = intakeProductLabel(item)
   const showDuplicate =
@@ -449,7 +452,8 @@ export default function IntakeDetailPanel({
           </div>
         </section>
 
-        {!isDi ? (
+        {isQuote && item.insuranceQuote ? <InsuranceQuoteDetail quote={item.insuranceQuote} /> : null}
+        {!isDi && !isQuote ? (
           <section className="crm-intake-detail-section" aria-labelledby="crm-intake-diagnostic-heading">
             <h3 id="crm-intake-diagnostic-heading">{productLabel}</h3>
             <p className="crm-muted">
@@ -470,7 +474,7 @@ export default function IntakeDetailPanel({
           <ul className="crm-intake-consent-list">
             {!isDi ? (
               <ConsentRow
-                label="Assessment storage acknowledgment"
+                label={isQuote ? "Quote storage acknowledgment" : "Assessment storage acknowledgment"}
                 allowed={item.consent.assessmentStorageAcknowledged}
               />
             ) : null}

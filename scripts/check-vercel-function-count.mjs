@@ -11,8 +11,8 @@ import { fileURLToPath } from 'node:url'
 
 const ROOT = process.cwd()
 const HOBBY_LIMIT = 12
-/** After relocating api tests: 10 production handlers expected. */
-export const EXPECTED_MAX_SERVERLESS_FUNCTIONS = 10
+/** After relocating api tests: 11 production handlers expected (includes insurance intake). */
+export const EXPECTED_MAX_SERVERLESS_FUNCTIONS = 11
 export const HOBBY_SERVERLESS_FUNCTION_LIMIT = HOBBY_LIMIT
 
 function walk(dir) {
