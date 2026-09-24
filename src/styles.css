@@ -14283,3 +14283,7 @@ button.public-card-diagnostic:disabled {
     grid-template-columns: 1fr;
   }
 }
+
+.crm-insurance-quote-request { padding: 16px 0; border-top: 1px solid var(--crm-border, #dce2e8); }
+.crm-insurance-quote-request summary { cursor: pointer; font-weight: 600; padding: 8px 0; }
+.crm-insurance-quote-request .crm-intake-dl dd { overflow-wrap: anywhere; white-space: pre-wrap; }

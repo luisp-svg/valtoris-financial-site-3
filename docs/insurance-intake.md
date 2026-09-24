@@ -53,3 +53,7 @@ Automatic SMS/email is not enabled in this phase. Approved activation must separ
 ### Pre-release QA (September 24, 2026)
 
 Full suite: 2,989 passed, 292 skipped, zero failures (364 passing files, 29 skipped). Remote read-only tests used a 60-second timeout to accommodate management-API latency. Typecheck, lint, build, function budget, ESM imports, browser Activity guard and diff checks passed. All 11 packaged Node functions imported successfully. Transactional CRM-development verification passed and rolled back; migration 056 was subsequently applied to CRM development through the migration runner.
+
+## Household profile quote history
+
+The household Overview includes Insurance quote requests. Each dated request opens the shared Intake answer viewer with its sections expanded. Existing stored submissions are available without resubmitting. History pages include 20 requests, newest first, with older/newer navigation. The browser reads only the selected household's non-archived insurance leads through the existing authenticated Supabase client and leads RLS. Load errors offer Retry and are not shown as empty history. No migration or data rewrite is needed.

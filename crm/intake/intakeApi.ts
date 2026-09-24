@@ -1,5 +1,5 @@
-import { isQuoteKind, isQuoteLead, QUOTE_LEAD_TYPES } from '../../modules/insuranceQuote/catalog'
-import type { QuoteAnswers } from '../../modules/insuranceQuote/catalog'
+import { QUOTE_LEAD_TYPES } from '../../modules/insuranceQuote/catalog'
+import { insuranceQuoteSnapshot } from './insuranceQuoteSnapshot'
 import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js'
 import { DIGITAL_IDENTITY_LEAD_TYPE } from '../../modules/digital-identity'
 import { BULK_LEAD_IMPORT_LEAD_TYPE } from '../../modules/bulkLeadImport'
@@ -480,11 +480,7 @@ export async function fetchIntakeQueue(
       consent,
       household,
       assignedAdvisor,
-      insuranceQuote: (() => {
-        const raw = row.raw_payload as Record<string, unknown> | null
-        if (!isQuoteLead(leadType) || !raw || !isQuoteKind(raw.quoteKind) || !raw.quoteAnswers || typeof raw.quoteAnswers !== 'object' || Array.isArray(raw.quoteAnswers)) return null
-        return { kind: raw.quoteKind, answers: raw.quoteAnswers as QuoteAnswers, preferredContact: typeof raw.preferredContact === 'string' ? raw.preferredContact : null }
-      })(),
+      insuranceQuote: insuranceQuoteSnapshot(leadType, row.raw_payload),
       diagnostic: buildDiagnosticFromAssessmentRow(
         assessment,
         Number.isFinite(leadScore as number) ? (leadScore as number) : null,
