@@ -1,3 +1,4 @@
+import { syncQuoteDelivery } from '../../agentcrm/insurance/worker.js'
 import { createHash } from 'node:crypto'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createSupabaseAdminClient } from '../../../lib/supabase/admin.js'
@@ -43,6 +44,7 @@ export async function ingestQuote(body: unknown, deps: { admin?: SupabaseClient;
       if (error?.message?.includes('retry_match')) continue
       if (error?.message?.includes('idempotency_conflict')) return { status: 409, body: { ok: false, error: 'A different version of this request was already saved. Please contact Valtoris to update it.' } }
       if (error || !data || typeof data.lead_id !== 'string' || typeof data.household_id !== 'string') break
+      try { await syncQuoteDelivery(data.lead_id, { admin }) } catch { /* Saved quote remains queued; external failures never lose intake. */ }
       // Do not expose contact matching, database IDs, or underwriting data publicly.
       return { status: 200, body: { ok: true } }
     }

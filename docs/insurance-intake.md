@@ -57,3 +57,15 @@ Full suite: 2,989 passed, 292 skipped, zero failures (364 passing files, 29 skip
 ## Household profile quote history
 
 The household Overview includes Insurance quote requests. Each dated request opens the shared Intake answer viewer with its sections expanded. Existing stored submissions are available without resubmitting. History pages include 20 requests, newest first, with older/newer navigation. The browser reads only the selected household's non-archived insurance leads through the existing authenticated Supabase client and leads RLS. Load errors offer Retry and are not shown as empty history. No migration or data rewrite is needed.
+
+## Quote delivery (migration 057; activation gated)
+
+Each new quote is atomically enqueued by the leads insert trigger. Existing active quotes are backfilled. The service-only queue records contact/opportunity IDs, attempts, fenced leases and outcome markers. The existing member/contact map is reused. After persistence, intake attempts delivery immediately; the protected GET retry handler processes up to five due requests per run. The Hobby-compatible Vercel fallback cron runs daily at 08:00 UTC, so busy-worker deferrals or failed attempts can wait until that run. This is not a five-minute delivery SLA; higher-frequency scheduling is a separate operational change.
+
+Activation requires AGENTCRM_INSURANCE_SYNC_ENABLED=true, AGENTCRM_INSURANCE_TRIGGERS_VERIFIED=true, the verified Valtoris location, existing AgentCRM server credentials, an approved Supabase host, and CRON_SECRET for scheduled retries. Missing gates mean no external calls. Never set trigger verification true without checking actual workflow behavior.
+
+Only first/last name, email, phone and source are written to contacts. No tags, custom fields, workflow enrollment or messaging calls are made. Existing verified contacts are updated only after independently checking email and phone for conflicts; unlinked contacts require full-name agreement. One open P&C opportunity is reused without resetting its stage. Multiple opportunities or conflicting identity are held. A create whose response is lost is reconciled by lookup; if not found it is held instead of blindly creating again. Later deliveries for the same household wait behind an unresolved create.
+
+Queue status is authoritative; original_source_metadata.agentcrm_handoff is immutable historical intake attribution, not live delivery status. Owner/support review of held rows uses the server-side queue. Resolve the external ambiguity first; requeue only after verifying contact and opportunity IDs. Do not clear create-started markers to force a retry.
+
+Verification: synthetic transport tests cover all three kinds, repeats, identity updates, stage preservation, conflicts, lease loss and uncertain outcomes. scripts/sql/insurance-quote/verify-delivery.sql checks transactional enqueue, single-worker claims, fencing and completed replay. These tests do not substitute for the gated live AgentCRM acceptance test.

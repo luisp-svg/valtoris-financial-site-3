@@ -105,4 +105,5 @@ export const EXPECTED_NUMBERED_MIGRATIONS = [
   '054_home_buyer_report_card_ingest.sql',
   '055_integration_contact_links.sql',
   '056_insurance_quote_intake.sql',
+  '057_insurance_quote_delivery.sql',
 ] as const

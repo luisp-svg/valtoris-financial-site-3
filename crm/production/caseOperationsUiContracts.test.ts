@@ -18,7 +18,7 @@ const editPage = readFileSync(join(here, '../../pages/crm/CrmProductionEditPage.
 describe('Phase 2 Case Operations contracts', () => {
   it('does not add a Case Operations migration; 045 is policy lifecycle only', () => {
     const files = readdirSync(migrationsDir).filter((name) => name.endsWith('.sql')).sort()
-    expect(files).toHaveLength(56)
+    expect(files).toHaveLength(57)
     expect(files.filter((name) => name.startsWith('045_'))).toEqual([
       '045_policy_post_placement_lifecycle.sql',
     ])

@@ -74,7 +74,7 @@ export async function lookupAgentCrmIdentity(
   })
 }
 
-function classifyDuplicateContacts(input: {
+export function classifyDuplicateContacts(input: {
   candidate: AgentCrmIdentityCandidate
   normalizedEmail: string
   normalizedPhone: string

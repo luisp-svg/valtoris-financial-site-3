@@ -50,7 +50,7 @@ describe('migration 055 integration contact links', () => {
     expect(MIGRATION_055_TABLE).toBe('integration_contact_links')
     const files = numberedMigrations()
     expect(files).toEqual([...EXPECTED_NUMBERED_MIGRATIONS])
-    expect(files).toHaveLength(56)
+    expect(files).toHaveLength(57)
     expect(files[0]).toBe('001_extensions_and_enums.sql')
     expect(files[44]).toBe(MIGRATION_045_FILENAME)
     expect(files[45]).toBe(MIGRATION_046_FILENAME)
@@ -66,6 +66,7 @@ describe('migration 055 integration contact links', () => {
     expect(files.filter((f) => f.startsWith('054_'))).toEqual([MIGRATION_054_FILENAME])
     expect(files.filter((f) => f.startsWith('055_'))).toEqual([MIGRATION_055_FILENAME])
     expect(files.filter((f) => f.startsWith('056_'))).toEqual(['056_insurance_quote_intake.sql'])
+    expect(files.filter((f) => f.startsWith('057_'))).toEqual(['057_insurance_quote_delivery.sql'])
   })
 
   it('defines only the durable identity columns, both unique keys, and a member foreign key', () => {

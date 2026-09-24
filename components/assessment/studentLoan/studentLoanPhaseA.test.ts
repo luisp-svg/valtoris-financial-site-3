@@ -187,7 +187,7 @@ describe('Student Loan Phase A foundation', () => {
 
   it('leaves 047–049 byte-identical and does not add Migration 051', () => {
     const files = readdirSync(MIGRATIONS_DIR).filter((name) => name.endsWith('.sql')).sort()
-    expect(files).toHaveLength(56)
+    expect(files).toHaveLength(57)
     expect(files[46]).toBe('047_credit_repair_student_loan_sales_catalog.sql')
     expect(files[47]).toBe('048_student_loan_report_card_ingest.sql')
     expect(files[48]).toBe('049_specialize_public_report_card_follow_up_copy.sql')

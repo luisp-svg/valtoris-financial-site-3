@@ -42,7 +42,7 @@ describe('migration 049 public report-card follow-up copy specialization', () =>
     expect(MIGRATION_049_FILENAME).toBe('049_specialize_public_report_card_follow_up_copy.sql')
     const files = numberedMigrations()
     expect(files).toEqual([...EXPECTED_NUMBERED_MIGRATIONS])
-    expect(files).toHaveLength(56)
+    expect(files).toHaveLength(57)
     expect(files[0]).toBe('001_extensions_and_enums.sql')
     expect(files[44]).toBe(MIGRATION_045_FILENAME)
     expect(files[45]).toBe(MIGRATION_046_FILENAME)
@@ -58,6 +58,7 @@ describe('migration 049 public report-card follow-up copy specialization', () =>
     expect(files.filter((f) => f.startsWith('054_'))).toEqual(['054_home_buyer_report_card_ingest.sql'])
     expect(files.filter((f) => f.startsWith('055_'))).toEqual(['055_integration_contact_links.sql'])
     expect(files.filter((f) => f.startsWith('056_'))).toEqual(['056_insurance_quote_intake.sql'])
+    expect(files.filter((f) => f.startsWith('057_'))).toEqual(['057_insurance_quote_delivery.sql'])
   })
 
   it('replaces the existing follow-up function and does not add a new RPC', () => {

@@ -58,7 +58,7 @@ describe('migration 054 home buyer report card ingest enablement', () => {
     expect(MIGRATION_054_FILENAME).toBe('054_home_buyer_report_card_ingest.sql')
     const files = numberedMigrations()
     expect(files).toEqual([...EXPECTED_NUMBERED_MIGRATIONS])
-    expect(files).toHaveLength(56)
+    expect(files).toHaveLength(57)
     expect(files[0]).toBe('001_extensions_and_enums.sql')
     expect(files[44]).toBe(MIGRATION_045_FILENAME)
     expect(files[45]).toBe(MIGRATION_046_FILENAME)
@@ -74,6 +74,7 @@ describe('migration 054 home buyer report card ingest enablement', () => {
     expect(files.filter((f) => f.startsWith('054_'))).toEqual([MIGRATION_054_FILENAME])
     expect(files.filter((f) => f.startsWith('055_'))).toEqual(['055_integration_contact_links.sql'])
     expect(files.filter((f) => f.startsWith('056_'))).toEqual(['056_insurance_quote_intake.sql'])
+    expect(files.filter((f) => f.startsWith('057_'))).toEqual(['057_insurance_quote_delivery.sql'])
   })
 
   it('adds home_buyer to assessment_type and maps Home Buyer Report Card lead_type / lead_source', () => {
