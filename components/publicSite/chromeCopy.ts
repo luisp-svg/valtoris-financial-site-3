@@ -6,6 +6,7 @@ export type ChromeCopyKey =
   | 'menuOpen'
   | 'menuClose'
   | 'navHome'
+  | 'navGetQuote'
   | 'navServices'
   | 'navTools'
   | 'navAbout'
@@ -54,6 +55,7 @@ export const chromeCopy: Record<PublicLocale, ChromeCopyCatalog> = {
     menuOpen: 'Open menu',
     menuClose: 'Close menu',
     navHome: 'Home',
+    navGetQuote: 'Get a Quote',
     navServices: 'Services',
     navTools: 'Tools',
     navAbout: 'About',
@@ -100,6 +102,7 @@ export const chromeCopy: Record<PublicLocale, ChromeCopyCatalog> = {
     menuOpen: 'Abrir menú',
     menuClose: 'Cerrar menú',
     navHome: 'Inicio',
+    navGetQuote: 'Cotizar',
     navServices: 'Servicios',
     navTools: 'Herramientas',
     navAbout: 'Nosotros',

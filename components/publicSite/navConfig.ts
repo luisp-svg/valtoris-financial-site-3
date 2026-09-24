@@ -57,6 +57,8 @@ export const TOOLS_NAV_LINKS: readonly PublicNavLink[] = [
   { id: 'credit', to: ROUTES.creditReportCard, labelKey: 'toolsCredit' },
 ]
 
+export const QUOTE_NAV: PublicNavLink = { id: 'quotes', to: ROUTES.getQuote, labelKey: 'navGetQuote' }
+
 export const HOME_NAV: PublicNavLink = {
   id: 'home',
   to: ROUTES.home,
@@ -107,7 +109,7 @@ export const BUSINESS_FOOTER_LINKS: readonly PublicNavLink[] = [
 ]
 
 /** Top-level visible peers. About and Contact are omitted until they have unique destinations. */
-export const VISIBLE_TOP_LEVEL_NAV_IDS = ['home', 'services', 'tools'] as const
+export const VISIBLE_TOP_LEVEL_NAV_IDS = ['home', 'services', 'tools', 'quotes'] as const
 
 export const FUTURE_UNBUILT_PUBLIC_PATHS = [
   '/services',

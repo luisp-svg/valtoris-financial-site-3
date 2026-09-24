@@ -9,6 +9,7 @@ import {
   BOOK_NAV,
   COMPANY_FOOTER_LINKS,
   HOME_NAV,
+  QUOTE_NAV,
   SERVICES_NAV_GROUPS,
   TOOLS_NAV_LINKS,
   type PublicNavGroup,
@@ -177,6 +178,9 @@ export default function SiteMobileNav({ open, onClose, locale, copy }: SiteMobil
             copy={copy}
             onNavigate={onClose}
           />
+          <PublicLink className="site-mobile-link site-mobile-top-link" to={QUOTE_NAV.to} onClick={onClose}>
+            {copy.navGetQuote}
+          </PublicLink>
         </nav>
 
         <div className="site-mobile-utilities">

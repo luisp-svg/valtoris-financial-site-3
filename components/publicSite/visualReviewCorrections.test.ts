@@ -89,7 +89,7 @@ function assertNoFixedQuestionCount(text: string) {
 
 describe('visual review corrections', () => {
   it('adds Home to desktop and mobile primary navigation without restoring Contact', () => {
-    expect(VISIBLE_TOP_LEVEL_NAV_IDS).toEqual(['home', 'services', 'tools'])
+    expect(VISIBLE_TOP_LEVEL_NAV_IDS).toEqual(['home', 'services', 'tools', 'quotes'])
     expect(HOME_NAV.to).toBe(ROUTES.home)
     expect(HOME_NAV.labelKey).toBe('navHome')
     expect(CONTACT_NAV.to).toBe(ROUTES.schedule)

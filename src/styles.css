@@ -436,7 +436,7 @@ main { flex: 1 0 auto; }
   justify-content: flex-start;
 }
 
-@media (max-width: 1023px) {
+@media (max-width: 1199px) {
   .site-header-desktop {
     display: none;
   }

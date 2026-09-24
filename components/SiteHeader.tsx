@@ -13,6 +13,7 @@ import {
   ABOUT_NAV_LINKS,
   BOOK_NAV,
   HOME_NAV,
+  QUOTE_NAV,
   SERVICES_NAV_GROUPS,
   TOOLS_NAV_LINKS,
 } from './publicSite/navConfig'
@@ -71,6 +72,9 @@ export default function SiteHeader() {
               open={openMenu === 'tools'}
               onOpenChange={setToolsOpen}
             />
+            <PublicLink className="site-nav-text-link" to={QUOTE_NAV.to}>
+              {copy.navGetQuote}
+            </PublicLink>
             {ABOUT_NAV_LINKS.length > 0 ? (
               <SiteNavDropdown
                 label={copy.navAbout}

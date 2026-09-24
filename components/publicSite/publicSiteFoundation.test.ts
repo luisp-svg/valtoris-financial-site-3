@@ -90,7 +90,7 @@ const EXISTING_PUBLIC_PATHS = new Set<string>([
 
 describe('public site foundation chrome', () => {
   it('does not keep six Report Cards as top-level nav peers', () => {
-    expect(VISIBLE_TOP_LEVEL_NAV_IDS).toEqual(['home', 'services', 'tools'])
+    expect(VISIBLE_TOP_LEVEL_NAV_IDS).toEqual(['home', 'services', 'tools', 'quotes'])
     expect(ABOUT_NAV_LINKS).toEqual([])
     const header = source('components/SiteHeader.tsx')
     expect(header).toContain('SERVICES_NAV_GROUPS')
@@ -170,7 +170,7 @@ describe('public site foundation chrome', () => {
     expect(mobile).toContain('site-mobile-accordion')
     expect(styles).toContain('.site-menu-toggle')
     expect(styles).toContain('.site-nav-menu[hidden]')
-    expect(styles).toContain('@media (max-width: 1023px)')
+    expect(styles).toContain('@media (max-width: 1199px)')
     expect(styles).toContain('.site-header-desktop')
     expect(styles).toContain('display: none')
     expect(styles).toContain('width: min(calc(100% - 56px), 400px)')
