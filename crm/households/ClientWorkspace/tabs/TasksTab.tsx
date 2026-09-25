@@ -1,10 +1,11 @@
+import { Link } from 'react-router-dom'
 import EmptyState from '../../../components/ui/EmptyState'
 import Panel from '../../../components/ui/Panel'
 import SectionHeader from '../../../components/ui/SectionHeader'
 import type { ClientWorkspaceTabProps } from '../types'
 import { formatWorkspaceDate } from '../format'
 
-export default function TasksTab({ workspace }: ClientWorkspaceTabProps) {
+export default function TasksTab({ workspace, householdId }: ClientWorkspaceTabProps) {
   const tasks = workspace.openTasks
 
   return (
@@ -23,13 +24,14 @@ export default function TasksTab({ workspace }: ClientWorkspaceTabProps) {
         {tasks.length === 0 ? (
           <EmptyState
             title="No tasks"
-            description="Open tasks for this household will appear here. Task creation from the workspace lands in a later sprint."
+            description="Open tasks for this household will appear here."
           />
         ) : (
           <ul className="crm-household-overview-list">
             {tasks.map((task) => (
               <li key={task.id}>
                 <p className="crm-task-title">{task.title}</p>
+                <Link to={`/crm/tasks?household=${householdId}&task=${task.id}`}>Open task actions</Link>
                 <p className="crm-task-meta">
                   {task.status.replace(/_/g, ' ')}
                   {' · '}

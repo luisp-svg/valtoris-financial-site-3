@@ -1,0 +1,67 @@
+-- Synthetic rollback-only lifecycle/security verification; no client task mutations.
+BEGIN;
+CREATE FUNCTION pg_temp.reject(q text, expected text) RETURNS void LANGUAGE plpgsql AS $$
+BEGIN BEGIN EXECUTE q; EXCEPTION WHEN OTHERS THEN IF SQLERRM LIKE '%'||expected||'%' THEN RETURN; END IF; RAISE; END; RAISE EXCEPTION 'Expected rejection: %',expected; END $$;
+CREATE FUNCTION pg_temp.fail_task_audit() RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN IF current_setting('qa.fail_task_audit',true)='on' AND NEW.title='Task rescheduled' THEN RAISE EXCEPTION 'QA:audit_failure'; END IF; RETURN NEW; END $$;
+CREATE TRIGGER qa_fail_task_audit BEFORE INSERT ON public.activities FOR EACH ROW EXECUTE FUNCTION pg_temp.fail_task_audit();
+DO $$
+DECLARE au uuid:=extensions.gen_random_uuid(); ai uuid:=extensions.gen_random_uuid(); h uuid:=extensions.gen_random_uuid(); otherh uuid:=extensions.gen_random_uuid(); t uuid:=extensions.gen_random_uuid(); dup uuid:=extensions.gen_random_uuid(); owner_id uuid; pipeline uuid; stage uuid; rev timestamptz; oldrev timestamptz; r jsonb; n integer;
+BEGIN
+ SELECT id INTO owner_id FROM public.profiles WHERE role='owner' AND is_active AND deleted_at IS NULL LIMIT 1;
+ IF owner_id IS NULL THEN RAISE EXCEPTION 'Missing owner context'; END IF;
+ SELECT p.id,s.id INTO pipeline,stage FROM public.pipelines p JOIN public.pipeline_stages s ON s.pipeline_id=p.id WHERE p.pipeline_type='relationship' ORDER BY s.sort_order LIMIT 1;
+ INSERT INTO auth.users(id,email,raw_user_meta_data) VALUES(au,'task-qa-'||au||'@example.invalid','{"full_name":"Synthetic task QA"}');
+ INSERT INTO public.profiles(id,email,full_name,role) VALUES(au,'task-qa-'||au||'@example.invalid','Synthetic task QA','advisor') ON CONFLICT(id) DO NOTHING;
+ INSERT INTO public.advisor_profiles(id,user_id,display_name,slug) VALUES(ai,au,'Synthetic task QA','task-qa-'||ai);
+ PERFORM set_config('crm.rpc_context','quick_add_contact',true);
+ INSERT INTO public.households(id,display_name,relationship_pipeline_id,relationship_stage_id,assigned_advisor_id,lead_source) VALUES(h,'Synthetic task QA',pipeline,stage,ai,'manual_contact'),(otherh,'Synthetic other QA',pipeline,stage,NULL,'manual_contact');
+ PERFORM set_config('crm.rpc_context','',true);
+ INSERT INTO public.tasks(id,household_id,title,source_type) VALUES(t,h,'Synthetic lifecycle QA','manual');
+ INSERT INTO public.tasks(id,household_id,title,source_type,workflow_type) VALUES(dup,otherh,'Synthetic duplicate QA','system','resolve_possible_duplicate');
+ SELECT updated_at INTO rev FROM public.tasks WHERE id=t; oldrev:=rev;
+ IF has_function_privilege('anon','public.act_on_crm_task(uuid,timestamptz,text,date,text)','EXECUTE') THEN RAISE EXCEPTION 'Anonymous grant'; END IF;
+ PERFORM set_config('request.jwt.claim.sub',au::text,true);
+ PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',au,'role','authenticated')::text,true);
+ SET LOCAL ROLE authenticated;
+ PERFORM pg_temp.reject(format('UPDATE public.tasks SET status=''done'' WHERE id=%L',t),'TASK:use_action');
+ PERFORM pg_temp.reject(format('UPDATE public.tasks SET due_date=current_date WHERE id=%L',t),'TASK:use_action');
+ PERFORM pg_temp.reject(format('SELECT public.act_on_crm_task(%L,%L,''complete'')',dup,rev),'TASK:unavailable');
+ PERFORM pg_temp.reject(format('SELECT public.act_on_crm_task(%L,NULL,''complete'')',t),'TASK:conflict');
+ PERFORM pg_temp.reject(format('SELECT public.act_on_crm_task(%L,%L,''reschedule'',current_date,'''')',t,rev),'TASK:invalid_schedule');
+ PERFORM set_config('qa.fail_task_audit','on',true);
+ PERFORM pg_temp.reject(format('SELECT public.act_on_crm_task(%L,%L,''reschedule'',current_date+7,''Audit failure test'')',t,rev),'QA:audit_failure');
+ IF EXISTS(SELECT 1 FROM public.tasks WHERE id=t AND (due_date IS NOT NULL OR updated_at<>rev)) THEN RAISE EXCEPTION 'Audit failure did not roll back mutation'; END IF;
+ PERFORM set_config('qa.fail_task_audit','off',true);
+ r:=public.act_on_crm_task(t,rev,'reschedule',current_date+7,'Synthetic scheduling reason');
+ IF r->>'changed'<>'true' THEN RAISE EXCEPTION 'Reschedule failed'; END IF;
+ SELECT updated_at INTO rev FROM public.tasks WHERE id=t;
+ IF rev<=oldrev THEN RAISE EXCEPTION 'Revision did not advance'; END IF;
+ PERFORM pg_temp.reject(format('SELECT public.act_on_crm_task(%L,%L,''reschedule'',current_date+8,''Synthetic retry'')',t,oldrev),'TASK:conflict');
+ r:=public.act_on_crm_task(t,oldrev,'reschedule',current_date+7,'Synthetic retry');
+ IF r->>'changed'<>'false' THEN RAISE EXCEPTION 'Reschedule retry mutated'; END IF;
+ r:=public.act_on_crm_task(t,rev,'complete');
+ IF r->>'status'<>'done' THEN RAISE EXCEPTION 'Completion failed'; END IF;
+ r:=public.act_on_crm_task(t,rev,'complete');
+ IF r->>'changed'<>'false' THEN RAISE EXCEPTION 'Completion retry mutated'; END IF;
+ PERFORM pg_temp.reject(format('SELECT public.act_on_crm_task(%L,%L,''reschedule'',current_date+8,''Closed task'')',t,rev),'TASK:closed');
+ RESET ROLE;
+ SELECT count(*) INTO n FROM public.activities WHERE metadata->>'task_id'=t::text;
+ IF n<>2 OR EXISTS(SELECT 1 FROM public.activities WHERE metadata->>'task_id'=t::text AND actor_user_id IS DISTINCT FROM au) THEN RAISE EXCEPTION 'Audit count/actor mismatch'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM public.tasks WHERE id=t AND status='done' AND completed_at IS NOT NULL AND household_id=h AND source_type='manual') THEN RAISE EXCEPTION 'Task shape changed'; END IF;
+ PERFORM set_config('request.jwt.claim.sub',owner_id::text,true);
+ PERFORM set_config('request.jwt.claims',jsonb_build_object('sub',owner_id,'role','authenticated')::text,true);
+ SET LOCAL ROLE authenticated;
+ PERFORM pg_temp.reject(format('SELECT public.act_on_crm_task(%L,%L,''complete'')',dup,rev),'TASK:workflow_required');
+ RESET ROLE;
+ UPDATE public.tasks SET workflow_type='review_initial_diagnostic' WHERE id=dup RETURNING updated_at INTO rev;
+ SET LOCAL ROLE authenticated;
+ r:=public.act_on_crm_task(dup,rev,'complete');
+ RESET ROLE;
+ PERFORM public.archive_crm_record('household',h);
+ SET LOCAL ROLE authenticated;
+ PERFORM pg_temp.reject(format('SELECT public.act_on_crm_task(%L,%L,''complete'')',t,rev),'TASK:unavailable');
+ RESET ROLE;
+END $$;
+ROLLBACK;
+SELECT 'PASS: synthetic lifecycle, permissions, retries, revisions, workflow restrictions, and audit checks' AS result;

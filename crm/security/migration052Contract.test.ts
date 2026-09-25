@@ -50,7 +50,7 @@ describe('migration 052 Intake archive Activity ordering fix', () => {
     expect(MIGRATION_052_FILENAME).toBe('052_fix_intake_archive_activity_order.sql')
     const files = numberedMigrations()
     expect(files).toEqual([...EXPECTED_NUMBERED_MIGRATIONS])
-    expect(files).toHaveLength(70)
+    expect(files).toHaveLength(71)
     expect(files[0]).toBe('001_extensions_and_enums.sql')
     expect(files[44]).toBe(MIGRATION_045_FILENAME)
     expect(files[45]).toBe(MIGRATION_046_FILENAME)

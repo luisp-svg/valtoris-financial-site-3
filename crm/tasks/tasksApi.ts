@@ -27,6 +27,7 @@ const TASK_SELECT = `
   workflow_type,
   automation_idempotency_key,
   metadata,
+  updated_at,
   created_at,
   completed_at,
   deleted_at,
@@ -73,16 +74,17 @@ function normalizeTask(row: Record<string, unknown>): CrmTask {
 
 export async function fetchVisibleTasks(
   supabase: SupabaseClient,
-  options?: { dueOn?: string; assignedUserId?: string; limit?: number },
+  options?: { dueOn?: string; assignedUserId?: string; limit?: number; completed?: boolean; householdId?: string },
 ): Promise<CrmTask[]> {
   let query = supabase
     .from('tasks')
     .select(TASK_SELECT)
     .is('deleted_at', null)
-    .in('status', ['open', 'in_progress'])
+    .in('status', options?.completed ? ['done'] : ['open', 'in_progress'])
     .order('due_date', { ascending: true, nullsFirst: false })
     .order('created_at', { ascending: false })
 
+  if (options?.householdId) query = query.eq('household_id', options.householdId)
   if (options?.dueOn) {
     query = query.eq('due_date', options.dueOn)
   }
