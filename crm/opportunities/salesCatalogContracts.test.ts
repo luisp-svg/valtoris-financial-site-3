@@ -40,7 +40,7 @@ describe('credit repair / student loan sales catalog contracts', () => {
     const files = readdirSync(migrationsDir)
       .filter((name) => /^\d{3}_.+\.sql$/.test(name))
       .sort()
-    expect(files).toHaveLength(57)
+    expect(files).toHaveLength(61)
     expect(files[46]).toBe(MIGRATION_047_FILENAME)
     expect(files[47]).toBe('048_student_loan_report_card_ingest.sql')
     expect(files.filter((name) => name.startsWith('048_'))).toEqual([

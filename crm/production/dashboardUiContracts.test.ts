@@ -72,6 +72,10 @@ const EXPECTED_MIGRATIONS = [
   '055_integration_contact_links.sql',
   '056_insurance_quote_intake.sql',
   '057_insurance_quote_delivery.sql',
+  '058_student_loan_intake_type.sql',
+  '059_student_loan_intake_contract.sql',
+  '060_student_loan_intake_persistence.sql',
+  '061_student_loan_intake_revision.sql',
 ]
 
 describe('Phase A production dashboard contracts', () => {

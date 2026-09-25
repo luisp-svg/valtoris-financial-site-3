@@ -1,0 +1,17 @@
+.crm-service-intake { max-width: 1120px; }
+.crm-service-intake-fields { border: 0; padding: 0; margin: 1.5rem 0; min-width: 0; }
+.crm-service-intake-fields > legend { font-size: 1.25rem; font-weight: 650; }
+.crm-service-intake-fields > fieldset { padding: 1rem; margin: 1rem 0; border: 1px solid #cbd5e1; border-radius: .5rem; }
+.crm-service-intake-choice { display: inline-flex; gap: .5rem; align-items: center; margin: .5rem 1rem .5rem 0; }
+.crm-service-intake-row { border: 1px solid #cbd5e1; border-radius: .5rem; margin: 1rem 0; padding: 1rem; min-width: 0; }
+.crm-service-intake-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+.crm-service-intake .assessment-input { width: 100%; box-sizing: border-box; }
+.crm-service-intake-actions { position: sticky; bottom: 0; display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; padding: 1rem; border: 1px solid #cbd5e1; background: #fff; box-shadow: 0 -4px 12px #0f172a0a; z-index: 2; }
+.crm-service-intake-actions > div { width: 100%; }
+.crm-service-intake-history { display: flex; flex-wrap: wrap; gap: .75rem; }
+.crm-service-intake-history [aria-pressed="true"] { outline: 2px solid #315b73; outline-offset: 2px; }
+.crm-service-intake details dl > div { margin: 1rem 0; }
+.crm-service-intake details dt { font-weight: 650; }
+.crm-service-intake details dd { margin: .25rem 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.crm-service-intake summary { cursor: pointer; font-weight: 650; }
+@media (max-width: 650px) { .crm-service-intake-grid { grid-template-columns: 1fr; } .crm-service-intake-row { padding: .75rem; } }

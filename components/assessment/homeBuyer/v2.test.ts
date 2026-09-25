@@ -199,7 +199,7 @@ describe('V2 persistence, presentation, and privacy', () => {
     expect(extractHomeBuyerSubmittedAnswers(payload.answers).find(f => f.id === 'agent_email')?.value).toBe('agent@example.com')
     const detail = mapPublicFamilyDiagnosticDetail({ id: 'assessment-v2', assessment_type: 'home_buyer', capture_channel: 'public_self_report', status: 'completed', completed_at: '2026-09-23T12:00:00Z', answers: payload.answers, derived_metrics: payload.derived_metrics }, 'hh-v2', null)
     expect(detail?.affordability?.status).toBe('available')
-    const html = renderToStaticMarkup(createElement(PublicFamilyDiagnosticDetailView, { detail: detail!, variant: 'embedded' }))
+    const html = renderToStaticMarkup(createElement(MemoryRouter, null, createElement(PublicFamilyDiagnosticDetailView, { detail: detail!, variant: 'embedded' })))
     expect(html).toContain('Your estimated home-buying range')
     expect(html).toContain('Submitted questions and answers')
     expect(html).toContain('agent@example.com')

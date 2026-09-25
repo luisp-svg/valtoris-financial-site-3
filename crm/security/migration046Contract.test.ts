@@ -26,7 +26,7 @@ describe('migration 046 opportunity case conversion contract', () => {
     expect(MIGRATION_046_RPC).toBe('convert_opportunity_to_policy_application')
     const files = numberedMigrations()
     expect(files).toEqual([...EXPECTED_NUMBERED_MIGRATIONS])
-    expect(files).toHaveLength(57)
+    expect(files).toHaveLength(61)
     expect(files[0]).toBe('001_extensions_and_enums.sql')
     expect(files[44]).toBe(MIGRATION_045_FILENAME)
     expect(files[45]).toBe(MIGRATION_046_FILENAME)
