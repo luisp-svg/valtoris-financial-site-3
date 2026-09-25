@@ -1,3 +1,4 @@
+import { extractReportCardSubmittedAnswers } from './submittedReportCardAnswers'
 import { parseConsentSnapshot } from '../../intake/intakeFormatters'
 import type { IntakeConsentSummary } from '../../intake/types'
 import {
@@ -423,7 +424,7 @@ export function mapPublicFamilyDiagnosticDetail(
         ? extractStudentLoanSubmittedAnswers(row.answers)
         : row.assessment_type === 'credit'
           ? extractCreditSubmittedAnswers(row.answers)
-          : [],
+          : extractReportCardSubmittedAnswers(String(row.assessment_type), row.answers),
     consent: leadSummary?.consent ?? null,
     lead: leadSummary,
   }

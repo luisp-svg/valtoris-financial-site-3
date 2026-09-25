@@ -40,7 +40,6 @@ export default function PublicFamilyDiagnosticDetailView({
   detail,
   variant = 'page',
 }: Props) {
-  const snapshot = detail.submittedSnapshot
   const consent = detail.consent
   const lead = detail.lead
   const diagnosticPriorities = detail.priorities.filter((item) => item.source === 'diagnostic')
@@ -165,58 +164,18 @@ export default function PublicFamilyDiagnosticDetailView({
       </section>
 
       <section className="crm-panel crm-ifd-detail-section" aria-labelledby="crm-ifd-snapshot-heading">
-        <h2 id="crm-ifd-snapshot-heading">
-          {detail.assessmentType === 'student_loan'
-            ? 'Submitted Student Loan answers'
-            : detail.assessmentType === 'credit'
-              ? 'Submitted Credit Report Card answers'
-              : 'Submitted household snapshot'}
-        </h2>
+        <h2 id="crm-ifd-snapshot-heading">Submitted questions and answers</h2>
         <p className="crm-muted">
-          {detail.assessmentType === 'student_loan'
-            ? 'Diagnostic answers stored on this Student Loan Report Card. Contact details live on the household, member, and lead records.'
-            : detail.assessmentType === 'credit'
-              ? 'Diagnostic answers stored on this Credit Report Card. Contact details live on the household, member, and lead records.'
-              : 'Information submitted at the time of this diagnostic. This is not the household’s current canonical CRM record.'}
+          Responses saved with this report card at submission. These are historical responses,
+          not the household’s current CRM record. Only saved answers are shown.
         </p>
-        {detail.assessmentType === 'student_loan' || detail.assessmentType === 'credit' ? (
-          detail.submittedAnswers.length === 0 ? (
-            <p className="crm-muted">
-              {detail.assessmentType === 'credit'
-                ? 'No Credit diagnostic answers were stored.'
-                : 'No Student Loan diagnostic answers were stored.'}
-            </p>
-          ) : (
-            <dl className="crm-client-workspace-info-list">
-              {detail.submittedAnswers.map((item) => (
-                <SnapshotRow key={item.id} label={item.label} value={item.value} />
-              ))}
-            </dl>
-          )
+        {detail.submittedAnswers.length === 0 ? (
+          <p className="crm-muted">No submitted answers were stored for this report card.</p>
         ) : (
           <dl className="crm-client-workspace-info-list">
-            <SnapshotRow
-              label="Name"
-              value={[snapshot.firstName, snapshot.lastName].filter(Boolean).join(' ') || null}
-            />
-            <SnapshotRow label="Email" value={snapshot.email} />
-            <SnapshotRow label="Phone" value={snapshot.phone} />
-            <SnapshotRow label="Age" value={snapshot.age} />
-            <SnapshotRow label="State" value={snapshot.state} />
-            <SnapshotRow label="Marital status" value={snapshot.maritalStatus} />
-            <SnapshotRow label="Dependents" value={snapshot.numberOfChildren} />
-            <SnapshotRow label="Household income" value={snapshot.householdIncome} />
-            <SnapshotRow label="Monthly housing" value={snapshot.monthlyHousingPayment} />
-            <SnapshotRow label="Total debt" value={snapshot.totalDebt} />
-            <SnapshotRow label="Emergency fund (months)" value={snapshot.emergencyFundMonths} />
-            <SnapshotRow label="Monthly cash flow" value={snapshot.monthlyCashFlow} />
-            <SnapshotRow label="Retirement contribution" value={snapshot.retirementContribution} />
-            <SnapshotRow label="Life insurance" value={snapshot.currentLifeInsurance} />
-            <SnapshotRow label="Disability protection" value={snapshot.hasDisabilityProtection} />
-            <SnapshotRow label="Will" value={snapshot.hasWill} />
-            <SnapshotRow label="Trust" value={snapshot.hasTrust} />
-            <SnapshotRow label="Beneficiaries reviewed" value={snapshot.beneficiariesReviewed} />
-            <SnapshotRow label="Guardian documented" value={snapshot.guardianDocumented} />
+            {detail.submittedAnswers.map((item) => (
+              <SnapshotRow key={item.id} label={item.label} value={item.value} />
+            ))}
           </dl>
         )}
       </section>
