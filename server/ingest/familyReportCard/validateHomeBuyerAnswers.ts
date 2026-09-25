@@ -1,3 +1,5 @@
+import { validateV2Answers } from '../../../components/assessment/homeBuyer/v2Questions.js'
+import { projectV2Diagnostic } from '../../../components/assessment/homeBuyer/v2Projection.js'
 import { isValidEmailFormat, normalizePhone } from '../../../crm/households/normalizeContact.js'
 import {
   getMultiValue,
@@ -95,6 +97,12 @@ function validateDiagnosticObject(
 ): ValidationResult<HomeBuyerDiagnosticAnswers> {
   if (!isPlainObject(value)) {
     return fail('invalid_home_buyer_answers', 'answers.diagnostic must be an object.')
+  }
+  if (Object.prototype.hasOwnProperty.call(value, 'v2')) {
+    if (!exactKeySet(value, [...DIAGNOSTIC_KEYS, 'v2']) || !validateV2Answers(value.v2)) {
+      return fail('invalid_home_buyer_answers', 'Check the Home Buyer V2 fields, amounts, and conditional answers.')
+    }
+    return { ok: true, value: projectV2Diagnostic(value.v2) }
   }
   if (!exactKeySet(value, DIAGNOSTIC_KEYS)) {
     return fail('unknown_home_buyer_field', 'answers.diagnostic has unknown or missing keys.')

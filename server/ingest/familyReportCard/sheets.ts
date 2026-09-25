@@ -239,7 +239,8 @@ export function buildHomeBuyerReportCardSheetsPayload(input: {
     topPriority3: score.priorities[2]?.title ?? '',
     notes: 'Home Buyer Report Card',
     sourcePage: input.sourcePage ?? '',
-    rawAnswers: JSON.stringify(answers),
+    // V2 exact finances and third-party details stay in private assessment JSON.
+    rawAnswers: answers.diagnostic.v2 ? JSON.stringify({ assessmentVersion: 2, creditDataSource: 'public_self_report', homeType: answers.diagnostic.v2.home_type, targetTiming: answers.diagnostic.v2.target_timing }) : JSON.stringify(answers),
     submittedAt: input.submittedAt ?? undefined,
   })
 }

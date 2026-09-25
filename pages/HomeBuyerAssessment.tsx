@@ -1,3 +1,5 @@
+import { HOME_BUYER_V2_QUESTIONS, initialV2Answers, pruneV2Answers } from '../components/assessment/homeBuyer/v2Questions'
+import { projectV2Diagnostic } from '../components/assessment/homeBuyer/v2Projection'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import AssessmentLayout from '../components/assessment/AssessmentLayout'
@@ -34,7 +36,6 @@ import {
 import { homeBuyerCopy } from '../components/assessment/homeBuyer/copy'
 import { canSubmitHomeBuyerToCrm } from '../components/assessment/homeBuyer/ingestBoundary'
 import { buildHomeBuyerResultsSession } from '../components/assessment/homeBuyer/resultsModel'
-import { HOME_BUYER_QUESTIONS } from '../components/assessment/homeBuyer/questions'
 import {
   INITIAL_HOME_BUYER_ANSWERS,
   type HomeBuyerAssessmentAnswers,
@@ -60,7 +61,7 @@ export default function HomeBuyerAssessment() {
   const locale = readSpecializedLocale(location.search)
   useSpecializedDocumentLang(locale)
   const [currentStep, setCurrentStep] = useState(HOME_BUYER_CONTACT_STEP)
-  const [answers, setAnswers] = useState<HomeBuyerAssessmentAnswers>(INITIAL_HOME_BUYER_ANSWERS)
+  const [answers, setAnswers] = useState<HomeBuyerAssessmentAnswers>(() => ({ ...INITIAL_HOME_BUYER_ANSWERS, diagnostic: projectV2Diagnostic(initialV2Answers()) }))
   const [consent, setConsent] = useState<FamilyConsentState>(INITIAL_FAMILY_CONSENT_STATE)
   const [honeypotWebsite, setHoneypotWebsite] = useState('')
   const [showFieldErrors, setShowFieldErrors] = useState(false)
@@ -104,7 +105,7 @@ export default function HomeBuyerAssessment() {
 
   const diagnosticQuestion =
     currentStep >= HOME_BUYER_FIRST_DIAGNOSTIC_STEP && currentStep <= HOME_BUYER_LAST_DIAGNOSTIC_STEP
-      ? HOME_BUYER_QUESTIONS[currentStep - HOME_BUYER_FIRST_DIAGNOSTIC_STEP]
+      ? HOME_BUYER_V2_QUESTIONS[currentStep - HOME_BUYER_FIRST_DIAGNOSTIC_STEP]
       : undefined
 
   const canContinue = useMemo(() => isHomeBuyerStepComplete(currentStep, answers), [currentStep, answers])
@@ -116,12 +117,12 @@ export default function HomeBuyerAssessment() {
       const nextMap = applyFieldChange(
         diagnosticQuestion,
         field,
-        diagnosticToAnswerMap(current.diagnostic),
+        current.diagnostic.v2 ?? diagnosticToAnswerMap(current.diagnostic),
         value,
       )
       return {
         ...current,
-        diagnostic: answerMapToDiagnostic(nextMap, current.diagnostic),
+        diagnostic: current.diagnostic.v2 ? projectV2Diagnostic(pruneV2Answers(nextMap)) : answerMapToDiagnostic(nextMap, current.diagnostic),
       }
     })
   }
@@ -335,7 +336,7 @@ export default function HomeBuyerAssessment() {
       {diagnosticQuestion ? (
         <SpecializedQuestionRenderer
           question={diagnosticQuestion}
-          values={diagnosticToAnswerMap(answers.diagnostic)}
+          values={answers.diagnostic.v2 ?? diagnosticToAnswerMap(answers.diagnostic)}
           t={t}
           showErrors={showFieldErrors}
           onChange={updateDiagnosticField}

@@ -21,6 +21,7 @@ export type SpecializedOption = {
 }
 
 export type SpecializedCondition =
+  | { readonly field: string; readonly includes: string }
   | { readonly field: string; readonly equals: string }
   | { readonly field: string; readonly in: readonly string[] }
   | { readonly field: string; readonly notEquals: string }
@@ -50,6 +51,9 @@ export type SpecializedMultiField = SpecializedFieldBase & {
 export type SpecializedShortTextField = SpecializedFieldBase & {
   readonly input: 'short_text'
   readonly maxLength: number
+  /** Optional strict non-negative decimal input, retained as text on the wire. */
+  readonly format?: 'email' | 'phone'
+  readonly numeric?: { readonly max: number; readonly min?: number }
   readonly placeholderKey?: SpecializedCopyKey
 }
 

@@ -1,3 +1,4 @@
+import AffordabilityPanel from '../../../components/assessment/homeBuyer/AffordabilityPanel'
 import { Link } from 'react-router-dom'
 import {
   crmHouseholdAssessmentsPath,
@@ -65,6 +66,7 @@ export default function PublicFamilyDiagnosticDetailView({
         </header>
       )}
 
+      {detail.affordability ? <AffordabilityPanel result={detail.affordability} /> : null}
       <section className="crm-panel crm-ifd-detail-section" aria-labelledby="crm-ifd-score-heading">
         <h2 id="crm-ifd-score-heading">Result summary</h2>
         <dl className="crm-client-workspace-info-list">

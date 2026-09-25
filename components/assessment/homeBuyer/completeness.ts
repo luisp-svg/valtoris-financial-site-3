@@ -1,3 +1,4 @@
+import { HOME_BUYER_V2_QUESTIONS, validateV2Answers } from './v2Questions.js'
 import { isQuestionComplete } from '../specialized/answers.js'
 import type { SpecializedAnswerMap } from '../specialized/types'
 import {
@@ -105,6 +106,7 @@ export function answerMapToDiagnostic(
 }
 
 export function isHomeBuyerDiagnosticComplete(diagnostic: HomeBuyerDiagnosticAnswers): boolean {
+  if (diagnostic.v2) return validateV2Answers(diagnostic.v2)
   const values = diagnosticToAnswerMap(diagnostic)
   return HOME_BUYER_QUESTIONS.every((question) => isQuestionComplete(question, values))
 }
@@ -119,9 +121,9 @@ export function isHomeBuyerStepComplete(step: number, answers: HomeBuyerAssessme
   if (step < HOME_BUYER_FIRST_DIAGNOSTIC_STEP || step > HOME_BUYER_LAST_DIAGNOSTIC_STEP) {
     return false
   }
-  const question = HOME_BUYER_QUESTIONS[step - HOME_BUYER_FIRST_DIAGNOSTIC_STEP]
+  const question = (answers.diagnostic.v2 ? HOME_BUYER_V2_QUESTIONS : HOME_BUYER_QUESTIONS)[step - HOME_BUYER_FIRST_DIAGNOSTIC_STEP]
   if (!question) return false
-  return isQuestionComplete(question, diagnosticToAnswerMap(answers.diagnostic))
+  return isQuestionComplete(question, answers.diagnostic.v2 ?? diagnosticToAnswerMap(answers.diagnostic))
 }
 
 export function homeBuyerDiagnosticQuestionIds(): readonly string[] {

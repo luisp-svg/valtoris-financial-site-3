@@ -19,6 +19,7 @@ export function conditionMatches(
 ): boolean {
   if (!condition) return true
   const raw = values[condition.field]
+  if ('includes' in condition) return Array.isArray(raw) && raw.includes(condition.includes)
   const current = typeof raw === 'string' ? raw : ''
   if ('equals' in condition) return current === condition.equals
   if ('notEquals' in condition) return current !== condition.notEquals
@@ -49,6 +50,15 @@ export function getMultiValue(values: SpecializedAnswerMap, fieldId: string): st
 
 export function isFieldComplete(field: SpecializedField, values: SpecializedAnswerMap): boolean {
   if (!isFieldVisible(field, values)) return true
+  if (field.input === 'short_text' && field.format) {
+    const text = getStringValue(values, field.id)
+    if (text && (field.format === 'email' ? !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text) : (!/^[+()\d .-]{7,30}$/.test(text) || text.replace(/\D/g, '').length < 7 || text.replace(/\D/g, '').length > 15))) return false
+  }
+  if (field.input === 'short_text' && field.numeric) {
+    const text = getStringValue(values, field.id)
+    if (text === '') return !isFieldRequired(field)
+    return /^-?(0|[1-9]\d*)(\.\d{1,2})?$/.test(text) && Number(text) >= (field.numeric.min ?? 0) && Number(text) <= field.numeric.max
+  }
   if (!isFieldRequired(field)) {
     if (field.input === 'short_text') {
       const text = getStringValue(values, field.id)

@@ -153,7 +153,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (result.code === 'payload_too_large') {
         return res.status(413).json({ ok: false, error: 'Request body is too large' })
       }
-      if (VALIDATION_ERROR_CODES.has(result.code)) {
+      if (VALIDATION_ERROR_CODES.has(result.code) || /^(invalid|incomplete|unknown|forbidden|malformed)_home_buyer_|^home_buyer_(hidden_follow_up|exclusive_conflict)$/.test(result.code)) {
         return res.status(400).json({ ok: false, error: result.error, code: result.code })
       }
       return res.status(500).json({ ok: false, error: 'Unable to save submission' })

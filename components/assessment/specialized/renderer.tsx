@@ -1,3 +1,4 @@
+import { fieldId } from '../FieldShell'
 import ChoiceGroup from '../ChoiceGroup'
 import QuestionCard from '../QuestionCard'
 import SelectInput from '../SelectInput'
@@ -31,6 +32,8 @@ function fieldErrorMessage(
   values: SpecializedAnswerMap,
   t: SpecializedCopyFn,
 ): string {
+  if (field.input === 'short_text' && field.numeric) return t('validation', 'amount')
+  if (field.input === 'short_text' && field.format) return t('validation', 'contact_format')
   if (field.input === 'short_text' && getStringValue(values, field.id).length > field.maxLength) {
     return t('validation', 'servicer_length')
   }
@@ -51,7 +54,7 @@ function SpecializedFieldControl({
   onChange: (field: SpecializedField, value: string | string[]) => void
 }) {
   const label = t('fields', field.labelKey)
-  const invalid = showErrors && isFieldRequired(field) && !isFieldComplete(field, values)
+  const invalid = (showErrors || (field.input === 'short_text' && getStringValue(values, field.id) !== '')) && !isFieldComplete(field, values)
   const helper = field.helperKey ? t('helpers', field.helperKey) : null
 
   let control = null
@@ -91,6 +94,9 @@ function SpecializedFieldControl({
         label={label}
         name={field.id}
         value={current}
+        inputMode={field.numeric ? 'decimal' : undefined}
+        invalid={invalid}
+        describedBy={invalid ? `${fieldId(field.id)}-error` : undefined}
         onChange={(value) => onChange(field, value.slice(0, field.maxLength))}
         placeholder={field.placeholderKey ? t('placeholders', field.placeholderKey) : undefined}
         required={isFieldRequired(field)}
@@ -104,7 +110,7 @@ function SpecializedFieldControl({
       {control}
       {helper ? <p className="assessment-note">{helper}</p> : null}
       {invalid ? (
-        <p className="assessment-validation-message" role="alert">
+        <p id={`${fieldId(field.id)}-error`} className="assessment-validation-message" role="alert">
           {fieldErrorMessage(field, values, t)}
         </p>
       ) : null}

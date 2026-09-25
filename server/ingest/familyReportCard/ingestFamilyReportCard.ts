@@ -1,3 +1,4 @@
+import { calculateAffordability } from '../../../components/assessment/homeBuyer/affordability.js'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { BusinessAssessmentAnswers } from '../../../components/assessment/business/types.js'
 import type { RetirementAssessmentAnswers } from '../../../components/assessment/retirement/types.js'
@@ -259,6 +260,7 @@ function buildCanonicalResult(
   }
 
   if (assessmentType === 'home_buyer') {
+    const v2 = (answers as HomeBuyerAssessmentAnswers).diagnostic.v2
     const serverScore = recalculateHomeBuyerReportCardScore(answers as HomeBuyerAssessmentAnswers)
     const scoreComparison = compareClientScore({
       clientReportedScore,
@@ -280,6 +282,7 @@ function buildCanonicalResult(
         targetTiming: serverScore.targetTiming,
         occupancy: serverScore.occupancy,
         creditDataSource: serverScore.creditDataSource,
+        ...(v2 ? { affordability: calculateAffordability(v2), assessmentVersion: 2 } : {}),
         statusLabelKey: serverScore.statusLabelKey,
         statusLabel: serverScore.statusLabel,
         scoreComparison,

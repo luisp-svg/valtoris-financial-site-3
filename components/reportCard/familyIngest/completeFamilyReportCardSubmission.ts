@@ -160,6 +160,7 @@ export async function completePublicReportCardCrmSubmission(input: {
     submittedAt: nowIso,
     honeypotWebsite: input.honeypotWebsite ?? '',
     assessmentType: input.assessmentType,
+    assessmentVersion: input.assessmentType === 'home_buyer' && (input.answers as HomeBuyerAssessmentAnswers).diagnostic.v2 ? 2 : 1,
   })
 
   const crm = await submitFamilyReportCardToCrm(payload, input.submitOptions)

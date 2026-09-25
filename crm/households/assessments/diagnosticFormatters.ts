@@ -1,3 +1,9 @@
+import { homeBuyerCopy } from '../../../components/assessment/homeBuyer/copy'
+import { HOME_BUYER_QUESTIONS } from '../../../components/assessment/homeBuyer/questions'
+import { HOME_BUYER_V2_QUESTIONS } from '../../../components/assessment/homeBuyer/v2Questions'
+import { isFieldVisible } from '../../../components/assessment/specialized/answers'
+import type { SpecializedAnswerMap } from '../../../components/assessment/specialized/types'
+import { readAffordabilitySnapshot } from '../../../components/assessment/homeBuyer/affordability'
 import { extractReportCardSubmittedAnswers } from './submittedReportCardAnswers'
 import { parseConsentSnapshot } from '../../intake/intakeFormatters'
 import type { IntakeConsentSummary } from '../../intake/types'
@@ -298,6 +304,20 @@ export function extractCreditSubmittedAnswers(answers: unknown): DiagnosticSubmi
   return items
 }
 
+export function extractHomeBuyerSubmittedAnswers(answers: unknown): DiagnosticSubmittedAnswer[] {
+  const diagnostic = asRecord(asRecord(answers).diagnostic)
+  const isV2 = diagnostic.v2 != null
+  const values = (isV2 ? asRecord(diagnostic.v2) : diagnostic) as SpecializedAnswerMap
+  const questions = isV2 ? HOME_BUYER_V2_QUESTIONS : HOME_BUYER_QUESTIONS
+  return questions.flatMap(question => question.fields.flatMap(field => {
+    if (!isFieldVisible(field, values)) return []
+    const raw = values[field.id]
+    const strings = Array.isArray(raw) ? raw : typeof raw === 'string' && raw !== '' ? [raw] : []
+    const formatted = strings.filter(v => typeof v === 'string').map(v => homeBuyerCopy.en?.answers[`${field.id}.${v}`] ?? v).join(', ')
+    return formatted ? [{ id: field.id, label: homeBuyerCopy.en?.fields[field.labelKey] ?? field.id, value: formatted }] : []
+  }))
+}
+
 function safeHostFromReferrer(value: unknown): string | null {
   const raw = asTrimmedString(value)
   if (!raw) return null
@@ -419,12 +439,13 @@ export function mapPublicFamilyDiagnosticDetail(
     priorities: extractDiagnosticPriorities(row.priorities, row.answers),
     flags: extractDiagnosticFlags(row.derived_metrics),
     submittedSnapshot: extractSubmittedDiagnosticSnapshot(row.answers),
+    affordability: row.assessment_type === 'home_buyer' ? readAffordabilitySnapshot(derived.affordability) : undefined,
     submittedAnswers:
       row.assessment_type === 'student_loan'
         ? extractStudentLoanSubmittedAnswers(row.answers)
         : row.assessment_type === 'credit'
           ? extractCreditSubmittedAnswers(row.answers)
-          : extractReportCardSubmittedAnswers(String(row.assessment_type), row.answers),
+          : row.assessment_type === 'home_buyer' ? extractHomeBuyerSubmittedAnswers(row.answers) : extractReportCardSubmittedAnswers(String(row.assessment_type), row.answers),
     consent: leadSummary?.consent ?? null,
     lead: leadSummary,
   }

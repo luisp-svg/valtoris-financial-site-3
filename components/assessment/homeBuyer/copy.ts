@@ -1,3 +1,4 @@
+import { HOME_BUYER_V2_COPY } from './v2Questions.js'
 import type { SpecializedCopyCatalog, SpecializedProductCopy } from '../specialized/types'
 
 const HOME_BUYER_COPY_EN: SpecializedCopyCatalog = {
@@ -786,6 +787,10 @@ const HOME_BUYER_COPY_ES: SpecializedCopyCatalog = {
 }
 
 export const homeBuyerCopy: SpecializedProductCopy = {
-  en: HOME_BUYER_COPY_EN,
-  es: HOME_BUYER_COPY_ES,
+  en: mergeV2(HOME_BUYER_COPY_EN, HOME_BUYER_V2_COPY.en),
+  es: mergeV2(HOME_BUYER_COPY_ES, HOME_BUYER_V2_COPY.es),
+}
+
+function mergeV2(base: SpecializedCopyCatalog, extra: SpecializedCopyCatalog): SpecializedCopyCatalog {
+  return Object.fromEntries(Object.keys(base).map(key => [key, { ...base[key as keyof SpecializedCopyCatalog], ...extra[key as keyof SpecializedCopyCatalog] }])) as SpecializedCopyCatalog
 }

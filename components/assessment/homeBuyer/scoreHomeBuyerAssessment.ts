@@ -1,8 +1,9 @@
+import { projectV2Diagnostic } from './v2Projection.js'
 /**
  * Deterministic Home Buyer Report Card Score.
  * Uses canonical diagnostic values only. Never reads translated labels.
  * Contact does not change the numeric score.
- * Does not calculate DTI from income/debt bands.
+ * V1 does not calculate DTI from bands. V2 projects readiness bands from reported numeric inputs.
  * Does not imply mortgage approval, prequalification, or lending decisions.
  * Credit inputs remain self-reported / public_self_report.
  */
@@ -146,6 +147,9 @@ function scoreIncomeEmployment(diagnostic: HomeBuyerDiagnosticAnswers): number {
   else if (diagnostic.employment_income_type === 'not_working') type = 0
   else if (diagnostic.employment_income_type === 'not_sure') type = 2
 
+  // V2 does not penalize self-employment or retirement as income sources.
+  if (diagnostic.v2 && diagnostic.employment_income_type !== 'not_working' && diagnostic.employment_income_type !== 'not_sure') type = 5
+
   let tenure = 0
   if (diagnostic.tenure_stability === '2_plus_years') tenure = 4
   else if (diagnostic.tenure_stability === '1_2_years') tenure = 3
@@ -245,6 +249,8 @@ function scoreTimeline(diagnostic: HomeBuyerDiagnosticAnswers): number {
   else if (diagnostic.target_timing === '3_6_months') timing = 1
   else if (diagnostic.target_timing === '0_3_months') timing = 1
   else if (diagnostic.target_timing === 'not_sure') timing = 1
+
+  if (diagnostic.v2) timing = 2 // Intent is routing, not financial evidence.
 
   let confidence = 0
   if (diagnostic.readiness_confidence === 'very_ready') confidence = 3
@@ -438,7 +444,8 @@ function selectNextActions(
   return selected
 }
 
-export function scoreHomeBuyerAssessment(diagnostic: HomeBuyerDiagnosticAnswers): HomeBuyerScoreResult {
+export function scoreHomeBuyerAssessment(input: HomeBuyerDiagnosticAnswers): HomeBuyerScoreResult {
+  const diagnostic = input.v2 ? projectV2Diagnostic(input.v2) : input
   const categories: HomeBuyerCategoryPoints[] = [
     {
       id: 'credit_readiness',
@@ -513,9 +520,14 @@ export function scoreHomeBuyerAssessment(diagnostic: HomeBuyerDiagnosticAnswers)
     statusLabelKey: homeBuyerScoreToStatus(overallScore).statusLabelKey,
     categories,
     flags,
-    strengths: selectStrengths(categories),
-    barriers: selectBarriers(flags, categories),
-    nextActions: selectNextActions(flags, categories),
-    scoringVersion: HOME_BUYER_SCORING_VERSION,
+    strengths: selectStrengths(categories).map(insight => diagnostic.v2 ? { ...insight, titleKey: `v2.strength.${insight.categoryId}.title`, explanationKey: `v2.strength.${insight.categoryId}.body` } : insight),
+    barriers: selectBarriers(flags, categories).map(insight => v2CategoryCopy(insight, Boolean(diagnostic.v2))),
+    nextActions: selectNextActions(flags, categories).map(insight => v2CategoryCopy(insight, Boolean(diagnostic.v2))),
+    scoringVersion: diagnostic.v2 ? 2 : HOME_BUYER_SCORING_VERSION,
   }
+}
+
+function v2CategoryCopy(insight: HomeBuyerInsight, v2: boolean): HomeBuyerInsight {
+  if (!v2 || !insight.explanationKey.startsWith('insight.category.')) return insight
+  return { ...insight, titleKey: `v2.review.${insight.categoryId}.title`, explanationKey: `v2.review.${insight.categoryId}.body` }
 }

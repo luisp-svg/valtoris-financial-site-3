@@ -1,3 +1,5 @@
+import { calculateAffordability } from './affordability.js'
+import { projectV2Diagnostic } from './v2Projection.js'
 import { isHomeBuyerDiagnosticComplete } from './completeness'
 import {
   scoreHomeBuyerAssessment,
@@ -20,8 +22,9 @@ export type HomeBuyerResultsSession = {
 export function buildHomeBuyerResultsSession(
   answers: HomeBuyerAssessmentAnswers,
 ): HomeBuyerResultsSession {
+  const diagnostic = answers.diagnostic.v2 ? projectV2Diagnostic({ ...answers.diagnostic.v2, agent_name: '', agent_agency: '', agent_phone: '', agent_email: '', barriers: '' }) : { ...answers.diagnostic }
   return {
-    diagnostic: { ...answers.diagnostic },
+    diagnostic,
     firstName: answers.contact.firstName.trim(),
   }
 }
@@ -30,6 +33,7 @@ export type HomeBuyerCategoryScore = HomeBuyerCategoryPoints
 export type HomeBuyerFlag = HomeBuyerHardRiskFlag
 
 export type HomeBuyerResultsModel = {
+  readonly affordability?: ReturnType<typeof calculateAffordability>
   readonly available: boolean
   readonly overallScore: number | null
   readonly score: number | null
@@ -68,6 +72,7 @@ export function getHomeBuyerResultsModel(
   const scored = scoreHomeBuyerAssessment(diagnostic)
   return {
     available: true,
+    affordability: diagnostic.v2 ? calculateAffordability(diagnostic.v2) : undefined,
     overallScore: scored.overallScore,
     score: scored.overallScore,
     grade: scored.grade,

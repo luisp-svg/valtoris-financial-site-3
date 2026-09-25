@@ -25,7 +25,6 @@ import {
   PROTECTION_GAP_RESULT_VERSION,
   RETIREMENT_REPORT_CARD_SCORING_VERSION,
   CREDIT_REPORT_CARD_SCORING_VERSION,
-  HOME_BUYER_REPORT_CARD_SCORING_VERSION,
   STUDENT_LOAN_REPORT_CARD_SCORING_VERSION,
 } from './types.js'
 
@@ -466,7 +465,7 @@ export function recalculateHomeBuyerReportCardScore(
   return {
     overallScore: result.overallScore,
     overallGrade: result.grade,
-    scoringVersion: HOME_BUYER_REPORT_CARD_SCORING_VERSION,
+    scoringVersion: result.scoringVersion,
     statusLabelKey: result.statusLabelKey,
     statusLabel: homeBuyerEnglish(result.statusLabelKey),
     categories,
@@ -480,7 +479,7 @@ export function recalculateHomeBuyerReportCardScore(
       why: action.why,
       timeline: 'Advisor review',
     })),
-    targetTiming: answers.diagnostic.target_timing,
+    targetTiming: typeof answers.diagnostic.v2?.target_timing === 'string' ? answers.diagnostic.v2.target_timing : answers.diagnostic.target_timing,
     occupancy: answers.diagnostic.intended_occupancy,
     creditDataSource: 'public_self_report',
   }

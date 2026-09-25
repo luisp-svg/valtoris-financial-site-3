@@ -399,6 +399,12 @@ export function validateFamilyReportCardIngestRequest(
     assessmentType = rawBody.assessmentType
   }
 
+  if (assessmentType === 'home_buyer') {
+    const a = rawBody.answers as { diagnostic?: { v2?: unknown } } | null
+    const hasV2 = !!a?.diagnostic && Object.prototype.hasOwnProperty.call(a.diagnostic, 'v2')
+    if (rawBody.assessmentVersion !== (hasV2 ? 2 : 1)) return fail('invalid_assessment_version', 'Unsupported Home Buyer assessment version.')
+  }
+
   if (typeof rawBody.assessmentVersion !== 'number' || !Number.isFinite(rawBody.assessmentVersion) || rawBody.assessmentVersion < 1) {
     return fail('invalid_assessment_version', 'assessmentVersion must be a positive number.')
   }

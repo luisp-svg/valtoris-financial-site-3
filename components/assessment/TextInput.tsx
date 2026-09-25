@@ -8,6 +8,9 @@ type TextInputProps = {
   type?: 'text' | 'number' | 'email' | 'tel'
   placeholder?: string
   required?: boolean
+  invalid?: boolean
+  describedBy?: string
+  inputMode?: 'decimal'
   min?: number
   max?: number
   maxLength?: number
@@ -21,6 +24,9 @@ export default function TextInput({
   type = 'text',
   placeholder,
   required = false,
+  invalid,
+  describedBy,
+  inputMode,
   min,
   max,
   maxLength,
@@ -31,6 +37,9 @@ export default function TextInput({
         id={fieldId(name)}
         name={name}
         type={type}
+        inputMode={inputMode}
+        aria-invalid={invalid || undefined}
+        aria-describedby={describedBy}
         className="assessment-input"
         value={value}
         onChange={(event) => onChange(event.target.value)}

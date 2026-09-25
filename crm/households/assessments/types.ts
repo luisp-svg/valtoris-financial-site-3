@@ -1,3 +1,4 @@
+import type { AffordabilityResult } from '../../../components/assessment/homeBuyer/affordability'
 /**
  * Household assessment history — public Family Initial Financial Diagnostic.
  * Designed so future assessment types can share list/detail shells.
@@ -127,6 +128,7 @@ export type PublicFamilyDiagnosticDetail = {
   priorities: DiagnosticPriorityItem[]
   flags: DiagnosticFlagItem[]
   submittedSnapshot: SubmittedDiagnosticSnapshot
+  affordability?: AffordabilityResult
   submittedAnswers: DiagnosticSubmittedAnswer[]
   consent: IntakeConsentSummary | null
   lead: DiagnosticLeadSummary | null

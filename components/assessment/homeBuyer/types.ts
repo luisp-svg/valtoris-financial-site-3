@@ -6,6 +6,9 @@
  */
 
 export type HomeBuyerDiagnosticAnswers = {
+  /** V2 evidence; remaining fields are a deterministic readiness projection for compatibility. */
+  v2?: Record<string, string | string[]>
+
   self_reported_score_range: string
   last_reviewed: string
   credit_risk_flags: string[]

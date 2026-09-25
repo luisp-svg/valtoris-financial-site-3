@@ -1,3 +1,4 @@
+import AffordabilityPanel from '../components/assessment/homeBuyer/AffordabilityPanel'
 import { Link, useLocation } from 'react-router-dom'
 import AssessmentBrandHeader from '../components/AssessmentBrandHeader'
 import ScheduleReportCardLink from '../components/ScheduleReportCardLink'
@@ -184,6 +185,8 @@ export default function HomeBuyerReportCardResults() {
           </div>
         </section>
 
+        {results.affordability ? <AffordabilityPanel result={results.affordability} locale={locale} /> : null}
+
         <section className="results-panel" aria-labelledby="home-buyer-categories-title">
           <h2 id="home-buyer-categories-title">{t('results', 'categories')}</h2>
           <ul>
@@ -243,11 +246,11 @@ export default function HomeBuyerReportCardResults() {
           </section>
         ) : null}
 
-        <p className="family-results-disclaimer">{t('results', 'disclaimer')}</p>
+        <p className="family-results-disclaimer">{t('results', results.scoringVersion === 2 ? 'v2.disclaimer' : 'disclaimer')}</p>
 
         <section className="results-cta">
           <h2 className="results-cta-headline">{t('results', 'reviewWithValtoris')}</h2>
-          <p className="results-cta-support">{t('ui', 'nextStepSupport')}</p>
+          <p className="results-cta-support">{t('ui', results.scoringVersion === 2 ? 'v2.nextStepSupport' : 'nextStepSupport')}</p>
           <ScheduleReportCardLink className="platform-btn platform-btn-secondary">
             {t('results', 'reviewWithValtoris')}
           </ScheduleReportCardLink>
