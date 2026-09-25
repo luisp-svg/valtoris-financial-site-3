@@ -1,3 +1,4 @@
+import ArchiveButton from '../../crm/archive/ArchiveButton'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useCrmAuth } from '../../crm/auth/CrmAuthContext'
@@ -94,6 +95,8 @@ export default function CrmContactDetailPage() {
           </button>
         ) : null}
       </header>
+
+      {!editing ? <ArchiveButton kind="lead" id={detail.leadId} name={detail.fullName} onArchived={() => navigate("/crm/contacts")} /> : null}
 
       {editing ? (
         <ContactEditForm

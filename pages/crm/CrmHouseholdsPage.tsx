@@ -149,6 +149,7 @@ export default function CrmHouseholdsPage() {
           Households are the central client relationship records in Valtoris CRM. This list shows
           households you can access.
         </p>
+      <Link to="/crm/archived" className="crm-secondary-btn">Archived records</Link>
       </header>
 
       {error ? <p className="crm-banner crm-banner-error">{error}</p> : null}

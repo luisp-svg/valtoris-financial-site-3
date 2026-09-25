@@ -226,7 +226,7 @@ describe('Retirement Report Card Spanish localization', () => {
     const files = readdirSync(join(ROOT, 'supabase/migrations'))
       .filter((name) => name.endsWith('.sql'))
       .sort()
-    expect(files).toHaveLength(64)
+    expect(files).toHaveLength(65)
     expect(files.some((name) => name.startsWith('053_'))).toBe(true)
     expect(files.some((name) => name.startsWith('054_'))).toBe(true)
     expect(existsSync(join(ROOT, 'supabase/migrations/053_spanish.sql'))).toBe(false)

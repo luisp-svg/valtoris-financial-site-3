@@ -79,6 +79,7 @@ const EXPECTED_MIGRATIONS = [
   '062_life_insurance_intake_type.sql',
   '063_life_insurance_intake_contract.sql',
   '064_life_insurance_intake_persistence.sql',
+  '065_crm_archive_recovery.sql',
 ]
 
 describe('Phase A production dashboard contracts', () => {

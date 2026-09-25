@@ -81,6 +81,7 @@ export default function CrmContactsPage() {
         <Link to={crmContactNewPath()} className="crm-primary-btn">
           Quick Add Contact
         </Link>
+      <Link to="/crm/archived" className="crm-secondary-btn">Archived records</Link>
       </header>
 
       {fetchCapped ? (

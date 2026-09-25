@@ -1,3 +1,4 @@
+import HouseholdRecordsWidget from '../../../archive/HouseholdRecordsWidget'
 import InsuranceQuotesWidget from '../widgets/InsuranceQuotesWidget'
 import OpportunityFormDialog from '../../../opportunities/OpportunityFormDialog'
 import WidgetGrid from '../../../components/ui/WidgetGrid'
@@ -57,6 +58,7 @@ export default function OverviewTab({
         <OpenCasesWidget workspace={workspace} onNavigateTab={onNavigateTab} />
         <UpcomingTasksWidget workspace={workspace} onNavigateTab={onNavigateTab} />
         <RecentDocumentsWidget workspace={workspace} onNavigateTab={onNavigateTab} />
+        <HouseholdRecordsWidget key={householdId} householdId={householdId} />
         <RecentTimelineWidget workspace={workspace} onNavigateTab={onNavigateTab} />
       </WidgetGrid>
     </div>

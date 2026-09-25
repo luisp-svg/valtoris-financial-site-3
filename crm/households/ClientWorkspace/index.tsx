@@ -1,3 +1,4 @@
+import ArchiveButton from '../../archive/ArchiveButton'
 import { useCallback, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useCrmAuth } from '../../auth/CrmAuthContext'
@@ -254,6 +255,7 @@ export default function ClientWorkspace({ householdId }: ClientWorkspaceProps) {
       {!loading && !error && workspace && tabProps ? (
         <>
           <WorkspaceHeader workspace={workspace} />
+          <ArchiveButton kind="household" id={workspace.household.id} name={workspace.household.display_name} onArchived={() => navigate("/crm/households")} />
 
           <div className="crm-client-workspace-layout">
             <WorkspaceSidebar workspace={workspace} onQuickAction={handleQuickAction} />

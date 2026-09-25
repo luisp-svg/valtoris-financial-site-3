@@ -49,7 +49,7 @@ describe('Life & Annuity Case Management Phase C contracts', () => {
 
   it('does not add a second Case model, status system, or Migration 053', () => {
     const files = readdirSync(migrationsDir).filter((name) => name.endsWith('.sql')).sort()
-    expect(files).toHaveLength(64)
+    expect(files).toHaveLength(65)
     expect(files.filter((name) => name.startsWith('053_'))).toEqual(['053_bulk_lead_import_writer.sql'])
     expect(files.filter((name) => name.startsWith('054_'))).toEqual(['054_home_buyer_report_card_ingest.sql'])
     expect(files.filter((name) => name.startsWith('055_'))).toEqual(['055_integration_contact_links.sql'])

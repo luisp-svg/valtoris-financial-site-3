@@ -416,6 +416,7 @@ export default function CrmIntakePage() {
             are not Household Financial Progress scores.
           </p>
         </div>
+      <Link to="/crm/archived" className="crm-secondary-btn">Archived records</Link>
       </header>
 
       <p className="crm-banner crm-banner-warning" role="status">
