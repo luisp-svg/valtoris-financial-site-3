@@ -14,7 +14,7 @@ function read(name: string): string {
 describe('chargeback recording contracts', () => {
   it('reuses the existing 035 writer and does not add a chargeback Migration 048', () => {
     const numbered = readdirSync(migrationsDir).filter((name) => /^\d{3}_/.test(name)).sort()
-    expect(numbered).toHaveLength(65)
+    expect(numbered).toHaveLength(66)
     expect(numbered.filter((name) => name.startsWith('047_'))).toEqual([
       '047_credit_repair_student_loan_sales_catalog.sql',
     ])

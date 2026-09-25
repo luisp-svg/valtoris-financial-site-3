@@ -5,7 +5,7 @@ import { createSupabaseBrowserClient } from '../../lib/supabase/client'
 import type { IntakeOrigin } from './intakeSource'
 import { CLIENT_INTAKE_SERVICES, loadIntakeHubSources, loadIntakeHubStatus, type IntakeHubSource, type IntakeHubStatus } from './intakeHubApi'
 export default function ClientIntakesWidget({ householdId }: { householdId: string }) {
-  const [kind, setKind] = useState<IntakeOrigin['kind']>('contact')
+  const [kind, setKind] = useState<IntakeOrigin['kind']>('member')
   const [page, setPage] = useState(0)
   const [sources, setSources] = useState<IntakeHubSource[] | null>(null)
   const [selected, setSelected] = useState('')
@@ -22,9 +22,9 @@ export default function ClientIntakesWidget({ householdId }: { householdId: stri
   const source = sources?.find(s => s.origin.id === selected)
   return <Widget title="Client intakes" titleId="crm-widget-client-intakes" wide>
     <p>Start, resume, or review a service intake here. A report card is optional for existing contacts.</p>
-    <label className="crm-field">Choose from <select value={kind} onChange={e => { setKind(e.target.value as IntakeOrigin['kind']); setPage(0); setSources(null); setSelected('') }}><option value="contact">Existing contacts</option><option value="report_card">Completed report cards</option></select></label>
+    <label className="crm-field">Choose from <select value={kind} onChange={e => { setKind(e.target.value as IntakeOrigin['kind']); setPage(0); setSources(null); setSelected('') }}><option value="member">Household members</option><option value="contact">Existing contacts</option><option value="report_card">Completed report cards</option></select></label>
     {error ? <p role="alert">{error} <button onClick={() => setRevision(r => r + 1)}>Retry</button></p> : !sources ? <p role="status">Loading…</p> : <>
-      {sources.length === 0 ? <p>No {kind === 'contact' ? 'contacts' : 'completed report cards'} on this page. Check the other option for this household.</p> : <label className="crm-field">Client record <select value={selected} onChange={e => setSelected(e.target.value)}><option value="">Select the client record</option>{sources.map(s => <option key={s.origin.id} value={s.origin.id}>{s.label}</option>)}</select></label>}
+      {sources.length === 0 ? <p>No {kind === 'member' ? 'household members' : kind === 'contact' ? 'contacts' : 'completed report cards'} on this page. Check the other option for this household.</p> : <label className="crm-field">Client record <select value={selected} onChange={e => setSelected(e.target.value)}><option value="">Select the client record</option>{sources.map(s => <option key={s.origin.id} value={s.origin.id}>{s.label}</option>)}</select></label>}
       {source ? <IntakeServiceLinks key={`${source.origin.kind}:${source.origin.id}`} origin={source.origin} /> : null}
       {page > 0 || sources.length === 25 ? <div><button disabled={page===0} onClick={() => { setSelected(''); setSources(null); setPage(p => p-1) }}>Previous records</button>{' '}<button disabled={sources.length<25} onClick={() => { setSelected(''); setSources(null); setPage(p => p+1) }}>More records</button></div> : null}
     </>}

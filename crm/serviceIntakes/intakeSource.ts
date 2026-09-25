@@ -1,10 +1,11 @@
+import { loadSharedProfile } from './sharedProfile'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { fetchManualContactDetail } from '../contacts/contactsApi'
 import { extractSubmittedIdentity } from '../intake/intakeFormatters'
 import { fetchPublicFamilyDiagnosticDetail } from '../households/assessments/householdAssessmentsApi'
 import { emptyStudentLoanIntake, type IntakeAnswers } from './studentLoanSchema'
 
-export type IntakeOrigin = { kind: 'contact' | 'report_card'; id: string; householdId: string }
+export type IntakeOrigin = { kind: 'contact' | 'report_card' | 'member'; id: string; householdId: string }
 export type IntakeSource = {
   origin: IntakeOrigin
   sourceLabel: string
@@ -15,9 +16,9 @@ export type IntakeSource = {
 }
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 export function parseIntakeOrigin(householdId: string, search: URLSearchParams): IntakeOrigin | null {
-  const contact = search.get('contact'), report = search.get('report')
-  if (!UUID.test(householdId) || Boolean(contact) === Boolean(report) || !UUID.test(contact || report || '')) return null
-  return { householdId, kind: contact ? 'contact' : 'report_card', id: contact || report! }
+  const contact = search.get('contact'), report = search.get('report'), member = search.get('member')
+  if (!UUID.test(householdId) || [contact,report,member].filter(Boolean).length !== 1 || !UUID.test(contact || report || member || '')) return null
+  return { householdId, kind: member ? 'member' : contact ? 'contact' : 'report_card', id: member || contact || report! }
 }
 export function studentLoanIntakePath(origin: IntakeOrigin): string {
   return clientIntakePath(origin, 'student-loan-intake')
@@ -26,7 +27,7 @@ export function lifeInsuranceIntakePath(origin: IntakeOrigin): string {
   return clientIntakePath(origin, 'life-insurance-intake')
 }
 function clientIntakePath(origin: IntakeOrigin, route: string): string {
-  return `/crm/households/${encodeURIComponent(origin.householdId)}/${route}?${origin.kind === 'contact' ? 'contact' : 'report'}=${encodeURIComponent(origin.id)}`
+  return `/crm/households/${encodeURIComponent(origin.householdId)}/${route}?${origin.kind === 'member' ? 'member' : origin.kind === 'contact' ? 'contact' : 'report'}=${encodeURIComponent(origin.id)}`
 }
 /** All reads use the signed-in CRM client and existing RLS. A URL alone cannot create a client. */
 export async function loadStudentLoanIntakeSource(client: SupabaseClient, origin: IntakeOrigin): Promise<IntakeSource> {
@@ -40,6 +41,14 @@ export async function loadClientIntakeSource(client: SupabaseClient, origin: Int
   const answers = empty()
   const core = answers.sections.client[0]
   core.state = typeof household.state === 'string' ? household.state : ''
+  if (origin.kind === 'member') {
+    const {data:member,error:memberError}=await client.from('household_members').select('first_name,last_name,email,phone').eq('id',origin.id).eq('household_id',origin.householdId).is('deleted_at',null).maybeSingle()
+    if(memberError||!member)throw unavailable()
+    const shared=await loadSharedProfile(client,origin.householdId,origin.id)
+    Object.assign(core,{firstName:member.first_name,lastName:member.last_name,email:member.email??'',phone:member.phone??''})
+    if(shared)for(const key of ['firstName','lastName','email','phone','state'] as const)core[key]=shared.facts[key]
+    return {origin,answers,clientName:[core.firstName,core.lastName].join(' '),sourceLabel:'Household member',sourceDate:shared?.confirmed_at??null,priorResponses:[]}
+  }
   if (origin.kind === 'contact') {
     const contact = await fetchManualContactDetail(client, origin.id)
     if (!contact || contact.detail.householdId !== origin.householdId) throw unavailable()

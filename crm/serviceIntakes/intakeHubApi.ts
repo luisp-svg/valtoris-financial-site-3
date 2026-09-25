@@ -7,6 +7,11 @@ export const CLIENT_INTAKE_SERVICES = [
 ] as const
 export type IntakeHubSource = { origin: IntakeOrigin; label: string }
 export async function loadIntakeHubSources(client: SupabaseClient, householdId: string, kind: IntakeOrigin['kind'], page: number): Promise<IntakeHubSource[]> {
+  if(kind==='member'){
+    const {data,error}=await client.from('household_members').select('id,first_name,last_name').eq('household_id',householdId).is('deleted_at',null).order('first_name').order('id').range(page*25,page*25+24)
+    if(error)throw new Error('Unable to load household members.')
+    return (data??[]).map(row=>({origin:{householdId,kind,id:row.id},label:[row.first_name,row.last_name].join(' ')}))
+  }
   if (kind === 'contact') {
     const { data, error } = await client.from('leads').select('id,submitted_at,normalized_email,normalized_phone').eq('household_id', householdId).eq('lead_type','Manual Contact').is('deleted_at',null).order('submitted_at',{ascending:false}).order('id').range(page*25,page*25+24)
     if (error) throw new Error('Unable to load contacts.')

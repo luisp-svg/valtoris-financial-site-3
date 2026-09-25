@@ -38,7 +38,7 @@ function read(relativePath: string): string {
 describe('commission Phase E2 contracts', () => {
   it('does not add a commission 053, Eligible, Released, or a persisted reconciliation status', () => {
     const numbered = readdirSync(migrationsDir).filter((name) => /^\d{3}_/.test(name)).sort()
-    expect(numbered).toHaveLength(65)
+    expect(numbered).toHaveLength(66)
     expect(numbered.filter((name) => name.startsWith('053_'))).toEqual(['053_bulk_lead_import_writer.sql'])
     expect(numbered.filter((name) => name.startsWith('054_'))).toEqual(['054_home_buyer_report_card_ingest.sql'])
     expect(numbered.filter((name) => name.startsWith('055_'))).toEqual(['055_integration_contact_links.sql'])

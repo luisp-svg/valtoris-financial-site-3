@@ -1,3 +1,4 @@
+import SharedProfilePanel from '../../crm/serviceIntakes/SharedProfilePanel'
 import { useEffect, useMemo, useState, type ComponentType } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
@@ -87,6 +88,7 @@ function IntakeWorkspace({ householdId, query, definition }: { householdId: stri
     {errors.length > 0 && <div className="crm-banner crm-banner-error" role="alert"><ul>{errors.map((e, i) => <li key={i}>{e}</li>)}</ul></div>}
     {message && <p role="status">{message}</p>}
     {!source || !answers ? (busy ? <p role="status">Loading intake…</p> : null) : <>
+      {origin?.kind === 'member' && <SharedProfilePanel key={origin.id} householdId={householdId} memberId={origin.id} onUse={completed ? undefined : facts => { if (window.confirm('Replace the name and contact details in this draft with the saved shared information?')) { setAnswers(previous => previous ? {...previous,sections:{...previous.sections,client:[{...previous.sections.client[0],firstName:facts.firstName,lastName:facts.lastName,email:facts.email,phone:facts.phone,state:facts.state,confirmed:'Not yet'}]}} : previous) } }} />}
       {history.length > 0 && <section className="crm-panel"><h2>Saved intakes for this contact or report</h2>
         <div className="crm-service-intake-history">{history.map(record => <button key={record.id} type="button" disabled={busy} className="crm-secondary-btn" aria-pressed={saved?.id === record.id} onClick={() => selectRecord(record)}>
           {record.status === 'draft' ? 'Draft' : 'Completed'} · {new Date(record.updatedAt).toLocaleString()}
