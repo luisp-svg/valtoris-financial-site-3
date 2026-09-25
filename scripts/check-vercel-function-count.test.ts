@@ -19,6 +19,6 @@ describe('Vercel Hobby Serverless Function budget', () => {
   it('does not count any colocated api/**/*.test.ts files', () => {
     const counted = countedServerlessFunctions()
     expect(counted.some((p) => p.includes('.test.'))).toBe(false)
-    expect(counted).toHaveLength(11)
+    expect(counted).toHaveLength(12)
   })
 })

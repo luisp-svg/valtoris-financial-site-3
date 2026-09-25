@@ -71,7 +71,7 @@ describe('DI-A public share freeze', () => {
     const files = readdirSync(join(ROOT, 'supabase/migrations')).filter((name) =>
       name.endsWith('.sql'),
     )
-    expect(files).toHaveLength(69)
+    expect(files).toHaveLength(70)
     expect(files.some((name) => name.startsWith('053_bulk_lead_import_writer'))).toBe(true)
     expect(files.some((name) => name.startsWith('054'))).toBe(true)
     expect(existsSync(join(ROOT, 'supabase/migrations/053_digital_identity.sql'))).toBe(false)

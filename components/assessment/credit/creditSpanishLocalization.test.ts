@@ -507,7 +507,7 @@ describe('Credit Spanish localization', () => {
 
   it('leaves 047–050 byte-identical and does not add Migration 051', () => {
     const files = readdirSync(join(ROOT, 'supabase/migrations')).filter((name) => name.endsWith('.sql')).sort()
-    expect(files).toHaveLength(69)
+    expect(files).toHaveLength(70)
     expect(files[49]).toBe('050_credit_report_card_ingest.sql')
     expect(files.some((name) => name.startsWith('051_'))).toBe(true)
     expect(files.some((name) => name.startsWith('052_'))).toBe(true)

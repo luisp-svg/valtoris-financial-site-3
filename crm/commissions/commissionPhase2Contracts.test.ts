@@ -14,7 +14,7 @@ function read(name: string): string {
 describe('commission Phase 2 contracts', () => {
   it('does not add a commission lifecycle migration and keeps the 001–047 baseline', () => {
     const numbered = readdirSync(migrationsDir).filter((name) => /^\d{3}_/.test(name)).sort()
-    expect(numbered).toHaveLength(69)
+    expect(numbered).toHaveLength(70)
     expect(numbered[0]).toBe('001_extensions_and_enums.sql')
     expect(numbered[43]).toBe('044_policy_application_requirements.sql')
     expect(numbered[44]).toBe('045_policy_post_placement_lifecycle.sql')

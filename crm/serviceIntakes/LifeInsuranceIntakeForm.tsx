@@ -4,7 +4,7 @@ const dollars = (cents: number) => (cents / 100).toLocaleString('en-US', { style
 export default function LifeInsuranceIntakeForm(props: IntakeFormProps) {
   const estimate = calculateLifeNeeds(props.answers)
   return <>
-    <ServiceIntakeForm {...props} title="Life insurance planning intake" sections={LIFE_INTAKE_SECTIONS} notice="Private planning intake for an existing contact or completed report card. Enter medical and legal history, medications, SSNs, license details, and banking information only through the selected carrier’s secure application. Do not paste those details into these fields." />
+    <ServiceIntakeForm {...props} title="Life insurance planning intake" sections={LIFE_INTAKE_SECTIONS.map(s=>s.id==='handoff'?{...s,description:'Use the protected SSN and health section for those details. Banking, license, legal-history questions, and carrier-specific authorizations remain in the selected carrier’s secure application.'}:s)} notice="Private planning intake. Use the separate protected section for SSN, health, and medication details. Do not enter them in the planning fields below. Banking and carrier-specific application details stay in the carrier’s secure process." />
     <section className="crm-panel" aria-labelledby="life-needs-estimate"><h2 id="life-needs-estimate">Needs worksheet result</h2>
       <p>Debt excluding mortgage + annual income × {props.answers.sections.needs[0].years || 'chosen'} years + mortgage + education + other needs, less selected existing coverage and available assets.</p>
       {estimate ? <dl className="crm-contacts-dl">

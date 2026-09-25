@@ -58,7 +58,7 @@ describe('migration 054 home buyer report card ingest enablement', () => {
     expect(MIGRATION_054_FILENAME).toBe('054_home_buyer_report_card_ingest.sql')
     const files = numberedMigrations()
     expect(files).toEqual([...EXPECTED_NUMBERED_MIGRATIONS])
-    expect(files).toHaveLength(69)
+    expect(files).toHaveLength(70)
     expect(files[0]).toBe('001_extensions_and_enums.sql')
     expect(files[44]).toBe(MIGRATION_045_FILENAME)
     expect(files[45]).toBe(MIGRATION_046_FILENAME)

@@ -1,0 +1,17 @@
+import {afterEach,beforeEach,expect,it,vi} from 'vitest'
+import type {VercelRequest,VercelResponse} from '@vercel/node'
+const mocks=vi.hoisted(()=>({getUser:vi.fn(),rpc:vi.fn(),admin:vi.fn()}))
+vi.mock('../../lib/supabase/server.js',()=>({createSupabaseServerClient:()=>({auth:{getUser:mocks.getUser}})}))
+vi.mock('../../lib/supabase/admin.js',()=>({createSupabaseAdminClient:()=>{mocks.admin();return {rpc:mocks.rpc}}}))
+import handler from '../../api/crm/life-intake-sensitive'
+import {emptyLifeSensitive} from '../../modules/lifeIntakeSensitive/contract'
+const intakeId='11111111-1111-4111-8111-111111111111',memberId='22222222-2222-4222-8222-222222222222'
+function response(){const res={setHeader:vi.fn(),status:vi.fn(),json:vi.fn()};res.status.mockReturnValue(res);res.json.mockReturnValue(res);return res}
+const request=(action='status')=>({method:'POST',headers:{origin:'https://www.valtorisfinancial.com','content-type':'application/json'},body:{action,intakeId,memberId}}) as VercelRequest
+beforeEach(()=>{vi.clearAllMocks();vi.stubEnv('LIFE_INTAKE_ENCRYPTION_KEY_V1','ac'.repeat(32));mocks.getUser.mockResolvedValue({data:{user:{id:'verified-user'}},error:null})})
+afterEach(()=>vi.unstubAllEnvs())
+it('rejects untrusted origins before authentication or database access',async()=>{const req=request();req.headers.origin='https://evil.example';const res=response();await handler(req,res as unknown as VercelResponse);expect(res.status).toHaveBeenCalledWith(403);expect(mocks.getUser).not.toHaveBeenCalled();expect(mocks.admin).not.toHaveBeenCalled()})
+it('requires a verified user',async()=>{mocks.getUser.mockResolvedValue({data:{user:null},error:{}});const res=response();await handler(request(),res as unknown as VercelResponse);expect(res.status).toHaveBeenCalledWith(401);expect(mocks.admin).not.toHaveBeenCalled()})
+it('never returns ciphertext during status reads',async()=>{mocks.rpc.mockResolvedValue({data:{exists:true,intake_id:intakeId,member_id:memberId,ssn_present:true,ciphertext:'private'},error:null});const res=response();await handler(request(),res as unknown as VercelResponse);expect(JSON.stringify(res.json.mock.calls)).not.toContain('private');expect(mocks.rpc).toHaveBeenCalledWith('read_life_intake_sensitive',{p_actor:'verified-user',p_intake:intakeId,p_member:memberId,p_reveal:false});expect(res.setHeader).toHaveBeenCalledWith('Cache-Control','private, no-store, max-age=0')})
+it('sends only encrypted answers to storage and never trusts a supplied actor',async()=>{mocks.rpc.mockResolvedValue({data:{intake_id:intakeId,member_id:memberId,updated_at:'2026-09-25',ssn_present:true},error:null});const req=request('save');req.body.answers={...emptyLifeSensitive(),confirmedInsured:true,collectionNote:'Synthetic permission reference',ssn:'123456789'};req.body.expectedUpdatedAt=null;const res=response();await handler(req,res as unknown as VercelResponse);expect(res.status).toHaveBeenCalledWith(200);expect(JSON.stringify(mocks.rpc.mock.calls)).not.toContain('123456789');expect(mocks.rpc.mock.calls[0][1].p_actor).toBe('verified-user');req.body.actor='forged';await handler(req,res as unknown as VercelResponse);expect(res.status).toHaveBeenLastCalledWith(400)})
+it('requires database permission before any reveal',async()=>{mocks.rpc.mockResolvedValue({data:null,error:{message:'denied'}});const res=response();await handler(request('reveal'),res as unknown as VercelResponse);expect(res.status).toHaveBeenCalledWith(404);expect(mocks.rpc.mock.calls[0][1].p_reveal).toBe(true)})

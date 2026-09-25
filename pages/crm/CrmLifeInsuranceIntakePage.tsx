@@ -4,7 +4,7 @@ import { createServiceIntakeApi } from '../../crm/serviceIntakes/serviceIntakeAp
 import { emptyLifeInsuranceIntake, validateLifeInsuranceIntake } from '../../crm/serviceIntakes/lifeInsuranceSchema'
 import { loadClientIntakeSource } from '../../crm/serviceIntakes/intakeSource'
 const definition: ServiceIntakeDefinition = {
-  title: 'Life Insurance intake', Form: LifeInsuranceIntakeForm,
+  sensitiveLife: true, title: 'Life Insurance intake', Form: LifeInsuranceIntakeForm,
   api: createServiceIntakeApi('life_insurance_intake', 'save_life_insurance_intake', validateLifeInsuranceIntake),
   validate: validateLifeInsuranceIntake,
   loadSource: (client, origin) => loadClientIntakeSource(client, origin, emptyLifeInsuranceIntake),

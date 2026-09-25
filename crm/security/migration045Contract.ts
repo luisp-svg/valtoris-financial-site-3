@@ -118,4 +118,5 @@ export const EXPECTED_NUMBERED_MIGRATIONS = [
   '067_service_intake_type.sql',
   '068_service_intake_contracts.sql',
   '069_service_intake_persistence.sql',
+  '070_life_intake_sensitive.sql',
 ] as const

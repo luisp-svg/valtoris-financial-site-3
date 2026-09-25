@@ -1,3 +1,4 @@
+import LifeSensitivePanel from '../../crm/serviceIntakes/LifeSensitivePanel'
 import SharedProfilePanel from '../../crm/serviceIntakes/SharedProfilePanel'
 import { useEffect, useMemo, useState, type ComponentType } from 'react'
 import type { SupabaseClient } from '@supabase/supabase-js'
@@ -11,7 +12,7 @@ import type { IntakeOrigin } from '../../crm/serviceIntakes/intakeSource'
 import { type IntakeAnswers } from '../../crm/serviceIntakes/studentLoanSchema'
 import './studentLoanIntake.css'
 
-export type ServiceIntakeDefinition = { title: string; Form: ComponentType<IntakeFormProps>; api: ReturnType<typeof createServiceIntakeApi>; validate: (raw: unknown, complete?: boolean) => string[]; loadSource: (client: SupabaseClient, origin: IntakeOrigin) => Promise<IntakeSource> }
+export type ServiceIntakeDefinition = { sensitiveLife?: boolean; title: string; Form: ComponentType<IntakeFormProps>; api: ReturnType<typeof createServiceIntakeApi>; validate: (raw: unknown, complete?: boolean) => string[]; loadSource: (client: SupabaseClient, origin: IntakeOrigin) => Promise<IntakeSource> }
 export default function CrmServiceIntakePage({ definition }: { definition: ServiceIntakeDefinition }) {
   const { householdId = '' } = useParams()
   const [params] = useSearchParams()
@@ -31,7 +32,8 @@ function IntakeWorkspace({ householdId, query, definition }: { householdId: stri
   const [errors, setErrors] = useState<string[]>([])
   const [message, setMessage] = useState('')
   const [confirmComplete, setConfirmComplete] = useState(false)
-  const dirty = answers !== null && JSON.stringify(answers) !== baseline
+  const [protectedDirty,setProtectedDirty]=useState(false)
+  const dirty = protectedDirty || (answers !== null && JSON.stringify(answers) !== baseline)
   const completed = saved?.status === 'completed'
 
   useEffect(() => {
@@ -61,6 +63,7 @@ function IntakeWorkspace({ householdId, query, definition }: { householdId: stri
 
   const persist = async (complete: boolean) => {
     if (!origin || !answers || busy) return
+    if (protectedDirty) { setErrors(['Save or close the protected details before saving or completing the intake.']); return }
     const problems = validate(answers, complete)
     setErrors(problems); setMessage('')
     if (problems.length) { setConfirmComplete(false); return }
@@ -76,7 +79,7 @@ function IntakeWorkspace({ householdId, query, definition }: { householdId: stri
   }
   const selectRecord = (record: SavedServiceIntake) => {
     if (dirty && !window.confirm('Discard unsaved changes and open this saved intake?')) return
-    setSaved(record); setAnswers(record.answers); setBaseline(JSON.stringify(record.answers)); setErrors([]); setMessage(''); setConfirmComplete(false)
+    setProtectedDirty(false); setSaved(record); setAnswers(record.answers); setBaseline(JSON.stringify(record.answers)); setErrors([]); setMessage(''); setConfirmComplete(false)
   }
   return <div className="crm-page crm-service-intake">
     <header className="crm-page-header"><div>
@@ -89,6 +92,7 @@ function IntakeWorkspace({ householdId, query, definition }: { householdId: stri
     {message && <p role="status">{message}</p>}
     {!source || !answers ? (busy ? <p role="status">Loading intake…</p> : null) : <>
       {origin?.kind === 'member' && <SharedProfilePanel key={origin.id} householdId={householdId} memberId={origin.id} onUse={completed ? undefined : facts => { if (window.confirm('Replace the name and contact details in this draft with the saved shared information?')) { setAnswers(previous => previous ? {...previous,sections:{...previous.sections,client:[{...previous.sections.client[0],firstName:facts.firstName,lastName:facts.lastName,email:facts.email,phone:facts.phone,state:facts.state,confirmed:'Not yet'}]}} : previous) } }} />}
+      {definition.sensitiveLife && <LifeSensitivePanel key={saved?.id ?? 'new'} householdId={householdId} intakeId={saved?.id ?? null} completed={completed} onDirtyChange={setProtectedDirty} />}
       {history.length > 0 && <section className="crm-panel"><h2>Saved intakes for this contact or report</h2>
         <div className="crm-service-intake-history">{history.map(record => <button key={record.id} type="button" disabled={busy} className="crm-secondary-btn" aria-pressed={saved?.id === record.id} onClick={() => selectRecord(record)}>
           {record.status === 'draft' ? 'Draft' : 'Completed'} · {new Date(record.updatedAt).toLocaleString()}
