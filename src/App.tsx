@@ -1,3 +1,4 @@
+import CrmClientIntakeNewPage from '../pages/crm/CrmClientIntakeNewPage'
 import CrmArchivedRecordsPage from '../pages/crm/CrmArchivedRecordsPage'
 import { ReactNode } from 'react'
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom'
@@ -284,6 +285,7 @@ export default function App() {
           <Route path="contacts" element={<CrmContactsPage />} />
           <Route path="campaigns" element={<CrmCampaignsPage />} />
           <Route path="leads" element={<Navigate to={ROUTES.crmIntake} replace />} />
+          <Route path="client-intakes/new" element={<CrmClientIntakeNewPage />} />
           <Route path="archived" element={<CrmArchivedRecordsPage />} />
           <Route path="households" element={<CrmHouseholdsPage />} />
           <Route path="households/:householdId/student-loan-intake" element={<CrmStudentLoanIntakePage />} />

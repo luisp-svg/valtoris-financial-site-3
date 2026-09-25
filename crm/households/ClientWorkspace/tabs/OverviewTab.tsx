@@ -1,3 +1,4 @@
+import ClientIntakesWidget from '../../../serviceIntakes/ClientIntakesWidget'
 import HouseholdRecordsWidget from '../../../archive/HouseholdRecordsWidget'
 import InsuranceQuotesWidget from '../widgets/InsuranceQuotesWidget'
 import OpportunityFormDialog from '../../../opportunities/OpportunityFormDialog'
@@ -45,6 +46,7 @@ export default function OverviewTab({
       ) : null}
 
       <WidgetGrid>
+        <ClientIntakesWidget key={householdId} householdId={householdId} />
         <HouseholdSummaryWidget workspace={workspace} onNavigateTab={onNavigateTab} />
         <InsuranceQuotesWidget key={householdId} householdId={householdId} />
         <HowWeMetWidget workspace={workspace} onNavigateTab={onNavigateTab} />

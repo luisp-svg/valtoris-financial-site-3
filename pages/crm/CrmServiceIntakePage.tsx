@@ -42,7 +42,7 @@ function IntakeWorkspace({ householdId, query, definition }: { householdId: stri
         const current = records.find(r => r.status === 'draft') ?? records[0] ?? null
         const initial = current?.answers ?? loaded.answers
         setSource(loaded); setHistory(records); setSaved(current); setAnswers(initial); setBaseline(JSON.stringify(initial))
-      }).catch(() => { if (!cancelled) setErrors(['This intake could not be loaded. Return to the contact or report card and try again.']) })
+      }).catch(() => { if (!cancelled) setErrors(['This intake could not be loaded. Return to the household and try again.']) })
       .finally(() => { if (!cancelled) setBusy(false) })
     return () => { cancelled = true }
   }, [client, origin, api, loadSource])

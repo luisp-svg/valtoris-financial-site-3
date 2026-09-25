@@ -1,6 +1,5 @@
 import AffordabilityPanel from '../../../components/assessment/homeBuyer/AffordabilityPanel'
 import { Link } from 'react-router-dom'
-import { lifeInsuranceIntakePath, studentLoanIntakePath } from '../../serviceIntakes/intakeSource'
 import {
   crmHouseholdAssessmentsPath,
   crmHouseholdPath,
@@ -67,8 +66,6 @@ export default function PublicFamilyDiagnosticDetailView({
         </header>
       )}
 
-      <p><Link className="crm-secondary-btn" to={studentLoanIntakePath({ kind: 'report_card', id: detail.assessmentId, householdId: detail.householdId })}>Student Loan intake</Link></p>
-      <p><Link className="crm-secondary-btn" to={lifeInsuranceIntakePath({ kind: 'report_card', id: detail.assessmentId, householdId: detail.householdId })}>Life Insurance intake</Link></p>
       {detail.affordability ? <AffordabilityPanel result={detail.affordability} /> : null}
       <section className="crm-panel crm-ifd-detail-section" aria-labelledby="crm-ifd-score-heading">
         <h2 id="crm-ifd-score-heading">Result summary</h2>
