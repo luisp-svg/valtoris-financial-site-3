@@ -38,7 +38,7 @@ export function attentionKindLabel(kind: AttentionKind): string {
 }
 
 function taskHref(task: DashboardTaskItem): string {
-  return task.household_id ? crmHouseholdPath(task.household_id) : ROUTES.crmTasks
+  return task.household_id ? `${crmHouseholdPath(task.household_id)}?tab=tasks` : ROUTES.crmTasks
 }
 
 export function buildNeedsAttentionItems(input: {

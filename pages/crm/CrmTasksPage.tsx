@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useCrmAuth } from '../../crm/auth/CrmAuthContext'
 import {
   createTask,
@@ -52,13 +53,14 @@ function priorityLabel(priority: TaskPriority): string {
 
 export default function CrmTasksPage() {
   const { profile, role } = useCrmAuth()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [tasks, setTasks] = useState<CrmTask[]>([])
   const [households, setHouseholds] = useState<HouseholdOption[]>([])
   const [leads, setLeads] = useState<LeadOption[]>([])
   const [opportunities, setOpportunities] = useState<OpportunityOption[]>([])
   const [assignees, setAssignees] = useState<AssigneeOption[]>([])
   const [form, setForm] = useState(EMPTY_FORM)
-  const [showForm, setShowForm] = useState(false)
+  const [showForm, setShowForm] = useState(searchParams.get('action') === 'new')
   const [loading, setLoading] = useState(true)
   const [formLoading, setFormLoading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -206,6 +208,11 @@ export default function CrmTasksPage() {
 
   function closeForm() {
     setShowForm(false)
+    if (searchParams.has('action')) {
+      const next = new URLSearchParams(searchParams)
+      next.delete('action')
+      setSearchParams(next, { replace: true })
+    }
     setOptionsError(null)
     setSubmitError(null)
     setFormWarning(null)
@@ -259,7 +266,7 @@ export default function CrmTasksPage() {
       )
       await loadTasks()
       setSuccess('Task created.')
-      setShowForm(false)
+      closeForm()
       setForm({
         ...EMPTY_FORM,
         assigned_user_id: profile.id,
@@ -531,6 +538,9 @@ export default function CrmTasksPage() {
               <li key={task.id} className="crm-task-row">
                 <div className="crm-task-row-main">
                   <p className="crm-task-title">{task.title}</p>
+                  <Link className="crm-text-btn" to={`/crm/households/${task.household_id}${task.assessment_id ? `/assessments/${task.assessment_id}` : '?tab=tasks'}`}>
+                    {task.assessment_id ? 'Review report card' : 'Open household tasks'}
+                  </Link>
                   <p className="crm-task-meta">
                     {task.household?.display_name ?? 'Household'}
                     {' · '}

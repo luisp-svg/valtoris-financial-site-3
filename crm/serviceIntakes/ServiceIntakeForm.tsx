@@ -10,6 +10,10 @@ export default function ServiceIntakeForm({ answers, onChange, disabled = false,
   return <fieldset disabled={disabled} className="crm-service-intake-fields">
     <legend>{title}</legend>
     <p>{notice}</p>
+    <nav aria-label="Intake sections" className="crm-intake-section-nav">
+      <p>Jump to a section</p>
+      {sections.filter(s => !s.track || answers.tracks.includes(s.track)).map(s => <a key={s.id} href={`#intake-${s.id}`}>{s.title}</a>)}
+    </nav>
     {tracks.length > 0 && <fieldset><legend>Requested review</legend>
       {tracks.map(track => <label key={track} className="crm-service-intake-choice"><input type="checkbox" checked={answers.tracks.includes(track)} onChange={e => onChange({ ...answers, tracks: e.target.checked ? [...answers.tracks, track] : answers.tracks.filter(t => t !== track) })} /> {track}</label>)}
       <p className="crm-muted">Select every relevant track. Removing a track keeps its saved answers available if you select it again; inactive sections are not treated as complete.</p>

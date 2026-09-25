@@ -15,3 +15,8 @@
 .crm-service-intake details dd { margin: .25rem 0; white-space: pre-wrap; overflow-wrap: anywhere; }
 .crm-service-intake summary { cursor: pointer; font-weight: 650; }
 @media (max-width: 650px) { .crm-service-intake-grid { grid-template-columns: 1fr; } .crm-service-intake-row { padding: .75rem; } }
+
+.crm-intake-section-nav { display: flex; flex-wrap: wrap; gap: .65rem 1rem; padding: 1rem; border: 1px solid #cbd5e1; border-radius: .5rem; background: #fff; }
+.crm-intake-section-nav p { width: 100%; margin: 0; font-weight: 650; }
+.crm-intake-section-nav a { color: #203a78; text-decoration: underline; padding: .35rem 0; }
+.crm-service-intake h2[id] { scroll-margin-top: 6rem; }

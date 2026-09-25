@@ -18,7 +18,7 @@ function TaskRows({ tasks, dueLabel }: { tasks: DashboardTaskItem[]; dueLabel: s
     <ul className="crm-dashboard-task-list">
       {tasks.map((task) => (
         <li key={task.id}>
-          <Link to={crmHouseholdPath(task.household_id)} className="crm-dashboard-task-item">
+          <Link to={`${crmHouseholdPath(task.household_id)}?tab=tasks`} className="crm-dashboard-task-item">
             <p className="crm-task-title">{task.title}</p>
             <p className="crm-task-meta">
               {task.household_name ?? 'Household'}

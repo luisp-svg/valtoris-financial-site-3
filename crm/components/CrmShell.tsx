@@ -62,7 +62,7 @@ export default function CrmShell({ children }: CrmShellProps) {
             }`
           }}
         >
-          <span>{item.label}</span>
+          <span>{item.path === '/crm/intake' ? 'Incoming Leads' : item.label}{item.placeholder ? ' · Coming soon' : ''}</span>
         </NavLink>
       ))}
     </nav>
