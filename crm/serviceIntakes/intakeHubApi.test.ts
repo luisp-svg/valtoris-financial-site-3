@@ -12,19 +12,15 @@ function fake(results: {data: unknown;error: unknown}[]) {
   }} as unknown as SupabaseClient}
 }
 describe('household intake access',()=>{
-  it('prioritizes a saved draft over a completed review and reads no answers',async()=>{
-    const f=fake([{data:[{status:'draft',updated_at:'2026-09-01'}],error:null},{data:[{status:'completed',updated_at:'2026-09-02'}],error:null},{data:[],error:null},{data:[],error:null}])
-    const rows=await loadIntakeHubStatus(f.client,{kind:'contact',id:'contact-id',householdId:'household-id'})
+  it('loads progress with one household- and origin-scoped read',async()=>{
+    const rpc=vi.fn().mockResolvedValue({data:[{type:'life_insurance_intake',status:'draft',updated_at:'2026-09-01'}],error:null})
+    const rows=await loadIntakeHubStatus({rpc} as unknown as SupabaseClient,{kind:'member',id:'m',householdId:'h'})
     expect(rows).toEqual([{type:'life_insurance_intake',status:'draft',updatedAt:'2026-09-01'}])
-    for(const call of f.calls){
-      expect(call.filters).toContainEqual(['eq','household_id','household-id'])
-      expect(call.filters).toContainEqual(['contains','derived_metrics',{intake_origin:{kind:'contact',id:'contact-id'}}])
-      expect(call.filters).toContainEqual(['select','assessment_type,status,updated_at'])
-    }
+    expect(rpc).toHaveBeenCalledWith('client_intake_progress',{p_household_id:'h',p_origin_kind:'member',p_origin_id:'m'})
   })
   it('does not show Not started when the progress read fails',async()=>{
-    const f=fake([{data:null,error:{message:'failure'}}])
-    await expect(loadIntakeHubStatus(f.client,{kind:'contact',id:'c',householdId:'h'})).rejects.toThrow('Unable to load')
+    const rpc=vi.fn().mockResolvedValue({data:null,error:{message:'failure'}})
+    await expect(loadIntakeHubStatus({rpc} as unknown as SupabaseClient,{kind:'contact',id:'c',householdId:'h'})).rejects.toThrow('Unable to load')
   })
   it('only lists active manual contacts from the current household with server pagination',async()=>{
     const f=fake([{data:[{id:'c',normalized_email:'client@example.invalid',submitted_at:'2026-09-01'}],error:null}])

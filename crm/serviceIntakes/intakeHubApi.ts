@@ -1,9 +1,11 @@
+import { ADDITIONAL_SERVICE_CONTRACTS } from './additionalServiceSchema'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { PUBLIC_REPORT_CARD_ASSESSMENT_TYPES, crmProductLabelForAssessment } from '../../modules/reportCard/publicIngestCatalog'
 import { lifeInsuranceIntakePath, studentLoanIntakePath, type IntakeOrigin } from './intakeSource'
 export const CLIENT_INTAKE_SERVICES = [
-  { id: 'life_insurance_intake', label: 'Life Insurance', path: lifeInsuranceIntakePath },
-  { id: 'student_loan_intake', label: 'Student Loan', path: studentLoanIntakePath },
+  { id: 'life_insurance_intake', assessmentType:'life_insurance_intake', label: 'Life Insurance', path: lifeInsuranceIntakePath },
+  { id: 'student_loan_intake', assessmentType:'student_loan_intake', label: 'Student Loan', path: studentLoanIntakePath },
+  ...Object.entries(ADDITIONAL_SERVICE_CONTRACTS).map(([id,c])=>({id,assessmentType:'service_intake',label:c.label,path:(origin:IntakeOrigin)=>`/crm/households/${origin.householdId}/service-intake/${id}?${origin.kind==='report_card'?'report':origin.kind}=${origin.id}`})),
 ] as const
 export type IntakeHubSource = { origin: IntakeOrigin; label: string }
 export async function loadIntakeHubSources(client: SupabaseClient, householdId: string, kind: IntakeOrigin['kind'], page: number): Promise<IntakeHubSource[]> {
@@ -23,11 +25,10 @@ export async function loadIntakeHubSources(client: SupabaseClient, householdId: 
 }
 export type IntakeHubStatus = { type: typeof CLIENT_INTAKE_SERVICES[number]['id']; status: 'draft' | 'completed'; updatedAt: string }
 export async function loadIntakeHubStatus(client: SupabaseClient, origin: IntakeOrigin): Promise<IntakeHubStatus[]> {
-  // Query the latest draft and completion separately per service, without downloading answers.
-  return (await Promise.all(CLIENT_INTAKE_SERVICES.map(async service => {
-    const queries = await Promise.all(['draft','completed'].map(status => client.from('assessments').select('assessment_type,status,updated_at').eq('household_id',origin.householdId).eq('assessment_type',service.id).eq('capture_channel','advisor_onboarding').eq('status',status).contains('derived_metrics',{intake_origin:{kind:origin.kind,id:origin.id}}).is('deleted_at',null).order('updated_at',{ascending:false}).limit(1)))
-    if (queries.some(q => q.error)) throw new Error('Unable to load intake progress.')
-    const row = queries[0].data?.[0] ?? queries[1].data?.[0]
-    return row ? { type:service.id,status:row.status as 'draft'|'completed',updatedAt:row.updated_at } : null
-  }))).filter((row): row is IntakeHubStatus => row !== null)
+  const {data,error}=await client.rpc('client_intake_progress',{p_household_id:origin.householdId,p_origin_kind:origin.kind,p_origin_id:origin.id})
+  if(error||!Array.isArray(data))throw new Error('Unable to load intake progress.')
+  return data.map(row=>{
+    if(!CLIENT_INTAKE_SERVICES.some(s=>s.id===row.type)||!['draft','completed'].includes(row.status)||typeof row.updated_at!=='string')throw new Error('Unable to load intake progress.')
+    return {type:row.type,status:row.status,updatedAt:row.updated_at}
+  })
 }

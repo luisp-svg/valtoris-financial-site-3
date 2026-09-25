@@ -115,4 +115,7 @@ export const EXPECTED_NUMBERED_MIGRATIONS = [
   '064_life_insurance_intake_persistence.sql',
   '065_crm_archive_recovery.sql',
   '066_shared_client_intake_profile.sql',
+  '067_service_intake_type.sql',
+  '068_service_intake_contracts.sql',
+  '069_service_intake_persistence.sql',
 ] as const

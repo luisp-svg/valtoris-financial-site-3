@@ -48,7 +48,7 @@ describe('migration 051 safe Intake archive RPC', () => {
     expect(MIGRATION_051_FILENAME).toBe('051_intake_archive_workflow.sql')
     const files = numberedMigrations()
     expect(files).toEqual([...EXPECTED_NUMBERED_MIGRATIONS])
-    expect(files).toHaveLength(66)
+    expect(files).toHaveLength(69)
     expect(files[0]).toBe('001_extensions_and_enums.sql')
     expect(files[44]).toBe(MIGRATION_045_FILENAME)
     expect(files[45]).toBe(MIGRATION_046_FILENAME)

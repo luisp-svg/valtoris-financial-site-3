@@ -10,11 +10,11 @@ export type SavedServiceIntake = {
   updatedAt: string
   answers: IntakeAnswers
 }
-export function createServiceIntakeApi(assessmentType: string, rpcName: string, validate: (raw: unknown, complete?: boolean) => string[]) {
+export function createServiceIntakeApi(assessmentType: string, rpcName: string, validate: (raw: unknown, complete?: boolean) => string[], serviceId?: string) {
   async function fetchIntakes(client: SupabaseClient, origin: IntakeOrigin): Promise<SavedServiceIntake[]> {
     const { data, error } = await client.from('assessments').select('id, household_id, assessment_type, capture_channel, status, updated_at, completed_at, deleted_at, answers')
       .eq('household_id', origin.householdId).eq('assessment_type', assessmentType).eq('capture_channel', 'advisor_onboarding')
-      .contains('derived_metrics', { intake_origin: { kind: origin.kind, id: origin.id } }).is('deleted_at', null).order('created_at', { ascending: false })
+      .contains('derived_metrics', { intake_origin: { kind: origin.kind, id: origin.id }, ...(serviceId ? {service_id:serviceId} : {}) }).is('deleted_at', null).order('created_at', { ascending: false })
     if (error) throw new Error('Unable to load saved intakes.')
     return (data ?? []).map(row => normalizeSavedIntake(row, origin.householdId))
   }

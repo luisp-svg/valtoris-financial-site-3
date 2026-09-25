@@ -1,3 +1,4 @@
+import CrmAdditionalServiceIntakePage from '../pages/crm/CrmAdditionalServiceIntakePage'
 import CrmClientIntakeNewPage from '../pages/crm/CrmClientIntakeNewPage'
 import CrmArchivedRecordsPage from '../pages/crm/CrmArchivedRecordsPage'
 import { ReactNode } from 'react'
@@ -288,6 +289,7 @@ export default function App() {
           <Route path="client-intakes/new" element={<CrmClientIntakeNewPage />} />
           <Route path="archived" element={<CrmArchivedRecordsPage />} />
           <Route path="households" element={<CrmHouseholdsPage />} />
+          <Route path="households/:householdId/service-intake/:serviceId" element={<CrmAdditionalServiceIntakePage />} />
           <Route path="households/:householdId/student-loan-intake" element={<CrmStudentLoanIntakePage />} />
           <Route path="households/:householdId/life-insurance-intake" element={<CrmLifeInsuranceIntakePage />} />
           <Route
