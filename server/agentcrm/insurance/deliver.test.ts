@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { deliverQuote, type Delivery, type QuoteIdentity, type QuoteTransport } from './deliver'
+import { deliverQuote, DeliveryHold, type Delivery, type QuoteIdentity, type QuoteTransport } from './deliver'
 import { QUOTE_LOCATION, QUOTE_PIPELINE, QUOTE_STAGE, quoteSyncEnabled } from './config'
 function fixture(kind='auto') {
   const identity: QuoteIdentity = { firstName:'Synthetic',lastName:'Quote',email:'quote@example.invalid',phone:'+12025550189',kind,memberId:'member1' }
@@ -59,6 +59,26 @@ describe('Quote delivery',()=>{
     const f=fixture();f.setOpportunities([{id:'opp1'},{id:'opp2'}])
     await expect(deliverQuote(f.input)).rejects.toThrow('multiple_opportunities')
     expect(f.write.mock.calls.filter(call=>call[1]==='/opportunities/')).toHaveLength(0)
+  })
+  it('retries delayed opportunity search visibility without holding or creating duplicates',async()=>{
+    const f=fixture()
+    const originalGet=f.get.getMockImplementation()!
+    let indexed=false
+    f.get.mockImplementation(async path=>path==='/opportunities/search'&&!indexed
+      ? {opportunities:[],meta:{total:0}} : originalGet(path))
+    for(let attempt=0;attempt<2;attempt++) {
+      const error=await deliverQuote(f.input).catch(error=>error)
+      expect(error).toBeInstanceOf(Error)
+      expect(error).not.toBeInstanceOf(DeliveryHold)
+      expect(error.message).toBe('opportunity_search_pending')
+      expect(f.input.delivery.opportunity_id).toBe('opp1')
+      expect(f.input.checkpoint).not.toHaveBeenCalledWith(expect.objectContaining({status:'synced'}))
+    }
+    indexed=true
+    expect(await deliverQuote(f.input)).toEqual({contactId:'contact1',opportunityId:'opp1'})
+    expect(f.write.mock.calls.filter(call=>call[1]==='/contacts/upsert')).toHaveLength(1)
+    expect(f.write.mock.calls.filter(call=>call[1]==='/opportunities/')).toHaveLength(1)
+    expect(f.input.checkpoint).toHaveBeenLastCalledWith({opportunity_id:'opp1',status:'synced',last_code:'verified'})
   })
   it('does not write after a failed lease checkpoint',async()=>{
     const f=fixture();f.input.checkpoint.mockRejectedValue(new Error('lease_lost'))

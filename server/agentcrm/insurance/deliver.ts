@@ -75,7 +75,10 @@ export async function deliverQuote(input: {
   const existing = await opportunities()
   let opportunityId = existing[0] ? id(existing[0].id) : null
   if (!opportunityId) {
-    if (delivery.opportunity_id || delivery.opportunity_create_started) throw new DeliveryHold('opportunity_outcome_unknown')
+    // AgentCRM's search index can lag a successful create. A persisted ID
+    // permits a later read-only reconciliation, never another create.
+    if (delivery.opportunity_id) throw new Error('opportunity_search_pending')
+    if (delivery.opportunity_create_started) throw new DeliveryHold('opportunity_outcome_unknown')
     await checkpoint({ opportunity_create_started: true })
     const response = record(await api.write('POST', '/opportunities/', {
       locationId: QUOTE_LOCATION, contactId, pipelineId: QUOTE_PIPELINE, pipelineStageId: QUOTE_STAGE,
@@ -88,6 +91,7 @@ export async function deliverQuote(input: {
   }
   // Existing stages are preserved. Read-back checks also catch a concurrent duplicate.
   const verifiedOpportunities = await opportunities()
+  if (verifiedOpportunities.length === 0) throw new Error('opportunity_search_pending')
   if (verifiedOpportunities.length !== 1 || verifiedOpportunities[0].id !== opportunityId) throw new DeliveryHold('opportunity_verification_failed')
   await checkpoint({ opportunity_id: opportunityId, status: 'synced', last_code: 'verified' })
   return { contactId, opportunityId }

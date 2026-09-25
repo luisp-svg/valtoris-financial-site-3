@@ -68,4 +68,6 @@ Only first/last name, email, phone and source are written to contacts. No tags, 
 
 Queue status is authoritative; original_source_metadata.agentcrm_handoff is immutable historical intake attribution, not live delivery status. Owner/support review of held rows uses the server-side queue. Resolve the external ambiguity first; requeue only after verifying contact and opportunity IDs. Do not clear create-started markers to force a retry.
 
+AgentCRM opportunity search can briefly omit a successfully created record. When a successful response has supplied an opportunity ID, an empty verification search remains pending for reconciliation instead of becoming permanently held. Subsequent attempts retain that ID and never create a replacement opportunity. An unknown create outcome without an ID remains held if lookup cannot reconcile it; conflicting IDs and multiple opportunities also remain held.
+
 Verification: synthetic transport tests cover all three kinds, repeats, identity updates, stage preservation, conflicts, lease loss and uncertain outcomes. scripts/sql/insurance-quote/verify-delivery.sql checks transactional enqueue, single-worker claims, fencing and completed replay. These tests do not substitute for the gated live AgentCRM acceptance test.
