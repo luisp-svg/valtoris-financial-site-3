@@ -1,3 +1,4 @@
+import { formatSubmittedGoal } from './submittedReportCardAnswers'
 import AffordabilityPanel from '../../../components/assessment/homeBuyer/AffordabilityPanel'
 import { Link } from 'react-router-dom'
 import {
@@ -142,7 +143,7 @@ export default function PublicFamilyDiagnosticDetailView({
             <h3 className="crm-ifd-subheading">Submitted goals</h3>
             <ul className="crm-ifd-priority-list">
               {submittedGoals.map((item) => (
-                <li key={`goal-${item.title}`}>{item.title}</li>
+                <li key={`goal-${item.title}`}>{formatSubmittedGoal(detail.assessmentType, item.title)}</li>
               ))}
             </ul>
           </>
@@ -275,7 +276,7 @@ export default function PublicFamilyDiagnosticDetailView({
             <div>
               <dt>Originating lead</dt>
               <dd>
-                <Link to={ROUTES.crmIntake}>Open Intake</Link>
+                <Link to={ROUTES.crmIntake}>Open Incoming Leads</Link>
               </dd>
             </div>
           </dl>

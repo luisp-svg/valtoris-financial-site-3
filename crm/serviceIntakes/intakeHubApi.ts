@@ -32,3 +32,37 @@ export async function loadIntakeHubStatus(client: SupabaseClient, origin: Intake
     return {type:row.type,status:row.status,updatedAt:row.updated_at}
   })
 }
+
+export type SavedIntakeSummary = {
+  id: string
+  label: string
+  status: 'draft' | 'completed'
+  updatedAt: string
+  origin: IntakeOrigin
+  href: string
+}
+/** Metadata only; existing assessment RLS determines which household intakes are visible. */
+export async function loadHouseholdSavedIntakes(client: SupabaseClient, householdId: string, page: number): Promise<{ items: SavedIntakeSummary[]; hasMore: boolean }> {
+  const { data, error } = await client.from('assessments')
+    .select('id,assessment_type,status,updated_at,derived_metrics')
+    .eq('household_id', householdId).eq('capture_channel', 'advisor_onboarding')
+    .in('assessment_type', ['life_insurance_intake', 'student_loan_intake', 'service_intake'])
+    .in('status', ['draft', 'completed']).is('deleted_at', null)
+    .order('updated_at', { ascending: false }).order('id')
+    .range(page * 10, page * 10 + 10)
+  if (error || !Array.isArray(data)) throw new Error('Unable to load saved intakes.')
+  const items = data.slice(0, 10).map(row => {
+    const metrics = row.derived_metrics
+    const rawOrigin = metrics?.intake_origin
+    const service = CLIENT_INTAKE_SERVICES.find(s => s.id === (row.assessment_type === 'service_intake' ? metrics?.service_id : row.assessment_type))
+    if (!service || service.assessmentType !== row.assessment_type || !rawOrigin || !['member', 'contact', 'report_card'].includes(rawOrigin.kind)
+      || typeof rawOrigin.id !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rawOrigin.id)
+      || !['draft', 'completed'].includes(row.status) || typeof row.id !== 'string'
+      || typeof row.updated_at !== 'string' || !Number.isFinite(Date.parse(row.updated_at))) {
+      throw new Error('Unable to confirm saved intake details.')
+    }
+    const origin: IntakeOrigin = { householdId, kind: rawOrigin.kind, id: rawOrigin.id }
+    return { id: row.id, label: service.label, status: row.status as 'draft' | 'completed', updatedAt: row.updated_at, origin, href: service.path(origin) }
+  })
+  return { items, hasMore: data.length > 10 }
+}

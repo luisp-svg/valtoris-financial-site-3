@@ -2,7 +2,7 @@ import { createElement } from 'react'
 import { describe, expect, it } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { StaticRouter } from 'react-router-dom/server'
-import { extractReportCardSubmittedAnswers } from './submittedReportCardAnswers'
+import { extractReportCardSubmittedAnswers, formatSubmittedGoal } from './submittedReportCardAnswers'
 import { mapPublicFamilyDiagnosticDetail } from './diagnosticFormatters'
 import PublicFamilyDiagnosticDetailView from './PublicFamilyDiagnosticDetailView'
 import { INITIAL_DEMO_ANSWERS } from '../../../components/assessment/types'
@@ -65,4 +65,9 @@ describe('saved report card answers', () => {
       }
     }
   })
+})
+
+it('formats saved goal identifiers using their product wording and preserves unknown historical text', () => {
+  expect(formatSubmittedGoal('business', 'improve-cash-flow')).toBe('Improve cash flow & reserves')
+  expect(formatSubmittedGoal('business', 'Prior custom goal')).toBe('Prior custom goal')
 })

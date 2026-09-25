@@ -12,11 +12,12 @@ type Props = {
 export default function OperationalAlertsSection({ alerts, loading, error, onRetry }: Props) {
   return (
     <DashboardSection
-      title="Operational Alerts"
+      title="Today — what needs attention across the agency"
+      wide
       loading={loading}
       error={error}
       empty={!loading && !error && alerts.length === 0}
-      emptyMessage="No operational alerts right now."
+      emptyMessage="No agency alerts right now. Review incoming leads or use the client guide below to plan your next step."
       onRetry={onRetry}
     >
       <ul className="crm-owner-ops-alert-list">

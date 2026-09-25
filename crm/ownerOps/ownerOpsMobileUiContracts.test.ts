@@ -98,6 +98,6 @@ describe('Agency Operations mobile layout contracts', () => {
     expect(aggregate).toContain('countOpenLike')
     expect(aggregate).toContain('countStaleOpportunities')
     expect(snapshot).toContain('snapshot.monthTimeZone')
-    expect(snapshot).toContain('closed_at in agency month')
+    expect(snapshot).toContain('Open opportunities include those on hold')
   })
 })

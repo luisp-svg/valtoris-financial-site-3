@@ -53,7 +53,7 @@ export default function OnboardingEntryWidget({ householdId }: OnboardingEntryWi
           description={
             status.kind === 'error'
               ? 'Status could not be loaded. You can still open onboarding.'
-              : 'Capture household evidence for Household Financial Progress through a guided workflow.'
+              : 'Review the household’s finances to update its Financial Progress score. For a product or service intake, use Client intakes above.'
           }
           action={
             <Link to={href} className="crm-primary-btn">

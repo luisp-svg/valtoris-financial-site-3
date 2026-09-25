@@ -1,6 +1,6 @@
 import { describe,expect,it,vi } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { loadIntakeHubSources,loadIntakeHubStatus } from './intakeHubApi'
+import { loadHouseholdSavedIntakes,loadIntakeHubSources,loadIntakeHubStatus } from './intakeHubApi'
 function fake(results: {data: unknown;error: unknown}[]) {
   const calls: {table:string;filters:unknown[][]}[]=[]
   return {calls,client:{from:(table:string) => {
@@ -35,5 +35,35 @@ describe('household intake access',()=>{
     await loadIntakeHubSources(f.client,'h','report_card',0)
     expect(f.calls[0].filters).toContainEqual(['eq','status','completed'])
     expect(f.calls[0].filters).toContainEqual(['eq','capture_channel','public_self_report'])
+  })
+})
+
+const savedRow = {
+  id: 'saved', assessment_type: 'student_loan_intake', status: 'draft', updated_at: '2026-09-25T12:00:00Z',
+  derived_metrics: { intake_origin: { kind: 'report_card', id: '11111111-1111-4111-8111-111111111111' } },
+}
+describe('saved household intake discovery', () => {
+  it('finds drafts across origins without fetching answers and preserves the original route', async () => {
+    const f = fake([{ data: [savedRow], error: null }])
+    const result = await loadHouseholdSavedIntakes(f.client, 'household', 0)
+    expect(result.items[0].href).toBe('/crm/households/household/student-loan-intake?report=11111111-1111-4111-8111-111111111111')
+    expect(result.items[0].status).toBe('draft')
+    expect(f.calls[0].filters).toContainEqual(['eq', 'household_id', 'household'])
+    expect(f.calls[0].filters).toContainEqual(['eq', 'capture_channel', 'advisor_onboarding'])
+    expect(f.calls[0].filters).toContainEqual(['is', 'deleted_at', null])
+    expect(f.calls[0].filters.find(filter => filter[0] === 'select')?.[1]).not.toContain('answers')
+  })
+  it('paginates without hiding older records behind a fixed cap', async () => {
+    const f = fake([{ data: Array.from({ length: 11 }, (_, i) => ({ ...savedRow, id: String(i) })), error: null }])
+    const result = await loadHouseholdSavedIntakes(f.client, 'household', 2)
+    expect(result.items).toHaveLength(10)
+    expect(result.hasMore).toBe(true)
+    expect(f.calls[0].filters).toContainEqual(['range', 20, 30])
+  })
+  it('does not disguise failed reads or malformed sources as no saved work', async () => {
+    const failed = fake([{ data: null, error: { message: 'denied' } }])
+    await expect(loadHouseholdSavedIntakes(failed.client, 'household', 0)).rejects.toThrow()
+    const invalid = fake([{ data: [{ ...savedRow, derived_metrics: { intake_origin: { kind: 'report_card', id: '../wrong' } } }], error: null }])
+    await expect(loadHouseholdSavedIntakes(invalid.client, 'household', 0)).rejects.toThrow('Unable to confirm')
   })
 })

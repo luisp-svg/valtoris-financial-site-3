@@ -14,7 +14,6 @@ const CARDS: Array<{
   key: keyof AgencySnapshot
   label: string
   href: string
-  note?: string
 }> = [
   { key: 'activeHouseholds', label: 'Active households', href: ROUTES.crmHouseholds },
   {
@@ -26,13 +25,11 @@ const CARDS: Array<{
     key: 'wonThisMonth',
     label: 'Won this month',
     href: `${ROUTES.crmPipeline}?status=won`,
-    note: 'closed_at in agency month',
   },
   {
     key: 'lostThisMonth',
     label: 'Lost this month',
     href: `${ROUTES.crmPipeline}?status=lost`,
-    note: 'closed_at in agency month',
   },
   { key: 'tasksDueToday', label: 'Tasks due today', href: ROUTES.crmTasks },
   { key: 'overdueTasks', label: 'Overdue tasks', href: ROUTES.crmTasks },
@@ -60,7 +57,7 @@ export default function AgencySnapshotSection({ snapshot, loading, error, onRetr
     >
       <p className="crm-dashboard-footnote">
         Won/lost this month use {snapshot.monthTimeZone} ({snapshot.monthKey}). Due dates use your
-        local calendar day. Open includes on_hold. Reopened deals clear closed_at.
+        local calendar day. Open opportunities include those on hold. Reopened opportunities are no longer counted as closed.
       </p>
       <div className="crm-owner-ops-metric-grid">
         {CARDS.map((card) => {

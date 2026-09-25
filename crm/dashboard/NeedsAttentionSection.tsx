@@ -20,13 +20,13 @@ export default function NeedsAttentionSection({
 }: Props) {
   return (
     <DashboardSection
-      title="Needs Attention"
+      title="Today — what needs attention"
       wide
       loading={loading}
       error={error}
       warning={warning}
       empty={!loading && !error && items.length === 0}
-      emptyMessage="You’re clear — nothing needs attention right now."
+      emptyMessage="No urgent items found in the work you can access. Use the client guide below to plan your next step."
       onRetry={onRetry}
       className="crm-dashboard-needs-attention"
     >

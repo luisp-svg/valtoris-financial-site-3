@@ -4,6 +4,7 @@ import { useCrmAuth } from '../../crm/auth/CrmAuthContext'
 import MetricStrip from '../../crm/dashboard/MetricStrip'
 import NeedsAttentionSection from '../../crm/dashboard/NeedsAttentionSection'
 import PipelineSnapshotSection from '../../crm/dashboard/PipelineSnapshotSection'
+import ClientWorkflowGuide from '../../crm/dashboard/ClientWorkflowGuide'
 import QuickActions from '../../crm/dashboard/QuickActions'
 import RecentActivitySection from '../../crm/dashboard/RecentActivitySection'
 import RecentHouseholdsSection from '../../crm/dashboard/RecentHouseholdsSection'
@@ -61,6 +62,8 @@ function AdvisorCommandCenter() {
           warning={attentionWarning}
           onRetry={reload}
         />
+
+        <ClientWorkflowGuide />
 
         <MetricStrip
           counts={data.statusCounts.value}

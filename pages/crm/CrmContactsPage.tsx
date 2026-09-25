@@ -73,9 +73,9 @@ export default function CrmContactsPage() {
       <header className="crm-page-header">
         <div>
           <p className="crm-page-eyebrow">Contacts</p>
-          <h1 className="crm-page-title">Networking contacts</h1>
+          <h1 className="crm-page-title">Contacts and partners</h1>
           <p className="crm-page-subtitle">
-            Manually added people and partners — separate from Intake and Households.
+            People and partners you have added. For submitted report cards, open Incoming Leads. For client reports, intakes, and tasks, open Households.
           </p>
         </div>
         <Link to={crmContactNewPath()} className="crm-primary-btn">
@@ -86,9 +86,8 @@ export default function CrmContactsPage() {
 
       {fetchCapped ? (
         <div className="crm-banner crm-banner-warning" role="status">
-          Showing the newest {CONTACTS_FETCH_CAP} contacts loaded for search and filters. Narrow
-          your search if a contact is missing. Pagination here is client-side over that loaded set,
-          not a server page of {CONTACTS_PAGE_SIZE}.
+          Search currently covers only the newest {CONTACTS_FETCH_CAP} contacts. Older contacts may
+          not appear here. Try the Households directory for an existing client; avoid adding a duplicate.
         </div>
       ) : null}
 

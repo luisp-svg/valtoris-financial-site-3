@@ -12,6 +12,8 @@ export default function QuickActions({ onNewOpportunity }: Props) {
         <h2>Quick Actions</h2>
       </div>
       <div className="crm-dashboard-quick-action-row">
+        <Link to={ROUTES.crmHouseholds} className="crm-secondary-btn">Find a client</Link>
+        <Link to={ROUTES.crmIntake} className="crm-secondary-btn">Review incoming leads</Link>
         <Link to="/crm/client-intakes/new" className="crm-primary-btn">Start client intake</Link>
         <button type="button" className="crm-primary-btn" onClick={onNewOpportunity}>
           New Opportunity

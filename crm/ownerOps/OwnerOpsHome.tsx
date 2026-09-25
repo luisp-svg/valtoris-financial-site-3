@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useCrmAuth } from '../auth/CrmAuthContext'
+import ClientWorkflowGuide from '../dashboard/ClientWorkflowGuide'
 import QuickActions from '../dashboard/QuickActions'
 import RecentActivitySection from '../dashboard/RecentActivitySection'
 import OpportunityFormDialog from '../opportunities/OpportunityFormDialog'
@@ -43,6 +44,15 @@ export default function OwnerOpsHome() {
       <div className="crm-dashboard-layout">
         <QuickActions onNewOpportunity={() => setShowCreateOpportunity(true)} />
 
+        <OperationalAlertsSection
+          alerts={data.alerts.value}
+          loading={loading}
+          error={data.alerts.ok ? null : 'Unable to load operational alerts.'}
+          onRetry={reload}
+        />
+
+        <ClientWorkflowGuide />
+
         <AgencySnapshotSection
           snapshot={data.snapshot.value}
           loading={loading}
@@ -56,13 +66,6 @@ export default function OwnerOpsHome() {
             snapshot={data.snapshot.value}
             loading={loading}
             error={data.stageHealth.ok ? null : 'Unable to load pipeline health.'}
-            onRetry={reload}
-          />
-
-          <OperationalAlertsSection
-            alerts={data.alerts.value}
-            loading={loading}
-            error={data.alerts.ok ? null : 'Unable to load operational alerts.'}
             onRetry={reload}
           />
         </div>

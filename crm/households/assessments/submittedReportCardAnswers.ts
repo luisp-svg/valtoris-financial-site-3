@@ -71,3 +71,9 @@ export function extractReportCardSubmittedAnswers(type: string, answers: unknown
   }
   return rows
 }
+
+/** Reuse the questionnaire wording; unknown historic goals remain unchanged. */
+export function formatSubmittedGoal(type: string, value: string): string {
+  const answers = catalogs[type]?.copy.en?.answers
+  return answers?.[`goals.${value}`] ?? answers?.[value] ?? value
+}

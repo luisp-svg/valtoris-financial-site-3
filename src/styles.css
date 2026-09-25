@@ -14307,3 +14307,14 @@ button.public-card-diagnostic:disabled {
   .home-buyer-affordability dl { grid-template-columns: minmax(0, 1fr); gap: 4px; }
   .home-buyer-affordability dd { margin-bottom: 12px; }
 }
+
+/* Client workflow guidance: readable steps and saved-intake navigation. */
+.crm-client-workflow { padding-left: 1.5rem; line-height: 1.6; }
+.crm-client-workflow li + li { margin-top: .75rem; }
+.crm-client-workflow a, .crm-saved-intakes a { text-decoration: underline; text-underline-offset: .15em; }
+.crm-saved-intakes { margin: 1rem 0; padding: 1rem; border: 1px solid var(--crm-border, #d5dce7); border-radius: .75rem; }
+.crm-saved-intakes ul { padding-left: 1.25rem; }
+.crm-saved-intakes li + li { margin-top: .75rem; }
+
+.crm-dashboard-quick-action-row a.crm-primary-btn,
+.crm-dashboard-quick-action-row a.crm-secondary-btn { display: inline-flex; align-items: center; justify-content: center; }
