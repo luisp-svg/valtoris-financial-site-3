@@ -172,17 +172,18 @@ export async function createTask(
 export async function fetchHouseholdOptions(
   supabase: SupabaseClient,
 ): Promise<HouseholdOption[]> {
-  // households.display_name is the canonical label column.
-  const { data, error } = await supabase
-    .from('households')
-    .select('id, display_name')
-    .is('deleted_at', null)
-    .is('merged_into_household_id', null)
-    .order('display_name', { ascending: true })
-    .limit(200)
-
-  if (error) throw error
-  return (data ?? []) as HouseholdOption[]
+  const rows: HouseholdOption[] = []
+  const pageSize = 200
+  for (let offset = 0; ; offset += pageSize) {
+    const { data, error } = await supabase.from('households')
+      .select('id, display_name').is('deleted_at', null).is('merged_into_household_id', null)
+      .order('display_name', { ascending: true }).order('id', { ascending: true })
+      .range(offset, offset + pageSize - 1)
+    if (error) throw error
+    const page = (data ?? []) as HouseholdOption[]
+    rows.push(...page)
+    if (page.length < pageSize) return rows
+  }
 }
 
 export async function fetchLeadOptions(supabase: SupabaseClient): Promise<LeadOption[]> {
