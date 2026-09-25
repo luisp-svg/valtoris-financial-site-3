@@ -5,6 +5,9 @@ export type IntakeField = {
   kind?: 'text' | 'email' | 'date' | 'money' | 'number' | 'multiline' | 'select'
   options?: readonly string[]
   required?: boolean
+  min?: number
+  max?: number
+  integer?: boolean
 }
 export type IntakeSection = {
   id: string
@@ -71,17 +74,20 @@ export function visibleIntakeSections(answers: IntakeAnswers) {
   return STUDENT_LOAN_INTAKE_SECTIONS.filter(s => !s.track || answers.tracks.includes(s.track))
 }
 export function validateStudentLoanIntake(raw: unknown, complete = false): string[] {
+  return validateIntakeStructure(raw, STUDENT_LOAN_INTAKE_SECTIONS, STUDENT_LOAN_TRACKS, complete, ['loans', 'employment', 'schools'])
+}
+export function validateIntakeStructure(raw: unknown, sections: readonly IntakeSection[], tracks: readonly string[], complete = false, requiredRows: readonly string[] = []): string[] {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return ['Invalid intake.']
   const a = raw as IntakeAnswers
-  if (a.version !== 1 || Object.keys(a).some(k => !['version', 'tracks', 'sections'].includes(k)) || !Array.isArray(a.tracks) || a.tracks.some(t => !STUDENT_LOAN_TRACKS.includes(t as typeof STUDENT_LOAN_TRACKS[number])) || new Set(a.tracks).size !== a.tracks.length || !a.sections || typeof a.sections !== 'object' || Array.isArray(a.sections)) return ['Invalid intake structure.']
+  if (a.version !== 1 || Object.keys(a).some(k => !['version', 'tracks', 'sections'].includes(k)) || !Array.isArray(a.tracks) || a.tracks.some(t => !tracks.includes(t)) || new Set(a.tracks).size !== a.tracks.length || !a.sections || typeof a.sections !== 'object' || Array.isArray(a.sections)) return ['Invalid intake structure.']
   const errors: string[] = []
   if (complete && !a.tracks.length) errors.push('Choose at least one review track.')
-  if (Object.keys(a.sections).some(k => !STUDENT_LOAN_INTAKE_SECTIONS.some(s => s.id === k))) errors.push('Unknown section.')
-  for (const s of STUDENT_LOAN_INTAKE_SECTIONS) {
+  if (Object.keys(a.sections).some(k => !sections.some(s => s.id === k))) errors.push('Unknown section.')
+  for (const s of sections) {
     const rows = a.sections[s.id]
     if (!Array.isArray(rows) || rows.length > 50 || (!s.repeatable && rows.length !== 1)) { errors.push(`${s.title}: invalid records.`); continue }
     const active = !s.track || a.tracks.includes(s.track)
-    if (complete && active && ['loans', 'employment', 'schools'].includes(s.id) && !rows.length) errors.push(`${s.title}: add at least one record.`)
+    if (complete && active && requiredRows.includes(s.id) && !rows.length) errors.push(`${s.title}: add at least one record.`)
     for (const [i, row] of rows.entries()) {
       if (!row || typeof row !== 'object' || Array.isArray(row) || Object.keys(row).some(k => !s.fields.some(f => f.id === k))) { errors.push(`${s.title}: invalid fields.`); continue }
       for (const f of s.fields) {
@@ -93,6 +99,7 @@ export function validateStudentLoanIntake(raw: unknown, complete = false): strin
         if (f.kind === 'select' && !f.options?.includes(v)) errors.push(`${label}: choose a listed option.`)
         if (f.kind === 'money' && (!/^(0|[1-9]\d*)(\.\d{1,2})?$/.test(v) || Number(v) > 100_000_000)) errors.push(`${label}: enter a nonnegative amount, without commas.`)
         if (f.kind === 'number' && (!/^\d+(\.\d{1,2})?$/.test(v) || Number(v) > 1_000_000)) errors.push(`${label}: enter a valid number.`)
+        if ((f.kind === 'number' || f.kind === 'money') && ((f.min !== undefined && Number(v) < f.min) || (f.max !== undefined && Number(v) > f.max) || (f.integer && !Number.isInteger(Number(v))))) errors.push(`${label}: outside the allowed range.`)
         if (f.kind === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) errors.push(`${label}: enter a valid email.`)
         if (f.kind === 'date' && (!/^\d{4}-\d{2}-\d{2}$/.test(v) || !Number.isFinite(Date.parse(v)) || new Date(v).toISOString().slice(0,10) !== v)) errors.push(`${label}: enter a valid date.`)
       }

@@ -20,15 +20,24 @@ export function parseIntakeOrigin(householdId: string, search: URLSearchParams):
   return { householdId, kind: contact ? 'contact' : 'report_card', id: contact || report! }
 }
 export function studentLoanIntakePath(origin: IntakeOrigin): string {
-  return `/crm/households/${encodeURIComponent(origin.householdId)}/student-loan-intake?${origin.kind === 'contact' ? 'contact' : 'report'}=${encodeURIComponent(origin.id)}`
+  return clientIntakePath(origin, 'student-loan-intake')
+}
+export function lifeInsuranceIntakePath(origin: IntakeOrigin): string {
+  return clientIntakePath(origin, 'life-insurance-intake')
+}
+function clientIntakePath(origin: IntakeOrigin, route: string): string {
+  return `/crm/households/${encodeURIComponent(origin.householdId)}/${route}?${origin.kind === 'contact' ? 'contact' : 'report'}=${encodeURIComponent(origin.id)}`
 }
 /** All reads use the signed-in CRM client and existing RLS. A URL alone cannot create a client. */
 export async function loadStudentLoanIntakeSource(client: SupabaseClient, origin: IntakeOrigin): Promise<IntakeSource> {
+  return loadClientIntakeSource(client, origin, emptyStudentLoanIntake)
+}
+export async function loadClientIntakeSource(client: SupabaseClient, origin: IntakeOrigin, empty: () => IntakeAnswers): Promise<IntakeSource> {
   const unavailable = () => new Error('Open this intake from an available contact or completed report card for this household.')
   const { data: household, error } = await client.from('households')
     .select('id, state').eq('id', origin.householdId).is('deleted_at', null).is('merged_into_household_id', null).maybeSingle()
   if (error || !household) throw unavailable()
-  const answers = emptyStudentLoanIntake()
+  const answers = empty()
   const core = answers.sections.client[0]
   core.state = typeof household.state === 'string' ? household.state : ''
   if (origin.kind === 'contact') {

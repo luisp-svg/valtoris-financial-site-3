@@ -6,7 +6,7 @@ import { fetchManualContactDetail } from '../../crm/contacts/contactsApi'
 import type { ContactDetail, ContactFormValues } from '../../crm/contacts/types'
 import { createSupabaseBrowserClient } from '../../lib/supabase/client'
 import { ROUTES } from '../../constants/routes'
-import { studentLoanIntakePath } from '../../crm/serviceIntakes/intakeSource'
+import { lifeInsuranceIntakePath, studentLoanIntakePath } from '../../crm/serviceIntakes/intakeSource'
 
 export default function CrmContactDetailPage() {
   const { leadId = '' } = useParams<{ leadId: string }>()
@@ -114,6 +114,8 @@ export default function CrmContactDetailPage() {
           <section className="crm-panel">
             <h2 className="crm-panel-title">Client intakes</h2>
             <Link className="crm-secondary-btn" to={studentLoanIntakePath({ kind: 'contact', id: detail.leadId, householdId: detail.householdId })}>Student Loan intake</Link>
+            {' '}
+            <Link className="crm-secondary-btn" to={lifeInsuranceIntakePath({ kind: 'contact', id: detail.leadId, householdId: detail.householdId })}>Life Insurance intake</Link>
           </section>
           <section className="crm-panel">
             <h2 className="crm-panel-title">Person</h2>

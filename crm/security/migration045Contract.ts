@@ -110,4 +110,7 @@ export const EXPECTED_NUMBERED_MIGRATIONS = [
   '059_student_loan_intake_contract.sql',
   '060_student_loan_intake_persistence.sql',
   '061_student_loan_intake_revision.sql',
+  '062_life_insurance_intake_type.sql',
+  '063_life_insurance_intake_contract.sql',
+  '064_life_insurance_intake_persistence.sql',
 ] as const

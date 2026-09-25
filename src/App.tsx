@@ -57,6 +57,7 @@ import CrmContactsPage from '../pages/crm/CrmContactsPage'
 import CrmContactNewPage from '../pages/crm/CrmContactNewPage'
 import CrmContactDetailPage from '../pages/crm/CrmContactDetailPage'
 import CrmStudentLoanIntakePage from '../pages/crm/CrmStudentLoanIntakePage'
+import CrmLifeInsuranceIntakePage from '../pages/crm/CrmLifeInsuranceIntakePage'
 import CrmPlaceholderPage from '../pages/crm/CrmPlaceholderPage'
 import CrmTasksPage from '../pages/crm/CrmTasksPage'
 import CrmCampaignsPage from '../pages/crm/CrmCampaignsPage'
@@ -284,6 +285,7 @@ export default function App() {
           <Route path="leads" element={<Navigate to={ROUTES.crmIntake} replace />} />
           <Route path="households" element={<CrmHouseholdsPage />} />
           <Route path="households/:householdId/student-loan-intake" element={<CrmStudentLoanIntakePage />} />
+          <Route path="households/:householdId/life-insurance-intake" element={<CrmLifeInsuranceIntakePage />} />
           <Route
             path="households/:householdId/onboarding"
             element={<CrmHouseholdOnboardingPage />}

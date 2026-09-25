@@ -42,7 +42,7 @@ describe('migration 049 public report-card follow-up copy specialization', () =>
     expect(MIGRATION_049_FILENAME).toBe('049_specialize_public_report_card_follow_up_copy.sql')
     const files = numberedMigrations()
     expect(files).toEqual([...EXPECTED_NUMBERED_MIGRATIONS])
-    expect(files).toHaveLength(61)
+    expect(files).toHaveLength(64)
     expect(files[0]).toBe('001_extensions_and_enums.sql')
     expect(files[44]).toBe(MIGRATION_045_FILENAME)
     expect(files[45]).toBe(MIGRATION_046_FILENAME)
