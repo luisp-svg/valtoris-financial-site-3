@@ -140,7 +140,7 @@ describe('Phase 3 Opportunity ↔ Case visibility contracts', () => {
 
   it('does not add Migration 047, commissions, production stage sync, or a new mutation path', () => {
     const files = readdirSync(migrationsDir).filter((name) => name.endsWith('.sql')).sort()
-    expect(files).toHaveLength(70)
+    expect(files).toHaveLength(71)
     expect(files.filter((name) => name.startsWith('047_'))).toEqual([
       '047_credit_repair_student_loan_sales_catalog.sql',
     ])

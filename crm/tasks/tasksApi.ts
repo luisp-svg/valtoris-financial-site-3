@@ -27,6 +27,7 @@ const TASK_SELECT = `
   workflow_type,
   automation_idempotency_key,
   metadata,
+  updated_at,
   created_at,
   completed_at,
   deleted_at,
@@ -73,16 +74,17 @@ function normalizeTask(row: Record<string, unknown>): CrmTask {
 
 export async function fetchVisibleTasks(
   supabase: SupabaseClient,
-  options?: { dueOn?: string; assignedUserId?: string; limit?: number },
+  options?: { dueOn?: string; assignedUserId?: string; limit?: number; completed?: boolean; householdId?: string },
 ): Promise<CrmTask[]> {
   let query = supabase
     .from('tasks')
     .select(TASK_SELECT)
     .is('deleted_at', null)
-    .in('status', ['open', 'in_progress'])
+    .in('status', options?.completed ? ['done'] : ['open', 'in_progress'])
     .order('due_date', { ascending: true, nullsFirst: false })
     .order('created_at', { ascending: false })
 
+  if (options?.householdId) query = query.eq('household_id', options.householdId)
   if (options?.dueOn) {
     query = query.eq('due_date', options.dueOn)
   }
@@ -170,17 +172,18 @@ export async function createTask(
 export async function fetchHouseholdOptions(
   supabase: SupabaseClient,
 ): Promise<HouseholdOption[]> {
-  // households.display_name is the canonical label column.
-  const { data, error } = await supabase
-    .from('households')
-    .select('id, display_name')
-    .is('deleted_at', null)
-    .is('merged_into_household_id', null)
-    .order('display_name', { ascending: true })
-    .limit(200)
-
-  if (error) throw error
-  return (data ?? []) as HouseholdOption[]
+  const rows: HouseholdOption[] = []
+  const pageSize = 200
+  for (let offset = 0; ; offset += pageSize) {
+    const { data, error } = await supabase.from('households')
+      .select('id, display_name').is('deleted_at', null).is('merged_into_household_id', null)
+      .order('display_name', { ascending: true }).order('id', { ascending: true })
+      .range(offset, offset + pageSize - 1)
+    if (error) throw error
+    const page = (data ?? []) as HouseholdOption[]
+    rows.push(...page)
+    if (page.length < pageSize) return rows
+  }
 }
 
 export async function fetchLeadOptions(supabase: SupabaseClient): Promise<LeadOption[]> {

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react'
+import TaskActions from '../../crm/tasks/TaskActions'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useCrmAuth } from '../../crm/auth/CrmAuthContext'
 import {
@@ -71,11 +72,11 @@ export default function CrmTasksPage() {
   const [opportunityWarning, setOpportunityWarning] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
-  async function loadTasks() {
+  const loadTasks = useCallback(async () => {
     const supabase = createSupabaseBrowserClient()
-    const rows = await fetchVisibleTasks(supabase)
+    const rows = await fetchVisibleTasks(supabase, { completed: searchParams.get('view') === 'completed', householdId: searchParams.get('household') || undefined })
     setTasks(rows)
-  }
+  }, [searchParams])
 
   const loadFormOptions = useCallback(async () => {
     if (!profile || !role) return
@@ -155,7 +156,7 @@ export default function CrmTasksPage() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [loadTasks])
 
   useEffect(() => {
     if (!showForm) return
@@ -515,9 +516,10 @@ export default function CrmTasksPage() {
         </section>
       ) : null}
 
+      <nav aria-label="Task views"><Link to="/crm/tasks">Open tasks</Link>{' · '}<Link to="/crm/tasks?view=completed">Completed tasks</Link></nav>
       <section className="crm-panel">
         <div className="crm-panel-head">
-          <h2>Open tasks</h2>
+          <h2>{searchParams.get('view') === 'completed' ? 'Completed tasks' : 'Open tasks'}</h2>
           <span className="crm-count-pill">{loading ? '…' : `${tasks.length}`}</span>
         </div>
 
@@ -525,7 +527,7 @@ export default function CrmTasksPage() {
 
         {!loading && !error && tasks.length === 0 ? (
           <div className="crm-empty-state">
-            <p>No open tasks yet.</p>
+            <p>No tasks in this view.</p>
             <button type="button" className="crm-primary-btn" onClick={openForm}>
               Add your first task
             </button>
@@ -538,6 +540,7 @@ export default function CrmTasksPage() {
               <li key={task.id} className="crm-task-row">
                 <div className="crm-task-row-main">
                   <p className="crm-task-title">{task.title}</p>
+                  <TaskActions task={task} onChanged={loadTasks} initiallyOpen={searchParams.get('task') === task.id} />
                   <Link className="crm-text-btn" to={`/crm/households/${task.household_id}${task.assessment_id ? `/assessments/${task.assessment_id}` : '?tab=tasks'}`}>
                     {task.assessment_id ? 'Review report card' : 'Open household tasks'}
                   </Link>

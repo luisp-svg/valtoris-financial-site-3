@@ -18,6 +18,7 @@ export type CrmTask = {
   workflow_type?: string | null
   automation_idempotency_key?: string | null
   metadata?: Record<string, unknown>
+  updated_at?: string
   created_at: string
   completed_at: string | null
   deleted_at: string | null
