@@ -46,7 +46,8 @@ export type LoadOwnDigitalCardResult =
   | { ok: false; message: string }
 
 const CARD_SELECT = 'id, public_key, slug, status, deleted_at, publish_profile'
-const IDENTITY_SELECT = 'id, display_name, slug, email, phone, photo_url, calendly_url, user_id'
+const IDENTITY_SELECT =
+  'id, display_name, slug, email, phone, photo_url, calendly_url, user_id'
 
 function asRecord(value: unknown): Record<string, unknown> {
   if (value && typeof value === 'object' && !Array.isArray(value)) {
@@ -57,15 +58,26 @@ function asRecord(value: unknown): Record<string, unknown> {
 
 function mapIdentity(row: Record<string, unknown>): OwnAdvisorIdentity | null {
   if (typeof row.id !== 'string' || !row.id) return null
-  if (typeof row.display_name !== 'string' || !row.display_name.trim()) return null
-  if (typeof row.slug !== 'string' || !isValidIdentitySlug(row.slug)) return null
+  if (typeof row.display_name !== 'string' || !row.display_name.trim())
+    return null
+  if (typeof row.slug !== 'string' || !isValidIdentitySlug(row.slug))
+    return null
   return {
     id: row.id,
     displayName: row.display_name.trim(),
     slug: row.slug,
-    email: typeof row.email === 'string' && row.email.trim() ? row.email.trim() : null,
-    phone: typeof row.phone === 'string' && row.phone.trim() ? row.phone.trim() : null,
-    photoUrl: typeof row.photo_url === 'string' && row.photo_url.trim() ? row.photo_url.trim() : null,
+    email:
+      typeof row.email === 'string' && row.email.trim()
+        ? row.email.trim()
+        : null,
+    phone:
+      typeof row.phone === 'string' && row.phone.trim()
+        ? row.phone.trim()
+        : null,
+    photoUrl:
+      typeof row.photo_url === 'string' && row.photo_url.trim()
+        ? row.photo_url.trim()
+        : null,
     calendlyUrl:
       typeof row.calendly_url === 'string' && row.calendly_url.trim()
         ? row.calendly_url.trim()
@@ -78,10 +90,16 @@ function mapCard(
   displayName: string,
 ): OwnDigitalCard | null {
   if (typeof row.id !== 'string' || !row.id) return null
-  if (typeof row.public_key !== 'string' || !isValidIdentityPublicKey(row.public_key)) return null
-  if (typeof row.slug !== 'string' || !isValidIdentitySlug(row.slug)) return null
+  if (
+    typeof row.public_key !== 'string' ||
+    !isValidIdentityPublicKey(row.public_key)
+  )
+    return null
+  if (typeof row.slug !== 'string' || !isValidIdentitySlug(row.slug))
+    return null
   const status = row.status
-  if (status !== 'draft' && status !== 'published' && status !== 'disabled') return null
+  if (status !== 'draft' && status !== 'published' && status !== 'disabled')
+    return null
   if (row.deleted_at) return null
   return {
     id: row.id,
@@ -122,26 +140,35 @@ export async function updateOwnAdvisorPublicProfile(
   supabase: SupabaseClient,
   userId: string,
   input: UpdateOwnAdvisorPublicProfileInput,
-): Promise<{ ok: true; identity: OwnAdvisorIdentity } | { ok: false; message: string }> {
+): Promise<
+  { ok: true; identity: OwnAdvisorIdentity } | { ok: false; message: string }
+> {
   const loaded = await loadOwnDigitalCard(supabase, userId)
   if (!loaded.ok) return loaded
   if (!loaded.identity) {
     return {
       ok: false,
-      message: 'An advisor identity is required before public profile fields can be updated.',
+      message:
+        'An advisor identity is required before public profile fields can be updated.',
     }
   }
 
   const phoneRaw = typeof input.phone === 'string' ? input.phone.trim() : ''
-  const photoRaw = typeof input.photoUrl === 'string' ? input.photoUrl.trim() : ''
+  const photoRaw =
+    typeof input.photoUrl === 'string' ? input.photoUrl.trim() : ''
 
   if (phoneRaw && !isUsablePublicPhone(phoneRaw)) {
-    return { ok: false, message: 'Enter a valid phone number including area code, or leave it blank.' }
+    return {
+      ok: false,
+      message:
+        'Enter a valid phone number including area code, or leave it blank.',
+    }
   }
   if (photoRaw && !normalizePublicHref(photoRaw)) {
     return {
       ok: false,
-      message: 'Photo must be an https URL or a site-relative path. javascript: and other schemes are not allowed.',
+      message:
+        'Photo must be an https URL or a site-relative path. javascript: and other schemes are not allowed.',
     }
   }
 
@@ -157,9 +184,11 @@ export async function updateOwnAdvisorPublicProfile(
     .select(IDENTITY_SELECT)
     .single()
 
-  if (error || !data) return { ok: false, message: 'Unable to update public profile.' }
+  if (error || !data)
+    return { ok: false, message: 'Unable to update public profile.' }
   const identity = mapIdentity(asRecord(data))
-  if (!identity) return { ok: false, message: 'Unable to update public profile.' }
+  if (!identity)
+    return { ok: false, message: 'Unable to update public profile.' }
   return { ok: true, identity }
 }
 
@@ -185,11 +214,13 @@ export async function updateOwnAdvisorPublicLinks(
   if (!loaded.identity) {
     return {
       ok: false,
-      message: 'An advisor identity is required before public links can be updated.',
+      message:
+        'An advisor identity is required before public links can be updated.',
     }
   }
 
-  const calendlyRaw = typeof input.calendlyUrl === 'string' ? input.calendlyUrl.trim() : ''
+  const calendlyRaw =
+    typeof input.calendlyUrl === 'string' ? input.calendlyUrl.trim() : ''
   let calendlyUrl: string | null = null
   if (calendlyRaw) {
     calendlyUrl = normalizePublicHttpsUrl(calendlyRaw)
@@ -207,7 +238,8 @@ export async function updateOwnAdvisorPublicLinks(
   if (!loaded.card && socials.links.length > 0) {
     return {
       ok: false,
-      message: 'Create and publish your digital card before saving social links.',
+      message:
+        'Create and publish your digital card before saving social links.',
     }
   }
 
@@ -224,7 +256,8 @@ export async function updateOwnAdvisorPublicLinks(
     return { ok: false, message: 'Unable to update public booking URL.' }
   }
   const identity = mapIdentity(asRecord(identityRow))
-  if (!identity) return { ok: false, message: 'Unable to update public booking URL.' }
+  if (!identity)
+    return { ok: false, message: 'Unable to update public booking URL.' }
 
   if (!loaded.card) return { ok: true, identity, card: null }
 
@@ -236,13 +269,17 @@ export async function updateOwnAdvisorPublicLinks(
     .is('deleted_at', null)
     .maybeSingle()
 
-  if (currentError || !currentRow) return { ok: false, message: 'Unable to update social links.' }
+  if (currentError || !currentRow)
+    return { ok: false, message: 'Unable to update social links.' }
   const current = asRecord(currentRow)
   if (current.public_key !== loaded.card.publicKey) {
     return { ok: false, message: 'Unable to update social links.' }
   }
 
-  const publishProfile = mergePublishProfileSocialLinks(current.publish_profile, socials.links)
+  const publishProfile = mergePublishProfileSocialLinks(
+    current.publish_profile,
+    socials.links,
+  )
   const { data: cardRow, error: cardError } = await supabase
     .from('digital_cards')
     .update({ publish_profile: publishProfile })
@@ -251,7 +288,8 @@ export async function updateOwnAdvisorPublicLinks(
     .select(CARD_SELECT)
     .single()
 
-  if (cardError || !cardRow) return { ok: false, message: 'Unable to update social links.' }
+  if (cardError || !cardRow)
+    return { ok: false, message: 'Unable to update social links.' }
   const card = mapCard(asRecord(cardRow), identity.displayName)
   if (!card) return { ok: false, message: 'Unable to update social links.' }
   if (card.publicKey !== loaded.card.publicKey) {
@@ -264,7 +302,8 @@ export async function loadOwnDigitalCard(
   supabase: SupabaseClient,
   userId: string,
 ): Promise<LoadOwnDigitalCardResult> {
-  if (!userId.trim()) return { ok: false, message: 'Unable to load digital card.' }
+  if (!userId.trim())
+    return { ok: false, message: 'Unable to load digital card.' }
 
   const { data: identityRow, error: identityError } = await supabase
     .from('advisor_profiles')
@@ -274,11 +313,13 @@ export async function loadOwnDigitalCard(
     .is('deleted_at', null)
     .maybeSingle()
 
-  if (identityError) return { ok: false, message: 'Unable to load advisor identity.' }
+  if (identityError)
+    return { ok: false, message: 'Unable to load advisor identity.' }
   if (!identityRow) return { ok: true, identity: null, card: null }
 
   const identity = mapIdentity(asRecord(identityRow))
-  if (!identity) return { ok: false, message: 'Unable to load advisor identity.' }
+  if (!identity)
+    return { ok: false, message: 'Unable to load advisor identity.' }
 
   const { data: cardRow, error: cardError } = await supabase
     .from('digital_cards')
@@ -299,20 +340,24 @@ export async function publishOwnDigitalCard(
   supabase: SupabaseClient,
   userId: string,
   nowIso: string = new Date().toISOString(),
-): Promise<{ ok: true; card: OwnDigitalCard } | { ok: false; message: string }> {
+): Promise<
+  { ok: true; card: OwnDigitalCard } | { ok: false; message: string }
+> {
   const loaded = await loadOwnDigitalCard(supabase, userId)
   if (!loaded.ok) return loaded
   if (!loaded.identity) {
     return {
       ok: false,
-      message: 'An advisor identity is required before a digital card can be published.',
+      message:
+        'An advisor identity is required before a digital card can be published.',
     }
   }
 
   const identity = loaded.identity
 
   if (loaded.card) {
-    if (loaded.card.status === 'published') return { ok: true, card: loaded.card }
+    if (loaded.card.status === 'published')
+      return { ok: true, card: loaded.card }
 
     const { data, error } = await supabase
       .from('digital_cards')
@@ -323,10 +368,12 @@ export async function publishOwnDigitalCard(
       })
       .eq('id', loaded.card.id)
       .eq('advisor_profile_id', identity.id)
+      .is('deleted_at', null)
       .select(CARD_SELECT)
       .single()
 
-    if (error || !data) return { ok: false, message: 'Unable to publish digital card.' }
+    if (error || !data)
+      return { ok: false, message: 'Unable to publish digital card.' }
     const card = mapCard(asRecord(data), identity.displayName)
     if (!card) return { ok: false, message: 'Unable to publish digital card.' }
     return { ok: true, card }
@@ -342,15 +389,30 @@ export async function publishOwnDigitalCard(
       status: 'published',
       theme_key: 'default',
       publish_profile: defaultCardPublishProfile(),
-      cta_config: createDefaultAdvisorCardCtas({ calendlyUrl: identity.calendlyUrl }),
+      cta_config: createDefaultAdvisorCardCtas({
+        calendlyUrl: identity.calendlyUrl,
+      }),
       published_at: nowIso,
     })
     .select(CARD_SELECT)
     .single()
 
   if (error) {
-    if (/unique|duplicate/i.test(error.message)) {
-      return { ok: false, message: 'A digital card already exists for this advisor.' }
+    if (error.code === '23505' || /unique|duplicate/i.test(error.message)) {
+      // Another tab may have won creation. Reuse its permanent key; never rotate it.
+      const winner = await loadOwnDigitalCard(supabase, userId)
+      if (
+        winner.ok &&
+        winner.identity?.id === identity.id &&
+        winner.card?.status === 'published'
+      ) {
+        return { ok: true, card: winner.card }
+      }
+      return {
+        ok: false,
+        message:
+          'A card already exists. Refresh to review it before publishing; its QR link will stay unchanged.',
+      }
     }
     return { ok: false, message: 'Unable to publish digital card.' }
   }

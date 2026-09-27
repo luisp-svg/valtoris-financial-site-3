@@ -180,7 +180,9 @@ describe('cardsApi', () => {
     const result = await loadOwnDigitalCard(supabase, 'user-1')
     expect(result.ok).toBe(true)
     if (!result.ok || !result.card) return
-    expect(result.card.cardPath).toBe(buildPublicCardPath('pk_live_abcdefghijklmnop'))
+    expect(result.card.cardPath).toBe(
+      buildPublicCardPath('pk_live_abcdefghijklmnop'),
+    )
     expect(result.card.cardPath).toBe('/c/k/pk_live_abcdefghijklmnop')
     expect(result.card.cardPath).not.toContain('luis-dev')
     expect(result.card).not.toHaveProperty('advisorProfileId')
@@ -260,7 +262,11 @@ describe('cardsApi', () => {
       }),
     })
 
-    const result = await publishOwnDigitalCard(supabase, 'user-1', '2026-08-19T00:00:00.000Z')
+    const result = await publishOwnDigitalCard(
+      supabase,
+      'user-1',
+      '2026-08-19T00:00:00.000Z',
+    )
     expect(result.ok).toBe(true)
     if (!result.ok) return
     expect(inserted).toHaveLength(1)
@@ -322,16 +328,18 @@ describe('cardsApi', () => {
           return {
             eq: () => ({
               eq: () => ({
-                select: () => ({
-                  single: async () => ({
-                    data: {
-                      id: 'card-1',
-                      public_key: 'pk_live_abcdefghijklmnop',
-                      slug: 'luis-dev',
-                      status: 'published',
-                      deleted_at: null,
-                    },
-                    error: null,
+                is: () => ({
+                  select: () => ({
+                    single: async () => ({
+                      data: {
+                        id: 'card-1',
+                        public_key: 'pk_live_abcdefghijklmnop',
+                        slug: 'luis-dev',
+                        status: 'published',
+                        deleted_at: null,
+                      },
+                      error: null,
+                    }),
                   }),
                 }),
               }),
@@ -350,9 +358,15 @@ describe('cardsApi', () => {
   })
 
   it('uses Financial Strategist as the default public designation', () => {
-    expect(defaultCardPublishProfile().approvedTitle).toBe(VALTORIS_PUBLIC_DESIGNATION)
-    expect(defaultCardPublishProfile().approvedTitle).toBe('Financial Strategist')
-    expect(defaultCardPublishProfile().approvedTitle).not.toBe('Financial Advisor')
+    expect(defaultCardPublishProfile().approvedTitle).toBe(
+      VALTORIS_PUBLIC_DESIGNATION,
+    )
+    expect(defaultCardPublishProfile().approvedTitle).toBe(
+      'Financial Strategist',
+    )
+    expect(defaultCardPublishProfile().approvedTitle).not.toBe(
+      'Financial Advisor',
+    )
   })
 
   it('updates phone and photo on advisor_profiles without touching digital_cards or public_key', async () => {
@@ -443,8 +457,12 @@ describe('cardsApi', () => {
       { phone: '512-555-0100', photo_url: 'https://cdn.example.com/luis.jpg' },
     ])
     expect(captured[0]).not.toHaveProperty('public_key')
-    expect(from.mock.calls.some((call) => call[0] === 'digital_cards' && true)).toBe(true)
-    const digitalCardCalls = from.mock.calls.filter((call) => call[0] === 'digital_cards')
+    expect(
+      from.mock.calls.some((call) => call[0] === 'digital_cards' && true),
+    ).toBe(true)
+    const digitalCardCalls = from.mock.calls.filter(
+      (call) => call[0] === 'digital_cards',
+    )
     expect(digitalCardCalls.length).toBe(1)
     expect(result.identity.phone).toBe('512-555-0100')
     expect(result.identity.photoUrl).toBe('https://cdn.example.com/luis.jpg')
@@ -460,11 +478,19 @@ describe('cardsApi', () => {
       photo_url: '/images/advisors/luis-perez.png',
     })
     expect(relative.identity.photoUrl).toBe('/images/advisors/luis-perez.png')
-    expect(from.mock.calls.filter((call) => call[0] === 'digital_cards').length).toBe(2)
-    expect(captured.every((row) => !Object.prototype.hasOwnProperty.call(row, 'public_key'))).toBe(true)
-    expect(captured.every((row) => !Object.prototype.hasOwnProperty.call(row, 'calendly_url'))).toBe(
-      true,
-    )
+    expect(
+      from.mock.calls.filter((call) => call[0] === 'digital_cards').length,
+    ).toBe(2)
+    expect(
+      captured.every(
+        (row) => !Object.prototype.hasOwnProperty.call(row, 'public_key'),
+      ),
+    ).toBe(true)
+    expect(
+      captured.every(
+        (row) => !Object.prototype.hasOwnProperty.call(row, 'calendly_url'),
+      ),
+    ).toBe(true)
   })
 
   it('rejects javascript photo URLs before writing', async () => {
@@ -561,19 +587,25 @@ describe('cardsApi', () => {
     })
     expect(saved.ok).toBe(true)
     if (!saved.ok) return
-    expect(identityUpdates).toEqual([{ calendly_url: 'https://calendly.com/jane' }])
+    expect(identityUpdates).toEqual([
+      { calendly_url: 'https://calendly.com/jane' },
+    ])
     expect(saved.identity.calendlyUrl).toBe('https://calendly.com/jane')
     expect(saved.card?.publicKey).toBe(FIXED_PUBLIC_KEY)
     expect(identityEq).toContainEqual(['user_id', 'user-1'])
     expect(identityEq).toContainEqual(['id', 'adv-1'])
     expect(cardEq).toContainEqual(['advisor_profile_id', 'adv-1'])
     expect(cardEq).not.toContainEqual(['public_key', FIXED_PUBLIC_KEY])
-    expect(cardUpdates.every((row) => !Object.prototype.hasOwnProperty.call(row, 'public_key'))).toBe(
-      true,
-    )
-    expect(cardUpdates.every((row) => !Object.prototype.hasOwnProperty.call(row, 'cta_config'))).toBe(
-      true,
-    )
+    expect(
+      cardUpdates.every(
+        (row) => !Object.prototype.hasOwnProperty.call(row, 'public_key'),
+      ),
+    ).toBe(true)
+    expect(
+      cardUpdates.every(
+        (row) => !Object.prototype.hasOwnProperty.call(row, 'cta_config'),
+      ),
+    ).toBe(true)
 
     const cleared = await updateOwnAdvisorPublicLinks(supabase, 'user-1', {
       calendlyUrl: '   ',
@@ -623,7 +655,10 @@ describe('cardsApi', () => {
     }
     const unsafeSocial = await updateOwnAdvisorPublicLinks(supabase, 'user-1', {
       calendlyUrl: 'https://calendly.com/jane',
-      socialDrafts: { ...emptyPublicSocialDrafts(), tiktok: 'javascript:alert(1)' },
+      socialDrafts: {
+        ...emptyPublicSocialDrafts(),
+        tiktok: 'javascript:alert(1)',
+      },
     })
     expect(unsafeSocial.ok).toBe(false)
     expect(identityUpdates).toEqual([])
@@ -655,7 +690,9 @@ describe('cardsApi', () => {
       socialDrafts: emptyPublicSocialDrafts(),
     })
     expect(accepted.ok).toBe(true)
-    expect(identityUpdates).toEqual([{ calendly_url: 'https://calendly.com/jane' }])
+    expect(identityUpdates).toEqual([
+      { calendly_url: 'https://calendly.com/jane' },
+    ])
   })
 
   it('saves social links without overwriting unrelated publish_profile fields or public_key', async () => {
@@ -669,7 +706,13 @@ describe('cardsApi', () => {
         emailVisible: false,
         headline: 'Keep me',
         contactVisibility: { phone: true },
-        socialLinks: [{ key: 'linkedin', label: 'LinkedIn', url: 'https://linkedin.com/in/old' }],
+        socialLinks: [
+          {
+            key: 'linkedin',
+            label: 'LinkedIn',
+            url: 'https://linkedin.com/in/old',
+          },
+        ],
       },
     })
     const supabase = {
@@ -713,11 +756,21 @@ describe('cardsApi', () => {
     expect(profile.headline).toBe('Keep me')
     expect(profile.contactVisibility).toEqual({ phone: true })
     expect(profile.socialLinks).toEqual([
-      { key: 'facebook', label: 'Facebook', url: 'https://facebook.com/valtoris' },
-      { key: 'linkedin', label: 'LinkedIn', url: 'https://linkedin.com/in/jane' },
+      {
+        key: 'facebook',
+        label: 'Facebook',
+        url: 'https://facebook.com/valtoris',
+      },
+      {
+        key: 'linkedin',
+        label: 'LinkedIn',
+        url: 'https://linkedin.com/in/jane',
+      },
     ])
     expect(result.card?.publicKey).toBe(FIXED_PUBLIC_KEY)
-    expect(result.card?.socialDrafts.facebook).toBe('https://facebook.com/valtoris')
+    expect(result.card?.socialDrafts.facebook).toBe(
+      'https://facebook.com/valtoris',
+    )
     expect(result.card?.socialDrafts.instagram).toBe('')
   })
 
@@ -726,7 +779,13 @@ describe('cardsApi', () => {
     let card: Record<string, unknown> | null = cardRow({
       publish_profile: {
         approvedTitle: 'Financial Strategist',
-        socialLinks: [{ key: 'youtube', label: 'YouTube', url: 'https://youtube.com/@valtoris' }],
+        socialLinks: [
+          {
+            key: 'youtube',
+            label: 'YouTube',
+            url: 'https://youtube.com/@valtoris',
+          },
+        ],
       },
     })
     const cardUpdates: Record<string, unknown>[] = []
@@ -764,13 +823,18 @@ describe('cardsApi', () => {
   })
 
   it('does not import a service-role browser client', () => {
-    const source = readFileSync(join(ROOT, 'crm/digital-identity/cardsApi.ts'), 'utf8')
+    const source = readFileSync(
+      join(ROOT, 'crm/digital-identity/cardsApi.ts'),
+      'utf8',
+    )
     const panel = readFileSync(
       join(ROOT, 'crm/digital-identity/AdvisorDigitalCardPanel.tsx'),
       'utf8',
     )
     for (const src of [source, panel]) {
-      expect(src).not.toMatch(/createSupabaseAdminClient|SERVICE_ROLE|service_role/)
+      expect(src).not.toMatch(
+        /createSupabaseAdminClient|SERVICE_ROLE|service_role/,
+      )
       expect(src).not.toMatch(/from\('activities'\)\.insert/)
     }
     expect(digitalCardApiSideEffects()).toEqual({
@@ -783,5 +847,57 @@ describe('cardsApi', () => {
     expect(panel).toMatch(/updateOwnAdvisorPublicLinks/)
     expect(panel).not.toMatch(/calendly\.com\/luis/)
     expect(panel).not.toMatch(/facebook\.com\//)
+  })
+})
+
+describe('concurrent digital-card creation recovery', () => {
+  function raceClient(status: string, code = '23505') {
+    let reads = 0
+    const insert = vi.fn(() => ({
+      select: () => ({
+        single: async () => ({
+          data: null,
+          error: {
+            code,
+            message: code === '23505' ? 'duplicate key' : 'permission denied',
+          },
+        }),
+      }),
+    }))
+    const update = vi.fn()
+    const cards = {
+      ...chainableTable({
+        loadData: () => (++reads === 1 ? null : cardRow({ status })),
+      }),
+      insert,
+      update,
+    }
+    const client = mockFrom({
+      advisor_profiles: () => chainableTable({ loadData: () => identityRow() }),
+      digital_cards: () => cards,
+    })
+    return { client, insert, update, reads: () => reads }
+  }
+  it('returns the winning published card and its original key after a duplicate insert', async () => {
+    const r = raceClient('published')
+    const result = await publishOwnDigitalCard(r.client, 'user-1')
+    expect(result.ok).toBe(true)
+    if (result.ok) expect(result.card.publicKey).toBe(FIXED_PUBLIC_KEY)
+    expect(r.insert).toHaveBeenCalledTimes(1)
+    expect(r.update).not.toHaveBeenCalled()
+    expect(r.reads()).toBe(2)
+  })
+  it('does not silently publish a concurrent draft or disabled card', async () => {
+    for (const status of ['draft', 'disabled']) {
+      const r = raceClient(status)
+      expect((await publishOwnDigitalCard(r.client, 'user-1')).ok).toBe(false)
+      expect(r.insert).toHaveBeenCalledTimes(1)
+      expect(r.update).not.toHaveBeenCalled()
+    }
+  })
+  it('does not treat permission failures as a successful creation retry', async () => {
+    const r = raceClient('published', '42501')
+    expect((await publishOwnDigitalCard(r.client, 'user-1')).ok).toBe(false)
+    expect(r.reads()).toBe(1)
   })
 })
