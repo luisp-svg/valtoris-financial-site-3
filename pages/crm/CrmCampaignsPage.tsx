@@ -219,13 +219,11 @@ export default function CrmCampaignsPage() {
       <header className="crm-page-header">
         <h1>Campaigns</h1>
         <p className="crm-muted">
-          Create and edit campaign and event links for Digital Identity cards. Attribution is
-          captured when visitors complete Let’s Connect. Role: {role || 'advisor'}.
+          Create links for your advisor card, campaigns, and events. When visitors complete
+          Let’s Connect, their inquiry is linked to the advisor and campaign.
         </p>
         <p className="crm-muted" data-testid="crm-campaigns-auth-note">
-          Page access uses CRM authentication. Campaign data visibility is enforced by existing RLS
-          (advisor own-card, owner all). Capability-key UI gating is not part of Sprint 5.9 runtime
-          authorization.
+          {role === 'owner' ? 'You can manage advisor cards and campaigns across Valtoris.' : 'Only your cards and campaigns are shown here.'}
         </p>
       </header>
 

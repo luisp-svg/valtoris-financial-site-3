@@ -69,6 +69,16 @@ export default function PaymentLegWorkspace({
     setError("");
     try {
       const db = createSupabaseBrowserClient();
+      let ownAdvisorId: string | null = null;
+      if (!owner) {
+        const auth = await db.auth.getUser();
+        if (auth.error || !auth.data.user) throw new Error("Session unavailable");
+        const identity = await db.from("advisor_profiles").select("id")
+          .eq("user_id", auth.data.user.id).eq("is_active", true)
+          .is("deleted_at", null).single();
+        if (identity.error || !identity.data) throw new Error("Advisor unavailable");
+        ownAdvisorId = identity.data.id;
+      }
       // Page every collection: never silently total a truncated ledger.
       async function all(
         table: string,
@@ -83,6 +93,9 @@ export default function PaymentLegWorkspace({
             .order("id")
             .range(page * 500, page * 500 + 499);
           if (filter) q = q.eq(...filter);
+          if (!owner && (table === "service_production_allocations" || table === "policy_agent_allocations")) {
+            q = q.eq("advisor_id", ownAdvisorId!);
+          }
           const r = await q;
           if (r.error) throw r.error;
           rows.push(...(r.data as unknown as Record<string, unknown>[]));
@@ -145,10 +158,12 @@ export default function PaymentLegWorkspace({
       );
       setAccounts([]);
       setEvents([]);
+      setWorkflow([]);
+      setChoices([]);
     } finally {
       setLoading(false);
     }
-  }, [serviceId]);
+  }, [serviceId, owner]);
   useEffect(() => {
     void load();
   }, [load]);
