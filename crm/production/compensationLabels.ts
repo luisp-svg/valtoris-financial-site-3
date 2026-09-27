@@ -28,16 +28,16 @@ const EXPECTED_STATUS_LABELS = {
 
 const ACTUAL_STATUS_LABELS = {
   no_payments: 'No payments',
-  partially_paid: 'Partially paid',
-  paid: 'Paid',
-  overpaid: 'Overpaid',
+  partially_paid: 'Partially released',
+  paid: 'Released',
+  overpaid: 'Released above expected',
   charged_back: 'Charged back',
   net_zero: 'Net zero',
   expected_unavailable: 'Expected unavailable',
 } as const
 
 const EVENT_TYPE_LABELS = {
-  paid: 'Paid',
+  paid: 'Released',
   adjustment: 'Adjustment',
   chargeback: 'Chargeback',
   recovery: 'Recovery',

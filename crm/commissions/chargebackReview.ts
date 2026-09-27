@@ -10,7 +10,7 @@ export const CHARGEBACK_LIFECYCLE_NOTE =
   'A chargeback is a carrier commission fact. Canceled, surrendered, or other policy lifecycle changes do not create a chargeback.'
 
 export const CHARGEBACK_PAID_HISTORY_NOTE =
-  'Original paid events stay in history. Chargebacks are separate negative events and do not rewrite paid amounts.'
+  'Original released events stay in history. Chargebacks are separate negative events and do not rewrite released amounts.'
 
 export function eventsOfType(
   events: readonly WritingCommissionEvent[],

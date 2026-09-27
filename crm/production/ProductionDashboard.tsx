@@ -348,7 +348,7 @@ export default function ProductionDashboard({
             <p className="crm-production-kpi-caption">
               Writing-advisor compensation from the expected-compensation and commission ledger —
               not a production stage. Expected and Outstanding use application submission date, else
-              issue date. Paid, Chargebacks, and Net Paid use commission transaction date.
+              issue date. Released, Chargebacks, and Net Released use commission transaction date.
             </p>
             {compensation.totals.reviewCount > 0 ? (
               <ReviewCountButton
@@ -375,13 +375,13 @@ export default function ProductionDashboard({
                     Outstanding
                   </div>
                   <div className="is-money" role="columnheader">
-                    Paid
+                    Released
                   </div>
                   <div className="is-money" role="columnheader">
                     Chargebacks
                   </div>
                   <div className="is-money" role="columnheader">
-                    Net Paid
+                    Net Released
                   </div>
                 </div>
                 {compensation.rows.map((row) => {
@@ -412,13 +412,13 @@ export default function ProductionDashboard({
                       <div className="is-money" role="cell" data-label="Outstanding">
                         {formatCents(row.outstandingCents)}
                       </div>
-                      <div className="is-money" role="cell" data-label="Paid">
+                      <div className="is-money" role="cell" data-label="Released">
                         {formatCents(row.paidCents)}
                       </div>
                       <div className="is-money" role="cell" data-label="Chargebacks">
                         {formatSignedCents(row.chargebackCents)}
                       </div>
-                      <div className="is-money" role="cell" data-label="Net Paid">
+                      <div className="is-money" role="cell" data-label="Net Released">
                         {formatCents(row.netPaidCents)}
                       </div>
                     </div>

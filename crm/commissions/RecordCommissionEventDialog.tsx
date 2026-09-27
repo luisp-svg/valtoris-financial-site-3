@@ -135,7 +135,7 @@ export default function RecordCommissionEventDialog({
         ) : isChargeback ? (
           <>
             <p className="crm-muted">
-              Posts a writing-advisor chargeback event for this allocation. The original paid
+              Posts a writing-advisor chargeback event for this allocation. The original released
               commission stays in history.
             </p>
             <p className="crm-production-kpi-caption">{CHARGEBACK_LIFECYCLE_NOTE}</p>
@@ -197,7 +197,7 @@ export default function RecordCommissionEventDialog({
             <dd className="crm-production-money">{formatCents(item.outstandingCents)}</dd>
           </div>
           <div>
-            <dt>Current paid</dt>
+            <dt>Current released</dt>
             <dd className="crm-production-money">{formatCents(item.paidCents)}</dd>
           </div>
         </dl>
@@ -217,7 +217,7 @@ export default function RecordCommissionEventDialog({
           {isPendingPayment ? (
             <p className="crm-field">
               <span>Event type</span>
-              <strong>Paid</strong>
+              <strong>Released</strong>
             </p>
           ) : isChargeback ? (
             <p className="crm-field">
@@ -250,7 +250,7 @@ export default function RecordCommissionEventDialog({
           )}
 
           <label className="crm-field">
-            <span>{isPendingPayment ? 'Paid amount' : 'Amount'}</span>
+            <span>{isPendingPayment ? 'Released amount' : 'Amount'}</span>
             <input
               ref={amountRef}
               inputMode="decimal"
@@ -267,7 +267,7 @@ export default function RecordCommissionEventDialog({
             ) : (
               <span className="crm-muted">
                 {isPendingPayment
-                  ? 'Enter the actual paid amount. It may differ from the Pending amount.'
+                  ? 'Enter the actual released amount. It may differ from the Pending amount.'
                   : isChargeback
                     ? 'Enter a positive dollar amount. Chargebacks post as negative cents automatically.'
                     : 'Enter a positive dollar amount. Chargebacks are posted as negative cents automatically.'}

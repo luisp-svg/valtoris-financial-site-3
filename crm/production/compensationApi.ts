@@ -190,6 +190,7 @@ export async function fetchPaidCommissionEvents(
   const { data, error } = await supabase
     .from('policy_writing_commission_events')
     .select(PAID_EVENT_SELECT)
+    .eq('payment_leg', 'carrier_to_imo')
     .in('application_id', ids)
 
   if (error) throw error

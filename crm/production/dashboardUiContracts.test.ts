@@ -89,6 +89,7 @@ const EXPECTED_MIGRATIONS = [
   '072_public_report_card_concurrency.sql',
   '073_service_production_foundation.sql',
   '074_service_case_management.sql',
+      '075_commission_payment_legs.sql',
 ]
 
 describe('Phase A production dashboard contracts', () => {
@@ -166,7 +167,7 @@ describe('Phase A production dashboard contracts', () => {
     expect(dashboardUi).toContain('Advisor Compensation')
     expect(dashboardUi).toContain('Outstanding')
     expect(dashboardUi).toContain('Chargebacks')
-    expect(dashboardUi).toContain('Net Paid')
+    expect(dashboardUi).toContain('Net Released')
     expect(dashboardUi).toContain('not a production stage')
     expect(dashboardUi).toContain('Current Active Life Protection')
     expect(dashboardUi).toContain('Total Protection Placed')

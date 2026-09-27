@@ -84,9 +84,9 @@ function item(
 describe('commission Phase E1 pending payment helpers', () => {
   it('keeps accepted_pending as staging and never names it paid/posted/released/eligible', () => {
     expect(PENDING_IS_NOT_PAID_COPY).toMatch(/reviewed staging/)
-    expect(PENDING_IS_NOT_PAID_COPY).toMatch(/not Paid/)
+    expect(PENDING_IS_NOT_PAID_COPY).toMatch(/not Released/)
     expect(PENDING_AMOUNT_IS_SUGGESTION_COPY).toMatch(/suggestion only/)
-    expect(PENDING_AND_PAID_COEXISTENCE_COPY).toMatch(/Paid recorded separately/)
+    expect(PENDING_AND_PAID_COEXISTENCE_COPY).toMatch(/Released recorded separately/)
     expect(RECORD_PAYMENT_ACTION_LABEL).toBe('Record Payment')
     expect(RECORD_PAYMENT_ACTION_LABEL).not.toMatch(/posted|released|eligible/i)
     expect(pendingPaymentRawDescription('row-9')).toContain('not a ledger event')

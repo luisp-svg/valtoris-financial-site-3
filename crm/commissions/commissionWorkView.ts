@@ -477,11 +477,11 @@ export function formatCommissionWorkStatusLabel(status: CommissionWorkDerivedSta
     case 'outstanding':
       return 'Outstanding'
     case 'partially_paid':
-      return 'Partially Paid'
+      return 'Partially Released'
     case 'paid':
-      return 'Paid'
+      return 'Released'
     case 'overpaid':
-      return 'Overpaid'
+      return 'Released above expected'
     case 'net_zero':
       return 'Net Zero'
     case 'expected_unavailable':

@@ -445,7 +445,7 @@ describe('commission Phase C current Pending derivation', () => {
     ).toHaveLength(1)
   })
 
-  it('does not change Outstanding, Paid, Chargebacks, or Net Paid when Pending is attached', () => {
+  it('does not change Outstanding, Released, Chargebacks, or Net Released when Pending is attached', () => {
     const application = app({
       id: 'app-1',
       production_stage: 'in_force',

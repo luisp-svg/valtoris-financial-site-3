@@ -44,7 +44,7 @@ export function validateRecordCommissionDraft(options: {
   if (
     !MANUAL_RECORD_EVENT_TYPES.includes(draft.eventType as ManualCommissionEventType)
   ) {
-    errors.eventType = 'Choose Paid, Adjustment, Chargeback, or Recovery.'
+    errors.eventType = 'Choose Released, Adjustment, Chargeback, or Recovery.'
   }
   if (draft.eventType === 'reversal' as string) {
     errors.eventType = 'Reversal has its own action.'
@@ -69,7 +69,7 @@ export function validateRecordCommissionDraft(options: {
   }
   if (options.fromPending) {
     if (draft.eventType !== 'paid') {
-      errors.eventType = 'Record Payment posts a Paid event only.'
+      errors.eventType = 'Record Payment posts a Released event only.'
     }
     if (options.preIssue) {
       errors.eventType = 'Record Payment uses the ordinary posting path.'

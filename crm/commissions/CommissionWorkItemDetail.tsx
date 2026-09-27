@@ -178,7 +178,7 @@ export default function CommissionWorkItemDetail({
             </div>
           ) : null}
           <div>
-            <dt>Net actual</dt>
+            <dt>Net released</dt>
             <dd
               className={`crm-production-money${item.netPaidCents < 0 ? ' is-negative' : ''}`}
             >
@@ -219,7 +219,7 @@ export default function CommissionWorkItemDetail({
           <section className="crm-commissions-pending-source" aria-label="Pending source">
             <h3>Pending</h3>
             <p className="crm-production-kpi-caption">
-              Source-confirmed Experior pending writing compensation. This is not Paid.
+              Source-confirmed Experior pending writing compensation. This is not Released.
             </p>
             {pendingPaymentShowsCoexistence(item) ? (
               <p className="crm-production-kpi-caption">{PENDING_AND_PAID_COEXISTENCE_COPY}</p>
@@ -281,7 +281,7 @@ export default function CommissionWorkItemDetail({
             <p className="crm-production-kpi-caption">{CHARGEBACK_PAID_HISTORY_NOTE}</p>
             <dl className="crm-production-detail-grid">
               <div>
-                <dt>Gross paid</dt>
+                <dt>Gross released</dt>
                 <dd className="crm-production-money">
                   {formatCents(chargebackReviewTotals(item).paidCents)}
                 </dd>
@@ -299,15 +299,15 @@ export default function CommissionWorkItemDetail({
                 </dd>
               </div>
               <div>
-                <dt>Net paid</dt>
+                <dt>Net released</dt>
                 <dd className="crm-production-money">
                   {formatSignedCents(chargebackReviewTotals(item).netPaidCents)}
                 </dd>
               </div>
             </dl>
-            <h4 className="crm-production-comp-subheading">Paid history on this record</h4>
+            <h4 className="crm-production-comp-subheading">Released history on this record</h4>
             {eventsOfType(allEvents, 'paid').length === 0 ? (
-              <p className="crm-muted">No paid events are on this writing record.</p>
+              <p className="crm-muted">No released events are on this writing record.</p>
             ) : (
               <ul className="crm-commissions-chargeback-history">
                 {eventsOfType(allEvents, 'paid').map((event) => (

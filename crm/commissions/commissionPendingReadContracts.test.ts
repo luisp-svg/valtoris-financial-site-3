@@ -14,7 +14,7 @@ function read(name: string): string {
 describe('commission Phase C pending read contracts', () => {
   it('does not add a pending-dashboard migration and keeps 001–046 intact', () => {
     const numbered = readdirSync(migrationsDir).filter((name) => /^\d{3}_/.test(name)).sort()
-    expect(numbered).toHaveLength(74)
+    expect(numbered).toHaveLength(75)
     expect(numbered[0]).toBe('001_extensions_and_enums.sql')
     expect(numbered[43]).toBe('044_policy_application_requirements.sql')
     expect(numbered[44]).toBe('045_policy_post_placement_lifecycle.sql')
@@ -84,11 +84,11 @@ describe('commission Phase C pending read contracts', () => {
     expect(readModel).toContain('accepted source fact')
     expect(readModel).not.toContain('source_split_rate')
     expect(summary).toContain('Source-confirmed Experior pending writing compensation.')
-    expect(summary).not.toContain('Pending Paid')
+    expect(summary).not.toContain('Pending Released')
     expect(workspace).not.toContain('create_commission_pending_import_batch')
     expect(workspace).not.toContain('Post to Ledger')
     expect(readFileSync(join(here, 'CommissionWorkItemDetail.tsx'), 'utf8')).toContain(
-      'This is not Paid',
+      'This is not Released',
     )
     expect(read('commissionPendingRead.ts')).toContain('pendingOnlyStub: true')
     expect(read('commissionWriteView.ts')).toContain('isPendingOnlyCommissionStub(item)')
@@ -103,7 +103,7 @@ describe('commission Phase C pending read contracts', () => {
     expect(sql).toContain('USING (public.crm_is_owner())')
     expect(sql).not.toContain('crm_is_advisor')
     const numbered = readdirSync(migrationsDir).filter((name) => /^\d{3}_/.test(name)).sort()
-    expect(numbered).toHaveLength(74)
+    expect(numbered).toHaveLength(75)
     expect(numbered[43]).toBe('044_policy_application_requirements.sql')
     expect(numbered[44]).toBe('045_policy_post_placement_lifecycle.sql')
     expect(numbered.filter((name) => name.startsWith('045_'))).toEqual([

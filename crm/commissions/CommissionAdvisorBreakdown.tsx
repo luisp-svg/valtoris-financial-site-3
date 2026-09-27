@@ -65,13 +65,13 @@ export default function CommissionAdvisorBreakdown({
             Outstanding
           </div>
           <div className="is-money" role="columnheader">
-            Paid
+            Released
           </div>
           <div className="is-money" role="columnheader">
             Chargebacks
           </div>
           <div className="is-money" role="columnheader">
-            Net actual
+            Net released
           </div>
           <div className="is-review" role="columnheader">
             Needs Review
@@ -113,7 +113,7 @@ export default function CommissionAdvisorBreakdown({
               <div className="is-money crm-production-money" role="cell" data-label="Outstanding">
                 {formatCents(row.outstandingCents)}
               </div>
-              <div className="is-money crm-production-money" role="cell" data-label="Paid">
+              <div className="is-money crm-production-money" role="cell" data-label="Released">
                 {formatCents(row.paidCents)}
               </div>
               <div
@@ -133,7 +133,7 @@ export default function CommissionAdvisorBreakdown({
                   row.netPaidCents < 0 ? ' is-negative' : ''
                 }`}
                 role="cell"
-                data-label="Net actual"
+                data-label="Net released"
               >
                 {formatSignedCents(row.netPaidCents)}
               </div>

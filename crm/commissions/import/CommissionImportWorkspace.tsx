@@ -119,7 +119,7 @@ export default function CommissionImportWorkspace({
           <p className="crm-page-eyebrow">Commissions</p>
           <h1 className="crm-page-title">Commission import</h1>
           <p className="crm-page-subtitle">
-            Stage an Experior Paid Report from a prepared Valtoris CSV, resolve supported review
+            Use this import only for evidence that the carrier sent commissions to Experior: posted payments count as Released. For evidence that the agent received payment, use Advisor payment tracking in Commissions. Stage an Experior Paid Report from a prepared Valtoris CSV, resolve supported review
             rows, and post one writing-advisor event at a time. File identity is based on this
             prepared import file, not the original PDF. Override and additional-commission rows stay
             excluded from writing-advisor compensation.
@@ -614,7 +614,7 @@ function ImportSummary({
   return (
     <div className="crm-commissions-import-summary">
       <p className="crm-muted">
-        These are source reconciliation totals, not Valtoris writing-advisor Paid. Ignored and
+        These are source reconciliation totals, not proof that an agent was paid. Ignored and
         duplicate amounts are excluded from writing income.
       </p>
       <dl className="crm-production-detail-grid">

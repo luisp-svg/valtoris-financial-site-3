@@ -496,7 +496,7 @@ describe('derived status labels', () => {
       'expected_unavailable',
     ] as const) {
       const label = formatCommissionWorkStatusLabel(status)
-      expect(label).not.toMatch(/pending|eligible|released/i)
+      expect(label).not.toMatch(/pending|eligible/i)
     }
   })
 

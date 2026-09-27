@@ -1,3 +1,4 @@
+import PaymentLegWorkspace from '../../crm/commissions/PaymentLegWorkspace'
 import ServiceCaseWorkspace from '../../crm/production/services/ServiceCaseWorkspace'
 import {
   CASE_STAGES,
@@ -773,11 +774,11 @@ function ServiceDetail({ id, owner }: { id: string; owner: boolean }) {
               onEditingChange={setCaseEditing}
             />
           )}
+          <PaymentLegWorkspace owner={owner} serviceId={id} />
           <section className="service-card">
             <h2>Writing-advisor compensation</h2>
             <p>
-              Expected compensation is a reviewed estimate. Actual paid
-              compensation: <strong>Not tracked yet</strong>.
+              Expected compensation is a reviewed estimate. Released and agent-paid amounts are tracked separately below.
             </p>
             {!owner && (
               <p>

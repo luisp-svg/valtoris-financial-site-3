@@ -172,7 +172,7 @@ export default function CommissionWorkspace({
           <p className="crm-page-eyebrow">Commissions</p>
           <h1 className="crm-page-title">Commission workspace</h1>
           <p className="crm-page-subtitle">
-            Track writing-advisor expected compensation, outstanding amounts, and actual paid
+            Carrier release ledger: track writing-advisor expected compensation, outstanding amounts, and actual released
             commission. Production underwriting stages stay on Production.
           </p>
         </div>
@@ -445,7 +445,7 @@ export default function CommissionWorkspace({
           <div className="crm-empty-state">
             <p className="crm-empty-state-title">No commission records yet</p>
             <p>
-              Writing-advisor expected compensation and actual paid events will appear here.
+              Writing-advisor expected compensation and actual released events will appear here.
               Carrier statement import is not staged from this workspace.
             </p>
           </div>

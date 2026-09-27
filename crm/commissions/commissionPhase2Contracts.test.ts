@@ -14,7 +14,7 @@ function read(name: string): string {
 describe('commission Phase 2 contracts', () => {
   it('does not add a commission lifecycle migration and keeps the 001–047 baseline', () => {
     const numbered = readdirSync(migrationsDir).filter((name) => /^\d{3}_/.test(name)).sort()
-    expect(numbered).toHaveLength(74)
+    expect(numbered).toHaveLength(75)
     expect(numbered[0]).toBe('001_extensions_and_enums.sql')
     expect(numbered[43]).toBe('044_policy_application_requirements.sql')
     expect(numbered[44]).toBe('045_policy_post_placement_lifecycle.sql')
@@ -87,7 +87,7 @@ describe('commission Phase 2 contracts', () => {
     expect(detail).toContain('canAttributeCommissionEvent')
     expect(record).toContain('MANUAL_RECORD_EVENT_TYPES')
     expect(record).not.toMatch(/<option[^>]*>Reversal/)
-    expect(record).not.toMatch(/\bEligible\b|\bReleased\b/)
+    expect(record).not.toMatch(/\bEligible\b/)
     expect(record).toContain('PENDING_AMOUNT_IS_SUGGESTION_COPY')
     expect(reverse).toContain('The original event remains in history')
     expect(reverse).not.toContain('p_amount_cents')

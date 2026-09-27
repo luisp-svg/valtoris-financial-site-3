@@ -49,21 +49,21 @@ describe('commission Phase 1 Experior / source contracts', () => {
       'net_zero',
       'expected_unavailable',
     ] as const) {
-      expect(formatCommissionWorkStatusLabel(status)).not.toMatch(/pending|eligible|released/i)
+      expect(formatCommissionWorkStatusLabel(status)).not.toMatch(/pending|eligible/i)
     }
     const workspace = readFileSync(join(here, 'CommissionWorkspace.tsx'), 'utf8')
     const summary = readFileSync(join(here, 'CommissionSummary.tsx'), 'utf8')
     const queue = readFileSync(join(here, 'CommissionQueueTable.tsx'), 'utf8')
     expect(workspace).toContain('Import Pending Statement')
-    expect(workspace).not.toMatch(/\bEligible\b|\bReleased\b/)
-    expect(queue).not.toMatch(/\bEligible\b|\bReleased\b/)
+    expect(workspace).not.toMatch(/\bEligible\b/)
+    expect(queue).not.toMatch(/\bEligible\b/)
     expect(summary).toContain('label="Pending"')
-    expect(summary).toContain('Eligible and Released are not tracked')
-    expect(summary).not.toContain('Pending Paid')
+    expect(summary).toContain('Agent payments and eligibility are tracked separately above')
+    expect(summary).not.toContain('Pending Released')
     expect(summary).not.toContain('Expected Pending')
     expect(summary).not.toContain('label="Available"')
     expect(summary).not.toContain('label="Eligible"')
-    expect(summary).not.toContain('label="Released"')
+    expect(summary).toContain('label="Released"')
   })
 
   it('does not parse PDFs, use OCR, use AI, or post 036 rows', () => {

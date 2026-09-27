@@ -90,7 +90,7 @@ export default function CommissionQueueCards({
                 </dd>
               </div>
               <div>
-                <dt>Paid</dt>
+                <dt>Released</dt>
                 <dd className="crm-production-money">{formatCents(item.paidCents)}</dd>
               </div>
               <div>
@@ -106,7 +106,7 @@ export default function CommissionQueueCards({
                 </dd>
               </div>
               <div>
-                <dt>Net actual</dt>
+                <dt>Net released</dt>
                 <dd
                   className={`crm-production-money${item.netPaidCents < 0 ? ' is-negative' : ''}`}
                 >

@@ -51,6 +51,6 @@ describe('chargeback review helpers', () => {
       netPaidCents: 59000,
     })
     expect(CHARGEBACK_LIFECYCLE_NOTE).toMatch(/Canceled, surrendered/)
-    expect(CHARGEBACK_PAID_HISTORY_NOTE).toMatch(/do not rewrite paid amounts/)
+    expect(CHARGEBACK_PAID_HISTORY_NOTE).toMatch(/do not rewrite released amounts/)
   })
 })

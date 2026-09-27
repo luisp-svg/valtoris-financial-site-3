@@ -94,8 +94,8 @@ export default function CommissionSummary({
         <div className="crm-production-dashboard-stack">
           <p className="crm-production-kpi-caption">
             {isOwner
-              ? 'Writing-advisor compensation from expected compensation, source-confirmed pending, and the actual commission ledger. Expected and Outstanding use application submission date, else issue date. Pending uses the pending statement date. Paid, Chargebacks, and Net actual use commission transaction date. Remaining expected and Variance are derived from pinned Expected vs Net actual. Eligible and Released are not tracked.'
-              : 'Writing-advisor compensation from expected compensation and the actual commission ledger. Expected and Outstanding use application submission date, else issue date. Paid, Chargebacks, and Net actual use commission transaction date. Remaining expected and Variance are derived from pinned Expected vs Net actual.'}
+              ? 'Writing-advisor compensation from expected compensation, source-confirmed pending, and the actual commission ledger. Expected and Outstanding use application submission date, else issue date. Pending uses the pending statement date. Released, Chargebacks, and Net released use commission transaction date. Remaining expected and Variance are derived from pinned Expected vs Net released. Agent payments and eligibility are tracked separately above. Carrier release totals do not prove agent receipt.'
+              : 'Writing-advisor compensation from expected compensation and the actual commission ledger. Expected and Outstanding use application submission date, else issue date. Released, Chargebacks, and Net released use commission transaction date. Remaining expected and Variance are derived from pinned Expected vs Net released.'}
           </p>
           <div
             className={`crm-production-kpi-grid crm-commissions-kpi-grid has-reconciliation${
@@ -111,22 +111,22 @@ export default function CommissionSummary({
               />
             ) : null}
             <MetricCard label="Outstanding" cents={totals.outstandingCents} />
-            <MetricCard label="Paid" cents={totals.paidCents} />
+            <MetricCard label="Released" cents={totals.paidCents} />
             <MetricCard label="Chargebacks" cents={totals.chargebackCents} signed />
-            <MetricCard label="Net actual" cents={totals.netPaidCents} signed />
+            <MetricCard label="Net released" cents={totals.netPaidCents} signed />
             <MetricCard
               label="Remaining expected"
               cents={remainingExpectedCents}
               signed
               unavailable={remainingExpectedCents == null}
-              hint="Pinned Expected minus Net actual. Unavailable when Expected is unresolved."
+              hint="Pinned Expected minus Net released. Unavailable when Expected is unresolved."
             />
             <MetricCard
               label="Variance"
               cents={varianceCents}
               signed
               unavailable={varianceCents == null}
-              hint="Net actual minus pinned Expected. Positive is overpaid."
+              hint="Net released minus pinned Expected. Positive is overpaid."
             />
           </div>
           <div

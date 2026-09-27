@@ -71,7 +71,7 @@ export function workItemMatchesMoneyKind(
 }
 
 export function commissionMoneyKindFilterLabel(kind: CommissionMoneyKindFilter): string {
-  if (kind === 'paid') return 'Paid'
+  if (kind === 'paid') return 'Released'
   if (kind === 'adjustment') return 'Adjustments'
   if (kind === 'chargeback') return 'Chargebacks'
   return 'All'

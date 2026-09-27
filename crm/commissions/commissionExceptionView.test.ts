@@ -161,7 +161,7 @@ describe('commission exception derived states', () => {
       'pending_without_actual',
     ])
     expect(COMMISSION_EXCEPTION_BUCKETS.join(' ')).not.toMatch(/eligible|released|stale/i)
-    expect(formatCommissionWorkStatusLabel('paid')).toBe('Paid')
+    expect(formatCommissionWorkStatusLabel('paid')).toBe('Released')
   })
 
   it('uses the existing lifecycle-aware outstanding formula', () => {
@@ -326,7 +326,7 @@ describe('commission exception derived states', () => {
     ).toBe(true)
   })
 
-  it('derives Pending without actual from accepted Pending and no Paid activity', () => {
+  it('derives Pending without actual from accepted Pending and no Released activity', () => {
     const pendingOnly = item({
       id: 'pend',
       applicationId: 'app-1',

@@ -245,14 +245,14 @@ export function commissionExceptionNotes(
     notes.push({
       bucket: 'expected_unavailable',
       title: 'Expected unavailable',
-      detail: `Net actual: ${formatSignedCents(item.netPaidCents)}. ${EXPECTED_UNAVAILABLE_RECONCILIATION_COPY}`,
+      detail: `Net released: ${formatSignedCents(item.netPaidCents)}. ${EXPECTED_UNAVAILABLE_RECONCILIATION_COPY}`,
     })
   }
   if (flags.overpaid) {
     notes.push({
       bucket: 'overpaid',
       title: 'Overpaid',
-      detail: `Variance ${varianceCentsDisplay(variance)}. Net actual exceeds pinned Expected.`,
+      detail: `Variance ${varianceCentsDisplay(variance)}. Net released exceeds pinned Expected.`,
     })
   }
   if (flags.chargebackActivity) {
@@ -261,7 +261,7 @@ export function commissionExceptionNotes(
       title: 'Chargeback activity',
       detail: flags.reconciled
         ? CHARGEBACK_RECONCILED_COPY
-        : `Chargebacks ${formatSignedCents(item.chargebackCents)}. Net actual ${formatSignedCents(item.netPaidCents)}.`,
+        : `Chargebacks ${formatSignedCents(item.chargebackCents)}. Net released ${formatSignedCents(item.netPaidCents)}.`,
     })
   }
   if (flags.attributionReview) {
@@ -275,7 +275,7 @@ export function commissionExceptionNotes(
     notes.push({
       bucket: 'pending_without_actual',
       title: PENDING_WITHOUT_ACTUAL_COPY,
-      detail: `Accepted Pending ${formatCents(item.pendingCents)} is staging evidence. No actual Paid activity is on this allocation.`,
+      detail: `Accepted Pending ${formatCents(item.pendingCents)} is staging evidence. No actual Released activity is on this allocation.`,
     })
   }
   if (item.derivedStatus.needsReview && item.reviewReason) {

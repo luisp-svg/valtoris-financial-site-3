@@ -154,7 +154,7 @@ describe('commission Phase 2 money and event types', () => {
     ).toBe(-1000)
     expect(MANUAL_RECORD_EVENT_TYPES).toEqual(['paid', 'adjustment', 'chargeback', 'recovery'])
     expect(MANUAL_RECORD_EVENT_TYPES).not.toContain('reversal')
-    expect(MANUAL_RECORD_EVENT_TYPES.join(' ')).not.toMatch(/pending|eligible|released/i)
+    expect(MANUAL_RECORD_EVENT_TYPES.join(' ')).not.toMatch(/pending|eligible/i)
   })
 })
 
@@ -662,7 +662,7 @@ function listEvent(
 }
 
 describe('commission Phase 2 Phase 1 metric refresh from 035 events', () => {
-  it('rebuilds Paid, Chargebacks, Net Paid, Outstanding, status, and last activity from refetched events', () => {
+  it('rebuilds Released, Chargebacks, Net Released, Outstanding, status, and last activity from refetched events', () => {
     const app = productionItem({
       id: 'app-1',
       production_stage: 'issued',

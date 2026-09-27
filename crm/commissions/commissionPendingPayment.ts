@@ -12,13 +12,13 @@ import type { CommissionWorkItem } from './commissionWorkView'
 export const RECORD_PAYMENT_ACTION_LABEL = 'Record Payment'
 
 export const PENDING_IS_NOT_PAID_COPY =
-  'Accepted Pending is reviewed staging. It is not Paid and was not posted to the ledger.'
+  'Accepted Pending is reviewed staging. It is not Released and was not posted to the ledger.'
 
 export const PENDING_AMOUNT_IS_SUGGESTION_COPY =
-  'Pending amount is a suggestion only. Enter the actual paid amount from payment evidence. This does not change the Pending row.'
+  'Pending amount is a suggestion only. Enter the actual released amount from payment evidence. This does not change the Pending row.'
 
 export const PENDING_AND_PAID_COEXISTENCE_COPY =
-  'Pending evidence reviewed. Paid recorded separately.'
+  'Pending evidence reviewed. Released recorded separately.'
 
 export const COMMISSION_PAYMENT_RECORDED_COPY = 'Payment recorded.'
 

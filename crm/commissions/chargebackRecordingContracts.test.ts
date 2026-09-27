@@ -14,7 +14,7 @@ function read(name: string): string {
 describe('chargeback recording contracts', () => {
   it('reuses the existing 035 writer and does not add a chargeback Migration 048', () => {
     const numbered = readdirSync(migrationsDir).filter((name) => /^\d{3}_/.test(name)).sort()
-    expect(numbered).toHaveLength(74)
+    expect(numbered).toHaveLength(75)
     expect(numbered.filter((name) => name.startsWith('047_'))).toEqual([
       '047_credit_repair_student_loan_sales_catalog.sql',
     ])
@@ -91,7 +91,7 @@ describe('chargeback recording contracts', () => {
     expect(page).not.toContain('review_commission_pending_import_row')
     expect(page).not.toContain('post_commission_import_row')
     expect(dialog).not.toContain('Pending Review')
-    expect(dialog).not.toMatch(/\bEligible\b|\bReleased\b/)
+    expect(dialog).not.toMatch(/\bEligible\b/)
     expect(filters).toContain("moneyKind: CommissionMoneyKindFilter")
     expect(filters).toContain("'chargeback'")
     expect(workspace).toContain('Ledger activity')

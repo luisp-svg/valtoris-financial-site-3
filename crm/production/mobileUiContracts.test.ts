@@ -110,8 +110,8 @@ describe('CRM mobile responsive cleanup contracts', () => {
   it('does not change commission period options or KPI labels', () => {
     expect(commissionSummary).toContain("options={['this_month', 'ytd', 'lifetime']}")
     expect(commissionSummary).toContain('label="Expected"')
-    expect(commissionSummary).toContain('label="Paid"')
-    expect(commissionSummary).toContain('label="Net actual"')
+    expect(commissionSummary).toContain('label="Released"')
+    expect(commissionSummary).toContain('label="Net released"')
     expect(styles).toContain('.crm-commissions-kpi-grid')
   })
 

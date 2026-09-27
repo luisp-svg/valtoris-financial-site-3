@@ -118,7 +118,7 @@ export default function CommissionPendingImportWorkspace({
           <h1 className="crm-page-title">Pending commission import</h1>
           <p className="crm-page-subtitle">
             Stage an Experior Pending Report from a prepared Valtoris CSV. This classifies
-            writing-advisor Pending source facts only. It does not post Paid events, change
+            writing-advisor Pending source facts only. It does not post Released events, change
             Expected, or mix into paid-report batches. Owner review can resolve attribution only.
           </p>
         </div>
@@ -643,7 +643,7 @@ function PendingImportSummary({
   return (
     <div className="crm-commissions-import-summary">
       <p className="crm-muted">
-        These are source Pending totals, not Valtoris Paid and not Expected. Statement amount and
+        These are source Pending totals, not Released or Paid to agent and not Expected. Statement amount and
         escrow are header metadata and are not added into writing Pending.
       </p>
       <dl className="crm-production-detail-grid">

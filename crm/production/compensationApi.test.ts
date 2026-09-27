@@ -117,13 +117,14 @@ describe('expected compensation mapping', () => {
 describe('paid commission list SELECT', () => {
   function paidSelectClient(result: { data: unknown; error: unknown }) {
     const inFn = vi.fn().mockResolvedValue(result)
-    const select = vi.fn().mockReturnValue({ in: inFn })
+    const eq = vi.fn().mockReturnValue({ in: inFn })
+    const select = vi.fn().mockReturnValue({ eq })
     const from = vi.fn().mockReturnValue({ select })
-    return { client: { from } as never, from, select, inFn }
+    return { client: { from } as never, from, select, inFn, eq }
   }
 
   it('loads 035 events in one batched SELECT and does not call the snapshot RPC', async () => {
-    const { client, from, select, inFn } = paidSelectClient({
+    const { client, from, select, inFn, eq } = paidSelectClient({
       data: [
         {
           id: 'e1',
@@ -140,6 +141,7 @@ describe('paid commission list SELECT', () => {
     expect(from).toHaveBeenCalledWith('policy_writing_commission_events')
     expect(select).toHaveBeenCalledTimes(1)
     expect(inFn).toHaveBeenCalledWith('application_id', ['app-1', 'app-2'])
+    expect(eq).toHaveBeenCalledWith('payment_leg', 'carrier_to_imo')
     expect(rows).toEqual([
       {
         id: 'e1',

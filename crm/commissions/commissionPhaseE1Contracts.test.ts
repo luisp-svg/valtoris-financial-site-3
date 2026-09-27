@@ -38,7 +38,7 @@ function read(relativePath: string): string {
 describe('commission Phase E1 contracts', () => {
   it('does not add a commission 053 or change compensation schema', () => {
     const numbered = readdirSync(migrationsDir).filter((name) => /^\d{3}_/.test(name)).sort()
-    expect(numbered).toHaveLength(74)
+    expect(numbered).toHaveLength(75)
     expect(numbered.filter((name) => name.startsWith('053_'))).toEqual(['053_bulk_lead_import_writer.sql'])
     expect(numbered.filter((name) => name.startsWith('054_'))).toEqual(['054_home_buyer_report_card_ingest.sql'])
     expect(numbered.filter((name) => name.startsWith('055_'))).toEqual(['055_integration_contact_links.sql'])
@@ -59,7 +59,7 @@ describe('commission Phase E1 contracts', () => {
     expect(getModule('credit_repair')?.featureFlag.enabled).toBe(false)
   })
 
-  it('opens Record Payment from accepted_pending without a Pending→Paid status or new RPC', () => {
+  it('opens Record Payment from accepted_pending without a Pending→Released status or new RPC', () => {
     const page = read('pages/crm/CrmCommissionsPage.tsx')
     const actions = read('crm/commissions/CommissionOwnerActions.tsx')
     const dialog = read('crm/commissions/RecordCommissionEventDialog.tsx')
@@ -76,9 +76,9 @@ describe('commission Phase E1 contracts', () => {
     expect(page).not.toContain('createSupabaseAdminClient')
     expect(page).not.toContain('SERVICE_ROLE')
     expect(dialog).toContain('fromPending')
-    expect(dialog).toContain('Paid amount')
+    expect(dialog).toContain('Released amount')
     expect(dialog).toContain('PENDING_AMOUNT_IS_SUGGESTION_COPY')
-    expect(dialog).not.toMatch(/\bEligible\b|\bReleased\b/)
+    expect(dialog).not.toMatch(/\bEligible\b/)
     expect(writeApi).toContain('record_policy_writing_commission_event')
     expect(writeApi).not.toContain('post_commission_pending')
     expect(writeApi).not.toContain('review_commission_pending_import_row')
@@ -123,7 +123,7 @@ describe('commission Phase E1 contracts', () => {
     expect(payment).not.toMatch(/upline|generational|override_rate/)
     expect(dialog).not.toMatch(/upline|generational/)
     expect(detail).toContain('PENDING_AND_PAID_COEXISTENCE_COPY')
-    expect(detail).toContain('This is not Paid')
+    expect(detail).toContain('This is not Released')
     expect(client).toContain('createBrowserClient')
     expect(client).not.toContain('SERVICE_ROLE')
     for (const sql of [sql034, sql035, sql040, sql041, sql042]) {

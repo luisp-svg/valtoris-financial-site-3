@@ -76,7 +76,7 @@ describe('Phase B production board contracts', () => {
     expect(card).toContain('productionBoardCardMoney')
     expect(boardMoney).toContain('annualizeProductionPremium')
     expect(boardMoney).not.toContain('expected_compensation')
-    expect(card).not.toMatch(/Your expected|Gross paid/)
+    expect(card).not.toMatch(/Your expected|Gross released/)
     expect(card).not.toContain('fetchHouseholdNotes')
     expect(board).not.toContain('fetchHouseholdNotes')
     expect(queuePage).not.toContain('fetchHouseholdNotes')

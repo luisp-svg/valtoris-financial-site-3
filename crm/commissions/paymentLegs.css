@@ -1,0 +1,58 @@
+.payment-legs {
+  margin: 1rem 0;
+  padding: 1.25rem;
+  border: 1px solid #ccd6dd;
+  border-radius: 12px;
+  background: var(--crm-surface, #fff);
+  color: #172b3a;
+}
+.payment-legs label {
+  display: block;
+  margin: 0.8rem 0;
+}
+.payment-legs input:not([type="checkbox"]),
+.payment-legs select,
+.payment-legs textarea {
+  display: block;
+  width: 100%;
+  max-width: 42rem;
+  padding: 0.65rem;
+  border: 1px solid #8395a3;
+  border-radius: 6px;
+  background: #fff;
+  color: #172b3a;
+}
+.payment-legs button {
+  padding: 0.6rem 0.9rem;
+  margin: 0.3rem 0;
+  border: 1px solid #8395a3;
+  border-radius: 6px;
+}
+.payment-legs button:disabled {
+  opacity: 0.55;
+}
+.payment-totals {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+.payment-totals dd {
+  margin: 0.3rem 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+.payment-history {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: 0.7rem;
+}
+.payment-history article {
+  padding: 0.8rem;
+  border: 1px solid #ccd6dd;
+  border-radius: 8px;
+}
+.payment-legs fieldset {
+  min-width: 0;
+  border: 1px solid #ccd6dd;
+  padding: 1rem;
+}

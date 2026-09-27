@@ -44,9 +44,9 @@ export default function CommissionQueueTable({
             {isOwner ? <th scope="col">Pending</th> : null}
             <th scope="col">Outstanding</th>
             <th scope="col">Remaining expected</th>
-            <th scope="col">Paid</th>
+            <th scope="col">Released</th>
             <th scope="col">Chargebacks</th>
-            <th scope="col">Net actual</th>
+            <th scope="col">Net released</th>
             <th scope="col">Variance</th>
             <th scope="col">Status</th>
             <th scope="col">{isOwner ? 'Needs attention' : 'Needs review'}</th>

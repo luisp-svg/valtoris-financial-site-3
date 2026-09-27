@@ -1,3 +1,4 @@
+import PaymentLegWorkspace from '../../crm/commissions/PaymentLegWorkspace'
 import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { localDateString } from '../../crm/dashboard/dates'
@@ -533,6 +534,7 @@ export default function CrmCommissionsPage() {
 
   return (
     <>
+    <PaymentLegWorkspace owner={isOwner} />
     <CommissionWorkspace
       viewer={viewer}
       isOwner={isOwner}

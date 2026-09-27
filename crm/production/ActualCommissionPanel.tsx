@@ -90,11 +90,11 @@ export default function ActualCommissionPanel({
               cents={totals?.expected_cents}
               unavailable={totals?.expected_cents == null}
             />
-            <SummaryItem label="Gross paid" cents={totals?.gross_paid_cents ?? 0} signed />
+            <SummaryItem label="Gross released" cents={totals?.gross_paid_cents ?? 0} signed />
             <SummaryItem label="Adjustments" cents={totals?.adjustment_cents ?? 0} signed />
             <SummaryItem label="Chargebacks" cents={totals?.chargeback_cents ?? 0} signed />
             <SummaryItem label="Recoveries" cents={totals?.recovery_cents ?? 0} signed />
-            <SummaryItem label="Net actual" cents={totals?.net_actual_cents ?? 0} signed />
+            <SummaryItem label="Net released" cents={totals?.net_actual_cents ?? 0} signed />
             <SummaryItem
               label="Remaining expected"
               cents={totals?.remaining_expected_cents}

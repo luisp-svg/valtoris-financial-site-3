@@ -308,7 +308,7 @@ function stubWorkItemForPendingFact(
 
 /**
  * Attach current Pending to the exact application_id + allocation_id work
- * item. Does not change Outstanding, Paid, Chargebacks, or Net Paid.
+ * item. Does not change Outstanding, Released, Chargebacks, or Net Released.
  */
 export function applyCommissionPendingToWorkItems(options: {
   items: readonly ProductionApplicationListItem[]

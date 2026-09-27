@@ -617,7 +617,7 @@ export async function runServiceTests() {
       JSON.stringify({
         passed,
         failed: 0,
-        migrations: 74,
+        migrations: fs.readdirSync('supabase/migrations').filter((name) => /^\d.*sql$/.test(name)).length,
         engine: 'local native PostgreSQL',
         productionTouched: false,
       }),

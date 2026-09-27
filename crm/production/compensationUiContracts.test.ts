@@ -87,7 +87,7 @@ describe('UI-1 compensation read-view contracts', () => {
     expect(expectedPanel).toContain('Your expected compensation')
     expect(expectedPanel).toContain('OwnerExpectedTable')
     expect(expectedPanel).not.toContain('product_compensation_schedule_id')
-    expect(actualPanel).toContain('Gross paid')
+    expect(actualPanel).toContain('Gross released')
     expect(actualPanel).toContain('Remaining expected')
     expect(actualPanel).toContain('Expected compensation unavailable')
     expect(actualPanel).toContain('Reversed / corrected')
@@ -102,7 +102,7 @@ describe('UI-1 compensation read-view contracts', () => {
     for (const source of uiSources) {
       expect(source).not.toMatch(/\bPending\b/)
       expect(source).not.toMatch(/\bEligible\b/)
-      expect(source).not.toMatch(/\bReleased\b/)
+      expect(source).not.toMatch(/Mark Eligible/)
     }
     expect(compensationView).toContain("primary: 'no_payments'")
     expect(compensationView).toContain("primary: 'expected_unavailable'")
