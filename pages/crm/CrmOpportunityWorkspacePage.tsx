@@ -260,6 +260,9 @@ export default function CrmOpportunityWorkspacePage() {
               Open household
             </Link>
           ) : null}
+          {workspace && ['pc','health','student_loans','credit_repair','wills_trusts','tax_strategy'].includes(workspace.opportunity.service_vertical?.code ?? '') ? (
+            <Link to={`/crm/production/services/new?opportunity=${workspace.opportunity.id}`} className="crm-text-btn">Service production</Link>
+          ) : null}
         </div>
 
         {viewState.kind === 'loading' ? (

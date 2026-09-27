@@ -1,0 +1,136 @@
+.service-production {
+  max-width: 1200px;
+  margin: auto;
+}
+.service-production label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-weight: 600;
+}
+.service-production input:not([type='checkbox']),
+.service-production select,
+.service-production textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 0.7rem;
+  background: #fff;
+  color: #172b40;
+  font: inherit;
+}
+.service-production label:has(input[type='checkbox']) {
+  flex-direction: row;
+  align-items: center;
+}
+.service-production fieldset {
+  min-width: 0;
+  border: 1px solid #dce3eb;
+  border-radius: 10px;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+.service-production legend {
+  font-weight: 700;
+  padding: 0 0.4rem;
+}
+.service-production small {
+  font-weight: 400;
+  color: #526579;
+}
+.service-grid,
+.service-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+.service-wide {
+  grid-column: 1/-1;
+}
+.service-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  margin: 1rem 0;
+}
+.service-card {
+  background: white;
+  border: 1px solid #dce3eb;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin: 1rem 0;
+  overflow-wrap: anywhere;
+}
+.service-card h2 {
+  margin-top: 0.3rem;
+}
+.service-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+.service-cards .service-card {
+  margin: 0;
+}
+.service-kicker {
+  color: #43596e;
+  font-size: 0.9rem;
+}
+.service-split {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  align-items: end;
+  margin-bottom: 1rem;
+}
+.service-facts dt {
+  color: #526579;
+}
+.service-facts dd {
+  margin: 0.3rem 0;
+  font-weight: 600;
+}
+.service-estimate {
+  border-top: 1px solid #dce3eb;
+  padding: 1rem 0;
+}
+.service-notes {
+  white-space: pre-wrap;
+}
+.service-production summary {
+  cursor: pointer;
+  padding: 0.6rem 0;
+  font-weight: 600;
+}
+.service-production button:disabled,
+.service-production fieldset:disabled {
+  opacity: 0.65;
+}
+.service-production textarea {
+  margin-bottom: 0.75rem;
+}
+.service-production :focus-visible {
+  outline: 3px solid #327bbb;
+  outline-offset: 3px;
+}
+@media (max-width: 650px) {
+  .service-grid,
+  .service-facts,
+  .service-cards,
+  .service-split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .service-card {
+    padding: 1rem;
+  }
+  .service-production fieldset {
+    padding: 0.75rem;
+  }
+  .service-production .service-actions > a {
+    max-width: 100%;
+    white-space: normal;
+  }
+}

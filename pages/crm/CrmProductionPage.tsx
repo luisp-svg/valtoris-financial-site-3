@@ -384,6 +384,7 @@ export default function CrmProductionPage() {
           </p>
         </div>
         <div className="crm-production-header-actions">
+          <Link to="/crm/production/services" className="crm-secondary-btn">Service production</Link>
           <Link to={ROUTES.crmProductionNew} className="crm-primary-btn">
             New application
           </Link>

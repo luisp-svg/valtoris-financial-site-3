@@ -121,4 +121,5 @@ export const EXPECTED_NUMBERED_MIGRATIONS = [
   '070_life_intake_sensitive.sql',
   '071_crm_task_actions.sql',
   '072_public_report_card_concurrency.sql',
+  '073_service_production_foundation.sql',
 ] as const
