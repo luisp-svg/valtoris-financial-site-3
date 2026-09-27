@@ -617,7 +617,7 @@ export async function runServiceTests() {
       JSON.stringify({
         passed,
         failed: 0,
-        migrations: 73,
+        migrations: 74,
         engine: 'local native PostgreSQL',
         productionTouched: false,
       }),

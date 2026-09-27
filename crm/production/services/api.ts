@@ -1,3 +1,4 @@
+import { calendarToday, type CaseView } from './caseModel'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type {
   Allocation,
@@ -11,16 +12,33 @@ export async function listServiceRecords(
   client: SupabaseClient,
   offset: number,
   archived: boolean,
+  view: CaseView = 'all',
 ): Promise<ServiceRecord[]> {
   let query = client
     .from('service_production_records')
-    .select(RECORD_SELECT)
+    .select(
+      RECORD_SELECT +
+        (view === 'overdue_requirements'
+          ? ',requirements:service_production_requirements!inner(id)'
+          : ''),
+    )
     .order('created_at', { ascending: false })
     .order('id')
     .range(offset, offset + 49)
   query = archived
     ? query.not('deleted_at', 'is', null)
     : query.is('deleted_at', null)
+  if (view !== 'all') query = query.eq('production_status', 'submitted')
+  if (view === 'overdue_follow_up')
+    query = query.lt('next_follow_up_date', calendarToday())
+  if (view === 'unassigned') query = query.is('case_owner_user_id', null)
+  if (view === 'waiting')
+    query = query.in('case_stage', ['waiting_client', 'waiting_provider'])
+  if (view === 'overdue_requirements')
+    query = query
+      .in('requirements.status', ['open', 'scheduled'])
+      .is('requirements.deleted_at', null)
+      .lt('requirements.due_date', calendarToday())
   const { data, error } = await query
   if (error) throw error
   return (data ?? []) as unknown as ServiceRecord[]

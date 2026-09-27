@@ -1,3 +1,10 @@
+import ServiceCaseWorkspace from '../../crm/production/services/ServiceCaseWorkspace'
+import {
+  CASE_STAGES,
+  CASE_VIEWS,
+  dueLabel,
+  type CaseView,
+} from '../../crm/production/services/caseModel'
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useCrmAuth } from '../../crm/auth/CrmAuthContext'
@@ -94,6 +101,7 @@ function ErrorBanner({ error }: { error: string }) {
 function ServiceList({ owner }: { owner: boolean }) {
   const [rows, setRows] = useState<ServiceRecord[]>([])
   const [archived, setArchived] = useState(false)
+  const [view, setView] = useState<CaseView>('all')
   const [busy, setBusy] = useState(true)
   const [error, setError] = useState('')
   const [more, setMore] = useState(false)
@@ -103,7 +111,7 @@ function ServiceList({ owner }: { owner: boolean }) {
     setBusy(true)
     setError('')
     setRows([])
-    listServiceRecords(client(), 0, archived)
+    listServiceRecords(client(), 0, archived, view)
       .then((data) => {
         if (live) {
           setRows(data)
@@ -119,12 +127,17 @@ function ServiceList({ owner }: { owner: boolean }) {
     return () => {
       live = false
     }
-  }, [archived, reload])
+  }, [archived, reload, view])
   async function loadMore() {
     setBusy(true)
     setError('')
     try {
-      const data = await listServiceRecords(client(), rows.length, archived)
+      const data = await listServiceRecords(
+        client(),
+        rows.length,
+        archived,
+        view,
+      )
       setRows([...rows, ...data])
       setMore(data.length === 50)
     } catch (e) {
@@ -158,6 +171,25 @@ function ServiceList({ owner }: { owner: boolean }) {
           Refresh
         </button>
       </div>
+      <label>
+        Case attention view
+        <select
+          value={view}
+          disabled={busy}
+          onChange={(e) => setView(e.target.value as CaseView)}
+        >
+          {Object.entries(CASE_VIEWS).map(([v, l]) => (
+            <option key={v} value={v}>
+              {l}
+            </option>
+          ))}
+        </select>
+      </label>
+      <p>
+        Showing {rows.length} matching records
+        {more ? ' — load more to continue' : ''}. Filters search all records you
+        can access.
+      </p>
       <ErrorBanner error={error} />
       <p>
         Values are shown by their basis. Premiums, service fees and recoveries
@@ -165,7 +197,7 @@ function ServiceList({ owner }: { owner: boolean }) {
       </p>
       {!busy && !error && !rows.length && (
         <div className="service-card">
-          <h2>No {archived ? 'archived ' : ''}service records yet</h2>
+          <h2>No matching service records</h2>
           <p>
             Choose an existing opportunity to record what was sold, who wrote it
             and its production value.
@@ -189,6 +221,13 @@ function ServiceList({ owner }: { owner: boolean }) {
               <strong>{money(r.value_cents)}</strong>
             </p>
             <p>Submitted: {r.submission_date ?? 'Not recorded'}</p>
+            {r.production_status === 'submitted' && (
+              <p>
+                {CASE_STAGES[r.case_stage ?? 'queued']} · Follow-up:{' '}
+                {dueLabel(r.next_follow_up_date ?? null)}
+                {!r.case_owner_user_id ? ' · Unassigned case' : ''}
+              </p>
+            )}
           </article>
         ))}
       </div>
@@ -508,6 +547,7 @@ function EstimateForm({
 }
 function ServiceDetail({ id, owner }: { id: string; owner: boolean }) {
   const navigate = useNavigate()
+  const [caseEditing, setCaseEditing] = useState(false)
   const [data, setData] = useState<Awaited<
     ReturnType<typeof loadServiceRecord>
   > | null>(null)
@@ -591,6 +631,7 @@ function ServiceDetail({ id, owner }: { id: string; owner: boolean }) {
     }
   }
   async function editSplits() {
+    if (caseEditing) return
     setError('')
     try {
       setAdvisors(await fetchActiveWritingAdvisors(client()))
@@ -612,7 +653,7 @@ function ServiceDetail({ id, owner }: { id: string; owner: boolean }) {
       {notice && <p role="status">{notice}</p>}
       <button
         className="crm-secondary-btn"
-        disabled={busy}
+        disabled={busy || caseEditing}
         onClick={() => {
           if (dirty && !window.confirm('Discard unsaved changes and reload?'))
             return
@@ -644,7 +685,7 @@ function ServiceDetail({ id, owner }: { id: string; owner: boolean }) {
             </p>
             {editing ? (
               <form onSubmit={save}>
-                <fieldset disabled={busy}>
+                <fieldset disabled={busy || caseEditing}>
                   <legend>Edit production details</legend>
                   <ServiceFields
                     draft={draft}
@@ -710,8 +751,10 @@ function ServiceDetail({ id, owner }: { id: string; owner: boolean }) {
                 {!data.record.deleted_at && !splitEditing && (
                   <button
                     className="crm-secondary-btn"
+                    disabled={caseEditing}
                     onClick={() => {
                       setReason('')
+                      if (caseEditing) return
                       setEditing(true)
                     }}
                   >
@@ -721,6 +764,15 @@ function ServiceDetail({ id, owner }: { id: string; owner: boolean }) {
               </>
             )}
           </section>
+          {!editing && !splitEditing && (
+            <ServiceCaseWorkspace
+              key={`${id}-${data.record.revision}`}
+              record={data.record}
+              owner={owner}
+              done={reload}
+              onEditingChange={setCaseEditing}
+            />
+          )}
           <section className="service-card">
             <h2>Writing-advisor compensation</h2>
             <p>
@@ -758,6 +810,7 @@ function ServiceDetail({ id, owner }: { id: string; owner: boolean }) {
                 {owner &&
                   !data.record.deleted_at &&
                   !editing &&
+                  !caseEditing &&
                   !splitEditing && (
                     <details>
                       <summary>Review expected compensation</summary>
@@ -786,7 +839,7 @@ function ServiceDetail({ id, owner }: { id: string; owner: boolean }) {
                     }
                   }}
                 >
-                  <fieldset disabled={busy}>
+                  <fieldset disabled={busy || caseEditing}>
                     <legend>Update writing shares</legend>
                     <SplitFields
                       splits={splits}
@@ -825,7 +878,11 @@ function ServiceDetail({ id, owner }: { id: string; owner: boolean }) {
                   </fieldset>
                 </form>
               ) : (
-                <button className="crm-secondary-btn" onClick={editSplits}>
+                <button
+                  className="crm-secondary-btn"
+                  disabled={caseEditing}
+                  onClick={editSplits}
+                >
                   Edit writing shares
                 </button>
               ))}
@@ -850,6 +907,7 @@ function ServiceDetail({ id, owner }: { id: string; owner: boolean }) {
                 className="crm-secondary-btn"
                 aria-expanded={archiving}
                 aria-controls="service-archive-form"
+                disabled={caseEditing}
                 onClick={() => setArchiving((v) => !v)}
               >
                 Archive this record
@@ -866,7 +924,7 @@ function ServiceDetail({ id, owner }: { id: string; owner: boolean }) {
                     )
                   }}
                 >
-                  <fieldset disabled={busy}>
+                  <fieldset disabled={busy || caseEditing}>
                     <legend>Archive reason</legend>
                     <p>
                       Archiving removes this record from the active list. Its

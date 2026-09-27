@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useState, useRef, type FormEvent } from 'react'
 import TaskActions from '../../crm/tasks/TaskActions'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useCrmAuth } from '../../crm/auth/CrmAuthContext'
@@ -55,6 +55,9 @@ function priorityLabel(priority: TaskPriority): string {
 export default function CrmTasksPage() {
   const { profile, role } = useCrmAuth()
   const [searchParams, setSearchParams] = useSearchParams()
+  const initialOpportunity = useRef(searchParams.get('action') === 'new' ? searchParams.get('opportunity') : null)
+  const initialHousehold = useRef(searchParams.get('action') === 'new' ? searchParams.get('household') : null)
+  const [taskRequestId, setTaskRequestId] = useState(() => crypto.randomUUID())
   const [tasks, setTasks] = useState<CrmTask[]>([])
   const [households, setHouseholds] = useState<HouseholdOption[]>([])
   const [leads, setLeads] = useState<LeadOption[]>([])
@@ -74,7 +77,7 @@ export default function CrmTasksPage() {
 
   const loadTasks = useCallback(async () => {
     const supabase = createSupabaseBrowserClient()
-    const rows = await fetchVisibleTasks(supabase, { completed: searchParams.get('view') === 'completed', householdId: searchParams.get('household') || undefined })
+    const rows = await fetchVisibleTasks(supabase, { completed: searchParams.get('view') === 'completed', householdId: searchParams.get('household') || undefined, opportunityId: searchParams.get('opportunity') || undefined })
     setTasks(rows)
   }, [searchParams])
 
@@ -97,6 +100,11 @@ export default function CrmTasksPage() {
 
     if (householdResult.status === 'fulfilled') {
       setHouseholds(householdResult.value)
+      const requested = initialHousehold.current
+      if (requested && householdResult.value.some(h => h.id === requested)) {
+        setForm(prev => ({...prev, household_id: requested}))
+        initialHousehold.current = null
+      }
     } else {
       setHouseholds([])
       const message = formatSupabaseError('households', householdResult.reason)
@@ -176,6 +184,11 @@ export default function CrmTasksPage() {
         const rows = await fetchOpportunityOptions(supabase, form.household_id)
         if (!cancelled) {
           setOpportunities(rows)
+          const requested = initialOpportunity.current
+          if (requested && rows.some(o => o.id === requested)) {
+            setForm(prev => ({...prev, opportunity_id: requested}))
+            initialOpportunity.current = null
+          }
           setOpportunityWarning(null)
         }
       } catch (err) {
@@ -194,7 +207,20 @@ export default function CrmTasksPage() {
     }
   }, [form.household_id])
 
+  function taskViewPath(completed = false) {
+    const params = new URLSearchParams()
+    for (const key of ['household', 'opportunity']) {
+      const value = searchParams.get(key)
+      if (value) params.set(key, value)
+    }
+    if (completed) params.set('view', 'completed')
+    return '/crm/tasks' + (params.size ? '?' + params.toString() : '')
+  }
+
   function openForm() {
+    setTaskRequestId(crypto.randomUUID())
+    initialHousehold.current = searchParams.get('household')
+    initialOpportunity.current = searchParams.get('opportunity')
     setSuccess(null)
     setOptionsError(null)
     setSubmitError(null)
@@ -202,6 +228,8 @@ export default function CrmTasksPage() {
     setOpportunityWarning(null)
     setForm({
       ...EMPTY_FORM,
+      household_id: households.some(h => h.id === initialHousehold.current) ? initialHousehold.current! : '',
+      opportunity_id: opportunities.some(o => o.id === initialOpportunity.current && o.household_id === initialHousehold.current) ? initialOpportunity.current : null,
       assigned_user_id: profile?.id ?? null,
     })
     setShowForm(true)
@@ -264,6 +292,7 @@ export default function CrmTasksPage() {
           workflow_type: form.workflow_type ?? null,
         },
         profile.id,
+        taskRequestId,
       )
       await loadTasks()
       setSuccess('Task created.')
@@ -516,7 +545,7 @@ export default function CrmTasksPage() {
         </section>
       ) : null}
 
-      <nav aria-label="Task views"><Link to="/crm/tasks">Open tasks</Link>{' · '}<Link to="/crm/tasks?view=completed">Completed tasks</Link></nav>
+      <nav aria-label="Task views"><Link to={taskViewPath()}>Open tasks</Link>{' · '}<Link to={taskViewPath(true)}>Completed tasks</Link></nav>
       <section className="crm-panel">
         <div className="crm-panel-head">
           <h2>{searchParams.get('view') === 'completed' ? 'Completed tasks' : 'Open tasks'}</h2>

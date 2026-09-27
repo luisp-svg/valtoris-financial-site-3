@@ -88,6 +88,7 @@ const EXPECTED_MIGRATIONS = [
   '071_crm_task_actions.sql',
   '072_public_report_card_concurrency.sql',
   '073_service_production_foundation.sql',
+  '074_service_case_management.sql',
 ]
 
 describe('Phase A production dashboard contracts', () => {

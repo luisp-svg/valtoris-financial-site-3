@@ -42,6 +42,11 @@ export type ServiceRecord = {
   value_basis: keyof typeof VALUE_BASES
   currency: 'USD'
   notes: string | null
+  case_owner_user_id?: string | null
+  next_follow_up_date?: string | null
+  case_stage?: import('./caseModel').CaseStage | null
+  case_stage_changed_at?: string | null
+  waiting_reason?: string | null
   revision: number
   deleted_at: string | null
   household: { display_name: string } | null
@@ -183,6 +188,25 @@ export function serviceError(e: unknown): string {
       : typeof e === 'object' && e && 'message' in e
         ? String(e.message)
         : ''
+  const caseErrors: Record<string, string> = {
+    blocking_requirements:
+      'Resolve, waive or cancel open blocking requirements before marking this case ready or complete.',
+    case_not_active:
+      'Case work is available on submitted records. An owner must reopen a closed record first.',
+    owner_reopen_required:
+      'Only an owner can reopen a completed or cancelled record.',
+    owner_assignment_required:
+      'Only an owner can change case ownership or assign another user.',
+    ineligible_assignee:
+      'Choose an active user who already has access to this client.',
+    ready_case_blocker:
+      'Move the case back to In progress before adding or reopening a blocking requirement.',
+    invalid_requirement_transition:
+      'This requirement cannot move directly to that status. Reopen it first when allowed.',
+    reason_required: 'Enter a reason for this change.',
+  }
+  for (const [code, text] of Object.entries(caseErrors))
+    if (message.includes(code)) return text
   if (message.includes('stale_record'))
     return 'This record changed while you were editing. Reload it before trying again.'
   if (message.includes('not_found'))

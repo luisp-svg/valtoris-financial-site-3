@@ -74,7 +74,7 @@ function normalizeTask(row: Record<string, unknown>): CrmTask {
 
 export async function fetchVisibleTasks(
   supabase: SupabaseClient,
-  options?: { dueOn?: string; assignedUserId?: string; limit?: number; completed?: boolean; householdId?: string },
+  options?: { dueOn?: string; assignedUserId?: string; limit?: number; completed?: boolean; householdId?: string; opportunityId?: string },
 ): Promise<CrmTask[]> {
   let query = supabase
     .from('tasks')
@@ -84,6 +84,7 @@ export async function fetchVisibleTasks(
     .order('due_date', { ascending: true, nullsFirst: false })
     .order('created_at', { ascending: false })
 
+  if (options?.opportunityId) query = query.eq('opportunity_id', options.opportunityId)
   if (options?.householdId) query = query.eq('household_id', options.householdId)
   if (options?.dueOn) {
     query = query.eq('due_date', options.dueOn)
@@ -104,32 +105,71 @@ export async function createTask(
   supabase: SupabaseClient,
   input: CreateTaskInput,
   createdByUserId: string,
+  requestId?: string,
 ): Promise<CrmTask> {
-  const { data, error } = await supabase
-    .from('tasks')
-    .insert({
-      title: input.title.trim(),
-      description: input.description.trim() || null,
-      due_date: input.due_date || null,
-      priority: input.priority,
-      status: 'open',
-      assigned_user_id: input.assigned_user_id,
-      household_id: input.household_id,
-      opportunity_id: input.opportunity_id,
-      lead_id: input.lead_id ?? null,
-      assessment_id: input.assessment_id ?? null,
-      source_type: input.source_type ?? 'manual',
-      workflow_type: input.workflow_type ?? null,
-      automation_idempotency_key: null,
-      metadata: input.metadata ?? {},
-      created_by_user_id: createdByUserId,
-    })
-    .select(TASK_SELECT)
-    .single()
+  async function existingRequest(): Promise<CrmTask | null> {
+    if (!requestId) return null
+    const result = await supabase.from('tasks')
+      .select(TASK_SELECT).eq('id', requestId).maybeSingle()
+    if (result.error) throw result.error
+    if (!result.data) return null
+    const task = normalizeTask(result.data as Record<string, unknown>)
+    if (
+      task.created_by_user_id !== createdByUserId ||
+      task.title !== input.title.trim() ||
+      task.household_id !== input.household_id ||
+      task.opportunity_id !== input.opportunity_id ||
+      task.due_date !== (input.due_date || null) ||
+      task.assigned_user_id !== input.assigned_user_id ||
+      task.description !== (input.description.trim() || null) ||
+      task.priority !== input.priority ||
+      task.lead_id !== (input.lead_id ?? null) ||
+      task.workflow_type !== (input.workflow_type ?? null) ||
+      task.assessment_id !== (input.assessment_id ?? null) ||
+      task.source_type !== (input.source_type ?? 'manual') ||
+      task.deleted_at != null
+    ) {
+      throw new Error('An earlier submission already created this task with different details. Refresh the task list before starting a new task.')
+    }
+    return task
+  }
+  async function saveRow(): Promise<CrmTask> {
+    const previous = await existingRequest()
+    if (previous) return previous
+    const { data, error } = await supabase
+      .from('tasks')
+      .insert({
+        ...(requestId ? { id: requestId } : {}),
+        title: input.title.trim(),
+        description: input.description.trim() || null,
+        due_date: input.due_date || null,
+        priority: input.priority,
+        status: 'open',
+        assigned_user_id: input.assigned_user_id,
+        household_id: input.household_id,
+        opportunity_id: input.opportunity_id,
+        lead_id: input.lead_id ?? null,
+        assessment_id: input.assessment_id ?? null,
+        source_type: input.source_type ?? 'manual',
+        workflow_type: input.workflow_type ?? null,
+        automation_idempotency_key: null,
+        metadata: input.metadata ?? {},
+        created_by_user_id: createdByUserId,
+      })
+      .select(TASK_SELECT)
+      .single()
 
-  if (error) throw error
+    if (error) {
+      if (requestId && error.code === '23505') {
+        const previous = await existingRequest()
+        if (previous) return previous
+      }
+      throw error
+    }
 
-  const created = normalizeTask(data as Record<string, unknown>)
+    return normalizeTask(data as Record<string, unknown>)
+  }
+  const created = await saveRow()
 
   // Manual diagnostic tasks must reconcile lead automation state under RLS.
   // Failures are not swallowed — stale task_failed/task_pending is release risk.
