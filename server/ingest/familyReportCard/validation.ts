@@ -1,3 +1,5 @@
+import { isShortForm, validateShortAnswers } from '../../../modules/reportCard/shortForm/contract.js'
+import { SHORT_FORM_VERSION } from '../../../modules/reportCard/shortForm/catalog.js'
 import { isValidEmailFormat, normalizePhone } from '../../../crm/households/normalizeContact.js'
 import {
   isBusinessStepComplete,
@@ -399,17 +401,23 @@ export function validateFamilyReportCardIngestRequest(
     assessmentType = rawBody.assessmentType
   }
 
-  if (assessmentType === 'home_buyer') {
+  if (assessmentType === 'home_buyer' && rawBody.assessmentVersion !== SHORT_FORM_VERSION) {
     const a = rawBody.answers as { diagnostic?: { v2?: unknown } } | null
     const hasV2 = !!a?.diagnostic && Object.prototype.hasOwnProperty.call(a.diagnostic, 'v2')
     if (rawBody.assessmentVersion !== (hasV2 ? 2 : 1)) return fail('invalid_assessment_version', 'Unsupported Home Buyer assessment version.')
   }
 
-  if (typeof rawBody.assessmentVersion !== 'number' || !Number.isFinite(rawBody.assessmentVersion) || rawBody.assessmentVersion < 1) {
-    return fail('invalid_assessment_version', 'assessmentVersion must be a positive number.')
+  if (typeof rawBody.assessmentVersion !== 'number' || ![1, ...(assessmentType === 'home_buyer' ? [2] : []), SHORT_FORM_VERSION].includes(rawBody.assessmentVersion)) {
+    return fail('invalid_assessment_version', 'Unsupported assessment version.')
   }
 
-  const answersResult = validateAnswersForType(assessmentType, rawBody.answers)
+  if (isShortForm(rawBody.answers) && rawBody.assessmentVersion !== SHORT_FORM_VERSION) {
+    return fail('invalid_assessment_version', 'Unsupported short-form assessment version.')
+  }
+  const shortAnswers = rawBody.assessmentVersion === SHORT_FORM_VERSION ? validateShortAnswers(assessmentType, rawBody.answers) : null
+  const answersResult: ValidationResult<PublicReportCardAnswers> = rawBody.assessmentVersion === SHORT_FORM_VERSION
+    ? shortAnswers ? { ok: true, value: shortAnswers } : fail('invalid_answers', 'Please review your short-form answers and contact details.')
+    : validateAnswersForType(assessmentType, rawBody.answers)
   if (!answersResult.ok) return answersResult
 
   const sourcePageResult = optionalTrimmedString(rawBody.sourcePage, MAX_SOURCE_PAGE_LENGTH)

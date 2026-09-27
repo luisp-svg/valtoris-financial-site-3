@@ -1,3 +1,5 @@
+import { isShortForm, type ShortAnswers } from '../../../modules/reportCard/shortForm/contract'
+import { SHORT_FORM_VERSION } from '../../../modules/reportCard/shortForm/catalog'
 import { scoreBusinessAssessment } from '../../assessment/scoring/scoreBusinessAssessment'
 import { scoreFamilyAssessment } from '../../assessment/scoring/scoreFamilyAssessment'
 import { scoreRetirementAssessment } from '../../assessment/scoring/scoreRetirementAssessment'
@@ -56,6 +58,7 @@ export type FamilySubmitOrchestrationResult =
 export async function completePublicReportCardCrmSubmission(input: {
   assessmentType: PublicReportCardAssessmentType
   answers:
+    | ShortAnswers
     | DemoAssessmentAnswers
     | BusinessAssessmentAnswers
     | RetirementAssessmentAnswers
@@ -102,7 +105,9 @@ export async function completePublicReportCardCrmSubmission(input: {
   const nowIso = input.nowIso ?? new Date().toISOString()
   let clientReportedScore: number | null = null
   let clientReportedGrade: string | null = null
-  if (input.assessmentType === 'family') {
+  if (isShortForm(input.answers)) {
+    // Short reviews deliberately have no numeric score or letter grade.
+  } else if (input.assessmentType === 'family') {
     const scored = scoreFamilyAssessment(input.answers as DemoAssessmentAnswers)
     clientReportedScore = scored.overallScore
     clientReportedGrade = scored.overallGrade
@@ -160,7 +165,7 @@ export async function completePublicReportCardCrmSubmission(input: {
     submittedAt: nowIso,
     honeypotWebsite: input.honeypotWebsite ?? '',
     assessmentType: input.assessmentType,
-    assessmentVersion: input.assessmentType === 'home_buyer' && (input.answers as HomeBuyerAssessmentAnswers).diagnostic.v2 ? 2 : 1,
+    assessmentVersion: isShortForm(input.answers) ? SHORT_FORM_VERSION : input.assessmentType === 'home_buyer' && (input.answers as HomeBuyerAssessmentAnswers).diagnostic.v2 ? 2 : 1,
   })
 
   const crm = await submitFamilyReportCardToCrm(payload, input.submitOptions)

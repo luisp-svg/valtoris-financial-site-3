@@ -1,3 +1,5 @@
+import { isShortForm } from '../../../modules/reportCard/shortForm/contract.js'
+import { splitFullName } from '../../../utils/submitLeadToGoogleSheets.js'
 import { normalizeEmail, normalizePhone } from '../../../crm/households/normalizeContact.js'
 import type { BusinessAssessmentAnswers } from '../../../components/assessment/business/types.js'
 import type { RetirementAssessmentAnswers } from '../../../components/assessment/retirement/types.js'
@@ -126,6 +128,12 @@ export function normalizePublicReportCardContact(
   assessmentType: PublicReportCardAssessmentType,
   answers: PublicReportCardAnswers,
 ): NormalizedSubmittedContact {
+  if (isShortForm(answers)) {
+    const d = answers.diagnostic
+    return fromContactFields({ ...splitFullName(answers.contact.fullName), email: answers.contact.email, phone: answers.contact.phone,
+      age: typeof d.age === 'string' ? d.age : '', state: typeof d.state === 'string' && d.state !== 'unknown' ? d.state : '',
+      maritalStatus: typeof d.marital === 'string' ? d.marital : '', numberOfChildren: typeof d.children === 'string' ? d.children : '' })
+  }
   switch (assessmentType) {
     case 'family':
       return normalizeSubmittedContact(answers as DemoAssessmentAnswers)

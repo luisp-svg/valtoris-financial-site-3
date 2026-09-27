@@ -27,7 +27,7 @@ export default function PublicFamilyDiagnosticHistoryList({ householdId, items }
             <tr>
               <th scope="col">Diagnostic</th>
               <th scope="col">Submitted</th>
-              <th scope="col">Score</th>
+              <th scope="col">Result</th>
               <th scope="col">Priorities</th>
               <th scope="col">Consent</th>
               <th scope="col">Sheets</th>
@@ -52,7 +52,7 @@ export default function PublicFamilyDiagnosticHistoryList({ householdId, items }
                 </td>
                 <td>{formatDiagnosticSubmittedAt(item.completedAt)}</td>
                 <td>
-                  {item.assessmentType === 'protection'
+                  {item.scoringVersion === 3 ? 'Short-form review' : item.assessmentType === 'protection'
                     ? item.protectionGapFormatted ?? '—'
                     : `${item.overallScore ?? '—'}${item.overallGrade ? ` · ${item.overallGrade}` : ''}`}
                 </td>
@@ -89,9 +89,9 @@ export default function PublicFamilyDiagnosticHistoryList({ householdId, items }
             </h2>
             <p className="crm-muted">{formatDiagnosticSubmittedAt(item.completedAt)}</p>
             <p>
-              {item.assessmentType === 'protection' ? 'Gap' : 'Score'}:{' '}
+              {item.scoringVersion === 3 ? 'Result' : item.assessmentType === 'protection' ? 'Gap' : 'Score'}:{' '}
               <strong>
-                {item.assessmentType === 'protection'
+                {item.scoringVersion === 3 ? 'Short-form review' : item.assessmentType === 'protection'
                   ? item.protectionGapFormatted ?? '—'
                   : `${item.overallScore ?? '—'}${item.overallGrade ? ` · ${item.overallGrade}` : ''}`}
               </strong>

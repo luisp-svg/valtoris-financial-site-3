@@ -104,7 +104,7 @@ describe('Credit Phase C validation', () => {
     expect(result.value.assessmentType).toBe('credit')
     expect(result.value.consent.assessmentStorageAcknowledged).toBe(true)
     expect(result.value.consent.privacyAcknowledged).toBe(true)
-    if ('contact' in result.value.answers) {
+    if ('contact' in result.value.answers && 'firstName' in result.value.answers.contact) {
       expect(result.value.answers.contact.firstName).toBe('Jamie')
     }
   })

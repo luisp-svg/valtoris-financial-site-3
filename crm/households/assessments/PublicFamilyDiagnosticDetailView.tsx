@@ -1,3 +1,4 @@
+import { ShortResultBody } from '../../../components/reportCard/shortForm/ShortResults'
 import { formatSubmittedGoal } from './submittedReportCardAnswers'
 import AffordabilityPanel from '../../../components/assessment/homeBuyer/AffordabilityPanel'
 import { Link } from 'react-router-dom'
@@ -72,14 +73,14 @@ export default function PublicFamilyDiagnosticDetailView({
         <h2 id="crm-ifd-score-heading">Result summary</h2>
         <dl className="crm-client-workspace-info-list">
           <div>
-            <dt>{detail.assessmentType === 'protection' ? 'Protection gap' : 'Score'}</dt>
+            <dt>{detail.shortFormResult ? 'Review type' : detail.assessmentType === 'protection' ? 'Protection gap' : 'Score'}</dt>
             <dd className="crm-financial-progress-score-emphasis" aria-label="Diagnostic score">
-              {detail.assessmentType === 'protection'
+              {detail.shortFormResult ? 'Short-form educational review' : detail.assessmentType === 'protection'
                 ? detail.protectionGapFormatted ?? '—'
                 : detail.overallScore ?? '—'}
             </dd>
           </div>
-          {detail.assessmentType === 'protection' ? null : (
+          {detail.shortFormResult || detail.assessmentType === 'protection' ? null : (
             <div>
               <dt>Grade</dt>
               <dd aria-label="Diagnostic grade">{detail.overallGrade ?? '—'}</dd>
@@ -95,13 +96,14 @@ export default function PublicFamilyDiagnosticDetailView({
           </div>
           {detail.currentLevel ? (
             <div>
-              <dt>Foundation level</dt>
+              <dt>{detail.shortFormResult ? 'Review basis' : 'Foundation level'}</dt>
               <dd>{detail.currentLevel}</dd>
             </div>
           ) : null}
         </dl>
       </section>
 
+      {detail.shortFormResult ? <section className="crm-panel crm-ifd-detail-section"><ShortResultBody result={detail.shortFormResult} /></section> : <>
       <section className="crm-panel crm-ifd-detail-section" aria-labelledby="crm-ifd-categories-heading">
         <h2 id="crm-ifd-categories-heading">Category results</h2>
         {detail.categories.length === 0 ? (
@@ -166,6 +168,7 @@ export default function PublicFamilyDiagnosticDetailView({
         )}
       </section>
 
+      </>}
       <section className="crm-panel crm-ifd-detail-section" aria-labelledby="crm-ifd-snapshot-heading">
         <h2 id="crm-ifd-snapshot-heading">Submitted questions and answers</h2>
         <p className="crm-muted">

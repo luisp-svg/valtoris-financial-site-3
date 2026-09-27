@@ -111,7 +111,7 @@ describe('Phase 8 solutions hub', () => {
     expect(html).toContain('Solutions for Individuals &amp; Families')
     expect(html).toContain('Solutions for Business Owners')
     expect(html).toContain('Start With Clarity.')
-    expect(html).toContain('Know Your Score. See Your Risks. Build Your Plan.')
+    expect(html).toContain('Understand Your Situation. Clarify Your Next Steps.')
     expect(html).toContain('id="solutions-diagnostics"')
     expect(source('src/styles.css')).toContain('#solutions-diagnostics {\n  scroll-margin-top: 96px;\n}')
     expect(html).toContain('Financial Strategist')

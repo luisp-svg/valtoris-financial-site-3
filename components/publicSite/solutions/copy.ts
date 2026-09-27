@@ -154,7 +154,7 @@ export const solutionsCopy: Record<PublicLocale, SolutionsCopy> = {
       'Review personal credit readiness that can affect an owner’s financing options and next steps.',
     businessCreditCta: 'Explore Credit Strategy',
     toolsHeading: 'Start With Clarity.',
-    toolsBrand: 'Know Your Score. See Your Risks. Build Your Plan.',
+    toolsBrand: 'Understand Your Situation. Clarify Your Next Steps.',
     toolsLead:
       'Before exploring solutions, start by understanding where you stand. Valtoris Report Cards and diagnostic tools help identify strengths, risks and priorities so the conversation begins with your situation—not a product.',
     toolFamilyTitle: 'Family Report Card™',
@@ -258,7 +258,7 @@ export const solutionsCopy: Record<PublicLocale, SolutionsCopy> = {
       'Revisa la preparación crediticia personal que puede afectar las opciones de financiamiento de un dueño.',
     businessCreditCta: 'Explorar estrategia de crédito',
     toolsHeading: 'Empieza con claridad.',
-    toolsBrand: 'Know Your Score. See Your Risks. Build Your Plan.',
+    toolsBrand: 'Understand Your Situation. Clarify Your Next Steps.',
     toolsLead:
       'Antes de explorar soluciones, empieza por entender en qué punto estás. Los Report Cards y las herramientas de diagnóstico de Valtoris ayudan a identificar fortalezas, riesgos y prioridades para que la conversación empiece con tu situación, no con un producto.',
     toolFamilyTitle: 'Family Report Card™',

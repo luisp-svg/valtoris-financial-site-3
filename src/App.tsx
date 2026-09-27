@@ -1,3 +1,6 @@
+import ShortLanding from '../components/reportCard/shortForm/ShortLanding'
+import ShortAssessment from '../components/reportCard/shortForm/ShortAssessment'
+import VersionedReportResults from '../components/reportCard/shortForm/ShortResults'
 import CrmAdditionalServiceIntakePage from '../pages/crm/CrmAdditionalServiceIntakePage'
 import CrmClientIntakeNewPage from '../pages/crm/CrmClientIntakeNewPage'
 import CrmArchivedRecordsPage from '../pages/crm/CrmArchivedRecordsPage'
@@ -13,13 +16,8 @@ import HomePage from '../pages/HomePage'
 import GetQuotePage from '../pages/GetQuotePage'
 import InsuranceQuotePage from '../pages/InsuranceQuotePage'
 import CheckupPage from '../pages/CheckupPage'
-import FamilyProtectionCalculator from '../pages/FamilyProtectionCalculator'
 import FamilyProtectionResults from '../pages/FamilyProtectionResults'
-import BusinessReportCardPage from '../pages/BusinessReportCardPage'
-import BusinessFinancialAssessment from '../pages/BusinessFinancialAssessment'
 import BusinessReportCardResults from '../pages/BusinessReportCardResults'
-import RetirementReportCardPage from '../pages/RetirementReportCardPage'
-import RetirementAssessment from '../pages/RetirementAssessment'
 import RetirementReportCardResults from '../pages/RetirementReportCardResults'
 import StudentLoanServicePage from '../pages/StudentLoanServicePage'
 import CreditServicePage from '../pages/CreditServicePage'
@@ -28,19 +26,10 @@ import HealthDisabilityServicePage from '../pages/HealthDisabilityServicePage'
 import BusinessFormationServicePage from '../pages/BusinessFormationServicePage'
 import EstateLegacyServicePage from '../pages/EstateLegacyServicePage'
 import TaxStrategyServicePage from '../pages/TaxStrategyServicePage'
-import StudentLoanReportCardPage from '../pages/StudentLoanReportCardPage'
-import StudentLoanAssessment from '../pages/StudentLoanAssessment'
 import StudentLoanReportCardResults from '../pages/StudentLoanReportCardResults'
-import CreditReportCardPage from '../pages/CreditReportCardPage'
-import CreditAssessment from '../pages/CreditAssessment'
 import CreditReportCardResults from '../pages/CreditReportCardResults'
-import HomeBuyerReportCardPage from '../pages/HomeBuyerReportCardPage'
-import HomeBuyerAssessment from '../pages/HomeBuyerAssessment'
 import HomeBuyerReportCardResults from '../pages/HomeBuyerReportCardResults'
-import FinancialProtectionAssessment from '../pages/FinancialProtectionAssessment'
 import FamilyReportCardResults from '../pages/FamilyReportCardResults'
-import FamilyReportCardPage from '../pages/FamilyReportCardPage'
-import ProtectionAnalysisPage from '../pages/ProtectionAnalysisPage'
 import SolutionsPage from '../pages/SolutionsPage'
 import ScheduleReportCardPage from '../pages/ScheduleReportCardPage'
 import PrivacyPolicyPage from '../pages/PrivacyPolicyPage'
@@ -98,21 +87,21 @@ export default function App() {
       <Routes>
       <Route path={ROUTES.getQuote} element={<SiteLayout><GetQuotePage /></SiteLayout>} />
       {(['auto', 'home', 'commercial'] as const).map(kind => <Route key={kind} path={`/${kind}-quote`} element={<SiteLayout><InsuranceQuotePage key={kind} kind={kind} /></SiteLayout>} />)}
-      <Route path={ROUTES.familyAssessment} element={<FinancialProtectionAssessment />} />
+      <Route path={ROUTES.familyAssessment} element={<ShortAssessment key="family" assessmentType="family" />} />
       <Route path="/assessment" element={<Navigate to={ROUTES.familyAssessment} replace />} />
       <Route path="/report" element={<Navigate to={ROUTES.familyAssessment} replace />} />
 
-      <Route path={ROUTES.reportCardResults} element={<FamilyReportCardResults />} />
-      <Route path={ROUTES.businessReportCardResults} element={<BusinessReportCardResults />} />
-      <Route path={ROUTES.businessAssessment} element={<BusinessFinancialAssessment />} />
-      <Route path={ROUTES.retirementReportCardResults} element={<RetirementReportCardResults />} />
-      <Route path={ROUTES.retirementAssessment} element={<RetirementAssessment />} />
-      <Route path={ROUTES.studentLoanAssessment} element={<StudentLoanAssessment />} />
-      <Route path={ROUTES.studentLoanReportCardResults} element={<StudentLoanReportCardResults />} />
-      <Route path={ROUTES.creditAssessment} element={<CreditAssessment />} />
-      <Route path={ROUTES.creditReportCardResults} element={<CreditReportCardResults />} />
-      <Route path={ROUTES.homeBuyerAssessment} element={<HomeBuyerAssessment />} />
-      <Route path={ROUTES.homeBuyerReportCardResults} element={<HomeBuyerReportCardResults />} />
+      <Route path={ROUTES.reportCardResults} element={<VersionedReportResults assessmentType="family" legacy={<FamilyReportCardResults />} />} />
+      <Route path={ROUTES.businessReportCardResults} element={<VersionedReportResults assessmentType="business" legacy={<BusinessReportCardResults />} />} />
+      <Route path={ROUTES.businessAssessment} element={<ShortAssessment key="business" assessmentType="business" />} />
+      <Route path={ROUTES.retirementReportCardResults} element={<VersionedReportResults assessmentType="retirement" legacy={<RetirementReportCardResults />} />} />
+      <Route path={ROUTES.retirementAssessment} element={<ShortAssessment key="retirement" assessmentType="retirement" />} />
+      <Route path={ROUTES.studentLoanAssessment} element={<ShortAssessment key="student_loan" assessmentType="student_loan" />} />
+      <Route path={ROUTES.studentLoanReportCardResults} element={<VersionedReportResults assessmentType="student_loan" legacy={<StudentLoanReportCardResults />} />} />
+      <Route path={ROUTES.creditAssessment} element={<ShortAssessment key="credit" assessmentType="credit" />} />
+      <Route path={ROUTES.creditReportCardResults} element={<VersionedReportResults assessmentType="credit" legacy={<CreditReportCardResults />} />} />
+      <Route path={ROUTES.homeBuyerAssessment} element={<ShortAssessment key="home_buyer" assessmentType="home_buyer" />} />
+      <Route path={ROUTES.homeBuyerReportCardResults} element={<VersionedReportResults assessmentType="home_buyer" legacy={<HomeBuyerReportCardResults />} />} />
       <Route path={ROUTES.schedule} element={<ScheduleReportCardPage />} />
 
       <Route
@@ -132,17 +121,17 @@ export default function App() {
         }
       />
 
-      <Route path={ROUTES.protectionGap} element={<FamilyProtectionCalculator />} />
+      <Route path={ROUTES.protectionGap} element={<ShortAssessment key="protection" assessmentType="protection" />} />
       <Route path="/protectioncalc" element={<Navigate to={ROUTES.protectionGap} replace />} />
       <Route path="/calculator" element={<Navigate to={ROUTES.protectionGap} replace />} />
 
-      <Route path={ROUTES.protectionResults} element={<FamilyProtectionResults />} />
+      <Route path={ROUTES.protectionResults} element={<VersionedReportResults assessmentType="protection" legacy={<FamilyProtectionResults />} />} />
 
       <Route
         path={ROUTES.reportCard}
         element={
           <SiteLayout>
-            <FamilyReportCardPage />
+            <ShortLanding assessmentType="family" />
           </SiteLayout>
         }
       />
@@ -150,7 +139,7 @@ export default function App() {
         path={ROUTES.businessReportCard}
         element={
           <SiteLayout>
-            <BusinessReportCardPage />
+            <ShortLanding assessmentType="business" />
           </SiteLayout>
         }
       />
@@ -158,7 +147,7 @@ export default function App() {
         path={ROUTES.retirementReportCard}
         element={
           <SiteLayout>
-            <RetirementReportCardPage />
+            <ShortLanding assessmentType="retirement" />
           </SiteLayout>
         }
       />
@@ -174,7 +163,7 @@ export default function App() {
         path={ROUTES.studentLoanReportCard}
         element={
           <SiteLayout>
-            <StudentLoanReportCardPage />
+            <ShortLanding assessmentType="student_loan" />
           </SiteLayout>
         }
       />
@@ -230,7 +219,7 @@ export default function App() {
         path={ROUTES.creditReportCard}
         element={
           <SiteLayout>
-            <CreditReportCardPage />
+            <ShortLanding assessmentType="credit" />
           </SiteLayout>
         }
       />
@@ -238,7 +227,7 @@ export default function App() {
         path={ROUTES.homeBuyerReportCard}
         element={
           <SiteLayout>
-            <HomeBuyerReportCardPage />
+            <ShortLanding assessmentType="home_buyer" />
           </SiteLayout>
         }
       />
@@ -246,7 +235,7 @@ export default function App() {
         path={ROUTES.protectionAnalysis}
         element={
           <SiteLayout>
-            <ProtectionAnalysisPage />
+            <ShortLanding assessmentType="protection" />
           </SiteLayout>
         }
       />

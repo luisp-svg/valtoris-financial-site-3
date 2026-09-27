@@ -1,4 +1,3 @@
-import SampleResultsPreview from '../../home/SampleResultsPreview'
 import { ROUTES } from '../../../constants/routes'
 import PublicLink from '../PublicLink'
 import type { HomeCopy } from './copy'
@@ -31,12 +30,13 @@ export default function HomeReportCardShowcase({ copy }: HomeReportCardShowcaseP
             </PublicLink>
           </div>
         </div>
-        <SampleResultsPreview
-          compact
-          ariaLabel={copy.showcasePreviewLabel}
-          badge={copy.showcasePreviewBadge}
-          disclaimer={copy.showcasePreviewDisclaimer}
-        />
+        <aside className="sample-results-preview" aria-label={copy.showcasePreviewLabel}>
+          <p className="sample-results-badge">{copy.showcasePreviewBadge}</p>
+          <h3>{copy.showcaseBenefitOne}</h3>
+          <p>{copy.showcaseBenefitTwo}</p>
+          <p>{copy.showcaseBenefitThree}</p>
+          <p className="sample-results-disclaimer">{copy.showcasePreviewDisclaimer}</p>
+        </aside>
       </div>
     </section>
   )

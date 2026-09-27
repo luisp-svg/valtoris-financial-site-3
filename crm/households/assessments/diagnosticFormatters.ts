@@ -1,3 +1,5 @@
+import { isShortForm } from '../../../modules/reportCard/shortForm/contract'
+import { shortAnswerRows, readShortResult } from '../../../modules/reportCard/shortForm/results'
 import { homeBuyerCopy } from '../../../components/assessment/homeBuyer/copy'
 import { HOME_BUYER_QUESTIONS } from '../../../components/assessment/homeBuyer/questions'
 import { HOME_BUYER_V2_QUESTIONS } from '../../../components/assessment/homeBuyer/v2Questions'
@@ -439,9 +441,12 @@ export function mapPublicFamilyDiagnosticDetail(
     priorities: extractDiagnosticPriorities(row.priorities, row.answers),
     flags: extractDiagnosticFlags(row.derived_metrics),
     submittedSnapshot: extractSubmittedDiagnosticSnapshot(row.answers),
+    shortFormResult: list.scoringVersion === 3 ? readShortResult(derived.shortFormResult) : undefined,
     affordability: row.assessment_type === 'home_buyer' ? readAffordabilitySnapshot(derived.affordability) : undefined,
     submittedAnswers:
-      row.assessment_type === 'student_loan'
+      isShortForm(row.answers) && row.answers.diagnostic && isPublicReportCardAssessmentType(row.assessment_type)
+        ? shortAnswerRows(row.assessment_type, row.answers.diagnostic, 'en')
+        : row.assessment_type === 'student_loan'
         ? extractStudentLoanSubmittedAnswers(row.answers)
         : row.assessment_type === 'credit'
           ? extractCreditSubmittedAnswers(row.answers)

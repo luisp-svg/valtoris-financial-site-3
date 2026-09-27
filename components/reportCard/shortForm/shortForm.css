@@ -1,0 +1,28 @@
+.short-form { max-width: 46rem; margin: auto; color: var(--text-primary, #172b38); }
+.short-form h1:focus { outline: none; }
+.short-kicker { color: #536773; font-weight: 600; }
+.short-form p { line-height: 1.6; }
+.short-options, .short-consent { border: 0; padding: 0; margin: 1.5rem 0; min-width: 0; }
+.short-options { display: grid; gap: .65rem; }
+.short-options label { display: flex; align-items: center; gap: .75rem; border: 1px solid #bdcbd3; border-radius: .8rem; padding: 1rem; cursor: pointer; }
+.short-options label.is-selected { background: #edf5f7; border-color: #426879; }
+.short-options input, .short-input input[type=checkbox] { width: 1.2rem; height: 1.2rem; flex-shrink: 0; }
+.short-contact { display: grid; gap: .5rem; margin: 1.2rem 0; }
+.short-contact input, .short-input input:not([type=checkbox]), .short-form select { width: 100%; min-height: 3rem; border: 1px solid #9badb8; border-radius: .6rem; padding: .75rem; font: inherit; box-sizing: border-box; }
+.short-input label { display: flex; gap: .65rem; align-items: center; margin: 1rem 0; }
+.short-actions { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.short-actions button, .short-form>button { padding: .85rem 1.2rem; cursor: pointer; border-radius: .65rem; }
+.short-error { color: #922e2e; }
+.short-results { max-width: 66rem; margin: 2rem auto; padding: 0 1.25rem 3rem; }
+.short-results section { padding: 1.25rem; margin: 1rem 0; border: 1px solid #d4dee4; border-radius: 1rem; }
+.short-results article { padding: 1rem 0; border-bottom: 1px solid #d4dee4; }
+.short-results article:last-child { border: 0; }
+.short-results p { line-height: 1.6; }
+.short-results dt { font-weight: 600; margin-top: 1rem; }
+.short-results dd { margin: .4rem 0 1rem; overflow-wrap: anywhere; }
+.short-results .short-metric { font-size: 1.5rem; font-weight: 600; }
+.short-actions .button-primary, .short-form > .button-primary { background: #172f40; color: #fff; border: 1px solid #172f40; font: inherit; font-weight: 600; }
+.short-actions .button-secondary { background: #fff; color: #172f40; border: 1px solid #9badb8; font: inherit; }
+.short-actions button:disabled { opacity: .55; cursor: default; }
+.short-form input:focus-visible, .short-form select:focus-visible, .short-form button:focus-visible, .short-actions button:focus-visible { outline: 3px solid #ab8547; outline-offset: 3px; }
+@media (max-width: 600px) { .short-form h1 { font-size: 2rem; } .short-actions button { flex: 1; } }

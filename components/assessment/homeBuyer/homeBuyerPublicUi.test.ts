@@ -73,8 +73,8 @@ function catalogKeys(catalog: SpecializedCopyCatalog): Record<string, string[]> 
 describe('Home Buyer public UI', () => {
   it('wires the three public routes in App using existing conventions', () => {
     const app = source('src/App.tsx')
-    expect(app).toContain('HomeBuyerReportCardPage')
-    expect(app).toContain('HomeBuyerAssessment')
+    expect(app).toContain('<ShortLanding assessmentType="home_buyer" />')
+    expect(app).toContain('<ShortAssessment key="home_buyer" assessmentType="home_buyer" />')
     expect(app).toContain('HomeBuyerReportCardResults')
     expect(app).toContain('ROUTES.homeBuyerReportCard')
     expect(app).toContain('ROUTES.homeBuyerAssessment')
@@ -82,8 +82,8 @@ describe('Home Buyer public UI', () => {
     expect(ROUTES.homeBuyerReportCard).toBe('/home-buyer-report-card')
     expect(ROUTES.homeBuyerAssessment).toBe('/home-buyer-assessment')
     expect(ROUTES.homeBuyerReportCardResults).toBe('/home-buyer-results')
-    expect(app).toContain('CreditReportCardPage')
-    expect(app).toContain('StudentLoanReportCardPage')
+    expect(app).toContain('<ShortLanding assessmentType="credit" />')
+    expect(app).toContain('<ShortLanding assessmentType="student_loan" />')
     expect(Object.values(ROUTES)).not.toContain('/home-buyer')
   })
 

@@ -1,3 +1,4 @@
+import type { ShortResult } from '../../../modules/reportCard/shortForm/results'
 import type { AffordabilityResult } from '../../../components/assessment/homeBuyer/affordability'
 /**
  * Household assessment history — public Family Initial Financial Diagnostic.
@@ -128,6 +129,7 @@ export type PublicFamilyDiagnosticDetail = {
   priorities: DiagnosticPriorityItem[]
   flags: DiagnosticFlagItem[]
   submittedSnapshot: SubmittedDiagnosticSnapshot
+  shortFormResult?: ShortResult
   affordability?: AffordabilityResult
   submittedAnswers: DiagnosticSubmittedAnswer[]
   consent: IntakeConsentSummary | null

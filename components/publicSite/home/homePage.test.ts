@@ -59,16 +59,16 @@ describe('service-led bilingual homepage', () => {
     expect(h1).toBe("Your Financial Life Shouldn&#x27;t Be Managed in Pieces.")
     expect(html).toContain('Valtoris Financial')
     expect(html).toContain('complete financial picture')
-    expect(html).toContain('Know Your Score. See Your Risks. Build Your Plan.')
+    expect(html).toContain('Understand Your Situation. Clarify Your Next Steps.')
     expect(html).toContain('We Diagnose Before We Prescribe.')
     expect(html).not.toContain('How Financially Prepared Is Your Family?')
     expect(html).not.toContain('VALTORIS FAMILY FINANCIAL REPORT CARD™')
-    expect(html).toContain('Get My Free Financial Score')
+    expect(html).toContain('Start My Free Short Review')
     expect(html).toContain('sample-results-preview')
     expect(html).toContain('/images/valtoris-home-hero.webp')
     expect(html).toContain('Meet Luis Perez, Financial Strategist and Founder.')
     expect(html.indexOf("Your Financial Life Shouldn&#x27;t Be Managed in Pieces.")).toBeLessThan(
-      html.indexOf('Know Your Score. See Your Risks. Build Your Plan.'),
+      html.indexOf('Understand Your Situation. Clarify Your Next Steps.'),
     )
   })
 
@@ -111,8 +111,8 @@ describe('service-led bilingual homepage', () => {
     expect(html).toContain('Take the Business Financial Report Card')
     expect(html).toContain('Take the Student Loan Report Card')
     expect(html).toContain('Take the Credit Report Card')
-    expect(html).toContain('A Score Is Only Useful When It Leads to Clear Next Steps.')
-    expect(html).toContain('Sample Report Card Preview')
+    expect(html).toContain('A Clearer Starting Point for Your Next Steps.')
+    expect(html).toContain('Your short-form review')
     expect(html).not.toContain('Explore Solutions for You')
     expect(html).not.toContain('Choose a broader path')
     expect(html).not.toContain('Also available')
@@ -206,8 +206,8 @@ describe('service-led bilingual homepage', () => {
       expect(blob).not.toContain(phrase)
     }
     expect(homeCopy.es.heroTitle).toBe('Tu vida financiera no debería gestionarse en pedazos.')
-    expect(homeCopy.en.heroBrand).toBe('Know Your Score. See Your Risks. Build Your Plan.')
-    expect(homeCopy.es.heroBrand).toBe('Know Your Score. See Your Risks. Build Your Plan.')
+    expect(homeCopy.en.heroBrand).toBe('Understand Your Situation. Clarify Your Next Steps.')
+    expect(homeCopy.es.heroBrand).toBe('Comprenda su situación. Aclare sus próximos pasos.')
     expect(homeCopy.es.diagnosticsFamilyTitle).toBe('Family Report Card™')
     expect(homeCopy.es.diagnosticsStudentTitle).toBe('Student Loan Report Card™')
   })

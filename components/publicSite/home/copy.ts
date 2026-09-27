@@ -134,7 +134,7 @@ export const homeCopy: Record<PublicLocale, HomeCopy> = {
     heroTitle: "Your Financial Life Shouldn't Be Managed in Pieces.",
     heroSupport:
       'Valtoris Financial helps families and business owners understand their complete financial picture, identify their biggest risks and opportunities, and build a strategy around what matters most.',
-    heroBrand: 'Know Your Score. See Your Risks. Build Your Plan.',
+    heroBrand: 'Understand Your Situation. Clarify Your Next Steps.',
     heroPrimaryCta: 'Find Out Where I Stand',
     heroSecondaryCta: 'Book a Meeting',
     heroTertiaryCta: 'Explore Solutions',
@@ -199,7 +199,7 @@ export const homeCopy: Record<PublicLocale, HomeCopy> = {
     processStrategizeTitle: 'Build',
     processStrategizeBody: 'Create a strategy around your goals.',
     diagnosticsHeading: 'Financial Report Cards',
-    diagnosticsBrand: 'Know Your Score. See Your Risks. Build Your Plan.',
+    diagnosticsBrand: 'Understand Your Situation. Clarify Your Next Steps.',
     diagnosticsLead:
       'Report Cards are Valtoris diagnostic tools. They help you understand your current position—strengths, risks, and priorities—before anyone discusses a solution.',
     diagnosticsFamilyTitle: 'Family Report Card™',
@@ -217,18 +217,18 @@ export const homeCopy: Record<PublicLocale, HomeCopy> = {
     diagnosticsProtectionBody:
       'Compare estimated coverage need with current protection and see where a gap may exist.',
     showcaseKicker: 'See what you receive',
-    showcaseHeading: 'A Score Is Only Useful When It Leads to Clear Next Steps.',
+    showcaseHeading: 'A Clearer Starting Point for Your Next Steps.',
     showcaseLead:
-      'Your Report Card turns scattered financial information into a simple view of your strengths, risks, and priorities.',
-    showcaseBenefitOne: 'A personalized score and grade',
-    showcaseBenefitTwo: 'Your strongest areas and highest priorities',
+      'Your short Report Card organizes your answers and identifies topics for a fuller conversation.',
+    showcaseBenefitOne: 'Observations based on your answers',
+    showcaseBenefitTwo: 'Information to confirm and topics to review',
     showcaseBenefitThree: 'Clear topics to review with a Financial Strategist',
-    showcaseCta: 'Get My Free Financial Score',
+    showcaseCta: 'Start My Free Short Review',
     showcaseSecondaryCta: 'Explore every Report Card',
     showcasePreviewLabel: 'Illustrative Family Financial Report Card preview',
-    showcasePreviewBadge: 'Sample Report Card Preview',
+    showcasePreviewBadge: 'Your short-form review',
     showcasePreviewDisclaimer:
-      'Illustrative sample only. Your personalized results will reflect your answers.',
+      'Short-form reviews do not assign a score or grade. Detailed planning belongs in your private intake.',
     journeysHeading: 'Explore Solutions for You',
     journeysLead:
       'Explore the areas where Valtoris can help you build a more coordinated financial strategy.',
@@ -281,7 +281,7 @@ export const homeCopy: Record<PublicLocale, HomeCopy> = {
     heroTitle: 'Tu vida financiera no debería gestionarse en pedazos.',
     heroSupport:
       'Valtoris Financial ayuda a familias y dueños de negocio a entender su panorama financiero completo, identificar sus mayores riesgos y oportunidades, y construir una estrategia alrededor de lo que más importa.',
-    heroBrand: 'Know Your Score. See Your Risks. Build Your Plan.',
+    heroBrand: 'Comprenda su situación. Aclare sus próximos pasos.',
     heroPrimaryCta: 'Descubre en qué punto estás',
     heroSecondaryCta: 'Agendar una reunión',
     heroTertiaryCta: 'Explorar soluciones',
@@ -347,7 +347,7 @@ export const homeCopy: Record<PublicLocale, HomeCopy> = {
     processStrategizeTitle: 'Construir',
     processStrategizeBody: 'Crea una estrategia alrededor de tus metas.',
     diagnosticsHeading: 'Financial Report Cards',
-    diagnosticsBrand: 'Know Your Score. See Your Risks. Build Your Plan.',
+    diagnosticsBrand: 'Comprenda su situación. Aclare sus próximos pasos.',
     diagnosticsLead:
       'Los Report Cards son herramientas de diagnóstico de Valtoris. Te ayudan a entender tu posición actual—fortalezas, riesgos y prioridades—antes de que alguien converse una solución.',
     diagnosticsFamilyTitle: 'Family Report Card™',
@@ -367,18 +367,18 @@ export const homeCopy: Record<PublicLocale, HomeCopy> = {
     diagnosticsProtectionBody:
       'Compare la cobertura estimada que necesita con la protección actual y vea dónde puede haber una brecha.',
     showcaseKicker: 'Vea lo que recibirá',
-    showcaseHeading: 'Una puntuación solo es útil cuando conduce a próximos pasos claros.',
+    showcaseHeading: 'Un punto de partida más claro para sus próximos pasos.',
     showcaseLead:
-      'Su Report Card convierte información financiera dispersa en una vista sencilla de sus fortalezas, riesgos y prioridades.',
-    showcaseBenefitOne: 'Una puntuación y calificación personalizadas',
-    showcaseBenefitTwo: 'Sus áreas más fuertes y sus prioridades principales',
+      'Su Report Card breve organiza sus respuestas e identifica temas para una conversación más completa.',
+    showcaseBenefitOne: 'Observaciones basadas en sus respuestas',
+    showcaseBenefitTwo: 'Información por confirmar y temas para revisar',
     showcaseBenefitThree: 'Temas claros para revisar con un Financial Strategist',
-    showcaseCta: 'Obtener mi puntuación financiera gratuita',
+    showcaseCta: 'Comenzar mi revisión breve gratuita',
     showcaseSecondaryCta: 'Explorar todos los Report Cards',
     showcasePreviewLabel: 'Vista previa ilustrativa del Family Financial Report Card',
-    showcasePreviewBadge: 'Vista previa de muestra',
+    showcasePreviewBadge: 'Su revisión breve',
     showcasePreviewDisclaimer:
-      'Muestra ilustrativa solamente. Sus resultados personalizados reflejarán sus respuestas.',
+      'Las revisiones breves no asignan puntaje ni calificación. La planificación detallada corresponde al formulario privado.',
     journeysHeading: 'Explore soluciones para usted',
     journeysLead:
       'Explore las áreas en las que Valtoris puede ayudarle a construir una estrategia financiera más coordinada.',

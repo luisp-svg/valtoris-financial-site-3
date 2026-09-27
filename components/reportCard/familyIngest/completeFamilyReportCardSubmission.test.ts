@@ -376,3 +376,30 @@ describe('completePublicReportCardCrmSubmission wire contract', () => {
     }
   })
 })
+
+describe('short-form retry contract',()=>{
+  beforeEach(installMemorySessionStorage)
+  afterEach(()=>vi.unstubAllGlobals())
+  it('retains identity and attribution after a network failure and sends no legacy score',async()=>{
+    const { SHORT_CARDS, SHORT_FORM_FORMAT }=await import('../../../modules/reportCard/shortForm/catalog')
+    const diagnostic=Object.fromEntries(SHORT_CARDS.family.questions.map(q=>[q.id,q.kind==='multi'?['unknown']:'unknown']))
+    const answers={format:SHORT_FORM_FORMAT,assessmentType:'family' as const,diagnostic,contact:{fullName:'QA Rivera',email:'qa@example.invalid',phone:''}}
+    const bodies:Record<string,unknown>[]=[]
+    const fetchImpl=vi.fn(async(_url:unknown,init?:RequestInit)=>{
+      bodies.push(JSON.parse(String(init?.body)))
+      if(bodies.length===1)throw new Error('simulated offline')
+      return new Response(JSON.stringify({ok:true,created:false,submissionId:bodies[1].submissionId,assessmentId:'local',matchStatus:'new_prospect',sheetsSync:{status:'succeeded'}}),{status:200})
+    })
+    const input={assessmentType:'family' as const,answers,phone:'',consent:requiredConsent,session:beginNewFamilyAssessmentSession({search:'?utm_source=qa&utm_campaign=short-review',nowIso:new Date(Date.now()-60000).toISOString()}),submitOptions:{fetchImpl:fetchImpl as never}}
+    const first=await completePublicReportCardCrmSubmission(input)
+    expect(first.result.ok).toBe(false)
+    const second=await completePublicReportCardCrmSubmission({...input,session:first.session})
+    expect(second.result.ok).toBe(true)
+    expect(bodies[0].submissionId).toBe(bodies[1].submissionId)
+    expect(bodies[1]).toMatchObject({assessmentVersion:3,utmSource:'qa',utmCampaign:'short-review'})
+    expect(bodies[1]).not.toHaveProperty('clientReportedScore')
+    expect(bodies[1].clientReportedGrade).toBeNull()
+    const checked=validateFamilyReportCardIngestRequest(bodies[1])
+    expect(checked.ok,JSON.stringify(checked)).toBe(true)
+  })
+})

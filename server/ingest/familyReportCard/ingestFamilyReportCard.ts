@@ -1,3 +1,8 @@
+import { isShortForm } from '../../../modules/reportCard/shortForm/contract.js'
+import { SHORT_FORM_VERSION } from '../../../modules/reportCard/shortForm/catalog.js'
+import { buildShortResult } from '../../../modules/reportCard/shortForm/results.js'
+import { buildMasterLeadPayload } from '../../../utils/masterLeadPayload.js'
+import { splitFullName } from '../../../utils/submitLeadToGoogleSheets.js'
 import { calculateAffordability } from '../../../components/assessment/homeBuyer/affordability.js'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { BusinessAssessmentAnswers } from '../../../components/assessment/business/types.js'
@@ -83,9 +88,11 @@ function persistableAssessmentAnswers(
   answers: PublicReportCardAnswers,
 ):
   | PublicReportCardAnswers
+  | Omit<import('../../../modules/reportCard/shortForm/contract.js').ShortAnswers, 'contact'>
   | { diagnostic: StudentLoanAssessmentAnswers['diagnostic'] }
   | { diagnostic: CreditAssessmentAnswers['diagnostic'] }
   | { diagnostic: HomeBuyerAssessmentAnswers['diagnostic'] } {
+  if (isShortForm(answers)) return { format: answers.format, assessmentType: answers.assessmentType, diagnostic: answers.diagnostic }
   if (assessmentType === 'student_loan') {
     return { diagnostic: (answers as StudentLoanAssessmentAnswers).diagnostic }
   }
@@ -115,6 +122,18 @@ function buildCanonicalResult(
   clientReportedScore: number | null,
   clientReportedGrade: string | null,
 ): CanonicalResult {
+  if (isShortForm(answers)) {
+    const result = buildShortResult(assessmentType, answers.diagnostic)
+    const priorities = result.findings.filter(f => f.status !== 'reported').slice(0, 3).map(f => ({ level: f.status === 'unknown' ? 'information_needed' : 'review', title: f.title.en, why: f.detail.en, timeline: 'Advisor review' }))
+    const names = splitFullName(answers.contact.fullName)
+    return { overallScore: null, overallGrade: null, scoringVersion: SHORT_FORM_VERSION, priorities,
+      derivedMetrics: { shortFormResult: result, currentLevel: 'Short-form review — no numerical grade',
+        protectionGapFormatted: assessmentType === 'protection' && result.metrics.find(m=>m.id==='simple_protection_gap') ? new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(result.metrics.find(m=>m.id==='simple_protection_gap')!.value) : null },
+      sheetsPayload: buildMasterLeadPayload({ ...names, fullName: answers.contact.fullName, email: answers.contact.email, phone: answers.contact.phone,
+        overallScore: '', overallGrade: '', notes: 'Short-form v3 — educational review; no numerical grade.',
+        topPriority1: priorities[0]?.title, topPriority2: priorities[1]?.title, topPriority3: priorities[2]?.title,
+        sourcePage: sourcePage ?? '', submittedAt, rawAnswers: JSON.stringify({ format: answers.format, assessmentType, diagnostic: answers.diagnostic }) }) }
+  }
   if (assessmentType === 'family') {
     const serverScore = recalculateFamilyReportCardScore(answers as DemoAssessmentAnswers)
     const scoreComparison = compareClientScore({
