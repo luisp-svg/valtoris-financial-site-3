@@ -787,3 +787,64 @@ describe('ingestFamilyReportCard', () => {
     expect(lookupIdentity).not.toHaveBeenCalled()
   })
 })
+
+describe('Report Card stale-match retries', () => {
+  it('refreshes matching with the same UUID and runs secondary effects only after a successful write', async () => {
+    const writes: Record<string, unknown>[] = []
+    const admin = makeAdminStub(async (fn, args) => {
+      if (fn === 'update_lead_sheets_sync') return { data: null, error: null }
+      writes.push(structuredClone(args.p_payload as Record<string, unknown>))
+      if (writes.length === 1) return { data: null, error: { message: 'retry_match', code: '40001' } }
+      return { data: newProspectRpcResponse({ household_id: 'hh-existing-1', match_status: 'exact_trusted_match' }), error: null }
+    })
+    const findCandidates = vi.fn().mockResolvedValueOnce([]).mockResolvedValueOnce([matchCandidateFixture()])
+    const sheetsWriter = vi.fn().mockResolvedValue({ status: 'succeeded' })
+    const orchestrateFollowUpTask = vi.fn().mockResolvedValue({ status: 'task_created' })
+    const runStudentLoanDryRun = vi.fn().mockResolvedValue({ status: 'SKIP_SYNC_DISABLED' })
+    const result = await ingestFamilyReportCard(validIngestRequestBodyFixture(), {
+      admin, findCandidates, sheetsWriter, orchestrateFollowUpTask, runStudentLoanDryRun,
+      now: () => new Date('2026-07-28T18:00:00.000Z'),
+    })
+    expect(result).toMatchObject({ ok: true, matchStatus: 'exact_trusted_match' })
+    expect(writes).toHaveLength(2)
+    expect(writes[0].match_status).toBe('new_prospect')
+    expect(writes[1]).toMatchObject({ match_status: 'exact_trusted_match', matched_household_id: 'hh-existing-1' })
+    for (const key of ['idempotency_key', 'answers', 'overall_score', 'overall_grade', 'advisor_profile_id', 'original_source_metadata', 'consent_snapshot']) {
+      expect(writes[1][key]).toEqual(writes[0][key])
+    }
+    expect(findCandidates).toHaveBeenCalledTimes(2)
+    expect(sheetsWriter).toHaveBeenCalledTimes(1)
+    expect(orchestrateFollowUpTask).toHaveBeenCalledTimes(1)
+    expect(orchestrateFollowUpTask).toHaveBeenCalledWith(admin, expect.objectContaining({ matchStatus: 'exact_trusted_match' }))
+    expect(runStudentLoanDryRun).toHaveBeenCalledTimes(1)
+  })
+
+  it.each(['retry_match', 'unexpected_database_failure'])('bounds retries and never runs secondary effects on %s', async code => {
+    const admin = makeAdminStub(async () => ({ data: null, error: { message: code } }))
+    const findCandidates = vi.fn().mockResolvedValue([])
+    const sheetsWriter = vi.fn()
+    const orchestrateFollowUpTask = vi.fn()
+    const runStudentLoanDryRun = vi.fn()
+    const result = await ingestFamilyReportCard(validIngestRequestBodyFixture(), {
+      admin, findCandidates, sheetsWriter, orchestrateFollowUpTask, runStudentLoanDryRun,
+      now: () => new Date('2026-07-28T18:00:00.000Z'),
+    })
+    expect(result.ok).toBe(false)
+    expect(admin.rpc).toHaveBeenCalledTimes(code === 'retry_match' ? 3 : 1)
+    expect(findCandidates).toHaveBeenCalledTimes(code === 'retry_match' ? 3 : 1)
+    expect(sheetsWriter).not.toHaveBeenCalled()
+    expect(orchestrateFollowUpTask).not.toHaveBeenCalled()
+    expect(runStudentLoanDryRun).not.toHaveBeenCalled()
+  })
+
+  it('fails safely if refreshed matching becomes unavailable', async () => {
+    const admin = makeAdminStub(async () => ({ data: null, error: { message: 'retry_match' } }))
+    const result = await ingestFamilyReportCard(validIngestRequestBodyFixture(), {
+      admin,
+      findCandidates: vi.fn().mockResolvedValueOnce([]).mockRejectedValueOnce(new Error('synthetic lookup failure')),
+      now: () => new Date('2026-07-28T18:00:00.000Z'),
+    })
+    expect(result).toMatchObject({ ok: false, code: 'candidate_lookup_failed' })
+    expect(admin.rpc).toHaveBeenCalledTimes(1)
+  })
+})

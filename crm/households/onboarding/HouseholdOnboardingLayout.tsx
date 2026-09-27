@@ -1,3 +1,5 @@
+import IntakeFollowUpFields from './sections/IntakeFollowUpFields'
+import type { IntakeFollowUpFieldId } from './intakeFollowUp'
 import { Link } from 'react-router-dom'
 import { crmHouseholdPath } from '../../../constants/routes'
 import { useOptionalCrmNavigationGuard } from '../../navigation/CrmNavigationGuardContext'
@@ -92,6 +94,7 @@ type HouseholdOnboardingLayoutProps = {
   onChangeGoals: (
     goals: OnboardingGoalsAnswers | ((prev: OnboardingGoalsAnswers) => OnboardingGoalsAnswers),
   ) => void
+  onChangeFollowUp?: (field: IntakeFollowUpFieldId, value: string) => void
   onHouseholdRefresh: () => Promise<void>
 }
 
@@ -136,6 +139,7 @@ export default function HouseholdOnboardingLayout({
   onChangeRetirement,
   onChangeEstate,
   onChangeGoals,
+  onChangeFollowUp,
   onHouseholdRefresh,
 }: HouseholdOnboardingLayoutProps) {
   const navigationGuard = useOptionalCrmNavigationGuard()
@@ -300,6 +304,12 @@ export default function HouseholdOnboardingLayout({
               onChangeEstate={onChangeEstate}
               onChangeGoals={onChangeGoals}
               onHouseholdRefresh={onHouseholdRefresh}
+            />
+            <IntakeFollowUpFields
+              sectionId={currentSectionId}
+              answers={answers.followUp ?? {}}
+              readOnly={readOnly || busy}
+              onChange={onChangeFollowUp}
             />
           </div>
 

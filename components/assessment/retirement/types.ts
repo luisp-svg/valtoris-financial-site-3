@@ -100,6 +100,7 @@ export type RetirementLeadDetails = {
   preferredContactMethod: string
   bestContactTime: string
   primaryConcern: string
+  /** Legacy intake field retained for historical answers; never grants contact permission. */
   consentGiven: string
 }
 
@@ -246,7 +247,7 @@ export function isHouseholdTimelineComplete(household: RetirementHouseholdAnswer
 
 export function isContactComplete(
   household: RetirementHouseholdAnswers,
-  leadDetails: RetirementLeadDetails,
+  _leadDetails: RetirementLeadDetails,
 ) {
   const contact = {
     firstName: household.firstName,
@@ -254,11 +255,9 @@ export function isContactComplete(
     email: household.email,
     phone: household.phone,
   }
-  if (!allFilled(contact)) return false
-  if (leadDetails.consentGiven !== 'yes') return false
-  return (
-    leadDetails.preferredContactMethod.trim() !== '' && leadDetails.bestContactTime.trim() !== ''
-  )
+  // Storage/privacy and optional contact consent use the shared consent snapshot.
+  // An educational diagnostic must not require permission for follow-up.
+  return allFilled(contact)
 }
 
 /** @deprecated Prefer isHouseholdTimelineComplete + isContactComplete for the 9-step flow. */

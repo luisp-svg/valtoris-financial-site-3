@@ -370,3 +370,63 @@ describe('ingestPublicReportCard — protection contact matching', () => {
     expect(captureIngestPayload(admin)?.lead_type).toBe('Protection Gap')
   })
 })
+
+describe('public Report Card attribution lookup failures', () => {
+  it.each(['returned', 'thrown'] as const)('blocks writes on a %s advisor lookup failure and preserves attribution on retry', async mode => {
+    const admin = makeAdminStub(async fn => ({ data: fn === 'ingest_public_report_card' ? newProspectRpcResponse() : null, error: null }))
+    const findCandidates = vi.fn().mockResolvedValue([])
+    const sheetsWriter = vi.fn().mockResolvedValue({ status: 'succeeded' })
+    const orchestrateFollowUpTask = vi.fn()
+    const runStudentLoanDryRun = vi.fn()
+    const request = validIngestRequestBodyFixture({ cardPublicKey: CARD_PUBLIC_KEY })
+    const failed = await ingestPublicReportCard(request, {
+      admin, findCandidates, sheetsWriter, orchestrateFollowUpTask, runStudentLoanDryRun,
+      resolveCard: async () => {
+        if (mode === 'thrown') throw new Error('synthetic private backend error')
+        return { ok: false, code: 'lookup_failed', error: 'synthetic private backend error' }
+      },
+    })
+    expect(failed).toEqual({ ok: false, code: 'advisor_lookup_failed', error: 'Unable to save submission' })
+    expect(admin.rpc).not.toHaveBeenCalled()
+    expect(findCandidates).not.toHaveBeenCalled()
+    expect(sheetsWriter).not.toHaveBeenCalled()
+    expect(orchestrateFollowUpTask).not.toHaveBeenCalled()
+    expect(runStudentLoanDryRun).not.toHaveBeenCalled()
+    const retried = await ingestPublicReportCard(request, {
+      admin, findCandidates, sheetsWriter, orchestrateFollowUpTask, runStudentLoanDryRun,
+      resolveCard: async () => resolvedLuisCard,
+      resolveCampaign: async () => trustedCampaign,
+    })
+    expect(retried.ok).toBe(true)
+    expect(captureIngestPayload(admin)).toMatchObject({
+      idempotency_key: request.submissionId, advisor_profile_id: LUIS_PROFILE_ID,
+    })
+  })
+
+  it.each(['returned', 'thrown'] as const)('blocks writes on a %s campaign lookup failure', async mode => {
+    const admin = makeAdminStub(async () => ({ data: null, error: null }))
+    const findCandidates = vi.fn()
+    const result = await ingestPublicReportCard(validIngestRequestBodyFixture({ cardPublicKey: CARD_PUBLIC_KEY, campaignCode: 'rr-chamber-2026' }), {
+      admin, findCandidates, resolveCard: async () => resolvedLuisCard,
+      resolveCampaign: async () => {
+        if (mode === 'thrown') throw new Error('synthetic backend failure')
+        return { ...trustedCampaign, trusted: false, lookupFailed: true }
+      },
+    })
+    expect(result).toEqual({ ok: false, code: 'campaign_lookup_failed', error: 'Unable to save submission' })
+    expect(admin.rpc).not.toHaveBeenCalled()
+    expect(findCandidates).not.toHaveBeenCalled()
+  })
+
+  it('keeps the advisor when a campaign is genuinely unknown or disabled', async () => {
+    const admin = makeAdminStub(async fn => ({ data: fn === 'ingest_public_report_card' ? newProspectRpcResponse() : null, error: null }))
+    const result = await ingestPublicReportCard(validIngestRequestBodyFixture({ cardPublicKey: CARD_PUBLIC_KEY }), {
+      admin, findCandidates: async () => [], resolveCard: async () => resolvedLuisCard,
+      resolveCampaign: async () => ({ ...trustedCampaign, trusted: false, campaignCode: null, eventCode: null, campaignLabel: null }),
+      sheetsWriter: vi.fn().mockResolvedValue({ status: 'skipped' }),
+      orchestrateFollowUpTask: vi.fn(), runStudentLoanDryRun: vi.fn(),
+    })
+    expect(result.ok).toBe(true)
+    expect(captureIngestPayload(admin)).toMatchObject({ advisor_profile_id: LUIS_PROFILE_ID, campaign_code: null })
+  })
+})

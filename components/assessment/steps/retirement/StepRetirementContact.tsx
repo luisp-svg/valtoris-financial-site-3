@@ -24,8 +24,6 @@ export default function StepRetirementContact({
   onHouseholdChange,
   onLeadDetailsChange,
 }: StepRetirementContactProps) {
-  const consentChecked = leadDetails.consentGiven === 'yes'
-
   return (
     <QuestionCard title={t('ui', 'step9Title')} description={t('helpers', 'step9')}>
       <form className="assessment-form" onSubmit={(event) => event.preventDefault()}>
@@ -69,7 +67,6 @@ export default function StepRetirementContact({
           value={leadDetails.preferredContactMethod}
           onChange={(value) => onLeadDetailsChange('preferredContactMethod', value)}
           options={localizedOptions(CONTACT_METHOD_OPTIONS, t, 'contactMethod')}
-          required
         />
         <OptionGroup
           label={t('fields', 'bestContactTime')}
@@ -77,7 +74,6 @@ export default function StepRetirementContact({
           options={localizedOptions(CONTACT_TIME_OPTIONS, t, 'contactTime')}
           value={leadDetails.bestContactTime}
           onChange={(value) => onLeadDetailsChange('bestContactTime', value)}
-          required
         />
         <TextInput
           label={t('fields', 'primaryConcern')}
@@ -86,24 +82,6 @@ export default function StepRetirementContact({
           onChange={(value) => onLeadDetailsChange('primaryConcern', value)}
           placeholder={t('placeholders', 'primaryConcern')}
         />
-        <div className="assessment-field assessment-consent-field">
-          <p className="assessment-field-label" id="assessment-consent-heading">
-            {t('fields', 'consent')} *
-          </p>
-          <label className="assessment-consent-label" htmlFor="assessment-consentGiven">
-            <input
-              id="assessment-consentGiven"
-              type="checkbox"
-              name="consentGiven"
-              checked={consentChecked}
-              aria-labelledby="assessment-consent-heading"
-              onChange={(event) =>
-                onLeadDetailsChange('consentGiven', event.target.checked ? 'yes' : 'no')
-              }
-            />
-            <span className="assessment-consent-text">{t('validation', 'contactConsent')}</span>
-          </label>
-        </div>
       </form>
     </QuestionCard>
   )

@@ -1,3 +1,4 @@
+import { normalizeIntakeFollowUp } from './intakeFollowUp'
 import { createClientId } from './onboardingMoney'
 import {
   ADVISOR_NOTES_MAX_LENGTH,
@@ -522,6 +523,7 @@ export function normalizeOnboardingAnswers(
 
   return {
     meta,
+    ...(root.followUp !== undefined ? { followUp: normalizeIntakeFollowUp(root.followUp) } : {}),
     overview: normalizeOverview(root.overview),
     members: normalizeMembers(root.members),
     income: normalizeIncome(root.income),

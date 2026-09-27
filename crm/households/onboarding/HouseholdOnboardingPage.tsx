@@ -83,6 +83,13 @@ export default function HouseholdOnboardingPage({ householdId }: HouseholdOnboar
           onChangeRetirement={session.setRetirement}
           onChangeEstate={session.setEstate}
           onChangeGoals={session.setGoals}
+          onChangeFollowUp={(field, value) => {
+            if (session.readOnly || session.saving || session.completing) return
+            session.updateAnswers((previous) => ({
+              ...previous,
+              followUp: { ...previous.followUp, [field]: value },
+            }))
+          }}
           onHouseholdRefresh={session.refreshHousehold}
         />
       ) : null}

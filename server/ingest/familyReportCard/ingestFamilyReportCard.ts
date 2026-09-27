@@ -380,10 +380,20 @@ export async function ingestPublicReportCard(
 
   if (request.cardPublicKey || request.cardSlug) {
     const resolveCard = deps.resolveCard ?? resolveCardForIngest
-    const cardResult = await resolveCard(admin, {
-      publicKey: request.cardPublicKey,
-      slug: request.cardSlug,
-    })
+    let cardResult: Awaited<ReturnType<typeof resolveCardForIngest>>
+    try {
+      cardResult = await resolveCard(admin, {
+        publicKey: request.cardPublicKey,
+        slug: request.cardSlug,
+      })
+    } catch {
+      return { ok: false, error: 'Unable to save submission', code: 'advisor_lookup_failed' }
+    }
+    if (!cardResult.ok && cardResult.code === 'lookup_failed') {
+      // An outage is not evidence that this visitor arrived without an advisor.
+      // Fail before writes so the existing browser retry retains the same source.
+      return { ok: false, error: 'Unable to save submission', code: 'advisor_lookup_failed' }
+    }
     if (cardResult.ok) {
       advisorProfileId = cardResult.advisorProfileId
       advisorSlug = cardResult.advisorSlug
@@ -404,6 +414,9 @@ export async function ingestPublicReportCard(
           referrer: request.referrer,
           occurredAt: submittedAt,
         })
+        if (attribution.lookupFailed) {
+          return { ok: false, error: 'Unable to save submission', code: 'campaign_lookup_failed' }
+        }
         campaignCode = attribution.campaignCode
         eventCode = attribution.eventCode
         sourceChannel = attribution.sourceChannel
@@ -416,7 +429,7 @@ export async function ingestPublicReportCard(
           firstSeenAt = firstTouch.firstSeenAt
         }
       } catch {
-        // Card is trusted; campaign codes are dropped if unresolvable.
+        return { ok: false, error: 'Unable to save submission', code: 'campaign_lookup_failed' }
       }
     }
     // Invalid/unpublished card reference: ingest organically without advisor attribution.
@@ -434,7 +447,7 @@ export async function ingestPublicReportCard(
     return { ok: false, error: 'Unable to save submission', code: 'candidate_lookup_failed' }
   }
 
-  const classification = classifyMatch({
+  let classification = classifyMatch({
     normalizedEmail: contact.normalizedEmail,
     normalizedPhone: contact.normalizedPhone,
     firstName: contact.firstName,
@@ -458,7 +471,7 @@ export async function ingestPublicReportCard(
     firstSeenAt,
   }
 
-  const rpcPayload: Record<string, unknown> = {
+  let rpcPayload: Record<string, unknown> = {
     idempotency_key: request.submissionId,
     assessment_type: request.assessmentType,
     lead_type: leadTypeForAssessment(request.assessmentType),
@@ -492,7 +505,36 @@ export async function ingestPublicReportCard(
     campaign_code: campaignCode,
   }
 
-  const persistResult = await persistFamilyReportCardIngest(admin, rpcPayload)
+  let persistResult = await persistFamilyReportCardIngest(admin, rpcPayload)
+
+  // A concurrent intake may have committed after our candidate lookup.
+  // Refresh only matching, keeping the same submission ID, score and attribution.
+  for (let attempt = 1; !persistResult.ok && persistResult.code === 'retry_match' && attempt < 3; attempt++) {
+    try {
+      candidates = await findCandidatesFn(admin, {
+        normalizedEmail: contact.normalizedEmail,
+        normalizedPhone: contact.normalizedPhone,
+      })
+    } catch {
+      return { ok: false, error: 'Unable to save submission', code: 'candidate_lookup_failed' }
+    }
+    classification = classifyMatch({
+      normalizedEmail: contact.normalizedEmail,
+      normalizedPhone: contact.normalizedPhone,
+      firstName: contact.firstName,
+      lastName: contact.lastName,
+      candidates,
+    })
+    rpcPayload = {
+      ...rpcPayload,
+      match_status: classification.status,
+      matched_household_id: classification.matchedHouseholdId ?? null,
+      candidate_household_id: classification.candidateHouseholdId ?? null,
+      match_reason: classification.matchReason,
+      match_confidence: classification.matchConfidence,
+    }
+    persistResult = await persistFamilyReportCardIngest(admin, rpcPayload)
+  }
 
   if (!persistResult.ok) {
     return { ok: false, error: persistResult.error, code: persistResult.code }

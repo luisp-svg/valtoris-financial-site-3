@@ -1,3 +1,4 @@
+import type { IntakeFollowUpAnswers } from './intakeFollowUp'
 import type { OnboardingSectionId } from './onboardingSections'
 import type { MoneyCents } from './onboardingMoney'
 
@@ -424,6 +425,8 @@ export type OnboardingGoalsAnswers = {
  * Household Onboarding answers document stored in `assessments.answers`.
  */
 export type HouseholdOnboardingAnswers = {
+  /** Optional private advisor follow-up, excluded from public and Financial Progress scoring. */
+  followUp?: IntakeFollowUpAnswers
   meta: HouseholdOnboardingMeta
   overview: OnboardingOverviewAnswers
   members: OnboardingMembersAnswers

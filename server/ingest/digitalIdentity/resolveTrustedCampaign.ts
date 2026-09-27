@@ -23,6 +23,8 @@ export type TrustedCampaignRow = {
 }
 
 export type TrustedAttributionResult = {
+  /** Operational failure, distinct from an unknown or disabled campaign. */
+  lookupFailed?: true
   trusted: boolean
   campaignCode: string | null
   eventCode: string | null
@@ -75,7 +77,8 @@ function buildAllowlistedTouch(input: {
 
 /**
  * Resolve campaign ownership + active status for a published card.
- * Returns trusted=false (and null codes) when resolution fails — never throws.
+ * Unknown/disabled campaigns return trusted=false. Database errors additionally
+ * set lookupFailed so callers can preserve attribution through a safe retry.
  */
 export async function resolveTrustedCampaignAttribution(
   admin: SupabaseClient,
@@ -142,6 +145,7 @@ export async function resolveTrustedCampaignAttribution(
 
   if (error || !data || data.status !== 'active') {
     return {
+      ...(error ? { lookupFailed: true as const } : {}),
       trusted: false,
       campaignCode: null,
       eventCode: null,

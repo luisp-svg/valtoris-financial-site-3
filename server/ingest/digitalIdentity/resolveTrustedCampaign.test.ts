@@ -121,3 +121,12 @@ describe('resolveTrustedCampaignAttribution', () => {
     expect(noEvent.trusted).toBe(false)
   })
 })
+
+it('distinguishes a database outage from a missing campaign', async () => {
+  const outage = await resolveTrustedCampaignAttribution(campaignAdmin(null, { message: 'synthetic backend failure' }).admin, BASE)
+  expect(outage).toMatchObject({ trusted: false, lookupFailed: true, campaignCode: null })
+  expect(JSON.stringify(outage)).not.toContain('synthetic backend failure')
+  const missing = await resolveTrustedCampaignAttribution(campaignAdmin(null).admin, BASE)
+  expect(missing.trusted).toBe(false)
+  expect(missing.lookupFailed).toBeUndefined()
+})

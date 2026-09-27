@@ -37,6 +37,7 @@ function mapRpcErrorCode(error: { message?: string } | null | undefined): string
   const message = typeof error?.message === 'string' ? error.message : ''
 
   const knownCodes = [
+    'retry_match',
     'invalid_payload',
     'invalid_idempotency_key',
     'invalid_match_status',

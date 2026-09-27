@@ -86,6 +86,7 @@ const EXPECTED_MIGRATIONS = [
   '069_service_intake_persistence.sql',
   '070_life_intake_sensitive.sql',
   '071_crm_task_actions.sql',
+  '072_public_report_card_concurrency.sql',
 ]
 
 describe('Phase A production dashboard contracts', () => {
