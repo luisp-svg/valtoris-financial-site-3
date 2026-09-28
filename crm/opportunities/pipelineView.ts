@@ -11,7 +11,6 @@ import {
   getOpportunityHouseholdLabel,
   getOpportunityOwnerLabel,
   getOpportunityStageLabel,
-  getOpportunityVerticalLabel,
   opportunityMatchesSearch,
 } from './opportunitiesApi'
 import type { OpportunityListItem, OpportunityStatus } from './types'
@@ -25,6 +24,8 @@ export type OpportunityAttentionFlags = {
   overdueNextAction: boolean
   nextActionDueToday: boolean
   stale: boolean
+  missingNextAction?: boolean
+  missingDueDate?: boolean
 }
 
 export type PipelineViewOptions = {
@@ -99,7 +100,7 @@ export function isActivePipelineStatus(status: OpportunityStatus): boolean {
 export function opportunityAttentionFlags(
   item: Pick<
     OpportunityListItem,
-    'status' | 'stage_entered_at' | 'updated_at' | 'next_action_due_at'
+    'status' | 'stage_entered_at' | 'updated_at' | 'next_action_due_at' | 'next_action'
   >,
   today = localDateString(),
 ): OpportunityAttentionFlags {
@@ -110,6 +111,8 @@ export function opportunityAttentionFlags(
     overdueNextAction: isOverdue(item.next_action_due_at, today),
     nextActionDueToday: isDueToday(item.next_action_due_at, today),
     stale: isStaleOpportunity(item, { today }),
+    missingNextAction: !item.next_action?.trim(),
+    missingDueDate: !item.next_action_due_at,
   }
 }
 
@@ -118,24 +121,27 @@ export function formatOpportunityAttentionLabels(flags: OpportunityAttentionFlag
   if (flags.overdueNextAction) labels.push('Overdue next action')
   else if (flags.nextActionDueToday) labels.push('Due today')
   if (flags.stale && !flags.overdueNextAction) labels.push('Stale')
+  if (flags.missingNextAction) labels.push('No next action')
+  if (flags.missingDueDate) labels.push('No follow-up date')
   return labels
 }
 
 export function opportunityNeedsAttention(
   item: Pick<
     OpportunityListItem,
-    'status' | 'stage_entered_at' | 'updated_at' | 'next_action_due_at'
+    'status' | 'stage_entered_at' | 'updated_at' | 'next_action_due_at' | 'next_action'
   >,
   today = localDateString(),
 ): boolean {
   const flags = opportunityAttentionFlags(item, today)
-  return flags.overdueNextAction || flags.nextActionDueToday || flags.stale
+  return Boolean(flags.overdueNextAction || flags.nextActionDueToday || flags.stale || flags.missingNextAction || flags.missingDueDate)
 }
 
 export function getOpportunityPrimaryProductLabel(item: {
   service_vertical: OpportunityListItem['service_vertical']
+  presented_product?: string | null
 }): string {
-  return getOpportunityVerticalLabel(item)
+  return item.presented_product?.trim() || 'Not specified'
 }
 
 export function formatOpportunityNextActionDueLabel(
@@ -205,7 +211,8 @@ function attentionSortRank(item: OpportunityListItem, today: string): number {
   const flags = opportunityAttentionFlags(item, today)
   if (flags.overdueNextAction) return ATTENTION_RANK.overdue
   if (flags.nextActionDueToday) return ATTENTION_RANK.due_today
-  return ATTENTION_RANK.stale
+  if (flags.stale) return ATTENTION_RANK.stale
+  return 3
 }
 
 function compareDueThenUpdated(a: OpportunityListItem, b: OpportunityListItem): number {
@@ -270,7 +277,7 @@ export function pipelineEmptyCopy(view: PipelineView): { title: string; body: st
     case 'attention':
       return {
         title: 'Nothing needs attention',
-        body: 'No overdue next actions or stale opportunities in your current pipeline.',
+        body: 'No overdue, due-today, stale, or missing follow-up items in your current pipeline.',
       }
     case 'won':
       return {

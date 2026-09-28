@@ -192,7 +192,7 @@ describe('Needs Attention', () => {
     })
     expect(opportunityAttentionFlags(stale, TODAY).stale).toBe(true)
     expect(formatOpportunityAttentionLabels(opportunityAttentionFlags(stale, TODAY))).toEqual([
-      'Stale',
+      'Stale', 'No next action', 'No follow-up date',
     ])
 
     const overdueAndOld = item({
@@ -241,14 +241,14 @@ describe('card copy', () => {
   it('leads with household, service vertical, stage, advisor, and next action', () => {
     const copy = pipelineCardCopy(item(), TODAY)
     expect(copy.householdName).toBe('Rivera Family')
-    expect(copy.primaryProduct).toBe('Life Insurance')
+    expect(copy.primaryProduct).toBe('Not specified')
     expect(copy.stage).toBe('Fact Finder')
     expect(copy.advisor).toBe('Alex Advisor')
     expect(copy.nextAction).toBe('Call client')
     expect(copy.nextActionDue).toBe(formatOpportunityNextActionDueLabel('2026-08-22'))
     expect(copy.caseCreated).toBe(false)
     expect(copy.caseStageLabel).toBeNull()
-    expect(getOpportunityPrimaryProductLabel(item())).toBe('Life Insurance')
+    expect(getOpportunityPrimaryProductLabel(item())).toBe('Not specified')
   })
 
   it('marks Case created as informational copy without changing attention flags', () => {

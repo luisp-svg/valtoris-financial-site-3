@@ -42,7 +42,7 @@ describe('Phase 3 Opportunity ↔ Case visibility contracts', () => {
   })
 
   it('loads Case linkage from a left embed on fetchOpportunities without inner-filtering unlinked rows', () => {
-    expect(page).toContain('fetchOpportunities(supabase)')
+    expect(page).toContain('fetchPipelineOpportunities(supabase)')
     expect(page).not.toMatch(/fetchOpportunities\(supabase,\s*\{/)
     expect(api).toContain('OPPORTUNITY_LIST_DEFAULT_LIMIT = 100')
     expect(OPPORTUNITY_LIST_DEFAULT_LIMIT).toBe(100)
@@ -140,7 +140,7 @@ describe('Phase 3 Opportunity ↔ Case visibility contracts', () => {
 
   it('does not add Migration 047, commissions, production stage sync, or a new mutation path', () => {
     const files = readdirSync(migrationsDir).filter((name) => name.endsWith('.sql')).sort()
-    expect(files).toHaveLength(76)
+    expect(files).toHaveLength(78)
     expect(files.filter((name) => name.startsWith('047_'))).toEqual([
       '047_credit_repair_student_loan_sales_catalog.sql',
     ])

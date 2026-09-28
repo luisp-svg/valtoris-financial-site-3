@@ -20,7 +20,8 @@ export default function OpportunityPipelineCard({
     <article className="crm-opportunities-card crm-pipeline-card">
       <Link to={crmOpportunityPath(opportunity.id)} className="crm-opportunities-card-link">
         <h3 className="crm-opportunities-name crm-pipeline-card-name">{copy.householdName}</h3>
-        <p className="crm-pipeline-card-product">{copy.primaryProduct}</p>
+        <p className="crm-pipeline-card-product">Product: {copy.primaryProduct}</p>
+        <p className="crm-muted">{opportunity.service_vertical?.name ?? 'Service unavailable'}</p>
         <p className="crm-pipeline-card-stage">{copy.stage}</p>
         {copy.caseCreated ? (
           <CaseCreatedBadge productionStage={opportunity.linkedApplication?.production_stage} />

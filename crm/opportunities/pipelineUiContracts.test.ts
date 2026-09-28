@@ -22,7 +22,7 @@ const catalog = readFileSync(join(root, 'platform/registry/catalog.ts'), 'utf8')
 describe('Phase 1 pipeline visibility contracts', () => {
   it('does not add a pipeline-card migration; 046 is opportunity conversion only', () => {
     const files = readdirSync(migrationsDir).filter((name) => name.endsWith('.sql')).sort()
-    expect(files).toHaveLength(76)
+    expect(files).toHaveLength(78)
     expect(files.filter((name) => name.startsWith('045_'))).toEqual([
       '045_policy_post_placement_lifecycle.sql',
     ])
@@ -57,7 +57,7 @@ describe('Phase 1 pipeline visibility contracts', () => {
   })
 
   it('reuses fetchOpportunities and move_opportunity_stage without a parallel API', () => {
-    expect(page).toContain('fetchOpportunities(supabase)')
+    expect(page).toContain('fetchPipelineOpportunities(supabase)')
     expect(page).toContain('fetchCurrentAdvisorProfileId')
     expect(workspace).toContain('OpportunityLifecycleDialog')
     expect(api).toContain("rpc('move_opportunity_stage'")
@@ -93,7 +93,7 @@ describe('Phase 1 pipeline visibility contracts', () => {
     expect(advisorAt).toBeGreaterThan(flagsAt)
     expect(actionAt).toBeGreaterThan(advisorAt)
     expect(dueAt).toBeGreaterThan(actionAt)
-    expect(view).toContain('getOpportunityVerticalLabel')
+    expect(view).toContain('item.presented_product')
     expect(view).toContain('Overdue next action')
     expect(view).toContain('isStaleOpportunity')
   })
@@ -113,7 +113,8 @@ describe('Phase 1 pipeline visibility contracts', () => {
 
   it('aligns workspace terminology without replacing the lifecycle RPC', () => {
     expect(workspace).toContain('← Pipeline')
-    expect(workspace).toContain('Primary Product / Service')
+    expect(workspace).toContain('Product being presented')
+    expect(workspace).toContain('<dt>Service</dt>')
     expect(workspace).toContain('Next-action due')
     expect(workspace).toContain('Advisor')
     expect(workspace).toContain('OpportunityLifecycleDialog')

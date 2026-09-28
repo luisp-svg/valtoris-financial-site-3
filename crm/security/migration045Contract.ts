@@ -125,4 +125,6 @@ export const EXPECTED_NUMBERED_MIGRATIONS = [
   '074_service_case_management.sql',
   '075_commission_payment_legs.sql',
       '076_digital_card_permanent_identity.sql',
+      '077_opportunity_presented_product.sql',
+      '078_active_household_access.sql',
 ] as const

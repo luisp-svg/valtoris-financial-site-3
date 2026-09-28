@@ -42,6 +42,7 @@ export type OpportunityServiceVerticalSummary = {
 export type OpportunityListItem = {
   id: string
   title: string
+  presented_product?: string | null
   status: OpportunityStatus
   household_id: string
   pipeline_id: string
@@ -180,6 +181,7 @@ export type OpportunityAdvisorOption = {
  */
 export type CreateOpportunityFormValues = {
   title: string
+  presented_product?: string | null
   household_id: string
   pipeline_id: string
   stage_id: string
@@ -199,6 +201,7 @@ export type CreateOpportunityInput = CreateOpportunityFormValues
  */
 export type UpdateOpportunityInput = {
   title: string
+  presented_product?: string | null
   next_action?: string | null
   next_action_due_at?: string | null
   need_identified?: boolean
@@ -206,6 +209,7 @@ export type UpdateOpportunityInput = {
 
 export type OpportunityFormField =
   | 'title'
+  | 'presented_product'
   | 'household_id'
   | 'pipeline_id'
   | 'stage_id'

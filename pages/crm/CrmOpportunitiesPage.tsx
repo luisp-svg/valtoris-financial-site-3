@@ -1,3 +1,4 @@
+import { EMPTY_PIPELINE_FILTERS, filterPipelineScope, pipelineFilterOptions, pipelineStageSummary } from '../../crm/opportunities/pipelineFilters'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import OpportunityFormDialog from '../../crm/opportunities/OpportunityFormDialog'
@@ -7,7 +8,8 @@ import CaseCreatedBadge from '../../crm/opportunities/CaseCreatedBadge'
 import OpportunityAttentionFlagList from '../../crm/opportunities/OpportunityAttentionFlagList'
 import {
   fetchCurrentAdvisorProfileId,
-  fetchOpportunities,
+  fetchPipelineOpportunities,
+  opportunityMatchesSearch,
   formatSupabaseError,
   getOpportunityHouseholdLabel,
   getOpportunityOwnerLabel,
@@ -37,6 +39,7 @@ export default function CrmOpportunitiesPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
+  const [filters, setFilters] = useState(EMPTY_PIPELINE_FILTERS)
   const [view, setView] = useState<PipelineView>(() => pipelineViewFromSearchParams(searchParams))
   const [reloadKey, setReloadKey] = useState(0)
   const [showCreate, setShowCreate] = useState(false)
@@ -67,7 +70,7 @@ export default function CrmOpportunitiesPage() {
           data: { user },
         } = await supabase.auth.getUser()
         const [rows, advisorId] = await Promise.all([
-          fetchOpportunities(supabase),
+          fetchPipelineOpportunities(supabase),
           user?.id ? fetchCurrentAdvisorProfileId(supabase, user.id) : Promise.resolve(null),
         ])
         if (!cancelled) {
@@ -92,9 +95,12 @@ export default function CrmOpportunitiesPage() {
     }
   }, [reloadKey])
 
+  const filterOptions = useMemo(() => pipelineFilterOptions(opportunities), [opportunities])
+  const scopedOpportunities = useMemo(() => filterPipelineScope(opportunities, filters).filter(item => opportunityMatchesSearch(item, search)), [opportunities, filters, search])
+
   const viewCounts = useMemo(
-    () => countPipelineViews(opportunities, assignedAdvisorId),
-    [opportunities, assignedAdvisorId],
+    () => countPipelineViews(scopedOpportunities, assignedAdvisorId),
+    [scopedOpportunities, assignedAdvisorId],
   )
 
   const viewItems = useMemo(
@@ -103,8 +109,8 @@ export default function CrmOpportunitiesPage() {
   )
 
   const filteredOpportunities = useMemo(
-    () => applyPipelineView(opportunities, { view, search, assignedAdvisorId }),
-    [opportunities, view, search, assignedAdvisorId],
+    () => applyPipelineView(scopedOpportunities, { view, search, assignedAdvisorId }),
+    [scopedOpportunities, view, search, assignedAdvisorId],
   )
 
   const viewState = getOpportunityListViewState({
@@ -114,7 +120,8 @@ export default function CrmOpportunitiesPage() {
     filteredCount: filteredOpportunities.length,
   })
 
-  const hasActiveFilters = search.trim() !== '' || view !== 'active'
+  const stageSummary = useMemo(() => pipelineStageSummary(filteredOpportunities), [filteredOpportunities])
+  const hasActiveFilters = search.trim() !== '' || view !== 'active' || Object.values(filters).some(Boolean)
   const emptyCopy = pipelineEmptyCopy(view)
 
   function applyView(next: PipelineView) {
@@ -124,18 +131,18 @@ export default function CrmOpportunitiesPage() {
 
   function resetFilters() {
     setSearch('')
+    setFilters(EMPTY_PIPELINE_FILTERS)
     applyView('active')
   }
 
   return (
-    <div className="crm-opportunities-page">
+    <div className="crm-opportunities-page crm-sales-pipeline">
       <header className="crm-page-header crm-opportunities-header">
         <div>
           <p className="crm-page-eyebrow">Sales pipeline</p>
           <h1 className="crm-page-title">Pipeline</h1>
           <p className="crm-page-subtitle">
-            Who you are selling to, what you are presenting, and what needs a next action.
-            Sales stages stay on the opportunity — they are separate from Case / Production.
+            Review each deal’s sales stage, product, advisor, and next step.
           </p>
         </div>
         <button
@@ -181,7 +188,22 @@ export default function CrmOpportunitiesPage() {
           disabled={loading}
         />
 
+        <p className="crm-muted">Counts reflect the selected filters. Refresh to include recent changes.</p>
+        <button type="button" className="crm-text-btn" disabled={loading} onClick={() => setReloadKey(key => key + 1)}>Refresh pipeline</button>
         <div className="crm-opportunities-filters-grid">
+          {([
+            ['serviceId', 'Service', filterOptions.services],
+            ['stageId', 'Sales stage', filterOptions.stages],
+            ['advisorId', 'Advisor', filterOptions.advisors],
+          ] as const).map(([key, label, options]) => (
+            <label className="crm-field" key={key}>
+              {label}
+              <select value={filters[key]} disabled={loading || Boolean(error)} onChange={event => setFilters(previous => ({ ...previous, [key]: event.target.value }))}>
+                <option value="">All</option>
+                {options.map(option => <option value={option.id} key={option.id}>{option.name}</option>)}
+              </select>
+            </label>
+          ))}
           <label className="crm-field">
             Search
             <span className="crm-search-field">
@@ -248,6 +270,13 @@ export default function CrmOpportunitiesPage() {
         ) : null}
       </section>
 
+      {!loading && !error && stageSummary.length > 0 ? (
+        <section className="crm-panel" aria-label="Sales stage summary">
+          <div className="crm-panel-head"><h2>Sales stages in this view</h2></div>
+          <ul>{stageSummary.map(stage => <li key={stage.id}>{stage.name}: <strong>{stage.count}</strong></li>)}</ul>
+        </section>
+      ) : null}
+
       <section className="crm-panel" aria-labelledby="crm-opportunities-list-heading">
         <div className="crm-panel-head">
           <h2 id="crm-opportunities-list-heading">
@@ -307,7 +336,7 @@ export default function CrmOpportunitiesPage() {
                 <thead>
                   <tr>
                     <th scope="col">Household</th>
-                    <th scope="col">Primary Product / Service</th>
+                    <th scope="col">Product / Service</th>
                     <th scope="col">Stage</th>
                     <th scope="col">Case</th>
                     <th scope="col">Advisor</th>
@@ -342,7 +371,7 @@ export default function CrmOpportunitiesPage() {
                             {getOpportunityHouseholdLabel(opportunity)}
                           </Link>
                         </td>
-                        <td>{copy.primaryProduct}</td>
+                        <td>{copy.primaryProduct}<br /><span className="crm-muted">{opportunity.service_vertical?.name ?? 'Service unavailable'}</span></td>
                         <td>
                           <span className="crm-status-chip">
                             {getOpportunityStageLabel(opportunity)}

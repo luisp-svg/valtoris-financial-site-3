@@ -4,7 +4,7 @@
  * COLUMN MUTABILITY (UPDATE via PostgREST under RLS + enforce_opportunity_protected_columns)
  * ---------------------------------------------------------------------------
  * Directly writable (no RPC):
- *   title, need_identified, next_action, next_action_due_at, metadata,
+ *   title, presented_product, need_identified, next_action, next_action_due_at, metadata,
  *   source_assessment_id, source_lead_id, source_recommendation_id
  *
  * Immutable after create (trigger always blocks):
@@ -88,6 +88,7 @@ const STAGE_EMBED_SELECT = `
 const OPPORTUNITY_LIST_SELECT = `
   id,
   title,
+  presented_product,
   status,
   household_id,
   pipeline_id,
@@ -278,6 +279,7 @@ export function normalizeOpportunityListItem(row: Record<string, unknown>): Oppo
   return {
     id: String(row.id),
     title: String(row.title ?? ''),
+    presented_product: typeof row.presented_product === 'string' ? row.presented_product : null,
     status: parseOpportunityStatus(row.status),
     household_id: String(row.household_id),
     pipeline_id: String(row.pipeline_id),
@@ -362,6 +364,7 @@ export function opportunityMatchesSearch(item: OpportunityListItem, query: strin
   const normalized = query.trim().toLowerCase()
   if (!normalized) return true
   if (item.title.toLowerCase().includes(normalized)) return true
+  if (item.presented_product?.toLowerCase().includes(normalized)) return true
   if (item.household?.display_name.toLowerCase().includes(normalized)) return true
   if (item.pipeline?.name.toLowerCase().includes(normalized)) return true
   if (item.stage?.name.toLowerCase().includes(normalized)) return true
@@ -473,6 +476,32 @@ export async function fetchOpportunities(
 
   const items = ((data ?? []) as Record<string, unknown>[]).map(normalizeOpportunityListItem)
   return filterOpportunityListItems(items, { search: filters?.search })
+}
+
+/** Load every authorized row in stable ID order, then apply display ordering.
+ * A failed page rejects the complete load rather than presenting partial counts.
+ */
+export async function fetchPipelineOpportunities(
+  supabase: SupabaseClient,
+): Promise<OpportunityListItem[]> {
+  const items: OpportunityListItem[] = []
+  let afterId: string | null = null
+  const pageSize = 100
+  for (;;) {
+    let query = supabase.from('opportunities').select(OPPORTUNITY_LIST_SELECT)
+      .is('deleted_at', null).order('id', { ascending: true }).limit(pageSize)
+    if (afterId) query = query.gt('id', afterId)
+    const { data, error } = await query
+    if (error) throw error
+    const rows = (data ?? []) as Record<string, unknown>[]
+    if (!rows.length) break
+    const lastId = String(rows[rows.length - 1].id)
+    if (afterId && lastId <= afterId) throw new Error('Pipeline could not finish loading. Please refresh.')
+    items.push(...rows.map(normalizeOpportunityListItem))
+    afterId = lastId
+    // Continue until an empty page, including when the server caps pages below 100.
+  }
+  return sortOpportunitiesByUpdatedAtDesc(items)
 }
 
 export async function fetchOpportunityById(
@@ -867,6 +896,7 @@ export async function createOpportunity(
   // Explicit allowlist — audit fields constructed here only.
   const insertPayload: Record<string, unknown> = {
     title: normalized.title,
+    ...(normalized.presented_product !== undefined ? { presented_product: normalized.presented_product } : {}),
     household_id: normalized.household_id,
     pipeline_id: normalized.pipeline_id,
     stage_id: normalized.stage_id,
@@ -900,6 +930,7 @@ export async function createOpportunity(
 /** Columns the create helper may write. Audit timestamps/ids are filled internally. */
 export const OPPORTUNITY_INSERT_ALLOWLIST = [
   'title',
+  'presented_product',
   'household_id',
   'pipeline_id',
   'stage_id',
@@ -917,6 +948,7 @@ export const OPPORTUNITY_INSERT_ALLOWLIST = [
 /** Explicit allowlist used by tests — must match updateOpportunity payload keys. */
 export const OPPORTUNITY_UPDATE_ALLOWLIST = [
   'title',
+  'presented_product',
   'next_action',
   'next_action_due_at',
   'need_identified',
@@ -943,7 +975,7 @@ export const OPPORTUNITY_UPDATE_FORBIDDEN = [
 ] as const
 
 /**
- * Updates only the four CRM-8.2A mutable columns.
+ * Updates only the allowlisted sales-detail fields.
  * Never spreads an Opportunity object; never sends protected columns.
  */
 export async function updateOpportunity(
@@ -959,6 +991,7 @@ export async function updateOpportunity(
   const normalized = normalizeUpdateOpportunityInput(input)
   const updatePayload: Record<string, unknown> = {
     title: normalized.title,
+    ...(normalized.presented_product !== undefined ? { presented_product: normalized.presented_product } : {}),
     next_action: normalized.next_action,
     next_action_due_at: normalized.next_action_due_at,
     need_identified: normalized.need_identified ?? true,

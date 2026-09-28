@@ -40,7 +40,7 @@ describe('credit repair / student loan sales catalog contracts', () => {
     const files = readdirSync(migrationsDir)
       .filter((name) => /^\d{3}_.+\.sql$/.test(name))
       .sort()
-    expect(files).toHaveLength(76)
+    expect(files).toHaveLength(78)
     expect(files[46]).toBe(MIGRATION_047_FILENAME)
     expect(files[47]).toBe('048_student_loan_report_card_ingest.sql')
     expect(files.filter((name) => name.startsWith('048_'))).toEqual([
@@ -71,7 +71,8 @@ describe('credit repair / student loan sales catalog contracts', () => {
     expect(api).toContain(".from('service_verticals')")
     expect(api).toContain(".from('pipelines')")
     expect(api).toContain(".from('pipeline_stages')")
-    expect(workspace).toContain('Primary Product / Service')
+    expect(workspace).toContain('<dt>Service</dt>')
+    expect(workspace).toContain('getOpportunityVerticalLabel(workspace.opportunity)')
   })
 
   it('blocks insurance Case conversion for the new sales verticals and leaves Life/FIA unchanged', () => {
@@ -113,7 +114,7 @@ describe('credit repair / student loan sales catalog contracts', () => {
   it('keeps Pipeline data-driven without new top-level chips or a second page', () => {
     expect(PIPELINE_VIEWS).toEqual(['active', 'mine', 'attention', 'won', 'lost'])
     expect(page).toContain('PipelineViewBar')
-    expect(page).toContain('fetchOpportunities(supabase)')
+    expect(page).toContain('fetchPipelineOpportunities(supabase)')
     expect(pipelineView).not.toContain('credit_repair')
     expect(pipelineView).not.toContain('student_loans')
     expect(page).not.toContain('Credit Repair Pipeline')

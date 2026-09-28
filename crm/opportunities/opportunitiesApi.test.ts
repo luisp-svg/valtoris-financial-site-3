@@ -420,6 +420,7 @@ describe('opportunity CRUD API', () => {
         stage_id: 'stage-1',
         service_vertical_id: 'vert-1',
         assigned_advisor_id: 'adv-1',
+        presented_product: ' IUL ',
         next_action: ' Call ',
       },
       validationContext,
@@ -435,6 +436,7 @@ describe('opportunity CRUD API', () => {
       assigned_advisor_id: 'adv-1',
       assigned_by_user_id: 'user-owner',
       assignment_reason: 'manual',
+      presented_product: 'IUL',
       next_action: 'Call',
       need_identified: true,
     })
@@ -636,6 +638,7 @@ describe('CRM-8.2A update allowlist', () => {
   it('documents the four mutable fields and forbidden protected keys', () => {
     expect([...OPPORTUNITY_UPDATE_ALLOWLIST]).toEqual([
       'title',
+      'presented_product',
       'next_action',
       'next_action_due_at',
       'need_identified',
@@ -658,6 +661,7 @@ describe('CRM-8.2A update allowlist', () => {
     const supabase = mockOpportunityMutationClient(options) as never
     await updateOpportunity(supabase, 'opp-1', {
       title: 'Renamed',
+      presented_product: 'Term life',
       next_action: 'Follow up',
       next_action_due_at: '2026-09-01',
       need_identified: false,

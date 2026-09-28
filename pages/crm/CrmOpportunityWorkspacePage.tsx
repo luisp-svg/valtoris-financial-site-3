@@ -23,6 +23,7 @@ import {
   getOpportunityHouseholdLabel,
   getOpportunityLifecycleActions,
   getOpportunityOwnerLabel,
+  getOpportunityVerticalLabel,
   getOpportunityPipelineLabel,
   getOpportunityStageLabel,
 } from '../../crm/opportunities/opportunitiesApi'
@@ -586,8 +587,12 @@ export default function CrmOpportunityWorkspacePage() {
                     <dd>{getOpportunityOwnerLabel(workspace.opportunity)}</dd>
                   </div>
                   <div>
-                    <dt>Primary Product / Service</dt>
-                    <dd>{getOpportunityPrimaryProductLabel(workspace.opportunity)}</dd>
+                    <dt>Product being presented</dt>
+                    <dd>{workspace.opportunity.presented_product || 'Not specified'}</dd>
+                  </div>
+                  <div>
+                    <dt>Service</dt>
+                    <dd>{getOpportunityVerticalLabel(workspace.opportunity)}</dd>
                   </div>
                   <div>
                     <dt>Need identified</dt>

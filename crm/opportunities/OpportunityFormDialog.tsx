@@ -55,6 +55,7 @@ export type OpportunityFormDialogProps = {
 
 type CreateFormState = {
   title: string
+  presented_product: string
   household_id: string
   service_vertical_id: string
   pipeline_id: string
@@ -67,6 +68,7 @@ type CreateFormState = {
 
 type EditFormState = {
   title: string
+  presented_product: string
   next_action: string
   next_action_due_at: string
   need_identified: boolean
@@ -74,6 +76,7 @@ type EditFormState = {
 
 const EMPTY_CREATE: CreateFormState = {
   title: '',
+  presented_product: '',
   household_id: '',
   service_vertical_id: '',
   pipeline_id: '',
@@ -87,6 +90,7 @@ const EMPTY_CREATE: CreateFormState = {
 function editFromOpportunity(opportunity: OpportunityDetail): EditFormState {
   return {
     title: opportunity.title,
+    presented_product: opportunity.presented_product ?? '',
     next_action: opportunity.next_action ?? '',
     next_action_due_at: opportunity.next_action_due_at ?? '',
     need_identified: opportunity.need_identified,
@@ -173,6 +177,7 @@ export default function OpportunityFormDialog({
   const [editForm, setEditForm] = useState<EditFormState>(() =>
     mode === 'edit' && opportunity ? editFromOpportunity(opportunity) : {
       title: '',
+      presented_product: '',
       next_action: '',
       next_action_due_at: '',
       need_identified: true,
@@ -400,6 +405,7 @@ export default function OpportunityFormDialog({
     if (mode === 'create') {
       const input: CreateOpportunityInput = {
         title: createForm.title,
+        presented_product: createForm.presented_product,
         household_id: createForm.household_id,
         pipeline_id: createForm.pipeline_id,
         stage_id: createForm.stage_id,
@@ -445,6 +451,7 @@ export default function OpportunityFormDialog({
 
     const updateInput: UpdateOpportunityInput = {
       title: editForm.title,
+      presented_product: editForm.presented_product,
       next_action: editForm.next_action || null,
       next_action_due_at: editForm.next_action_due_at || null,
       need_identified: editForm.need_identified,
@@ -518,6 +525,21 @@ export default function OpportunityFormDialog({
       ) : null}
 
       <form className="crm-opportunity-form" onSubmit={onSubmit} noValidate>
+        <label className="crm-field">
+          Product being presented (optional)
+          <input
+            value={mode === 'create' ? createForm.presented_product : editForm.presented_product}
+            onChange={(event) => mode === 'create'
+              ? setCreateField('presented_product', event.target.value)
+              : setEditField('presented_product', event.target.value)}
+            maxLength={200}
+            disabled={busy || optionsLoading || referenceFailed}
+            placeholder="For example, 20-year term life or IUL"
+            aria-invalid={Boolean(fieldErrors.presented_product)}
+          />
+          <span className="crm-muted">Enter the product you are discussing. Leave blank until it is known.</span>
+          {fieldErrors.presented_product ? <span className="crm-field-error">{fieldErrors.presented_product}</span> : null}
+        </label>
         {mode === 'create' ? (
           <>
             <label className="crm-field">

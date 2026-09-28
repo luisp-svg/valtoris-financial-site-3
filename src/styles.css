@@ -14318,3 +14318,10 @@ button.public-card-diagnostic:disabled {
 
 .crm-dashboard-quick-action-row a.crm-primary-btn,
 .crm-dashboard-quick-action-row a.crm-secondary-btn { display: inline-flex; align-items: center; justify-content: center; }
+
+/* Sales pipeline filters use equal space and stack on narrow screens. */
+.crm-sales-pipeline .crm-opportunities-filters-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
+}
+.crm-sales-pipeline .crm-field { min-width: 0; }
+.crm-sales-pipeline .crm-field select { width: 100%; min-width: 0; }

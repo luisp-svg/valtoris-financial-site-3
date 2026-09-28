@@ -34,6 +34,10 @@ export function validateCreateOpportunityInput(
 ): OpportunityValidationResult {
   const fieldErrors: OpportunityValidationResult['fieldErrors'] = {}
 
+  if ((input.presented_product?.trim().length ?? 0) > 200) {
+    fieldErrors.presented_product = 'Product must be 200 characters or fewer.'
+  }
+
   const title = trimOrEmpty(input.title)
   if (!title) {
     fieldErrors.title = 'Opportunity title is required.'
@@ -127,6 +131,10 @@ export function validateUpdateOpportunityInput(
 ): OpportunityValidationResult {
   const fieldErrors: OpportunityValidationResult['fieldErrors'] = {}
 
+  if ((input.presented_product?.trim().length ?? 0) > 200) {
+    fieldErrors.presented_product = 'Product must be 200 characters or fewer.'
+  }
+
   const title = trimOrEmpty(input.title)
   if (!title) {
     fieldErrors.title = 'Opportunity title is required.'
@@ -200,6 +208,7 @@ export function normalizeCreateOpportunityInput(
 ): CreateOpportunityFormValues {
   return {
     title: input.title.trim(),
+    ...(input.presented_product !== undefined ? { presented_product: input.presented_product?.trim() || null } : {}),
     household_id: input.household_id.trim(),
     pipeline_id: input.pipeline_id.trim(),
     stage_id: input.stage_id.trim(),
@@ -216,6 +225,7 @@ export function normalizeUpdateOpportunityInput(
 ): UpdateOpportunityInput {
   return {
     title: input.title.trim(),
+    ...(input.presented_product !== undefined ? { presented_product: input.presented_product?.trim() || null } : {}),
     next_action: input.next_action?.trim() || null,
     next_action_due_at: input.next_action_due_at?.trim() || null,
     need_identified: input.need_identified ?? true,

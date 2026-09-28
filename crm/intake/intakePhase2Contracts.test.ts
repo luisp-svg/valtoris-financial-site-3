@@ -138,7 +138,7 @@ describe('Intake Phase 2 Opportunity contracts', () => {
   })
 
   it('uses existing Pipeline and Household Current Opportunities surfaces', () => {
-    expect(pipelinePage).toContain('fetchOpportunities(supabase)')
+    expect(pipelinePage).toContain('fetchPipelineOpportunities(supabase)')
     expect(householdWidget).toContain('Current Opportunities')
     expect(householdsApi).toContain('fetchOpenOpportunitiesForHousehold')
     expect(page).not.toContain('fetchIntakeOpportunities')
