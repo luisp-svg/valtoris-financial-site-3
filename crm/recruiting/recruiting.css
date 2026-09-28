@@ -1,0 +1,12 @@
+.recruiting-page { display: grid; gap: 20px; min-width: 0; }
+.recruit-fields { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,240px),1fr)); gap: 16px; margin-bottom: 16px; }
+.recruit-fields .crm-field { min-width: 0; }
+.recruit-fields input:not([type=checkbox]), .recruit-fields select, .recruit-fields textarea { width: 100%; min-width: 0; }
+.recruit-form { border: 2px solid #bac6e0; }
+.recruit-list { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,300px),1fr)); gap: 16px; }
+.recruit-list h2 { font-size: 1.15rem; margin-bottom: 8px; }
+.recruit-list p, .recruiting-page details { overflow-wrap: anywhere; }
+.recruit-actions { display: flex; gap: 12px; flex-wrap: wrap; margin: 16px 0; }
+.recruiting-page dl { display: grid; gap: 8px; }
+.recruiting-page dt { font-weight: 600; }
+.recruiting-page dd { margin: 0 0 8px; }

@@ -15,7 +15,7 @@ import {
   requireModule,
 } from './index'
 
-/** Canonical CRM sidebar after Commission Phase 1. */
+/** Canonical CRM sidebar including recruiting. */
 const CANONICAL_CRM_NAV = [
   { label: 'Home', path: '/crm' },
   { label: 'Intake', path: '/crm/intake' },
@@ -23,6 +23,7 @@ const CANONICAL_CRM_NAV = [
   { label: 'Campaigns', path: '/crm/campaigns' },
   { label: 'Households', path: '/crm/households' },
   { label: 'Pipeline', path: '/crm/pipeline' },
+  { label: 'Recruiting', path: '/crm/recruiting' },
   { label: 'Tasks', path: '/crm/tasks' },
   { label: 'Appointments', path: '/crm/appointments', placeholder: true },
   { label: 'Production', path: '/crm/production' },

@@ -190,6 +190,16 @@ export const MODULE_CATALOG: readonly ModuleManifest[] = [
     permissions: ['crm.nav.view', 'opportunity.read'],
   }),
   shellNav({
+    key: 'recruiting',
+    displayName: 'Recruiting',
+    description: 'Recruit onboarding and carrier readiness.',
+    icon: 'contacts',
+    order: 45,
+    route: '/crm/recruiting',
+    category: 'advisor_os',
+    permissions: ['crm.nav.view'],
+  }),
+  shellNav({
     key: 'tasks',
     displayName: 'Tasks',
     description: 'Advisor task queue (manual + automated Family follow-ups).',
