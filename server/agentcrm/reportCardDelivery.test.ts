@@ -15,6 +15,13 @@ function fixture(patch: Partial<ReportCardDeliveryContext> = {}) {
  return {deps,delivery,events,links}
 }
 describe('durable Report Card delivery',()=>{
+ it.each(['family','business','retirement','protection','student_loan','credit','home_buyer'])('direct %s contact delivery does not write service tags',async assessmentType=>{
+  const {deps}=fixture();deps.taggingEnabled=false
+  expect(await runReportCardAgentCrmSync({...input,assessmentType},deps)).toEqual({status:'CREATED_AND_LINKED_CONTACT'})
+  expect(deps.applyTag).not.toHaveBeenCalled()
+  expect(deps.createContact).toHaveBeenCalledWith(expect.not.objectContaining({tags:expect.anything()}))
+ })
+
  it.each([undefined,false,'true',1])('requires explicit boolean contact permission (%s)',async permission=>{
   const {deps,links}=fixture()
   expect(await runReportCardAgentCrmSync({...input,contactPermission:permission as boolean},deps)).toEqual({status:'SKIP_CONSENT'})

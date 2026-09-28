@@ -3,11 +3,12 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { syncReportCardDelivery } from './reportCardDelivery'
 import { runReportCardAgentCrmSync } from './reportCardSync'
 vi.mock('./reportCardSync',()=>({runReportCardAgentCrmSync:vi.fn()}))
-const env={AGENTCRM_PRIVATE_INTEGRATION_TOKEN:'test-token',AGENTCRM_LOCATION_ID:'location',SUPABASE_URL:'https://phanoknohbidqtgrpwvk.supabase.co',AGENTCRM_REPORT_CARD_SYNC_ENABLED:'true',AGENTCRM_CONTACT_LINKING_ENABLED:'true'}
-const lead={id:'savedLead',household_id:'savedHousehold',assessment_type:'family',lead_type:'Family Report Card',raw_payload:{firstName:'Saved',lastName:'Person'},normalized_email:'saved@example.invalid',normalized_phone:'+15555551234',consent_snapshot:{contactPermission:true},duplicate_review_status:'none',status:'unassigned'}
+vi.mock('./reportCardFollowUp',()=>({deliverReportCardFollowUp:vi.fn(async input=>{await input.checkpoint({status:'synced',last_code:'verified'});return {opportunityId:'opp',taskId:'task'}})}))
+const env={AGENTCRM_PRIVATE_INTEGRATION_TOKEN:'test-token',AGENTCRM_LOCATION_ID:'I2Y36c45rBLFZhCQwkDC',AGENTCRM_REPORT_CARD_TRIGGERS_VERIFIED:'true',AGENTCRM_REPORT_CARD_DIRECT_FOLLOW_UP_VERIFIED:'true',SUPABASE_URL:'https://phanoknohbidqtgrpwvk.supabase.co',AGENTCRM_REPORT_CARD_SYNC_ENABLED:'true',AGENTCRM_CONTACT_LINKING_ENABLED:'true'}
+const lead={id:'savedLead',created_at:'2026-09-28T18:00:00Z',household_id:'savedHousehold',assessment_type:'family',lead_type:'Family Report Card',raw_payload:{firstName:'Saved',lastName:'Person'},normalized_email:'saved@example.invalid',normalized_phone:'+15555551234',consent_snapshot:{contactPermission:true},duplicate_review_status:'none',status:'unassigned'}
 function fixture(overrides: {lead?: unknown; household?: unknown; members?: unknown; claim?: unknown; claimError?: unknown; checkpoint?: boolean; tableError?: string}={}) {
  const queries: [string,string,unknown][]=[]
- const rpc=vi.fn(async(name:string,_args:Record<string,unknown>)=>name==='claim_report_card_delivery'?{data:'claim' in overrides?overrides.claim:{lead_id:'savedLead',claim_token:'lease',delivery_kind:'report_card',target_location_id:'location',contact_id:null,contact_create_started:false,tag_write_started:false,tag_applied:false},error:overrides.claimError??null}:{data:overrides.checkpoint??true,error:null})
+ const rpc=vi.fn(async(name:string,_args:Record<string,unknown>)=>name==='claim_report_card_delivery'?{data:'claim' in overrides?overrides.claim:{lead_id:'savedLead',claim_token:'lease',delivery_kind:'report_card',target_location_id:'I2Y36c45rBLFZhCQwkDC',contact_id:'contact123',opportunity_id:null,opportunity_create_started:false,task_id:null,task_create_started:false,contact_create_started:false,tag_write_started:false,tag_applied:false},error:overrides.claimError??null}:{data:overrides.checkpoint??true,error:null})
  const rows: Record<string,unknown>={leads:'lead' in overrides?overrides.lead:lead,households:'household' in overrides?overrides.household:{id:'savedHousehold'},household_members:'members' in overrides?overrides.members:[{id:'savedMember',first_name:'Saved',last_name:'Person'}]}
  const from=vi.fn((table:string)=>{
   const value=()=>({data:rows[table],error:overrides.tableError===table?new Error('read failed'):null})
@@ -20,10 +21,10 @@ describe('Report Card worker authorization and canonical read',()=>{
  it('sends only saved identity to the engine and targets the persisted household',async()=>{
   const f=fixture();vi.mocked(runReportCardAgentCrmSync).mockResolvedValue({status:'ALREADY_LINKED'})
   expect(await syncReportCardDelivery('savedLead',{admin:f.admin,env})).toBe('synced')
-  expect(f.rpc).toHaveBeenCalledWith('claim_report_card_delivery',{p_location:'location',p_lead_id:'savedLead'})
+  expect(f.rpc).toHaveBeenCalledWith('claim_report_card_delivery',{p_location:'I2Y36c45rBLFZhCQwkDC',p_lead_id:'savedLead'})
   expect(vi.mocked(runReportCardAgentCrmSync).mock.calls[0][0]).toMatchObject({firstName:'Saved',lastName:'Person',email:'saved@example.invalid',memberId:'savedMember',contactPermission:true})
   expect(f.queries).toContainEqual(['households','id','savedHousehold']);expect(f.queries).toContainEqual(['households','merged_into_household_id',null]);expect(f.queries).toContainEqual(['leads','deleted_at',null])
-  expect(vi.mocked(runReportCardAgentCrmSync).mock.calls[0][1]?.triggersVerified).toBe(false)
+  expect(vi.mocked(runReportCardAgentCrmSync).mock.calls[0][1]?.triggersVerified).toBe(true)
  })
  it.each([{}, {contactPermission:false}, {contactPermission:'true'}])('does not dispatch without saved explicit consent %j',async consent=>{
   const f=fixture({lead:{...lead,consent_snapshot:consent}})
@@ -40,7 +41,7 @@ describe('Report Card worker authorization and canonical read',()=>{
  })
  it('does not dispatch claims for another kind or provider location',async()=>{
   for(const patch of [{delivery_kind:'insurance_quote'},{target_location_id:'different'}]){
-   const f=fixture({claim:{lead_id:'savedLead',claim_token:'lease',delivery_kind:'report_card',target_location_id:'location',...patch}})
+   const f=fixture({claim:{lead_id:'savedLead',claim_token:'lease',delivery_kind:'report_card',target_location_id:'I2Y36c45rBLFZhCQwkDC',...patch}})
    expect(await syncReportCardDelivery('lead',{admin:f.admin,env})).toBe('held');expect(f.from).not.toHaveBeenCalled()
   }
   expect(runReportCardAgentCrmSync).not.toHaveBeenCalled()

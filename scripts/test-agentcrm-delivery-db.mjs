@@ -16,6 +16,8 @@ try {
   assert.deepEqual(current,baseline)
   assert.equal((await f.db.query('SELECT * FROM insurance_quote_deliveries WHERE lead_id=$1',[oldReport])).rowCount,0)
  })
+ // Run the existing delivery regression checks against the task-capable schema.
+ await f.db.query(fs.readFileSync('supabase/migrations/081_agentcrm_report_card_task_delivery.sql','utf8'))
  const service=await f.session('owner');await service.query('RESET ROLE');await service.query('SET ROLE service_role')
  const service2=await f.session('owner');await service2.query('RESET ROLE');await service2.query('SET ROLE service_role')
  const location='I2Y36c45rBLFZhCQwkDC'
