@@ -26,12 +26,12 @@ function walk(dir: string, acc: string[] = []): string[] {
 }
 
 describe('AgentCRM client exposure', () => {
-  it('is not exposed to browser/CRM UI and permits only the approved quote worker API import', () => {
+  it('is not exposed to browser/CRM UI and permits only the approved shared delivery worker API imports', () => {
     const offenders: string[] = []
     for (const root of CLIENT_ROOTS) {
       for (const file of walk(join(ROOT, root))) {
         const source = readFileSync(file, 'utf8')
-        const checkedSource = file === join(ROOT, 'api/insurance-quote.ts') ? source.replace("import { syncQuoteDelivery } from '../server/agentcrm/insurance/worker.js'", '') : source
+        const checkedSource = file === join(ROOT, 'api/insurance-quote.ts') ? source.replace("import { syncReportCardDelivery } from '../server/agentcrm/reportCardDelivery.js'", '').replace("import { syncQuoteDelivery } from '../server/agentcrm/insurance/worker.js'", '') : source
         if (checkedSource.includes('server/agentcrm') || source.includes('AGENTCRM_PRIVATE_INTEGRATION_TOKEN')) {
           offenders.push(file)
         }

@@ -1,4 +1,5 @@
 import { timingSafeEqual } from 'node:crypto'
+import { syncReportCardDelivery } from '../server/agentcrm/reportCardDelivery.js'
 import { syncQuoteDelivery } from '../server/agentcrm/insurance/worker.js'
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { checkRateLimit } from '../server/ingest/familyReportCard/abuse.js'
@@ -14,10 +15,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!expected || actualBytes.length !== expectedBytes.length || !timingSafeEqual(actualBytes, expectedBytes)) return res.status(401).json({ ok: false })
     const started = Date.now()
     let processed = 0
+    const inactive = ['idle', 'disabled', 'queue_unavailable', 'budget_exhausted']
     while (processed < 5 && Date.now() - started < 40000) {
-      const outcome = await syncQuoteDelivery()
-      if (['idle', 'disabled', 'queue_unavailable'].includes(outcome)) break
-      processed++
+      let didWork = false
+      for (const worker of [syncQuoteDelivery, syncReportCardDelivery]) {
+        if (processed >= 5 || Date.now() - started >= 40000) break
+        const outcome = await worker(undefined, { deadline: started + 45000 })
+        if (!inactive.includes(outcome)) { processed++; didWork = true }
+      }
+      if (!didWork) break
     }
     return res.status(200).json({ ok: true, processed })
   }

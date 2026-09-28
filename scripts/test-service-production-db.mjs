@@ -11,7 +11,7 @@ const connection =
 const url = new URL(connection)
 if (!['127.0.0.1', 'localhost', '[::1]'].includes(url.hostname))
   throw new Error('Only a disposable loopback database is allowed')
-export async function setupServiceTestDatabase() {
+export async function setupServiceTestDatabase({ throughMigration = Infinity } = {}) {
   const admin = new pg.Client({
     connectionString: connection,
     connectionTimeoutMillis: 5000,
@@ -38,7 +38,7 @@ export async function setupServiceTestDatabase() {
  GRANT USAGE ON SCHEMA public,auth TO authenticated,anon,service_role;`)
   for (const file of fs
     .readdirSync('supabase/migrations')
-    .filter((f) => /^\d.*sql$/.test(f))
+    .filter((f) => /^\d.*sql$/.test(f) && Number(f.split('_')[0]) <= throughMigration)
     .sort()) {
     try {
       await db.query(fs.readFileSync('supabase/migrations/' + file, 'utf8'))

@@ -128,4 +128,5 @@ export const EXPECTED_NUMBERED_MIGRATIONS = [
       '077_opportunity_presented_product.sql',
       '078_active_household_access.sql',
       '079_recruiting_readiness.sql',
+      '080_agentcrm_shared_delivery.sql',
 ] as const

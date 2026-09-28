@@ -1,3 +1,4 @@
+import { deliveryTestFixture } from './deliveryTestFixture'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
@@ -5,7 +6,7 @@ import { AGENTCRM_CONTACT_CREATION_ENV } from './contactCreationGate'
 import { AGENTCRM_CONTACT_LINKING_ENV } from './contactLinkGate'
 import { AGENTCRM_REPORT_CARD_SYNC_ENV } from './reportCardSyncGate'
 import { AGENTCRM_CONTACT_TAGGING_ENV } from './contactTaggingGate'
-import { runReportCardAgentCrmSync, type ReportCardSyncDeps, type ReportCardSyncInput } from './reportCardSync'
+import { runReportCardAgentCrmSync as runWithDelivery, type ReportCardSyncDeps, type ReportCardSyncInput } from './reportCardSync'
 
 const MEMBER_ID = '11111111-1111-4111-8111-111111111111'
 const EXTERNAL_ID = 'ext-do-not-expose'
@@ -13,6 +14,7 @@ const CRM_DEV = 'https://cxgiaevervjttbuiramd.supabase.co'
 const CRM_PROD = 'https://phanoknohbidqtgrpwvk.supabase.co'
 
 const INPUT: ReportCardSyncInput = {
+  contactPermission: true,
   assessmentType: 'student_loan',
   matchStatus: 'new_prospect',
   memberId: MEMBER_ID,
@@ -1989,3 +1991,8 @@ describe('runReportCardAgentCrmSync', () => {
     }
   })
 })
+
+// These existing cases focus on classification; durable behavior has separate tests.
+function runReportCardAgentCrmSync(input: Parameters<typeof runWithDelivery>[0], deps: Parameters<typeof runWithDelivery>[1] = {}) {
+ return runWithDelivery(input, { delivery: deliveryTestFixture(), triggersVerified: true, ...deps })
+}

@@ -1,8 +1,9 @@
+import { deliveryTestFixture } from '../../agentcrm/deliveryTestFixture'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { describe, expect, it, vi } from 'vitest'
-import { runStudentLoanAgentCrmDryRun } from '../../agentcrm/studentLoanDryRun'
+import { runStudentLoanAgentCrmDryRun as runWithDelivery } from '../../agentcrm/studentLoanDryRun'
 import { ingestFamilyReportCard } from './ingestFamilyReportCard'
 import {
   matchCandidateFixture,
@@ -848,3 +849,8 @@ describe('Report Card stale-match retries', () => {
     expect(admin.rpc).toHaveBeenCalledTimes(1)
   })
 })
+
+// These existing cases focus on classification; durable behavior has separate tests.
+function runStudentLoanAgentCrmDryRun(input: Parameters<typeof runWithDelivery>[0], deps: Parameters<typeof runWithDelivery>[1] = {}) {
+ return runWithDelivery(input, { delivery: deliveryTestFixture(), triggersVerified: true, ...deps })
+}

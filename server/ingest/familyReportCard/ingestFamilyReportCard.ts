@@ -45,7 +45,8 @@ import {
   buildStudentLoanReportCardSheetsPayload,
   writePublicReportCardToSheets,
 } from './sheets.js'
-import { runReportCardAgentCrmSync } from '../../agentcrm/reportCardSync.js'
+import type { runReportCardAgentCrmSync } from '../../agentcrm/reportCardSync.js'
+import { syncReportCardDelivery } from '../../agentcrm/reportCardDelivery.js'
 import { orchestrateIngestFollowUpTask } from './taskAutomation.js'
 import type {
   FamilyReportCardIngestResult,
@@ -561,11 +562,12 @@ export async function ingestPublicReportCard(
 
   // persistResult.memberId is the RPC's member id, available here for later
   // server-side work. It is intentionally omitted from the public result.
-  const runDryRun = deps.runStudentLoanDryRun ?? runReportCardAgentCrmSync
+  const runDryRun = deps.runStudentLoanDryRun ?? (async () => { await syncReportCardDelivery(persistResult.leadId, { admin }); return null })
   try {
     await runDryRun(
       {
         assessmentType: request.assessmentType,
+        contactPermission: consentSnapshot.contactPermission,
         matchStatus: persistResult.matchStatus || classification.status,
         memberId: persistResult.memberId,
         submissionId: request.submissionId,

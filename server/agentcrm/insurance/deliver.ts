@@ -3,7 +3,7 @@ import { QUOTE_LOCATION, QUOTE_PIPELINE, QUOTE_STAGE } from './config.js'
 import { classifyDuplicateContacts } from '../identityLookup.js'
 import { parseDuplicateSearch } from '../duplicateContact.js'
 
-export type Delivery = { lead_id: string; claim_token: string; contact_id: string | null; opportunity_id: string | null; contact_create_started: boolean; opportunity_create_started: boolean }
+export type Delivery = { delivery_kind?: string; target_location_id?: string; lead_id: string; claim_token: string; contact_id: string | null; opportunity_id: string | null; contact_create_started: boolean; opportunity_create_started: boolean }
 export type QuoteIdentity = { firstName: string; lastName: string; email: string; phone: string; kind: string; memberId: string }
 export type QuoteTransport = {
   get(path: string, query?: Record<string, string | number>): Promise<unknown>

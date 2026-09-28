@@ -6,7 +6,9 @@ import { quoteSyncEnabled, QUOTE_LOCATION } from './config.js'
 import { quoteTransport } from './transport.js'
 import { deliverQuote, DeliveryHold, record, type Delivery } from './deliver.js'
 
-export async function syncQuoteDelivery(leadId?: string, deps: { admin?: SupabaseClient; env?: NodeJS.ProcessEnv } = {}): Promise<string> {
+export async function syncQuoteDelivery(leadId?: string, deps: { admin?: SupabaseClient; env?: NodeJS.ProcessEnv; deadline?: number } = {}): Promise<string> {
+  const deadline = deps.deadline ?? Date.now() + 45000
+  if (deadline - Date.now() < 11000) return 'budget_exhausted'
   const env = deps.env ?? process.env
   if (!quoteSyncEnabled(env)) return 'disabled'
   const admin = deps.admin ?? createSupabaseAdminClient()
@@ -15,10 +17,12 @@ export async function syncQuoteDelivery(leadId?: string, deps: { admin?: Supabas
   if (!data) return 'idle'
   const delivery = data as Delivery
   async function checkpoint(patch: Record<string, unknown>) {
+    if (deadline - Date.now() < 11000 && !patch.status) throw new Error('delivery_deadline')
     const result = await admin.rpc('checkpoint_insurance_quote_delivery', { p_lead_id: delivery.lead_id, p_token: delivery.claim_token, p_patch: patch })
     if (result.error || result.data !== true) throw new Error('lease_lost')
   }
   try {
+    if (delivery.delivery_kind !== 'insurance_quote' || delivery.target_location_id !== QUOTE_LOCATION) throw new DeliveryHold('location_changed')
     const result = await admin.from('leads').select('household_id,lead_type,raw_payload,consent_snapshot,duplicate_review_status').eq('id', delivery.lead_id).is('deleted_at', null).single()
     if (result.error || !result.data) throw new DeliveryHold('lead_unavailable')
     const lead = result.data
@@ -39,7 +43,11 @@ export async function syncQuoteDelivery(leadId?: string, deps: { admin?: Supabas
     const linkInput = { provider: 'agentcrm', locationId: QUOTE_LOCATION, householdMemberId: identity.memberId }
     const link = await links.findByMember(linkInput)
     if (link.status === 'error') throw new Error('link_read_failed')
-    await deliverQuote({ delivery, identity, transport: quoteTransport(env), linkedContactId: link.status === 'found' ? link.link.externalContactId : null, checkpoint,
+    const transport = quoteTransport(env)
+    await deliverQuote({ delivery, identity, transport: {
+      async get(path, query) { await checkpoint({}); return transport.get(path, query) },
+      async write(method, path, body) { await checkpoint({}); return transport.write(method, path, body) },
+    }, linkedContactId: link.status === 'found' ? link.link.externalContactId : null, checkpoint,
       async saveLink(externalContactId) {
         const saved = await links.saveVerifiedLink({ ...linkInput, externalContactId })
         if (saved.status === 'conflict') throw new DeliveryHold('link_conflict')

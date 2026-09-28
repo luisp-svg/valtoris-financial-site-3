@@ -1,3 +1,4 @@
+import { DeliveryHold } from './insurance/deliver.js'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { applyReportCardServiceTag } from './applyContactTag.js'
 import { LeadConnectorClient } from './client.js'
@@ -30,6 +31,9 @@ import {
 } from './reportCardSyncConfig.js'
 
 export type ReportCardSyncDecision =
+  | { status: 'SKIP_CONSENT' }
+  | { status: 'SKIP_DELIVERY_REQUIRED' }
+  | { status: 'HELD'; reason: string }
   | { status: 'SKIP_POSSIBLE_MATCH' }
   | { status: 'SKIP_REPLAY_WITHOUT_MEMBER' }
   | { status: 'SKIP_SYNC_DISABLED' }
@@ -49,6 +53,7 @@ export type ReportCardSyncDecision =
     }
 
 export type ReportCardSyncInput = {
+  contactPermission?: boolean
   assessmentType: string
   matchStatus: string
   memberId: string | null
@@ -59,7 +64,17 @@ export type ReportCardSyncInput = {
   phone: string | null
 }
 
+export type ReportCardDeliveryContext = {
+  contactId: string | null
+  createStarted: boolean
+  tagStarted: boolean
+  tagApplied: boolean
+  checkpoint(patch: Record<string, unknown>): Promise<void>
+  verifyContact(id: string, input: ReportCardSyncInput, tag: string): Promise<{ hasTag: boolean }>
+}
 export type ReportCardSyncDeps = {
+  delivery?: ReportCardDeliveryContext
+  triggersVerified?: boolean
   /** Test double for the read-only classifier. Production uses lookupAgentCrmIdentity. */
   lookupIdentity?: (candidate: AgentCrmIdentityCandidate) => Promise<AgentCrmIdentityLookupResult>
   readConfig?: (env?: NodeJS.ProcessEnv) => AgentCrmConfig
@@ -120,6 +135,7 @@ async function decide(
   deps: ReportCardSyncDeps,
   card: ReportCardAgentCrmConfig,
 ): Promise<ReportCardSyncDecision> {
+  if (input.contactPermission !== true) return { status: 'SKIP_CONSENT' }
   if (input.matchStatus === 'possible_match') return { status: 'SKIP_POSSIBLE_MATCH' }
 
   const memberId = typeof input.memberId === 'string' ? input.memberId.trim() : ''
@@ -135,9 +151,12 @@ async function decide(
   const linkingEnabled = deps.linkingEnabled ?? isAgentCrmContactLinkingEnabled(deps.env)
   if (!linkingEnabled) return { status: 'SKIP_LINKING_DISABLED' }
 
+  if (!deps.delivery) return { status: 'SKIP_DELIVERY_REQUIRED' }
   try {
+    await deps.delivery.checkpoint({})
     return await classifyAndLink(input, deps, card, memberId, email, phone)
-  } catch {
+  } catch (error) {
+    if (error instanceof DeliveryHold) return { status: 'HELD', reason: error.message }
     return { status: 'INTEGRATION_ERROR', category: 'network' }
   }
 }
@@ -162,12 +181,22 @@ async function classifyAndLink(
     householdMemberId: memberId,
   })
   if (existing.status === 'error') return { status: 'INTEGRATION_ERROR', category: 'link_read_failed' }
-  if (existing.status === 'found') {
-    return tagLinkedContact(existing.link.externalContactId, deps, card, { status: 'ALREADY_LINKED' })
+  const storedId = deps.delivery!.contactId
+  if (existing.status === 'found' && storedId && existing.link.externalContactId !== storedId) throw new DeliveryHold('link_conflict')
+  const knownId = storedId ?? (existing.status === 'found' ? existing.link.externalContactId : null)
+  if (knownId) {
+    await deps.delivery!.checkpoint({})
+    await deps.delivery!.verifyContact(knownId, input, card.serviceTag)
+    await deps.delivery!.checkpoint({ contact_id: knownId })
+    const saved = existing.status === 'found' ? { status: 'already_linked' } : await links.saveVerifiedLink({ provider: AGENTCRM_LINK_PROVIDER, locationId, householdMemberId: memberId, externalContactId: knownId })
+    if (saved.status === 'conflict') throw new DeliveryHold('link_conflict')
+    if (saved.status === 'error') return { status: 'INTEGRATION_ERROR', category: 'link_write_failed' }
+    return tagLinkedContact(knownId, input, deps, card, { status: 'ALREADY_LINKED' })
   }
 
   const lookup = deps.lookupIdentity ?? configuredLookup(deps)
   if (!lookup) return { status: 'INTEGRATION_ERROR', category: 'not_configured' }
+  await deps.delivery!.checkpoint({})
   const result = await lookup({
     firstName: input.firstName,
     lastName: input.lastName,
@@ -183,6 +212,9 @@ async function classifyAndLink(
   const externalContactId = result.externalContactId.trim()
   if (!externalContactId) return { status: 'INTEGRATION_ERROR', category: 'invalid_response' }
 
+  await deps.delivery!.checkpoint({})
+  await deps.delivery!.verifyContact(externalContactId, input, card.serviceTag)
+  await deps.delivery!.checkpoint({ contact_id: externalContactId })
   const saved = await links.saveVerifiedLink({
     provider: AGENTCRM_LINK_PROVIDER,
     locationId,
@@ -190,10 +222,10 @@ async function classifyAndLink(
     externalContactId,
   })
   if (saved.status === 'created') {
-    return tagLinkedContact(externalContactId, deps, card, { status: 'LINKED_EXISTING_CONTACT' })
+    return tagLinkedContact(externalContactId, input, deps, card, { status: 'LINKED_EXISTING_CONTACT' })
   }
   if (saved.status === 'already_linked') {
-    return tagLinkedContact(externalContactId, deps, card, { status: 'ALREADY_LINKED' })
+    return tagLinkedContact(externalContactId, input, deps, card, { status: 'ALREADY_LINKED' })
   }
   if (saved.status === 'conflict') return { status: 'LINK_CONFLICT' }
   return { status: 'INTEGRATION_ERROR', category: 'link_write_failed' }
@@ -208,11 +240,13 @@ async function createAndLinkNewContact(
   memberId: string,
 ): Promise<ReportCardSyncDecision> {
   const creationEnabled = deps.creationEnabled ?? isAgentCrmContactCreationEnabled(deps.env)
-  if (!creationEnabled) return { status: 'NO_CONTACT_FOUND' }
+  if (deps.delivery!.createStarted) throw new DeliveryHold('contact_outcome_unknown')
+  if (!creationEnabled || deps.triggersVerified !== true) return { status: 'NO_CONTACT_FOUND' }
 
   let created: CreatedAgentCrmContact
   try {
     const create = deps.createContact ?? ((contact: CreateAgentCrmContactInput) => createAgentCrmContact(contact, { env: deps.env }))
+    await deps.delivery!.checkpoint({ contact_create_started: true })
     created = await create({
       firstName: input.firstName,
       lastName: input.lastName,
@@ -230,6 +264,8 @@ async function createAndLinkNewContact(
   const externalContactId = created.id.trim()
   if (!externalContactId) return { status: 'CONTACT_CREATED_LINK_FAILED' }
 
+  await deps.delivery!.checkpoint({ contact_id: externalContactId })
+  await deps.delivery!.verifyContact(externalContactId, input, card.serviceTag)
   try {
     const saved = await links.saveVerifiedLink({
       provider: AGENTCRM_LINK_PROVIDER,
@@ -238,7 +274,7 @@ async function createAndLinkNewContact(
       externalContactId,
     })
     if (saved.status === 'created' || saved.status === 'already_linked') {
-      return tagLinkedContact(externalContactId, deps, card, { status: 'CREATED_AND_LINKED_CONTACT' })
+      return tagLinkedContact(externalContactId, input, deps, card, { status: 'CREATED_AND_LINKED_CONTACT' })
     }
     return { status: 'CONTACT_CREATED_LINK_FAILED' }
   } catch {
@@ -248,16 +284,24 @@ async function createAndLinkNewContact(
 
 async function tagLinkedContact(
   contactId: string,
+  input: ReportCardSyncInput,
   deps: ReportCardSyncDeps,
   card: ReportCardAgentCrmConfig,
   success: ReportCardSyncDecision,
 ): Promise<ReportCardSyncDecision> {
   const taggingEnabled = deps.taggingEnabled ?? isAgentCrmContactTaggingEnabled(deps.env)
-  if (!taggingEnabled) return success
+  if (!taggingEnabled || deps.triggersVerified !== true) return success
+  if (deps.delivery!.tagApplied) return success
+  await deps.delivery!.checkpoint({})
+  const verified = await deps.delivery!.verifyContact(contactId, input, card.serviceTag)
+  if (verified.hasTag) { await deps.delivery!.checkpoint({ tag_applied: true }); return success }
+  if (deps.delivery!.tagStarted) throw new DeliveryHold('tag_outcome_unknown')
   try {
     const apply =
       deps.applyTag ?? ((id: string) => applyReportCardServiceTag(id, card.serviceTag, { env: deps.env }))
+    await deps.delivery!.checkpoint({ tag_write_started: true })
     await apply(contactId)
+    await deps.delivery!.checkpoint({ tag_applied: true })
     return success
   } catch {
     return { status: 'TAG_FAILED' }
