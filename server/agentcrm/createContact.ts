@@ -30,6 +30,8 @@ export type CreatedAgentCrmContact = {
 }
 
 export type CreateAgentCrmContactDeps = {
+  /** Report Card delivery only: omit a blank optional phone after duplicate lookup. */
+  allowMissingPhone?: boolean
   env?: NodeJS.ProcessEnv
   fetchImpl?: typeof fetch
   timeoutMs?: number
@@ -57,7 +59,7 @@ export async function createAgentCrmContact(
   const lastName = input.lastName.trim()
   const email = normalizeEmail(input.email)
   const phone = normalizePhone(input.phone)
-  if (!firstName || !lastName || !email || !phone) {
+  if (!firstName || !lastName || !email || (!phone && (!deps.allowMissingPhone || input.phone.trim()))) {
     throw new LeadConnectorError('invalid_response', null)
   }
 
@@ -71,7 +73,7 @@ export async function createAgentCrmContact(
     firstName,
     lastName,
     email,
-    phone,
+    ...(phone ? { phone } : {}),
     source,
   }
 
@@ -119,7 +121,7 @@ export async function createAgentCrmContact(
 
 function parseCreatedContact(
   payload: unknown,
-  expected: { email: string; phone: string; locationId: string; source: string },
+  expected: { email: string; phone: string | null; locationId: string; source: string },
 ): CreatedAgentCrmContact {
   const root = asRecord(payload)
   const contact = root ? asRecord(root.contact) : null
@@ -131,7 +133,7 @@ function parseCreatedContact(
   const email = readRequiredString(contact.email)
   const phone = readRequiredString(contact.phone)
   const locationId = readRequiredString(contact.locationId)
-  if (!email || !phone || !locationId) throw new LeadConnectorError('invalid_response', 201)
+  if (!email || (!phone && expected.phone !== null) || !locationId) throw new LeadConnectorError('invalid_response', 201)
   if (normalizeEmail(email) !== expected.email) throw new LeadConnectorError('invalid_response', 201)
   if (normalizePhone(phone) !== expected.phone) throw new LeadConnectorError('invalid_response', 201)
   if (locationId !== expected.locationId) throw new LeadConnectorError('invalid_response', 201)

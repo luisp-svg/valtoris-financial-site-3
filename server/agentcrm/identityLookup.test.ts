@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { describe, expect, it, vi } from 'vitest'
 import { LeadConnectorClient } from './client'
 import { findDuplicateContactByEmail, parseDuplicateSearch } from './duplicateContact'
-import { lookupAgentCrmIdentity, type AgentCrmIdentityCandidate } from './identityLookup'
+import { lookupAgentCrmIdentity, lookupReportCardIdentity, type AgentCrmIdentityCandidate } from './identityLookup'
 
 const LOCATION_ID = 'loc-test'
 const EMAIL = 'valtoris-agentcrm-test-001@example.invalid'
@@ -312,4 +312,26 @@ describe('lookupAgentCrmIdentity', () => {
     }
   })
 
+})
+
+describe('Report Card optional phone identity', () => {
+  it('allows creation only after a definitive empty email search', async () => {
+    const fetchImpl = mockSearches({ contact: null }, { contact: null })
+    expect(await lookupReportCardIdentity(clientWith(fetchImpl), LOCATION_ID, { ...CANDIDATE, phone: null })).toEqual({ status: 'NO_CONTACT_FOUND' })
+    expect(fetchImpl).toHaveBeenCalledTimes(1)
+  })
+  it('holds an existing email match even when the name agrees', async () => {
+    const fetchImpl = mockSearches(searchBody(contactRecord()), { contact: null })
+    expect(await lookupReportCardIdentity(clientWith(fetchImpl), LOCATION_ID, { ...CANDIDATE, phone: null })).toEqual({ status: 'AMBIGUOUS', reason: 'EMAIL_ONLY_MATCH' })
+    expect(fetchImpl).toHaveBeenCalledTimes(1)
+  })
+  it.each([500, 401])('never treats a failed search (%s) as an empty search', async status => {
+    const fetchImpl = mockSearches({}, {}, status)
+    expect(await lookupReportCardIdentity(clientWith(fetchImpl), LOCATION_ID, { ...CANDIDATE, phone: null })).toMatchObject({ status: 'INTEGRATION_ERROR' })
+  })
+  it('retains two independent searches when a phone is supplied', async () => {
+    const fetchImpl = mockSearches(searchBody(contactRecord()), searchBody(contactRecord()))
+    expect(await lookupReportCardIdentity(clientWith(fetchImpl), LOCATION_ID, CANDIDATE)).toMatchObject({ status: 'EXACT_EXISTING_CONTACT' })
+    expect(fetchImpl).toHaveBeenCalledTimes(2)
+  })
 })

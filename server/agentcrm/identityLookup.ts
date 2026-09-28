@@ -130,3 +130,26 @@ function integrationError(error: unknown): AgentCrmIdentityLookupResult {
   }
   return { status: 'INTEGRATION_ERROR', category: 'network' }
 }
+
+/**
+ * A missing optional phone is not evidence that an existing email match is safe.
+ * Only a definitive empty email lookup permits a new Report Card contact.
+ * Existing email matches require review; the shared email-and-phone lookup is unchanged.
+ */
+export async function lookupReportCardIdentity(
+  client: LeadConnectorClient,
+  locationId: string,
+  candidate: AgentCrmIdentityCandidate,
+): Promise<AgentCrmIdentityLookupResult> {
+  if (candidate.phone?.trim()) return lookupAgentCrmIdentity(client, locationId, candidate)
+  const email = normalizeEmail(candidate.email)
+  if (!email) return { status: 'AMBIGUOUS', reason: 'MISSING_IDENTITY_INPUT' }
+  try {
+    const contact = await findDuplicateContactByEmail(client, locationId, email)
+    return contact
+      ? { status: 'AMBIGUOUS', reason: 'EMAIL_ONLY_MATCH' }
+      : { status: 'NO_CONTACT_FOUND' }
+  } catch (error) {
+    return integrationError(error)
+  }
+}

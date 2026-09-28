@@ -297,3 +297,20 @@ describe('createAgentCrmContact', () => {
     expect(createSource).not.toMatch(/\/contacts\/upsert|tags:|customFields:/)
   })
 })
+
+describe('optional phone creation for Report Card delivery', () => {
+  it('omits phone from the request and accepts absent phone on read-back', async () => {
+    const fetchImpl = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => jsonResponse(contactBody({ phone: undefined })))
+    expect(await createAgentCrmContact({ ...INPUT, phone: '' }, { env: enabledEnv(), fetchImpl, allowMissingPhone: true })).toMatchObject({ id: 'synthetic-created-contact' })
+    expect(JSON.parse(String(fetchImpl.mock.calls[0][1]?.body))).not.toHaveProperty('phone')
+  })
+  it('preserves the default requirement for callers without the explicit option', async () => {
+    const fetchImpl = vi.fn()
+    await expect(createAgentCrmContact({ ...INPUT, phone: '' }, { env: enabledEnv(), fetchImpl })).rejects.toMatchObject({ category: 'invalid_response' })
+    expect(fetchImpl).not.toHaveBeenCalled()
+  })
+  it('rejects an unexpected phone returned for an email-only create', async () => {
+    const fetchImpl = vi.fn(async () => jsonResponse(contactBody()))
+    await expect(createAgentCrmContact({ ...INPUT, phone: '' }, { env: enabledEnv(), fetchImpl, allowMissingPhone: true })).rejects.toMatchObject({ category: 'invalid_response' })
+  })
+})

@@ -24,7 +24,7 @@ export function canonicalReportIdentity(lead: Record<string, unknown>, members: 
   const lastName = typeof raw.lastName === 'string' ? raw.lastName.trim() : ''
   const email = normalizeEmail(typeof lead.normalized_email === 'string' ? lead.normalized_email : '')
   const phone = normalizePhone(typeof lead.normalized_phone === 'string' ? lead.normalized_phone : '')
-  if (!firstName || !lastName || !email || !phone) throw new DeliveryHold('invalid_identity')
+  if (!firstName || !lastName || !email || (!phone && typeof lead.normalized_phone === 'string' && lead.normalized_phone.trim())) throw new DeliveryHold('invalid_identity')
   const matches = members.filter(m => typeof m.id === 'string' && String(m.first_name ?? '').trim().toLowerCase() === firstName.toLowerCase() && String(m.last_name ?? '').trim().toLowerCase() === lastName.toLowerCase())
   if (matches.length !== 1) throw new DeliveryHold('member_ambiguous')
   return { assessmentType: type, matchStatus: 'verified_canonical', contactPermission: true, memberId: String(matches[0].id), submissionId: String(lead.id), firstName, lastName, email, phone }

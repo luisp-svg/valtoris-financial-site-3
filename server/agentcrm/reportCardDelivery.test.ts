@@ -111,3 +111,32 @@ describe('canonical identity and provider read-back',()=>{
   const rpc=vi.fn();expect(await syncReportCardDelivery('lead',{env:{},admin:{rpc} as unknown as SupabaseClient})).toBe('disabled');expect(rpc).not.toHaveBeenCalled()
  })
 })
+
+describe('optional phone durable delivery', () => {
+ it('accepts a canonical lead without manufacturing a phone', () => {
+  expect(canonicalReportIdentity({...lead, normalized_phone:null},members).phone).toBeNull()
+ })
+ it.each(['family','business','retirement','protection','student_loan','credit','home_buyer'])('creates and tags a new email-only %s contact after a no-match decision', async assessmentType => {
+  const {deps}=fixture()
+  expect(await runReportCardAgentCrmSync({...input,assessmentType,phone:null},deps)).toEqual({status:'CREATED_AND_LINKED_CONTACT'})
+  expect(deps.createContact).toHaveBeenCalledWith(expect.objectContaining({phone:''}))
+ })
+ it('does not create, link, or tag an existing email-only match', async () => {
+  const {deps,links}=fixture()
+  deps.lookupIdentity=vi.fn(async()=>({status:'AMBIGUOUS' as const,reason:'EMAIL_ONLY_MATCH' as const}))
+  expect(await runReportCardAgentCrmSync({...input,phone:null},deps)).toEqual({status:'AMBIGUOUS',reason:'EMAIL_ONLY_MATCH'})
+  expect(deps.createContact).not.toHaveBeenCalled();expect(links.saveVerifiedLink).not.toHaveBeenCalled();expect(deps.applyTag).not.toHaveBeenCalled()
+ })
+ it('holds an uncertain email-only creation instead of creating again', async () => {
+  const {deps}=fixture({createStarted:true})
+  expect(await runReportCardAgentCrmSync({...input,phone:null},deps)).toEqual({status:'HELD',reason:'contact_outcome_unknown'})
+  expect(deps.createContact).not.toHaveBeenCalled()
+ })
+ it('requires an exact read-back including an absent phone', () => {
+  const identity={...input,phone:null}
+  const contact={id:'contact123',locationId:'location',firstName:input.firstName,lastName:input.lastName,email:input.email}
+  expect(verifyReportContact({contact},'location',identity,'tag','contact123')).toEqual({hasTag:false})
+  expect(()=>verifyReportContact({contact:{...contact,phone:input.phone}},'location',identity,'tag','contact123')).toThrow('contact_verification_failed')
+  expect(()=>verifyReportContact({contact:{...contact,lastName:'Other'}},'location',identity,'tag','contact123')).toThrow('contact_verification_failed')
+ })
+})

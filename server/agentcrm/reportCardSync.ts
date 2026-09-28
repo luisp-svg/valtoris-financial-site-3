@@ -20,7 +20,7 @@ import {
 } from './createContact.js'
 import { LeadConnectorError, type LeadConnectorErrorCategory } from './errors.js'
 import {
-  lookupAgentCrmIdentity,
+  lookupReportCardIdentity,
   type AgentCrmIdentityAmbiguousReason,
   type AgentCrmIdentityCandidate,
   type AgentCrmIdentityLookupResult,
@@ -143,7 +143,7 @@ async function decide(
 
   const email = typeof input.email === 'string' ? input.email.trim() : ''
   const phone = typeof input.phone === 'string' ? input.phone.trim() : ''
-  if (!email || !phone) return { status: 'AMBIGUOUS', reason: 'MISSING_IDENTITY_INPUT' }
+  if (!email) return { status: 'AMBIGUOUS', reason: 'MISSING_IDENTITY_INPUT' }
 
   const syncEnabled = deps.syncEnabled ?? isAgentCrmReportCardSyncEnabled(deps.env)
   if (!syncEnabled) return { status: 'SKIP_SYNC_DISABLED' }
@@ -245,7 +245,7 @@ async function createAndLinkNewContact(
 
   let created: CreatedAgentCrmContact
   try {
-    const create = deps.createContact ?? ((contact: CreateAgentCrmContactInput) => createAgentCrmContact(contact, { env: deps.env }))
+    const create = deps.createContact ?? ((contact: CreateAgentCrmContactInput) => createAgentCrmContact(contact, { env: deps.env, allowMissingPhone: true }))
     await deps.delivery!.checkpoint({ contact_create_started: true })
     created = await create({
       firstName: input.firstName,
@@ -313,7 +313,7 @@ function configuredLookup(deps: ReportCardSyncDeps): ReportCardSyncDeps['lookupI
   if (!config.configured) return null
   const client = new LeadConnectorClient({ token: config.token })
   const locationId = config.locationId
-  return (candidate) => lookupAgentCrmIdentity(client, locationId, candidate)
+  return (candidate) => lookupReportCardIdentity(client, locationId, candidate)
 }
 
 function logSync(event: ReportCardSyncLogEvent): void {
