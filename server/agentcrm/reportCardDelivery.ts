@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createSupabaseAdminClient } from '../../lib/supabase/admin.js'
 import { normalizeEmail, normalizePhone } from '../../crm/households/normalizeContact.js'
+import { reportCardValidationScope } from './reportCardValidationScope.js'
 import { readAgentCrmConfig } from './config.js'
 import { LeadConnectorClient } from './client.js'
 import { isAgentCrmReportCardSyncEnabled } from './reportCardSyncGate.js'
@@ -48,12 +49,25 @@ export async function syncReportCardDelivery(leadId?: string, deps: { admin?: Su
   if (!isAgentCrmReportCardSyncEnabled(env) || !isAgentCrmContactLinkingEnabled(env)) return 'disabled'
   const config = readAgentCrmConfig(env)
   if (!config.configured || !reportCardFollowUpReady(env, config.locationId)) return 'disabled'
+  const scope = reportCardValidationScope(env)
+  if (scope !== null && (!scope.length || (leadId !== undefined && !scope.includes(leadId)))) return 'disabled'
   const admin = deps.admin ?? createSupabaseAdminClient()
-  const claim = await admin.rpc('claim_report_card_delivery', { p_location: config.locationId, p_lead_id: leadId ?? null })
-  if (claim.error) return 'queue_unavailable'
-  if (!claim.data) return 'idle'
-  const delivery = claim.data as ReportDelivery
+  const candidates = leadId !== undefined ? [leadId] : scope ?? [null]
+  let claimed: ReportDelivery | null = null
+  for (const candidate of candidates) {
+    if (deadline - Date.now() < 11000) return 'budget_exhausted'
+    const currentScope = reportCardValidationScope(env)
+    if (currentScope !== null && (candidate === null || !currentScope.includes(candidate))) return 'disabled'
+    const claim = await admin.rpc('claim_report_card_delivery', { p_location: config.locationId, p_lead_id: candidate })
+    if (claim.error) return 'queue_unavailable'
+    if (claim.data) { claimed = claim.data as ReportDelivery; break }
+  }
+  if (!claimed) return 'idle'
+  const delivery = claimed
+  if (scope !== null && !scope.includes(delivery.lead_id)) return 'held'
   async function checkpoint(patch: Record<string, unknown>) {
+    const currentScope = reportCardValidationScope(env)
+    if (currentScope !== null && !currentScope.includes(delivery.lead_id)) throw new Error('validation_scope_closed')
     if (deadline - Date.now() < 11000 && !patch.status) throw new Error('delivery_deadline')
     const result = await admin.rpc('checkpoint_insurance_quote_delivery', { p_lead_id: delivery.lead_id, p_token: delivery.claim_token, p_patch: patch })
     if (result.error || result.data !== true) throw new Error('lease_lost')
