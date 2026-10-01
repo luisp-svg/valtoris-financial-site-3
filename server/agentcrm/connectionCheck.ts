@@ -4,8 +4,9 @@ import { LeadConnectorError } from './errors.js'
 import { ReportCardFollowUpClient } from './reportCardFollowUpClient.js'
 import { REPORT_CARD_FOLLOW_UP_TARGET } from './reportCardFollowUpConfig.js'
 
-type Check = { status: 'PASS' | 'FAIL' | 'NOT_RUN'; reason?: string }
-type CheckName = 'location' | 'contacts' | 'pipeline' | 'opportunities' | 'tasks'
+type OpportunitySummary = { returned: number; total: number | null; uniqueIds: number; matchingContact: number; matchingPipeline: number }
+type Check = { status: 'PASS' | 'FAIL' | 'NOT_RUN'; reason?: string; summary?: OpportunitySummary }
+type CheckName = 'location' | 'contacts' | 'pipeline' | 'opportunities' | 'tasks' | 'contactOpportunities'
 const object = (value: unknown): Record<string, unknown> =>
   value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {}
 const invalid = () => { throw new LeadConnectorError('invalid_response') }
@@ -17,7 +18,7 @@ export async function checkAgentCrmConnection(
 ) {
   const checks: Record<CheckName, Check> = {
     location: { status: 'NOT_RUN' }, contacts: { status: 'NOT_RUN' },
-    pipeline: { status: 'NOT_RUN' }, opportunities: { status: 'NOT_RUN' }, tasks: { status: 'NOT_RUN' },
+    pipeline: { status: 'NOT_RUN' }, opportunities: { status: 'NOT_RUN' }, tasks: { status: 'NOT_RUN' }, contactOpportunities: { status: 'NOT_RUN' },
   }
   const result = () => ({
     ok: Object.values(checks).every(check => check.status === 'PASS'),
@@ -82,11 +83,31 @@ export async function checkAgentCrmConnection(
     }),
   ])
   if (contactId) {
+    const verifiedContactId = contactId
+    let summary: OpportunitySummary | undefined
+    await check('contactOpportunities', async () => {
+      const payload = object(await followUp.get('/opportunities/search', {
+        locationId: target.locationId, pipelineId: target.pipelineId,
+        contactId: verifiedContactId, status: 'all', limit: 100,
+      }))
+      if (!Array.isArray(payload.opportunities) || payload.opportunities.length > 100) return invalid()
+      const rows = payload.opportunities.map(object)
+      if (rows.some(row => typeof row.id !== 'string' || !/^[a-zA-Z0-9]{1,128}$/.test(row.id))) return invalid()
+      const total = object(payload.meta).total
+      summary = {
+        returned: rows.length, total: typeof total === 'number' && Number.isSafeInteger(total) && total >= 0 ? total : null,
+        uniqueIds: new Set(rows.map(row => row.id)).size,
+        matchingContact: rows.filter(row => (row.contactId ?? object(row.contact).id) === verifiedContactId).length,
+        matchingPipeline: rows.filter(row => row.pipelineId === target.pipelineId).length,
+      }
+    })
+    if (summary) checks.contactOpportunities.summary = summary
     await check('tasks', async () => {
       const payload = object(await followUp.get(`/contacts/${contactId}/tasks`))
       if (!Array.isArray(payload.tasks)) invalid()
     })
   } else {
+    checks.contactOpportunities = { status: 'NOT_RUN', reason: 'no_verified_contact' }
     checks.tasks = { status: 'NOT_RUN', reason: checks.contacts.status === 'PASS' ? 'no_existing_contact' : 'contact_check_failed' }
   }
   return result()

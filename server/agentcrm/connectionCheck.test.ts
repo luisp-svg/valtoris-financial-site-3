@@ -7,7 +7,7 @@ const bodies: Record<string, unknown> = {
   [`/locations/${target.locationId}`]: { location: { id: target.locationId, name: 'Private name' } },
   '/contacts/': { contacts: [{ id: 'contact123', locationId: target.locationId, email: 'private@example.com' }] },
   '/opportunities/pipelines': { pipelines: [{ id: target.pipelineId, stages: [{ id: target.initialStageId }] }] },
-  '/opportunities/search': { opportunities: [{ pipelineId: target.pipelineId, locationId: target.locationId, name: 'Private opportunity' }] },
+  '/opportunities/search': { meta: { total: 1 }, opportunities: [{ id: 'opp123', contactId: 'contact123', pipelineId: target.pipelineId, locationId: target.locationId, name: 'Private opportunity' }] },
   '/contacts/contact123/tasks': { tasks: [{ body: 'Private task' }] },
 }
 function transport(overrides: Record<string, unknown> = {}, status = 200) {
@@ -22,7 +22,8 @@ describe('owner connection diagnostic', () => {
     const report = await checkAgentCrmConnection(env, fetcher)
     expect(report.ok).toBe(true)
     expect(report.writeAccess).toBe('not_tested')
-    expect(fetcher).toHaveBeenCalledTimes(5)
+    expect(report.checks.contactOpportunities.summary).toEqual({ returned: 1, total: 1, uniqueIds: 1, matchingContact: 1, matchingPipeline: 1 })
+    expect(fetcher).toHaveBeenCalledTimes(6)
     for (const [input, init] of fetcher.mock.calls) {
       const url = new URL(String(input))
       expect(url.origin).toBe('https://services.leadconnectorhq.com')
@@ -30,7 +31,8 @@ describe('owner connection diagnostic', () => {
       expect(init?.body).toBeUndefined()
       expect(init?.redirect).toBe('error')
       expect(new Headers(init?.headers).get('Version')).toBe(url.pathname.endsWith('/tasks') || url.pathname.endsWith('/search') ? 'v3' : '2021-07-28')
-      if (['/contacts/', '/opportunities/search'].includes(url.pathname)) expect(url.searchParams.get('limit')).toBe('1')
+      if (url.pathname === '/contacts/') expect(url.searchParams.get('limit')).toBe('1')
+      if (url.pathname === '/opportunities/search') expect(url.searchParams.get('limit')).toBe(url.searchParams.has('contactId') ? '100' : '1')
     }
     expect(JSON.stringify(report)).not.toMatch(/private|contact123|Private|I2Y36/i)
   })
@@ -75,6 +77,22 @@ describe('owner connection diagnostic', () => {
     const report = await checkAgentCrmConnection(env, transport({ [path]: body }))
     expect(report.checks[check]).toEqual({ status: 'FAIL', reason: 'invalid_response' })
     expect(report.ok).toBe(false)
+  })
+
+  it('reports mismatched provider totals without exposing IDs or guessing a correction', async () => {
+    const fetcher = transport()
+    const read: typeof fetch = async (input, init) => {
+      const url = new URL(String(input))
+      if (url.searchParams.has('contactId')) return new Response(JSON.stringify({ opportunities: [
+        { id: 'privateOpp1', contactId: 'contact123', pipelineId: target.pipelineId },
+        { id: 'privateOpp1', contactId: 'contact123', pipelineId: target.pipelineId },
+        { id: 'privateOpp2', contactId: 'foreignContact', pipelineId: 'foreignPipeline' },
+      ], meta: { total: 9 } }))
+      return fetcher(input, init)
+    }
+    const report = await checkAgentCrmConnection(env, read)
+    expect(report.checks.contactOpportunities.summary).toEqual({ returned: 3, total: 9, uniqueIds: 2, matchingContact: 2, matchingPipeline: 2 })
+    expect(JSON.stringify(report)).not.toMatch(/privateOpp|foreignContact|foreignPipeline/)
   })
   it('sanitizes transport exceptions', async () => {
     const fetcher = vi.fn(async () => { throw new Error('private token and client information') })
