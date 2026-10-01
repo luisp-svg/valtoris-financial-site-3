@@ -34,6 +34,7 @@ export async function deliverReportCardFollowUp(input: {
   delivery: FollowUpDelivery
   target: FollowUpTarget
   assessmentType: string
+  contactName: string
   dueDate: string
   transport: FollowUpTransport
   checkpoint(patch: Record<string, unknown>): Promise<void>
@@ -90,11 +91,13 @@ export async function deliverReportCardFollowUp(input: {
   } else {
     if (opportunityId) throw new Error('opportunity_search_pending')
     if (d.opportunity_create_started) throw new DeliveryHold('opportunity_outcome_unknown')
+    const contactName = input.contactName.trim().replace(/\s+/g, ' ')
+    if (!contactName) throw new DeliveryHold('invalid_contact_name')
     await verifyIdentity()
     await checkpoint({ opportunity_create_started: true })
     const response = record(await api.post('/opportunities/', {
       locationId: t.locationId, pipelineId: t.pipelineId, pipelineStageId: t.initialStageId,
-      contactId, name: 'Valtoris Service Inquiry', status: 'open',
+      contactId, name: contactName, status: 'open',
     }))
     opportunityId = providerId(record(response.opportunity).id)
     await checkpoint({ opportunity_id: opportunityId })

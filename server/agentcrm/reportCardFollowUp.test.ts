@@ -20,7 +20,7 @@ function fixture(patch: Partial<FollowUpDelivery> = {}) {
  }
  const checkpoint=vi.fn(async(patch:Record<string,unknown>)=>{state.events.push(JSON.stringify(patch));Object.assign(delivery,patch)})
  const verifyContact=vi.fn(async()=>{})
- const input={delivery,target,assessmentType:'family',dueDate:'2026-09-29T14:00:00.000Z',transport,checkpoint,verifyContact}
+ const input={delivery,target,assessmentType:'family',contactName:'María de la Cruz',dueDate:'2026-09-29T14:00:00.000Z',transport,checkpoint,verifyContact}
  return {input,state,transport,checkpoint,verifyContact}
 }
 describe('per-submission Report Card follow-up',()=>{
@@ -85,6 +85,12 @@ describe('per-submission Report Card follow-up',()=>{
  it('creates an opportunity only after durable intent',async()=>{
   const f=fixture();f.state.opportunities=[];await deliverReportCardFollowUp(f.input)
   expect(f.state.events.indexOf('{"opportunity_create_started":true}')).toBeLessThan(f.state.events.indexOf('post:/opportunities/'))
+  expect(f.state.opportunities[0]).toMatchObject({name:'María de la Cruz',contactId:'contact1',pipelineStageId:'stage-1',status:'open'})
+ })
+ it('does not create a generically named opportunity when the client name is blank',async()=>{
+  const f=fixture();f.state.opportunities=[];f.input.contactName='   '
+  await expect(deliverReportCardFollowUp(f.input)).rejects.toThrow('invalid_contact_name')
+  expect(f.transport.post).not.toHaveBeenCalled();expect(f.input.delivery.opportunity_create_started).toBe(false)
  })
  it('does not contact the provider after lease or consent checkpoint failure',async()=>{
   const f=fixture();f.checkpoint.mockRejectedValue(new Error('lease_lost'))

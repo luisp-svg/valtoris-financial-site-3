@@ -100,6 +100,7 @@ export async function syncReportCardDelivery(leadId?: string, deps: { admin?: Su
       await deliverReportCardFollowUp({
         delivery: { ...delivery, contact_id: contactId }, target: REPORT_CARD_FOLLOW_UP_TARGET,
         assessmentType: input.assessmentType, dueDate, transport, checkpoint,
+        contactName: `${input.firstName} ${input.lastName}`,
         async verifyContact() {
           verifyReportContact(await reader.get(`/contacts/${contactId}`), config.locationId, input, getReportCardAgentCrmConfig(input.assessmentType)!.serviceTag, contactId)
         },
