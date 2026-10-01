@@ -7,7 +7,7 @@ function fixture(patch: Partial<FollowUpDelivery> = {}) {
  const target = {locationId:'location1',pipelineId:'pipeline1',initialStageId:'stage-1',assignedUserId:'luis1'}
  const state = { opportunities: [{id:'opp1',contactId:'contact1',pipelineId:'pipeline1',locationId:'location1',status:'won',pipelineStageId:'existingStage'}] as Record<string,unknown>[], tasks: [] as Record<string,unknown>[], events:[] as string[] }
  const transport = {
-  get:vi.fn(async(path:string) => {
+  get:vi.fn(async(path:string): Promise<unknown> => {
    if(path==='/opportunities/search')return {opportunities:state.opportunities,meta:{total:state.opportunities.length,startAfterId:state.opportunities[0]?.id}}
    if(path==='/contacts/contact1/tasks')return {tasks:state.tasks}
    return {task:state.tasks.find(t=>path.endsWith('/'+t.id))}
@@ -65,6 +65,31 @@ describe('per-submission Report Card follow-up',()=>{
  it('holds an unknown task outcome when the search is empty',async()=>{
   const f=fixture({task_create_started:true});await expect(deliverReportCardFollowUp(f.input)).rejects.toThrow('task_outcome_unknown')
   expect(f.transport.post).not.toHaveBeenCalled()
+ })
+
+ it.each([false,true])('uses a complete result count despite pagination hints (empty=%s)',async empty=>{
+  const f=fixture();if(empty)f.state.opportunities=[]
+  const original=f.transport.get.getMockImplementation()!
+  f.transport.get.mockImplementation(async path=>{
+   const result=await original(path)
+   if(path==='/opportunities/search')return {opportunities:f.state.opportunities,meta:{total:f.state.opportunities.length,nextPage:2,nextPageUrl:'https://example.invalid/next'}}
+   return result
+  })
+  await expect(deliverReportCardFollowUp(f.input)).resolves.toEqual({opportunityId:empty?'newOpp':'opp1',taskId:'task1'})
+  expect(f.transport.get).toHaveBeenCalledWith('/opportunities/search',expect.objectContaining({contactId:'contact1',pipelineId:'pipeline1',page:1}))
+  expect(f.state.opportunities).toHaveLength(1)
+  expect(f.state.tasks).toHaveLength(1)
+  expect(f.state.opportunities[0]).toMatchObject(empty?{pipelineStageId:'stage-1',status:'open'}:{pipelineStageId:'existingStage',status:'won'})
+ })
+ it('holds a declared second opportunity even when only one row is returned',async()=>{
+  const f=fixture();f.transport.get.mockResolvedValueOnce({opportunities:f.state.opportunities,meta:{total:2}} as never)
+  await expect(deliverReportCardFollowUp(f.input)).rejects.toThrow('multiple_opportunities');expect(f.transport.post).not.toHaveBeenCalled()
+ })
+ it('does not create from an incomplete or contradictory result count',async()=>{
+  for(const [rows,total] of [[[],1],[[{id:'opp1'}],0]] as const){
+   const f=fixture();f.transport.get.mockResolvedValueOnce({opportunities:rows,meta:{total}} as never)
+   await expect(deliverReportCardFollowUp(f.input)).rejects.toThrow('incomplete_opportunity_response');expect(f.transport.post).not.toHaveBeenCalled()
+  }
  })
  it('holds duplicate opportunities instead of picking one',async()=>{
   const f=fixture();f.state.opportunities.push({...f.state.opportunities[0],id:'opp2'})

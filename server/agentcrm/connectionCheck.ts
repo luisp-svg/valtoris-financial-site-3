@@ -4,7 +4,7 @@ import { LeadConnectorError } from './errors.js'
 import { ReportCardFollowUpClient } from './reportCardFollowUpClient.js'
 import { REPORT_CARD_FOLLOW_UP_TARGET } from './reportCardFollowUpConfig.js'
 
-type OpportunitySummary = { returned: number; total: number | null; uniqueIds: number; matchingContact: number; matchingPipeline: number }
+type OpportunitySummary = { returned: number; total: number | null; uniqueIds: number; matchingContact: number; matchingPipeline: number; nextPagePresent: boolean; nextPageUrlPresent: boolean }
 type Check = { status: 'PASS' | 'FAIL' | 'NOT_RUN'; reason?: string; summary?: OpportunitySummary }
 type CheckName = 'location' | 'contacts' | 'pipeline' | 'opportunities' | 'tasks' | 'contactOpportunities'
 const object = (value: unknown): Record<string, unknown> =>
@@ -88,7 +88,7 @@ export async function checkAgentCrmConnection(
     await check('contactOpportunities', async () => {
       const payload = object(await followUp.get('/opportunities/search', {
         locationId: target.locationId, pipelineId: target.pipelineId,
-        contactId: verifiedContactId, status: 'all', limit: 100,
+        contactId: verifiedContactId, status: 'all', limit: 100, page: 1,
       }))
       if (!Array.isArray(payload.opportunities) || payload.opportunities.length > 100) return invalid()
       const rows = payload.opportunities.map(object)
@@ -96,6 +96,7 @@ export async function checkAgentCrmConnection(
       const total = object(payload.meta).total
       summary = {
         returned: rows.length, total: typeof total === 'number' && Number.isSafeInteger(total) && total >= 0 ? total : null,
+        nextPagePresent: Boolean(object(payload.meta).nextPage), nextPageUrlPresent: Boolean(object(payload.meta).nextPageUrl),
         uniqueIds: new Set(rows.map(row => row.id)).size,
         matchingContact: rows.filter(row => (row.contactId ?? object(row.contact).id) === verifiedContactId).length,
         matchingPipeline: rows.filter(row => row.pipelineId === target.pipelineId).length,

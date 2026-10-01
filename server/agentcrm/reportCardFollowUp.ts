@@ -66,13 +66,16 @@ export async function deliverReportCardFollowUp(input: {
   const opportunities = async () => {
     // Search all statuses so a completed opportunity is not silently duplicated/reopened.
     const response = record(await get('/opportunities/search', {
-      locationId: t.locationId, pipelineId: t.pipelineId, contactId, status: 'all', limit: 100,
+      locationId: t.locationId, pipelineId: t.pipelineId, contactId, status: 'all', limit: 100, page: 1,
     }))
     if (!Array.isArray(response.opportunities)) throw new Error('invalid_opportunity_response')
     const rows = response.opportunities.map(record)
     const meta = record(response.meta)
     if (!Number.isInteger(meta.total) || Number(meta.total) < rows.length) throw new Error('incomplete_opportunity_response')
-    if (Number(meta.total) > 1 || rows.length > 1 || meta.nextPage || meta.nextPageUrl) throw new DeliveryHold('multiple_opportunities')
+    // Pagination hints can be present even when the first page contains all matches.
+    // Require the declared total to equal the complete zero/one-row result below.
+    // Never follow a provider-supplied next-page URL.
+    if (Number(meta.total) > 1 || rows.length > 1) throw new DeliveryHold('multiple_opportunities')
     if (Number(meta.total) !== rows.length) throw new Error('incomplete_opportunity_response')
     for (const row of rows) {
       const rowContact = row.contactId ?? (row.contact ? record(row.contact).id : null)

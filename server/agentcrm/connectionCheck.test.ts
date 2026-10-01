@@ -22,7 +22,7 @@ describe('owner connection diagnostic', () => {
     const report = await checkAgentCrmConnection(env, fetcher)
     expect(report.ok).toBe(true)
     expect(report.writeAccess).toBe('not_tested')
-    expect(report.checks.contactOpportunities.summary).toEqual({ returned: 1, total: 1, uniqueIds: 1, matchingContact: 1, matchingPipeline: 1 })
+    expect(report.checks.contactOpportunities.summary).toEqual({ returned: 1, total: 1, uniqueIds: 1, matchingContact: 1, matchingPipeline: 1, nextPagePresent: false, nextPageUrlPresent: false })
     expect(fetcher).toHaveBeenCalledTimes(6)
     for (const [input, init] of fetcher.mock.calls) {
       const url = new URL(String(input))
@@ -87,12 +87,12 @@ describe('owner connection diagnostic', () => {
         { id: 'privateOpp1', contactId: 'contact123', pipelineId: target.pipelineId },
         { id: 'privateOpp1', contactId: 'contact123', pipelineId: target.pipelineId },
         { id: 'privateOpp2', contactId: 'foreignContact', pipelineId: 'foreignPipeline' },
-      ], meta: { total: 9 } }))
+      ], meta: { total: 9, nextPage: 2, nextPageUrl: "https://private-provider-url.invalid/page2" } }))
       return fetcher(input, init)
     }
     const report = await checkAgentCrmConnection(env, read)
-    expect(report.checks.contactOpportunities.summary).toEqual({ returned: 3, total: 9, uniqueIds: 2, matchingContact: 2, matchingPipeline: 2 })
-    expect(JSON.stringify(report)).not.toMatch(/privateOpp|foreignContact|foreignPipeline/)
+    expect(report.checks.contactOpportunities.summary).toEqual({ returned: 3, total: 9, uniqueIds: 2, matchingContact: 2, matchingPipeline: 2, nextPagePresent: true, nextPageUrlPresent: true })
+    expect(JSON.stringify(report)).not.toMatch(/privateOpp|foreignContact|foreignPipeline|private-provider-url/)
   })
   it('sanitizes transport exceptions', async () => {
     const fetcher = vi.fn(async () => { throw new Error('private token and client information') })
