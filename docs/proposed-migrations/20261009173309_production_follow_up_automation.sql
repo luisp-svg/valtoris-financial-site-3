@@ -20,7 +20,7 @@ ALTER TABLE public.production_task_tracking ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON public.production_task_tracking FROM PUBLIC,anon,authenticated;
 GRANT SELECT ON public.production_task_tracking TO authenticated;
 CREATE POLICY production_task_tracking_read ON public.production_task_tracking FOR SELECT TO authenticated USING
- (EXISTS(SELECT 1 FROM public.policy_applications a WHERE a.id=application_id AND a.deleted_at IS NULL AND public.crm_archive_access(a.household_id)));
+ (EXISTS(SELECT 1 FROM public.policy_applications a WHERE a.id=application_id AND a.deleted_at IS NULL AND public.crm_can_access_household(a.household_id)));
 
 -- Private helpers: never exposed as RPCs. Definer needed to write managed tasks atomically.
 CREATE SCHEMA IF NOT EXISTS crm_workflows;

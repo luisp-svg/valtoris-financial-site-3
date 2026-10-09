@@ -12,6 +12,7 @@ CREATE TABLE policy_applications(id uuid PRIMARY KEY,household_id uuid,opportuni
 CREATE TABLE tasks(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),household_id uuid,opportunity_id uuid,lead_id uuid,assessment_id uuid,title text,description text,due_date date,priority text,status text,assigned_user_id uuid,created_by_user_id uuid,source_type text,workflow_type text,metadata jsonb,deleted_at timestamptz,completed_at timestamptz,updated_at timestamptz DEFAULT clock_timestamp(),CONSTRAINT tasks_workflow_type_check CHECK(workflow_type IS NULL OR workflow_type IN ('review_initial_diagnostic','review_digital_identity_lead')));
 CREATE FUNCTION crm_is_owner() RETURNS boolean LANGUAGE sql AS $$ SELECT EXISTS(SELECT 1 FROM profiles WHERE id=auth.uid() AND role='owner' AND is_active AND deleted_at IS NULL) $$;
 CREATE FUNCTION crm_archive_access(h uuid) RETURNS boolean LANGUAGE sql AS $$ SELECT crm_is_owner() OR EXISTS(SELECT 1 FROM households JOIN advisor_profiles ap ON ap.id=assigned_advisor_id WHERE households.id=h AND ap.user_id=auth.uid()) $$;
+CREATE FUNCTION crm_can_access_household(h uuid) RETURNS boolean LANGUAGE sql AS $$ SELECT crm_archive_access(h) $$;
 CREATE TABLE test_activities(title text);
 CREATE FUNCTION crm_write_activity(uuid,text,text,text,jsonb,uuid,uuid,uuid,uuid) RETURNS void LANGUAGE sql AS $$ INSERT INTO test_activities VALUES($3) $$;
 GRANT SELECT ON profiles,advisor_profiles,households,policy_applications TO authenticated;
