@@ -33,4 +33,12 @@ No existing client RLS or historical migrations were altered by this pilot. A CR
 - `npm test` includes Operations workload summaries and the updated navigation registry contract.
 - `npm run typecheck`, `npm run lint`, and `npm run build` cover application integration.
 
-The isolated database harness does not replace hosted Auth/PostgREST or signed-in browser QA. This development environment has no CRM-development credentials or deployment linkage, so those checks remain pending. Procedures/wiki, notifications, full agency onboarding, integrations, and a separate platform administrator role are later work.
+### Hosted development pilot — October 9, 2026
+
+The approved schema was installed in Supabase project `cxgiaevervjttbuiramd` (`valtoris-crm-dev`) through the connected Supabase plugin as `operations_workspaces_pilot`. The SQL was first verified in a transaction that rolled back. The source SQL remains staged outside the production migration inventory; do not apply it again to development.
+
+Signed-in Auth/PostgREST browser QA on the feature-branch Vercel preview passed: created Valtoris Operations, added its existing owner to the assignment list, created a CRM Roadmap project, linked and assigned a task, changed project/task status, and verified persistence after a reload. The project remains Testing and the verification task is Done. Existing client follow-ups remained accessible through their original queue. This also confirms this preview uses the development database.
+
+Hosted checks confirmed RLS on all three Operations tables, seven policies, no anonymous execution of Operations routines, and zero workspace/item visibility for an outsider. The security advisor was reviewed: the three authenticated security-definer routines are intentional, use fixed search paths, and enforce active membership/ownership inside their bodies. Broader preexisting CRM advisor notices are outside this pilot. The isolated harness remains the evidence for other member, revision, parent-link, and cross-workspace cases; those have not all been repeated with separate hosted user sessions.
+
+Production application code and database remain unchanged. The PR stays draft pending production migration reconciliation and release review. Procedures/wiki, notifications, full agency onboarding, integrations, and a separate platform administrator role are later work.
