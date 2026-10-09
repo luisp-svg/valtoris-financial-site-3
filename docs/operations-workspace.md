@@ -41,4 +41,17 @@ Signed-in Auth/PostgREST browser QA on the feature-branch Vercel preview passed:
 
 Hosted checks confirmed RLS on all three Operations tables, seven policies, no anonymous execution of Operations routines, and zero workspace/item visibility for an outsider. The security advisor was reviewed: the three authenticated security-definer routines are intentional, use fixed search paths, and enforce active membership/ownership inside their bodies. Broader preexisting CRM advisor notices are outside this pilot. The isolated harness remains the evidence for other member, revision, parent-link, and cross-workspace cases; those have not all been repeated with separate hosted user sessions.
 
-Production application code and database remain unchanged. The PR stays draft pending production migration reconciliation and release review. Procedures/wiki, notifications, full agency onboarding, integrations, and a separate platform administrator role are later work.
+Production application code and database remain unchanged. The PR stays draft pending production migration reconciliation and release review. Notifications, full agency onboarding, integrations, and a separate platform administrator role are later work.
+
+
+## Operations completion and My Day — development extension
+
+Operations now includes project task-progress indicators, division and project filters, due/overdue view, board/list layouts, linked tasks, per-item discussions, and checklists. Members may post comments as themselves; only a workspace owner may create checklist steps, and only the owner or item assignee may toggle them. Checklist toggles reject stale state. Comment/checklist retry IDs prevent duplicate submissions.
+
+Procedures & playbooks preserve immutable revisions. Owners publish revisions; members can read them and their history. The client prevents concurrent publication from overwriting another revision through the unique workspace/procedure/version constraint. Procedure text is rendered as text, not executable HTML.
+
+The collaboration SQL is staged in `docs/proposed-migrations/operations_collaboration.sql`. In CRM development, comments/checklists were applied as `operations_collaboration_pilot` and procedures as `operations_procedures_pilot`; do not reapply this source to that environment. Production remains unchanged.
+
+CRM Home now includes My Day for owners and advisors: their open client tasks, active assigned Operations work, and due production cases visible under existing case RLS. Production follow-ups are ordered oldest first and capped at 200; this is a queue, not a total agency metric. Clicking work opens its canonical queue or case; Operations links identify the workspace and item. Production detail also offers a manual follow-up task form with household/opportunity/title prefilled. This is not automatic task generation, appointment integration, or a separate assignment boundary for production cases.
+
+The isolated SQL harness additionally checks author spoofing, checklist conflicts and outsider denial, member procedure-publication denial, and immutable procedure revisions. Production remains a draft release. Workflow templates, dependencies, notifications, external communications, automatic production task generation, appointment integration, and agency-wide isolation still require further development.

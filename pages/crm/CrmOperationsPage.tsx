@@ -5,7 +5,7 @@ import {
   useState,
   type FormEvent,
 } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { createSupabaseBrowserClient } from "../../lib/supabase/client";
 import { useCrmAuth } from "../../crm/auth/CrmAuthContext";
 import {
@@ -22,6 +22,8 @@ import {
   type WorkStatus,
 } from "../../crm/operations/model";
 import "../../crm/operations/operations.css";
+import WorkDetails from "../../crm/operations/WorkDetails";
+import ProcedureLibrary from "../../crm/operations/ProcedureLibrary";
 
 type Workspace = { id: string; name: string; owner_user_id: string };
 const emptyForm = {
@@ -42,8 +44,9 @@ const message = (error: unknown) =>
 
 export default function CrmOperationsPage() {
   const { profile, role } = useCrmAuth();
+  const [searchParams] = useSearchParams();
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
-  const [workspaceId, setWorkspaceId] = useState("");
+  const [workspaceId, setWorkspaceId] = useState(searchParams.get("workspace") || "");
   const [items, setItems] = useState<WorkItem[]>([]);
   const [members, setMembers] = useState<string[]>([]);
   const [people, setPeople] = useState<AssigneeOption[]>([]);
@@ -57,6 +60,11 @@ export default function CrmOperationsPage() {
   const [editing, setEditing] = useState<WorkItem | null>(null);
   const [view, setView] = useState("all");
   const [search, setSearch] = useState("");
+  const [divisionFilter, setDivisionFilter] = useState("");
+  const [projectFilter, setProjectFilter] = useState("");
+  const [hideFinished, setHideFinished] = useState(false);
+  const [layout, setLayout] = useState("board");
+  const [detailsId, setDetailsId] = useState(searchParams.get("item") || "");
   const [newMember, setNewMember] = useState("");
   const [workspaceName, setWorkspaceName] = useState("Valtoris Operations");
   const generation = useRef(0);
@@ -167,6 +175,7 @@ export default function CrmOperationsPage() {
         .single();
       if (result.error) throw result.error;
       setWorkspaceId(result.data.id);
+      setDetailsId("");
     });
   }
   async function save(event: FormEvent) {
@@ -215,6 +224,15 @@ export default function CrmOperationsPage() {
   const stats = summarizeWork(items, localDateString(), profile?.id ?? "");
   const visible = items.filter(
     (i) =>
+      (!divisionFilter || i.division === divisionFilter) &&
+      (!projectFilter ||
+        i.id === projectFilter ||
+        i.parent_id === projectFilter) &&
+      (!hideFinished || !["done", "cancelled"].includes(i.status)) &&
+      (view !== "due" ||
+        (!!i.due_date &&
+          i.due_date <= localDateString() &&
+          !["done", "cancelled"].includes(i.status))) &&
       (view !== "mine" || i.assigned_user_id === profile?.id) &&
       (view !== "roadmap" || i.division === "CRM Roadmap") &&
       (view !== "projects" || i.kind === "project") &&
@@ -548,6 +566,7 @@ export default function CrmOperationsPage() {
             {[
               ["all", "All work"],
               ["projects", "Projects"],
+              ["due", "Due / overdue"],
               ["mine", "My work"],
               ["roadmap", "CRM roadmap"],
               ["blocked", "Blocked"],
@@ -565,7 +584,59 @@ export default function CrmOperationsPage() {
           {!loading && !error && !visible.length && (
             <p className="crm-muted">No work matches this view.</p>
           )}
-          <div className="operations-board">
+          <section className="operations-toolbar" aria-label="Work filters">
+            <label className="crm-field">
+              Division filter
+              <select
+                value={divisionFilter}
+                onChange={(e) => setDivisionFilter(e.target.value)}
+              >
+                <option value="">All divisions</option>
+                {Array.from(new Set(items.map((i) => i.division)))
+                  .sort()
+                  .map((d) => (
+                    <option key={d}>{d}</option>
+                  ))}
+              </select>
+            </label>
+            <label className="crm-field">
+              Project filter
+              <select
+                value={projectFilter}
+                onChange={(e) => setProjectFilter(e.target.value)}
+              >
+                <option value="">All projects</option>
+                {items
+                  .filter((i) => i.kind === "project")
+                  .map((i) => (
+                    <option key={i.id} value={i.id}>
+                      {i.title}
+                    </option>
+                  ))}
+              </select>
+            </label>
+            <label className="crm-field">
+              Layout
+              <select
+                value={layout}
+                onChange={(e) => setLayout(e.target.value)}
+              >
+                <option value="board">Board</option>
+                <option value="list">List</option>
+              </select>
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={hideFinished}
+                onChange={(e) => setHideFinished(e.target.checked)}
+              />{" "}
+              Hide finished work
+            </label>
+          </section>
+          <div
+            className={`operations-board ${layout === "list" ? "operations-list" : ""}`}
+          >
             {STATUSES.map((status) => (
               <section key={status} className="operations-column">
                 <h2>
@@ -585,6 +656,50 @@ export default function CrmOperationsPage() {
                         {item.division} · {item.kind} · {item.priority}
                       </small>
                       <h3>{item.title}</h3>
+                      {item.kind === "project" &&
+                        (() => {
+                          const tasks = items.filter(
+                            (t) =>
+                              t.parent_id === item.id &&
+                              t.status !== "cancelled",
+                          );
+                          const done = tasks.filter(
+                            (t) => t.status === "done",
+                          ).length;
+                          return (
+                            <div>
+                              <p className="crm-muted">
+                                Project progress: {done}/{tasks.length} tasks
+                                complete
+                              </p>
+                              {tasks.length > 0 && (
+                                <progress
+                                  aria-label={`Progress for ${item.title}`}
+                                  value={done}
+                                  max={tasks.length}
+                                />
+                              )}
+                            </div>
+                          );
+                        })()}
+                      <button
+                        className="crm-text-btn"
+                        aria-expanded={detailsId === item.id}
+                        onClick={() =>
+                          setDetailsId(detailsId === item.id ? "" : item.id)
+                        }
+                      >
+                        Checklist & discussion
+                      </button>
+                      {detailsId === item.id && (
+                        <WorkDetails
+                          item={item}
+                          userId={profile!.id}
+                          ownsWorkspace={!!ownsWorkspace}
+                          nameFor={nameFor}
+                        />
+                      )}
+
                       {ownsWorkspace && (
                         <button
                           className="crm-text-btn"
@@ -663,6 +778,13 @@ export default function CrmOperationsPage() {
             ))}
           </div>
         </>
+      )}
+      {workspace && (
+        <ProcedureLibrary
+          key={workspace.id}
+          workspaceId={workspace.id}
+          ownsWorkspace={!!ownsWorkspace}
+        />
       )}
       <section className="crm-panel">
         <div className="crm-panel-head">

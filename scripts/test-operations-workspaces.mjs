@@ -19,6 +19,7 @@ await db.exec(
     "utf8",
   ),
 );
+await db.exec(readFileSync(new URL("../docs/proposed-migrations/operations_collaboration.sql", import.meta.url), "utf8"));
 const a = "00000000-0000-0000-0000-000000000001",
   b = "00000000-0000-0000-0000-000000000002",
   c = "00000000-0000-0000-0000-000000000003";
@@ -142,6 +143,20 @@ await assert.rejects(
     [w, b],
   ),
 );
+const checklist = (await db.query(`INSERT INTO operations_checklist(workspace_id,item_id,title) VALUES($1,$2,'Collect documents') RETURNING id`, [w, task.id])).rows[0].id;
+await db.query(`INSERT INTO operations_procedures(workspace_id,title,body) VALUES($1,'Handoff','Assign an owner')`,[w]);
+await assert.rejects(db.query(`UPDATE operations_procedures SET body='Changed' WHERE workspace_id=$1`,[w]));
+await as(c);
+await assert.rejects(db.query(`INSERT INTO operations_procedures(workspace_id,title,body) VALUES($1,'Spoof','Not allowed')`,[w]));
+await db.query(`INSERT INTO operations_comments(workspace_id,item_id,body) VALUES($1,$2,'Documents received')`, [w, task.id]);
+await assert.rejects(db.query(`INSERT INTO operations_comments(workspace_id,item_id,body,author_user_id) VALUES($1,$2,'Spoof',$3)`, [w, task.id,a]));
+await db.query(`SELECT operations_toggle_checklist($1,false)`,[checklist]);
+await assert.rejects(db.query(`SELECT operations_toggle_checklist($1,false)`,[checklist]));
+await as(b);
+assert.equal((await db.query("SELECT * FROM operations_procedures")).rows.length,0);
+assert.equal((await db.query("SELECT * FROM operations_comments")).rows.length,0);
+assert.equal((await db.query("SELECT * FROM operations_checklist")).rows.length,0);
+await assert.rejects(db.query(`SELECT operations_toggle_checklist($1,true)`,[checklist]));
 await db.exec("RESET ROLE");
 await db.query("UPDATE profiles SET is_active=false WHERE id=$1", [c]);
 await as(c);

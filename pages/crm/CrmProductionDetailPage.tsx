@@ -846,6 +846,11 @@ export default function CrmProductionDetailPage() {
             </Link>
           </li>
           <li>
+            <Link to={`/crm/tasks?action=new&household=${application.household_id}${application.opportunity_id ? `&opportunity=${application.opportunity_id}` : ''}&title=${encodeURIComponent(`Follow up on production application ${application.application_number || application.id}`)}`}>
+              Assign production follow-up task
+            </Link>
+          </li>
+          <li>
             <Link to={householdWorkspaceTab(application.household_id, 'documents')}>
               Household documents
             </Link>

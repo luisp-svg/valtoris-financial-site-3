@@ -73,3 +73,10 @@
     align-items: stretch;
   }
 }
+
+.operations-list { grid-template-columns: 1fr; }
+.operations-check { display: flex; gap: 10px; align-items: center; margin: 12px 0; }
+.operations-comment { border-bottom: 1px solid #e2e8f0; margin: 12px 0; }
+.operations-card progress { width: 100%; accent-color: #163879; }
+
+.operations-procedure-body { white-space: pre-wrap; overflow-wrap: anywhere; }
