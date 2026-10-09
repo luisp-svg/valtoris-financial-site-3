@@ -443,19 +443,25 @@ export function formatProductionSupabaseError(context: string, err: unknown): st
  */
 export async function fetchProductionApplications(
   supabase: SupabaseClient,
-  options?: { limit?: number; includeDeleted?: boolean },
+  options?: { limit?: number; includeDeleted?: boolean; followUpThrough?: string },
 ): Promise<ProductionApplicationListItem[]> {
   const limit = options?.limit ?? PRODUCTION_LIST_DEFAULT_LIMIT
   let query = supabase
     .from('policy_applications')
     .select(APPLICATION_LIST_SELECT)
-    .order('updated_at', { ascending: false })
     .limit(limit)
 
   if (!options?.includeDeleted) {
     query = query.is('deleted_at', null)
   }
 
+  if (options?.followUpThrough) {
+    query = query.lte('next_follow_up_date', options.followUpThrough)
+      .not('production_stage', 'in', '(declined,withdrawn,incomplete,not_taken,in_force)')
+      .order('next_follow_up_date', { ascending: true })
+  } else {
+    query = query.order('updated_at', { ascending: false })
+  }
   const { data, error } = await query
   if (error) throw error
 

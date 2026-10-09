@@ -220,6 +220,17 @@ export const MODULE_CATALOG: readonly ModuleManifest[] = [
     dependencies: ['activities'],
   }),
   shellNav({
+    key: 'operations',
+    displayName: 'Operations',
+    description: 'Workspace projects, CRM roadmap, and client follow-ups.',
+    icon: 'tasks',
+    order: 55,
+    route: '/crm/operations',
+    category: 'platform_engine',
+    permissions: ['crm.nav.view'],
+    dependencies: ['tasks'],
+  }),
+  shellNav({
     key: 'appointments',
     displayName: 'Appointments',
     description: 'Appointment scheduling (placeholder).',

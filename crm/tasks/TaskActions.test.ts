@@ -6,6 +6,7 @@ describe('task action eligibility',()=>{
   expect(supportsTaskActions({source_type:'digital_identity_ingest',workflow_type:'review_digital_identity_lead'})).toBe(true)
   expect(supportsTaskActions({source_type:'public_family_ingest',workflow_type:'review_initial_diagnostic'})).toBe(true)
  })
+ it('allows generated production follow-up completion',()=>{expect(supportsTaskActions({source_type:'system',workflow_type:'production_follow_up'})).toBe(true)})
  it('keeps duplicate and unknown work in its workflow',()=>{
   for(const workflow_type of ['resolve_possible_duplicate','resolve_digital_identity_duplicate','future_workflow']) expect(supportsTaskActions({source_type:'system',workflow_type})).toBe(false)
   expect(supportsTaskActions({source_type:'system',workflow_type:null})).toBe(false)

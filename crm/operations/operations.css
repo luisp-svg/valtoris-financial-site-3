@@ -1,0 +1,82 @@
+.operations-page {
+  display: grid;
+  gap: 20px;
+}
+.operations-toolbar {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.operations-toolbar .crm-field {
+  flex: 1;
+  min-width: 180px;
+}
+.operations-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+.operations-stats section {
+  display: grid;
+  gap: 6px;
+}
+.operations-stats strong {
+  font-size: 2rem;
+  color: #123257;
+}
+.operations-board {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+.operations-column {
+  background: #f1f5f9;
+  padding: 14px;
+  border-radius: 12px;
+  min-width: 0;
+}
+.operations-column h2 {
+  font-size: 1rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+.operations-card {
+  margin-top: 12px;
+  overflow-wrap: anywhere;
+}
+.operations-card h3 {
+  margin: 10px 0;
+}
+.operations-card p {
+  white-space: pre-wrap;
+}
+.operations-card small {
+  color: #52657b;
+}
+.operations-page details summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+@media (max-width: 1000px) {
+  .operations-board {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 640px) {
+  .operations-board,
+  .operations-stats {
+    grid-template-columns: 1fr;
+  }
+  .operations-toolbar {
+    align-items: stretch;
+  }
+}
+
+.operations-list { grid-template-columns: 1fr; }
+.operations-check { display: flex; gap: 10px; align-items: center; margin: 12px 0; }
+.operations-comment { border-bottom: 1px solid #e2e8f0; margin: 12px 0; }
+.operations-card progress { width: 100%; accent-color: #163879; }
+
+.operations-procedure-body { white-space: pre-wrap; overflow-wrap: anywhere; }

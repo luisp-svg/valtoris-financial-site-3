@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import MyDay from '../../crm/dashboard/MyDay'
 import { useNavigate } from 'react-router-dom'
 import { useCrmAuth } from '../../crm/auth/CrmAuthContext'
 import MetricStrip from '../../crm/dashboard/MetricStrip'
@@ -120,8 +121,8 @@ export default function CrmHomePage() {
   const { role } = useCrmAuth()
 
   if (role === 'owner') {
-    return <OwnerOpsHome />
+    return <><MyDay /><OwnerOpsHome /></>
   }
 
-  return <AdvisorCommandCenter />
+  return <><MyDay /><AdvisorCommandCenter /></>
 }
