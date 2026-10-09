@@ -33,8 +33,11 @@ export default function MyDay() {
         .order("due_date", { nullsFirst: false }),
       fetchProductionApplications(db, { followUpThrough: today }),
     ]);
+    const trackedResult = await db.from("production_task_tracking").select("application_id,task_id,last_due_date,sync_error").eq("enabled",true)
+    const tracked = new Map((trackedResult.data ?? []).filter(t=>t.task_id && !t.sync_error).map(t=>[t.application_id,t.last_due_date]))
     const rows: Entry[] = [],
       issues: string[] = [];
+    if (trackedResult.error) issues.push("Production task tracking unavailable; case reminders may overlap tasks.");
     const tasks = sources[0];
     if (tasks.status === "fulfilled")
       rows.push(
@@ -43,7 +46,7 @@ export default function MyDay() {
           title: t.title,
           due: t.due_date,
           path: `/crm/tasks?task=${t.id}`,
-          source: "Client task",
+          source: t.workflow_type === "production_follow_up" ? "Production task" : "Client task",
           priority: t.priority,
         })),
       );
@@ -64,7 +67,7 @@ export default function MyDay() {
     const cases = sources[2];
     if (cases.status === "fulfilled")
       rows.push(
-        ...cases.value.map((t) => ({
+        ...cases.value.filter(t => tracked.get(t.id) !== t.next_follow_up_date).map((t) => ({
           id: t.id,
           title: `Follow up: ${t.household?.display_name || t.application_number || "Production case"}`,
           due: t.next_follow_up_date,

@@ -77,6 +77,7 @@ import { isIncompleteDraft, canShowProductionEditAction } from '../../crm/produc
 import { transitionPolicyApplicationStage } from '../../crm/production/applicationApi'
 import StageTransitionPanel from '../../crm/production/StageTransitionPanel'
 import RequirementSection from '../../crm/production/RequirementSection'
+import ProductionTaskTracking from '../../crm/production/ProductionTaskTracking'
 import CaseOperationsSection from '../../crm/production/CaseOperationsSection'
 import {
   defaultStageTransitionReason,
@@ -400,6 +401,8 @@ export default function CrmProductionDetailPage() {
         role={role}
         onSaved={() => setReloadKey((n) => n + 1)}
       />
+
+      <ProductionTaskTracking key={application.id} application={application} />
 
       <RequirementSection
         applicationId={application.id}
