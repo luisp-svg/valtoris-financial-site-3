@@ -121,7 +121,14 @@ export default function CrmOperationsPage() {
       if (current === generation.current) {
         setItems([]);
         setMembers([]);
-        setError(message(e));
+        setError(
+          e &&
+            typeof e === "object" &&
+            "code" in e &&
+            ["42P01", "PGRST205"].includes(String(e.code))
+            ? "Operations is awaiting setup in this environment. Your client follow-ups remain available below."
+            : message(e),
+        );
       }
     } finally {
       if (current === generation.current) setLoading(false);
@@ -187,18 +194,16 @@ export default function CrmOperationsPage() {
         if (!result.data?.length)
           throw new Error("This item changed. Refresh and try again.");
       } else {
-        const result = await db
-          .from("operations_items")
-          .upsert(
-            {
-              ...values,
-              id: requestId.current,
-              workspace_id: workspaceId,
-              kind: form.kind,
-              parent_id: form.kind === "task" ? form.parent_id || null : null,
-            },
-            { onConflict: "id", ignoreDuplicates: true },
-          );
+        const result = await db.from("operations_items").upsert(
+          {
+            ...values,
+            id: requestId.current,
+            workspace_id: workspaceId,
+            kind: form.kind,
+            parent_id: form.kind === "task" ? form.parent_id || null : null,
+          },
+          { onConflict: "id", ignoreDuplicates: true },
+        );
         if (result.error) throw result.error;
       }
       setShowForm(false);

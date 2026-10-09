@@ -30,6 +30,7 @@ CREATE TABLE public.operations_items (
  workspace_id uuid NOT NULL REFERENCES public.operations_workspaces(id) ON DELETE CASCADE,
  kind text NOT NULL CHECK(kind IN ('project','task')),
  parent_id uuid,
+ CHECK(kind='task' OR parent_id IS NULL),
  title text NOT NULL CHECK(length(btrim(title)) BETWEEN 1 AND 200),
  description text NOT NULL DEFAULT '' CHECK(length(description)<=10000),
  division text NOT NULL DEFAULT 'Operations' CHECK(length(division)<=100),
@@ -44,6 +45,18 @@ CREATE TABLE public.operations_items (
  FOREIGN KEY(workspace_id,parent_id) REFERENCES public.operations_items(workspace_id,id),
  FOREIGN KEY(workspace_id,assigned_user_id) REFERENCES public.operations_members(workspace_id,user_id)
 );
+CREATE FUNCTION public.operations_validate_parent() RETURNS trigger
+LANGUAGE plpgsql SET search_path=pg_catalog,public AS $$
+BEGIN
+ IF NEW.parent_id IS NOT NULL AND NOT EXISTS(SELECT 1 FROM public.operations_items
+ WHERE id=NEW.parent_id AND workspace_id=NEW.workspace_id AND kind='project') THEN
+ RAISE EXCEPTION 'Tasks must link to a project in the same workspace' USING ERRCODE='23514';
+ END IF;
+ RETURN NEW;
+END $$;
+REVOKE ALL ON FUNCTION public.operations_validate_parent() FROM PUBLIC,anon,authenticated;
+CREATE TRIGGER operations_items_parent BEFORE INSERT OR UPDATE OF parent_id,workspace_id,kind
+ ON public.operations_items FOR EACH ROW EXECUTE FUNCTION public.operations_validate_parent();
 CREATE INDEX operations_items_queue ON public.operations_items(workspace_id,status,due_date);
 CREATE TRIGGER operations_items_updated BEFORE UPDATE ON public.operations_items FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 ALTER TABLE public.operations_workspaces ENABLE ROW LEVEL SECURITY;

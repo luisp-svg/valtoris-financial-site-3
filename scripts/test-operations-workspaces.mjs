@@ -67,8 +67,49 @@ await assert.rejects(
     task.updated_at,
   ]),
 );
+const otherWorkspace = (
+  await db.query(
+    `INSERT INTO operations_workspaces(name,owner_user_id) VALUES('Other agency',$1) RETURNING id`,
+    [b],
+  )
+).rows[0].id;
+const otherProject = (
+  await db.query(
+    `INSERT INTO operations_items(workspace_id,kind,title) VALUES($1,'project','Other project') RETURNING id`,
+    [otherWorkspace],
+  )
+).rows[0].id;
+await as(a);
+await assert.rejects(
+  db.query(
+    `INSERT INTO operations_items(workspace_id,kind,title,parent_id) VALUES($1,'task','Cross-workspace link',$2)`,
+    [w, otherProject],
+  ),
+);
+await assert.rejects(
+  db.query(
+    `INSERT INTO operations_items(workspace_id,kind,title,parent_id) VALUES($1,'task','Task parent',$2)`,
+    [w, task.id],
+  ),
+);
+const project = (
+  await db.query(
+    `INSERT INTO operations_items(workspace_id,kind,title) VALUES($1,'project','Health launch') RETURNING id`,
+    [w],
+  )
+).rows[0].id;
+await assert.rejects(
+  db.query(
+    `INSERT INTO operations_items(workspace_id,kind,title,parent_id) VALUES($1,'project','Nested project',$2)`,
+    [w, project],
+  ),
+);
+await db.query(
+  `INSERT INTO operations_items(workspace_id,kind,title,parent_id) VALUES($1,'task','Valid project task',$2)`,
+  [w, project],
+);
 await as(c);
-assert.equal((await db.query("SELECT * FROM operations_items")).rows.length, 1);
+assert.equal((await db.query("SELECT * FROM operations_items")).rows.length, 3);
 assert.equal(
   (
     await db.query(
@@ -108,6 +149,6 @@ assert.equal((await db.query("SELECT * FROM operations_items")).rows.length, 0);
 await db.exec("RESET ROLE; SET ROLE anon");
 await assert.rejects(db.query("SELECT * FROM operations_items"));
 console.log(
-  "Operations SQL checks passed: workspace isolation, global owner isolation, member read access, assignment boundaries, status-only actions, optimistic conflict, inactive user denial, anonymous denial.",
+  "Operations SQL checks passed: workspace isolation, cross-workspace project-link rejection, project-parent validation, global owner isolation, member read access, assignment boundaries, status-only actions, optimistic conflict, inactive user denial, anonymous denial.",
 );
 await db.close();

@@ -29,7 +29,7 @@ No existing client RLS or historical migrations were altered by this pilot. A CR
 
 ## Verification
 
-- `npm run test:operations-db` runs the proposed SQL in an isolated in-memory PostgreSQL engine with minimal Auth/Profile scaffolding. It checks creation, global-owner isolation, member access, unauthorized creation/reassignment, status-only changes, stale revisions, nonmember assignee rejection, inactive membership, and anonymous access. It never touches a hosted database.
+- `npm run test:operations-db` runs the proposed SQL in an isolated in-memory PostgreSQL engine with minimal Auth/Profile scaffolding. It checks creation, global-owner isolation, member access, unauthorized creation/reassignment, status-only changes, stale revisions, nonmember assignee rejection, inactive membership, anonymous access, and project links across two workspaces. A task must reference a project in its own workspace; projects cannot have parents. It never touches a hosted database.
 - `npm test` includes Operations workload summaries and the updated navigation registry contract.
 - `npm run typecheck`, `npm run lint`, and `npm run build` cover application integration.
 
