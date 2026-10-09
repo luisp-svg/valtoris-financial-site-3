@@ -54,6 +54,7 @@ import CrmStudentLoanIntakePage from '../pages/crm/CrmStudentLoanIntakePage'
 import CrmLifeInsuranceIntakePage from '../pages/crm/CrmLifeInsuranceIntakePage'
 import CrmPlaceholderPage from '../pages/crm/CrmPlaceholderPage'
 import CrmTasksPage from '../pages/crm/CrmTasksPage'
+import CrmOperationsPage from '../pages/crm/CrmOperationsPage'
 import CrmCampaignsPage from '../pages/crm/CrmCampaignsPage'
 import CrmServiceProductionPage from '../pages/crm/CrmServiceProductionPage'
 import CrmProductionPage from '../pages/crm/CrmProductionPage'
@@ -302,6 +303,7 @@ export default function App() {
           <Route path="recruiting/:recruitId" element={<CrmRecruitDetailPage />} />
           <Route path="opportunities/:opportunityId" element={<CrmOpportunityWorkspacePage />} />
           <Route path="tasks" element={<CrmTasksPage />} />
+          <Route path="operations" element={<CrmOperationsPage />} />
           <Route path="appointments" element={<CrmPlaceholderPage />} />
           <Route path="production/services" element={<CrmServiceProductionPage />} />
           <Route path="production/services/:serviceId" element={<CrmServiceProductionPage />} />
