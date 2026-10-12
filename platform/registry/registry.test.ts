@@ -25,6 +25,7 @@ const CANONICAL_CRM_NAV = [
   { label: 'Pipeline', path: '/crm/pipeline' },
   { label: 'Recruiting', path: '/crm/recruiting' },
   { label: 'Tasks', path: '/crm/tasks' },
+  { label: 'Operations', path: '/crm/operations' },
   { label: 'Appointments', path: '/crm/appointments', placeholder: true },
   { label: 'Production', path: '/crm/production' },
   { label: 'Commissions', path: '/crm/commissions' },

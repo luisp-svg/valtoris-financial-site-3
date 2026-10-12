@@ -5,7 +5,7 @@ import type { CrmTask } from './types'
 
 export function supportsTaskActions(task: Pick<CrmTask,'source_type'|'workflow_type'>) {
   const sources = ['manual','public_family_ingest','duplicate_resolution','system','digital_identity_ingest']
-  return sources.includes(task.source_type ?? '') && (task.workflow_type ? ['review_initial_diagnostic','review_digital_identity_lead'].includes(task.workflow_type) : task.source_type === 'manual')
+  return sources.includes(task.source_type ?? '') && (task.workflow_type ? ['review_initial_diagnostic','review_digital_identity_lead','production_follow_up'].includes(task.workflow_type) : task.source_type === 'manual')
 }
 export default function TaskActions({task,onChanged,initiallyOpen=false}:{task:CrmTask;onChanged:()=>Promise<void>;initiallyOpen?:boolean}) {
   const [action,setAction]=useState<'complete'|'reschedule'|null>(null)
@@ -27,7 +27,8 @@ export default function TaskActions({task,onChanged,initiallyOpen=false}:{task:C
     <p><Link to={`/crm/households/${task.household_id}`}>Open client record</Link></p>
     {task.completed_at?<p>Completed {new Date(task.completed_at).toLocaleString()}</p>:null}
     {!supportsTaskActions(task)?<p>This task must be resolved through its originating workflow. <Link to="/crm/intake">Open Incoming Leads</Link></p>:null}
-    {eligible?<><p>Completing a task records the work as done. It does not change consent, report grades, or sales stages.</p><button className="crm-secondary-btn" disabled={busy} onClick={()=>setAction('complete')}>Complete task</button>{' '}<button className="crm-secondary-btn" disabled={busy} onClick={()=>setAction('reschedule')}>Reschedule</button></>:null}
+    {task.workflow_type==='production_follow_up' && typeof task.metadata?.production_application_id==='string' && /^[0-9a-f-]{36}$/i.test(task.metadata.production_application_id)?<p><Link to={`/crm/production/${task.metadata.production_application_id}`}>Open production case</Link> · Change follow-up dates on the case to keep the task synchronized.</p>:null}
+    {eligible?<><p>Completing a task records the work as done. It does not change consent, report grades, or sales stages.</p><button className="crm-secondary-btn" disabled={busy} onClick={()=>setAction('complete')}>Complete task</button>{task.workflow_type!=='production_follow_up'?<>{' '}<button className="crm-secondary-btn" disabled={busy} onClick={()=>setAction('reschedule')}>Reschedule</button></>:null}</>:null}
     {action?<div role="group" aria-label={action==='complete'?'Confirm task completion':'Reschedule task'}>
       {action==='complete'?<p>Confirm this work is finished. The completion will be recorded in the client timeline.</p>:<><label className="crm-field">New due date<input type="date" min="1900-01-01" max="2100-12-31" value={date} disabled={busy} onChange={e=>setDate(e.target.value)}/></label><label className="crm-field">Reason<textarea maxLength={500} value={reason} disabled={busy} onChange={e=>setReason(e.target.value)}/></label><p>Use a short work-related reason; do not include sensitive client details.</p></>}
       <button className="crm-primary-btn" disabled={busy||!task.updated_at||(action==='reschedule'&&(!date||!reason.trim()))} onClick={()=>void save()}>{busy?'Saving…':action==='complete'?'Confirm completion':'Save new date'}</button>{' '}<button disabled={busy} onClick={()=>setAction(null)}>Cancel</button>

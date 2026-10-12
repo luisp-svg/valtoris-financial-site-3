@@ -63,7 +63,7 @@ export default function CrmTasksPage() {
   const [leads, setLeads] = useState<LeadOption[]>([])
   const [opportunities, setOpportunities] = useState<OpportunityOption[]>([])
   const [assignees, setAssignees] = useState<AssigneeOption[]>([])
-  const [form, setForm] = useState(EMPTY_FORM)
+  const [form, setForm] = useState(() => ({ ...EMPTY_FORM, title: searchParams.get('action') === 'new' ? (searchParams.get('title') || '').slice(0, 200) : '' }))
   const [showForm, setShowForm] = useState(searchParams.get('action') === 'new')
   const [loading, setLoading] = useState(true)
   const [formLoading, setFormLoading] = useState(false)
