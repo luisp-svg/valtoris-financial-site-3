@@ -96,6 +96,9 @@ const EXPECTED_MIGRATIONS = [
       '079_recruiting_readiness.sql',
       '080_agentcrm_shared_delivery.sql',
       '081_agentcrm_report_card_task_delivery.sql',
+  '20261012232328_operations_workspaces_release.sql',
+  '20261012232342_operations_collaboration_release.sql',
+  '20261012232346_production_follow_up_release.sql',
 ]
 
 describe('Phase A production dashboard contracts', () => {

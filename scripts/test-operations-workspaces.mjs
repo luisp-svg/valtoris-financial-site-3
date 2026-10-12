@@ -13,13 +13,13 @@ CREATE FUNCTION set_updated_at() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN NE
 await db.exec(
   readFileSync(
     new URL(
-      "../docs/proposed-migrations/082_operations_workspaces.sql",
+      "../supabase/migrations/20261012232328_operations_workspaces_release.sql",
       import.meta.url,
     ),
     "utf8",
   ),
 );
-await db.exec(readFileSync(new URL("../docs/proposed-migrations/operations_collaboration.sql", import.meta.url), "utf8"));
+await db.exec(readFileSync(new URL("../supabase/migrations/20261012232342_operations_collaboration_release.sql", import.meta.url), "utf8"));
 const a = "00000000-0000-0000-0000-000000000001",
   b = "00000000-0000-0000-0000-000000000002",
   c = "00000000-0000-0000-0000-000000000003";

@@ -17,7 +17,7 @@ CREATE TABLE test_activities(title text);
 CREATE FUNCTION crm_write_activity(uuid,text,text,text,jsonb,uuid,uuid,uuid,uuid) RETURNS void LANGUAGE sql AS $$ INSERT INTO test_activities VALUES($3) $$;
 GRANT SELECT ON profiles,advisor_profiles,households,policy_applications TO authenticated;
 `)
-await db.exec(readFileSync(new URL('../docs/proposed-migrations/20261009173309_production_follow_up_automation.sql',import.meta.url),'utf8'))
+await db.exec(readFileSync(new URL('../supabase/migrations/20261012232346_production_follow_up_release.sql',import.meta.url),'utf8'))
 const owner='00000000-0000-0000-0000-000000000001',advisor='00000000-0000-0000-0000-000000000002',outsider='00000000-0000-0000-0000-000000000003',ap='00000000-0000-0000-0000-000000000004',h='00000000-0000-0000-0000-000000000005',app='00000000-0000-0000-0000-000000000006'
 await db.query(`INSERT INTO profiles(id,role) VALUES($1,'owner'),($2,'advisor'),($3,'advisor')`,[owner,advisor,outsider])
 await db.query(`INSERT INTO advisor_profiles VALUES($1,$2);`,[ap,advisor]);await db.query(`INSERT INTO households(id,assigned_advisor_id) VALUES($1,$2)`,[h,ap])

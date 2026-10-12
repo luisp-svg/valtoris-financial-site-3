@@ -8,7 +8,7 @@ Work stages: Backlog, Planned, In progress, Testing, Live / Done, Cancelled. Tas
 
 ## Deployment state
 
-This is a development branch, not an activated production feature. The proposed SQL is `docs/proposed-migrations/082_operations_workspaces.sql`. It is deliberately outside the applied migration inventory until release review. Before activation, confirm production's current migration history and schema, validate with hosted Supabase Auth/PostgREST in CRM development, then promote it into the migration inventory, update inventory contracts, and apply using the established release process. Do not create workspaces or client test records in production during review.
+This is a development branch, not an activated production feature. The proposed SQL is `supabase/migrations/20261012232328_operations_workspaces_release.sql`. It is deliberately outside the applied migration inventory until release review. Before activation, confirm production's current migration history and schema, validate with hosted Supabase Auth/PostgREST in CRM development, then promote it into the migration inventory, update inventory contracts, and apply using the established release process. Do not create workspaces or client test records in production during review.
 
 Create the first workspace as an existing active CRM owner. Add yourself, Jaz, and Liz explicitly through Workspace team before assigning work. Membership allows reading all project work in that workspace; it does not grant client access. The proposed feature does not send email/SMS, synchronize AgentCRM tasks, or invite people.
 
@@ -50,7 +50,7 @@ Operations now includes project task-progress indicators, division and project f
 
 Procedures & playbooks preserve immutable revisions. Owners publish revisions; members can read them and their history. The client prevents concurrent publication from overwriting another revision through the unique workspace/procedure/version constraint. Procedure text is rendered as text, not executable HTML.
 
-The collaboration SQL is staged in `docs/proposed-migrations/operations_collaboration.sql`. In CRM development, comments/checklists were applied as `operations_collaboration_pilot` and procedures as `operations_procedures_pilot`; do not reapply this source to that environment. Production remains unchanged.
+The collaboration SQL is staged in `supabase/migrations/20261012232342_operations_collaboration_release.sql`. In CRM development, comments/checklists were applied as `operations_collaboration_pilot` and procedures as `operations_procedures_pilot`; do not reapply this source to that environment. Production remains unchanged.
 
 CRM Home now includes My Day for owners and advisors: their open client tasks, active assigned Operations work, and due production cases visible under existing case RLS. Production follow-ups are ordered oldest first and capped at 200; this is a queue, not a total agency metric. Clicking work opens its canonical queue or case; Operations links identify the workspace and item. Production detail also offers a manual follow-up task form with household/opportunity/title prefilled. This is not automatic task generation, appointment integration, or a separate assignment boundary for production cases.
 
@@ -62,8 +62,13 @@ Owners can enable automatic tracking on each production case and select an activ
 
 Reschedule production follow-ups on the case; the task action accepts completion but rejects independent rescheduling. My Day labels generated work and suppresses overlapping case reminders for tracked dates. No historical cases are enabled automatically. Tracking configuration has revision checks and retry protection. Direct writes to its table and calls to its private synchronization helpers are denied to browser roles. Assignee access is rechecked on each case synchronization; a lost assignment is reported on the case instead of blocking production updates.
 
-CLI-generated proposed migration: `docs/proposed-migrations/20261009173309_production_follow_up_automation.sql`. Installed only in dev as `production_follow_up_task_pilot`, followed by terminal-stage alignment and a tracking read-policy helper correction. Reconcile migration inventory before production rollout. Uses the existing single-agency household authorization model; does not establish platform-wide tenant isolation.
+CLI-generated proposed migration: `supabase/migrations/20261012232346_production_follow_up_release.sql`. Installed only in dev as `production_follow_up_task_pilot`, followed by terminal-stage alignment and a tracking read-policy helper correction. Reconcile migration inventory before production rollout. Uses the existing single-agency household authorization model; does not establish platform-wide tenant isolation.
 
 Validation: isolated PostgreSQL workflow checks cover retries, stale configuration, unauthorized users, open-task synchronization, completion, next cycle, pausing, cancellation and inactive assignees. A rollback-only hosted test exercised the real production create/update RPCs, task creation, date sync, task completion, next cycle and cleared-date cancellation without retaining fixture records. Supabase advisory flags the intentionally authenticated configuration RPC as SECURITY DEFINER; it enforces active-owner authorization with a fixed search path. Private helpers have no public/browser execution privileges.
 
 Browser validation: tracking enabled on a labeled development-only draft, generated task opened through the case link, completion persisted in Completed tasks, and the next dated follow-up appeared in My Day.
+
+
+## Production release - October 12, 2026
+
+The three release migrations are promoted into supabase/migrations with versions matching production history: 20261012232328, 20261012232342, and 20261012232346. Earlier pilot sections above are historical. The production schema is installed with RLS; authenticated Operations create/status actions passed a rollback-only test. No historical production cases were enrolled and no test workspace remains. Source SQL transaction boundaries caused the initial DDL preflight to persist; subsequent migration records reconcile that installed schema, and canonical DDL remains in repository files for fresh replay. Development retains its already-applied pilot schema and must not blindly replay these new release versions.
