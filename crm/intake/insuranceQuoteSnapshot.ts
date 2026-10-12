@@ -6,5 +6,6 @@ export function insuranceQuoteSnapshot(leadType: unknown, payload: unknown): Int
   if (typeof leadType !== 'string' || !isQuoteLead(leadType) || !payload || typeof payload !== 'object' || Array.isArray(payload)) return null
   const raw = payload as Record<string, unknown>
   if (!isQuoteKind(raw.quoteKind) || !raw.quoteAnswers || typeof raw.quoteAnswers !== 'object' || Array.isArray(raw.quoteAnswers)) return null
-  return { kind: raw.quoteKind, answers: raw.quoteAnswers as QuoteAnswers, preferredContact: typeof raw.preferredContact === 'string' ? raw.preferredContact : null }
+  const text = (value: unknown) => typeof value === 'string' ? value : ''
+  return { contact: { name: [text(raw.firstName), text(raw.lastName)].filter(Boolean).join(' '), email: text(raw.email), phone: text(raw.phone) }, kind: raw.quoteKind, answers: raw.quoteAnswers as QuoteAnswers, preferredContact: typeof raw.preferredContact === 'string' ? raw.preferredContact : null }
 }

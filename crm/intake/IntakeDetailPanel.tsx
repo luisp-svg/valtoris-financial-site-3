@@ -452,7 +452,7 @@ export default function IntakeDetailPanel({
           </div>
         </section>
 
-        {isQuote && item.insuranceQuote ? <InsuranceQuoteDetail quote={item.insuranceQuote} /> : null}
+        {isQuote && item.insuranceQuote ? <InsuranceQuoteDetail quote={item.insuranceQuote} packet={{ requestId: item.leadId, submittedAt: item.submittedAt, contact: { name: item.submittedFullName, email: item.submittedEmail, phone: item.submittedPhone } }} /> : null}
         {!isDi && !isQuote ? (
           <section className="crm-intake-detail-section" aria-labelledby="crm-intake-diagnostic-heading">
             <h3 id="crm-intake-diagnostic-heading">{productLabel}</h3>
