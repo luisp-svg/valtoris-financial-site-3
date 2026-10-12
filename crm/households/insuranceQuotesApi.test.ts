@@ -39,8 +39,10 @@ describe('Household quote history', () => {
     const fixture = quoteFixture(kind)
     const { client } = mockClient([{ id: 'quote-1', lead_type: QUOTE_LABELS[kind], submitted_at: '2026-09-24', raw_payload: { quoteKind: kind, quoteAnswers: fixture.answers, ...fixture.contact } }])
     const result = await loadHouseholdInsuranceQuotes(client, 'household-a')
-    const html = renderToStaticMarkup(createElement(InsuranceQuoteDetail, { quote: result.items[0].quote! }))
+    const html = renderToStaticMarkup(createElement(InsuranceQuoteDetail, { quote: result.items[0].quote!, packet: { requestId: 'quote-1', submittedAt: '2026-09-24' } }))
     expect(html).toContain('123 Test Street')
+    expect(html).toContain('Download P&amp;C Quote Packet')
+    expect(result.items[0].quote?.contact?.name).toBe('Synthetic QuoteTest')
     if (kind === 'auto') { expect(html).toContain('Synthetic QuoteTest'); expect(html).toContain('Test Sedan') }
     if (kind === 'home') expect(html).toContain('Owner-occupied')
     if (kind === 'commercial') expect(html).toContain('Synthetic Test Business')

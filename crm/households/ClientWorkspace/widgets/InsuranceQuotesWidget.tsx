@@ -35,7 +35,7 @@ export default function InsuranceQuotesWidget({ householdId }: { householdId: st
         {history.items.length === 0 ? <p className="crm-muted">No insurance quote requests linked to this household.</p> : null}
         {history.items.map(item => <details key={item.id} className="crm-insurance-quote-request">
           <summary>{item.leadType} · {new Date(item.submittedAt).toLocaleString()} · View submitted answers</summary>
-          {item.quote ? <InsuranceQuoteDetail quote={item.quote} /> : <p role="status">The submitted answers are unavailable. Please review this request in Intake.</p>}
+          {item.quote ? <InsuranceQuoteDetail quote={item.quote} packet={{ requestId: item.id, submittedAt: item.submittedAt }} /> : <p role="status">The submitted answers are unavailable. Please review this request in Intake.</p>}
         </details>)}
         {page > 0 || history.hasMore ? <div className="crm-intake-resolution-actions" aria-label="Quote history pages">
           <button type="button" className="crm-text-btn" disabled={page === 0} onClick={() => setPage(value => value - 1)}>Newer requests</button>
