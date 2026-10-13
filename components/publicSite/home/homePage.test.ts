@@ -91,8 +91,8 @@ describe('service-led bilingual homepage', () => {
     expect(html).toContain('Where Do You Want More Clarity?')
     expect(html).toContain('Take the Family Financial Report Card')
     expect(html).toContain('Take the Business Financial Report Card')
-    expect(html).toContain('Take the Student Loan Report Card')
-    expect(html).toContain('Take the Credit Report Card')
+    expect(html).not.toContain('Take the Student Loan Report Card')
+    expect(html).not.toContain('Take the Credit Report Card')
     expect(html).toContain('Your Strategy Determines the Solution. Not the Other Way Around.')
     expect(html).toContain('Protection')
     expect(html).toContain('Retirement')
@@ -109,8 +109,8 @@ describe('service-led bilingual homepage', () => {
     expect(source('src/styles.css')).toContain('.site-home #home-diagnostics {\n  scroll-margin-top: 96px;\n}')
     expect(html).toContain('Take the Family Financial Report Card')
     expect(html).toContain('Take the Business Financial Report Card')
-    expect(html).toContain('Take the Student Loan Report Card')
-    expect(html).toContain('Take the Credit Report Card')
+    expect(html).not.toContain('Take the Student Loan Report Card')
+    expect(html).not.toContain('Take the Credit Report Card')
     expect(html).toContain('A Clearer Starting Point for Your Next Steps.')
     expect(html).toContain('Your short-form review')
     expect(html).not.toContain('Explore Solutions for You')
@@ -138,10 +138,10 @@ describe('service-led bilingual homepage', () => {
       `href="${ROUTES.credit}?utm_source=qa&amp;utm_campaign=home&amp;card=test-card"`,
     )
     expect(html).toContain(
-      `href="${ROUTES.studentLoanReportCard}?utm_source=qa&amp;utm_campaign=home&amp;card=test-card"`,
+      `href="${ROUTES.reportCard}?utm_source=qa&amp;utm_campaign=home&amp;card=test-card"`,
     )
     expect(html).toContain(
-      `href="${ROUTES.creditReportCard}?utm_source=qa&amp;utm_campaign=home&amp;card=test-card"`,
+      `href="${ROUTES.businessReportCard}?utm_source=qa&amp;utm_campaign=home&amp;card=test-card"`,
     )
     expect(html).toContain(
       `href="${ROUTES.retirementReportCard}?utm_source=qa&amp;utm_campaign=home&amp;card=test-card"`,
@@ -165,20 +165,8 @@ describe('service-led bilingual homepage', () => {
       expect(html).not.toContain(`href="${path}"`)
     }
     expect(HOME_SERVICE_CARDS.some((item) => item.to.startsWith('/services'))).toBe(false)
-    expect(HOME_AUDIENCE_PATHS.map((item) => item.to)).toEqual([
-      ROUTES.reportCard,
-      ROUTES.businessReportCard,
-      ROUTES.studentLoanReportCard,
-      ROUTES.creditReportCard,
-    ])
-    expect(HOME_FEATURED_DIAGNOSTICS.map((item) => item.to)).toEqual([
-      ROUTES.reportCard,
-      ROUTES.businessReportCard,
-      ROUTES.studentLoanReportCard,
-      ROUTES.creditReportCard,
-      ROUTES.retirementReportCard,
-      ROUTES.protectionAnalysis,
-    ])
+    expect(HOME_AUDIENCE_PATHS.map((item) => item.to)).toEqual([ROUTES.reportCard, ROUTES.businessReportCard])
+    expect(HOME_FEATURED_DIAGNOSTICS.map((item) => item.to)).toEqual([ROUTES.reportCard, ROUTES.businessReportCard])
     expect(source('components/publicSite/home/homeConfig.ts')).not.toContain('HOME_MORE_DIAGNOSTICS')
     expect(source('components/publicSite/home/HomeDiagnostics.tsx')).not.toContain('site-home-more-tools')
     expect(HOME_DIAGNOSTICS_HASH).toBe('/#home-diagnostics')

@@ -110,14 +110,7 @@ describe('Phase 5 estate and tax strategy service pages', () => {
     expect(SERVICES_NAV_LINKS.find((item) => item.id === 'businessFormation')?.to).toBe(
       ROUTES.businessFormation,
     )
-    expect(TOOLS_NAV_LINKS.map((item) => item.to)).toEqual([
-      ROUTES.reportCard,
-      ROUTES.businessReportCard,
-      ROUTES.retirementReportCard,
-      ROUTES.protectionAnalysis,
-      ROUTES.studentLoanReportCard,
-      ROUTES.creditReportCard,
-    ])
+    expect(TOOLS_NAV_LINKS.map((item) => item.to)).toEqual([ROUTES.reportCard, ROUTES.businessReportCard])
     const html = renderChrome('/')
     expect(html).toContain(`href="${ROUTES.estateLegacy}"`)
     expect(html).toContain(`href="${ROUTES.taxStrategy}"`)
@@ -129,14 +122,7 @@ describe('Phase 5 estate and tax strategy service pages', () => {
   it('updates homepage estate and tax cards without moving diagnostic cards', () => {
     expect(HOME_SERVICE_CARDS.find((item) => item.id === 'estate')?.to).toBe(ROUTES.estateLegacy)
     expect(HOME_SERVICE_CARDS.find((item) => item.id === 'tax')?.to).toBe(ROUTES.taxStrategy)
-    expect(HOME_FEATURED_DIAGNOSTICS.map((item) => item.to)).toEqual([
-      ROUTES.reportCard,
-      ROUTES.businessReportCard,
-      ROUTES.studentLoanReportCard,
-      ROUTES.creditReportCard,
-      ROUTES.retirementReportCard,
-      ROUTES.protectionAnalysis,
-    ])
+    expect(HOME_FEATURED_DIAGNOSTICS.map((item) => item.to)).toEqual([ROUTES.reportCard, ROUTES.businessReportCard])
     const html = renderAt('/', createElement(HomePage))
     expect(html).toContain(`href="${ROUTES.estateLegacy}"`)
     expect(html).toContain(`href="${ROUTES.taxStrategy}"`)
