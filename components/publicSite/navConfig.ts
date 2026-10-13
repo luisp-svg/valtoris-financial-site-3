@@ -25,7 +25,7 @@ export const SERVICES_NAV_GROUPS: readonly PublicNavGroup[] = [
     headingKey: 'servicesGroupIndividuals',
     links: [
       { id: 'protection', to: ROUTES.protectionAnalysis, labelKey: 'servicesProtection' },
-      { id: 'retirement', to: ROUTES.retirementReportCard, labelKey: 'servicesRetirement' },
+      { id: 'retirement', to: ROUTES.reportCard + '#review-topics', labelKey: 'servicesRetirement' },
       { id: 'insurance', to: ROUTES.insurance, labelKey: 'servicesInsurance' },
       { id: 'health', to: ROUTES.healthDisability, labelKey: 'servicesHealth' },
       { id: 'credit', to: ROUTES.credit, labelKey: 'servicesCredit' },
@@ -48,13 +48,10 @@ export const SERVICES_NAV_LINKS: readonly PublicNavLink[] = SERVICES_NAV_GROUPS.
   (group) => group.links,
 )
 
+/** Two public starting points; specialized tools remain reachable by direct link and topic choice. */
 export const TOOLS_NAV_LINKS: readonly PublicNavLink[] = [
   { id: 'family', to: ROUTES.reportCard, labelKey: 'toolsFamily' },
   { id: 'business', to: ROUTES.businessReportCard, labelKey: 'toolsBusiness' },
-  { id: 'retirement', to: ROUTES.retirementReportCard, labelKey: 'toolsRetirement' },
-  { id: 'protection', to: ROUTES.protectionAnalysis, labelKey: 'toolsProtection' },
-  { id: 'studentLoan', to: ROUTES.studentLoanReportCard, labelKey: 'toolsStudentLoan' },
-  { id: 'credit', to: ROUTES.creditReportCard, labelKey: 'toolsCredit' },
 ]
 
 export const QUOTE_NAV: PublicNavLink = { id: 'quotes', to: ROUTES.getQuote, labelKey: 'navGetQuote' }

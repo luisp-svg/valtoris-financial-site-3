@@ -133,33 +133,19 @@ describe('visual review corrections', () => {
     expect(en).not.toContain('lang=en')
   })
 
-  it('renders four homepage audience cards and preserves the separate six-tool catalog', () => {
+  it('renders two homepage entry points and keeps focused tools out of the public catalog', () => {
     const html = renderAt('/', createElement(HomePage))
     const diagnostics = html.match(/id="home-diagnostics"[\s\S]*?<\/section>/)?.[0] ?? ''
-    expect(diagnostics).toContain('site-home-card-grid--4')
-    expect(diagnostics.match(/class="site-home-card site-home-card--centered"/g)?.length).toBe(4)
+    expect(diagnostics).toContain('site-home-card-grid--2')
+    expect(diagnostics.match(/class="site-home-card site-home-card--centered"/g)?.length).toBe(2)
     expect(diagnostics).toContain('Take the Family Financial Report Card')
     expect(diagnostics).toContain('Take the Business Financial Report Card')
-    expect(diagnostics).toContain('Take the Student Loan Report Card')
-    expect(diagnostics).toContain('Take the Credit Report Card')
+    expect(diagnostics).not.toContain('Take the Student Loan Report Card')
+    expect(diagnostics).not.toContain('Take the Credit Report Card')
     expect(diagnostics).not.toContain('Also available')
     expect(diagnostics).not.toContain('site-home-more-tools')
-    expect(HOME_FEATURED_DIAGNOSTICS.map((item) => item.id)).toEqual([
-      'family',
-      'business',
-      'studentLoan',
-      'credit',
-      'retirement',
-      'protection',
-    ])
-    expect(HOME_FEATURED_DIAGNOSTICS.map((item) => item.to)).toEqual([
-      ROUTES.reportCard,
-      ROUTES.businessReportCard,
-      ROUTES.studentLoanReportCard,
-      ROUTES.creditReportCard,
-      ROUTES.retirementReportCard,
-      ROUTES.protectionAnalysis,
-    ])
+    expect(HOME_FEATURED_DIAGNOSTICS.map((item) => item.id)).toEqual(['family', 'business'])
+    expect(HOME_FEATURED_DIAGNOSTICS.map((item) => item.to)).toEqual([ROUTES.reportCard, ROUTES.businessReportCard])
     const styles = source('src/styles.css')
     expect(styles).toContain('.site-home-card {\n  display: flex;\n  flex-direction: column;')
     expect(styles).toContain('height: 100%;')
