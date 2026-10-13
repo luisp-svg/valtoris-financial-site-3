@@ -18,7 +18,7 @@ import {
   SERVICES_NAV_LINKS,
   TOOLS_NAV_LINKS,
 } from '../navConfig'
-import { HOME_AUDIENCE_PATHS, HOME_SERVICE_CARDS } from '../home/homeConfig'
+import { HOME_AUDIENCE_PATHS, HOME_FEATURED_DIAGNOSTICS, HOME_SERVICE_CARDS } from '../home/homeConfig'
 import { creditServiceCopy, studentLoanServiceCopy } from './copy'
 
 const ROOT = process.cwd()
@@ -94,28 +94,32 @@ describe('Phase 3 Student Loan and Credit service pages', () => {
   it('points Services at service pages and Tools at Report Cards', () => {
     expect(SERVICES_NAV_LINKS.find((item) => item.id === 'studentLoans')?.to).toBe(ROUTES.studentLoans)
     expect(SERVICES_NAV_LINKS.find((item) => item.id === 'credit')?.to).toBe(ROUTES.credit)
-    expect(TOOLS_NAV_LINKS.map(item => item.id)).toEqual(['family', 'business'])
-    expect(TOOLS_NAV_LINKS.map(item => item.id)).toEqual(['family', 'business'])
+    expect(TOOLS_NAV_LINKS.find((item) => item.id === 'studentLoan')?.to).toBe(ROUTES.studentLoanReportCard)
+    expect(TOOLS_NAV_LINKS.find((item) => item.id === 'credit')?.to).toBe(ROUTES.creditReportCard)
     const html = renderChrome('/')
     expect(html).toContain(`href="${ROUTES.studentLoans}"`)
     expect(html).toContain(`href="${ROUTES.credit}"`)
-    expect(html).not.toContain(`href="${ROUTES.studentLoanReportCard}"`)
-    expect(html).not.toContain(`href="${ROUTES.creditReportCard}"`)
+    expect(html).toContain(`href="${ROUTES.studentLoanReportCard}"`)
+    expect(html).toContain(`href="${ROUTES.creditReportCard}"`)
   })
 
   it('updates homepage service links and leaves diagnostic cards on Report Cards', () => {
-    expect(HOME_AUDIENCE_PATHS.map(item => item.to)).toEqual([ROUTES.reportCard, ROUTES.businessReportCard])
-    expect(HOME_AUDIENCE_PATHS.map(item => item.to)).toEqual([ROUTES.reportCard, ROUTES.businessReportCard])
+    expect(HOME_AUDIENCE_PATHS.find((item) => item.id === 'studentLoans')?.to).toBe(
+      ROUTES.studentLoanReportCard,
+    )
+    expect(HOME_AUDIENCE_PATHS.find((item) => item.id === 'credit')?.to).toBe(ROUTES.creditReportCard)
     expect(HOME_SERVICE_CARDS.find((item) => item.id === 'studentLoans')?.to).toBe(ROUTES.studentLoans)
     expect(HOME_SERVICE_CARDS.find((item) => item.id === 'credit')?.to).toBe(ROUTES.credit)
-    expect(HOME_AUDIENCE_PATHS.map(item => item.to)).toEqual([ROUTES.reportCard, ROUTES.businessReportCard])
-    expect(HOME_AUDIENCE_PATHS.map(item => item.to)).toEqual([ROUTES.reportCard, ROUTES.businessReportCard])
+    expect(HOME_FEATURED_DIAGNOSTICS.find((item) => item.id === 'studentLoan')?.to).toBe(
+      ROUTES.studentLoanReportCard,
+    )
+    expect(HOME_FEATURED_DIAGNOSTICS.find((item) => item.id === 'credit')?.to).toBe(ROUTES.creditReportCard)
     const html = renderAt('/', createElement(HomePage))
     expect(html).toContain(`href="${ROUTES.studentLoans}"`)
     expect(html).toContain(`href="${ROUTES.credit}"`)
     const diagnostics = html.match(/id="home-diagnostics"[\s\S]*?<\/section>/)?.[0] ?? ''
-    expect(diagnostics).toContain(`href="${ROUTES.reportCard}"`)
-    expect(diagnostics).toContain(`href="${ROUTES.businessReportCard}"`)
+    expect(diagnostics).toContain(`href="${ROUTES.studentLoanReportCard}"`)
+    expect(diagnostics).toContain(`href="${ROUTES.creditReportCard}"`)
     expect(diagnostics).not.toContain(`href="${ROUTES.studentLoans}"`)
     expect(diagnostics).not.toContain(`href="${ROUTES.credit}"`)
   })
@@ -123,8 +127,8 @@ describe('Phase 3 Student Loan and Credit service pages', () => {
   it('keeps footer Families as services and footer Tools as Report Cards', () => {
     expect(FAMILIES_FOOTER_LINKS.find((item) => item.id === 'studentLoans')?.to).toBe(ROUTES.studentLoans)
     expect(FAMILIES_FOOTER_LINKS.find((item) => item.id === 'credit')?.to).toBe(ROUTES.credit)
-    expect(TOOLS_NAV_LINKS.map(item => item.id)).toEqual(['family', 'business'])
-    expect(TOOLS_NAV_LINKS.map(item => item.id)).toEqual(['family', 'business'])
+    expect(TOOLS_NAV_LINKS.find((item) => item.id === 'studentLoan')?.to).toBe(ROUTES.studentLoanReportCard)
+    expect(TOOLS_NAV_LINKS.find((item) => item.id === 'credit')?.to).toBe(ROUTES.creditReportCard)
   })
 
   it('renders complete Student Loan EN and ES pages with Report Card and Book CTAs', () => {

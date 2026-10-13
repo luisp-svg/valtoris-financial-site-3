@@ -59,8 +59,8 @@ describe('Phase 6 public CTA hierarchy and alignment', () => {
   it('gives each homepage diagnostic path one consistent action', () => {
     const html = renderAt('/', createElement(HomePage))
     const diagnostics = section(html, 'home-audience-heading')
-    expect(diagnostics.match(/class="site-home-card site-home-card--centered"/g)?.length).toBe(2)
-    expect(diagnostics.match(/class="site-home-card-link"/g)?.length).toBe(2)
+    expect(diagnostics.match(/class="site-home-card site-home-card--centered"/g)?.length).toBe(4)
+    expect(diagnostics.match(/class="site-home-card-link"/g)?.length).toBe(4)
     expect(diagnostics).not.toContain('platform-btn')
     expect(diagnostics).not.toContain('Also available')
   })
@@ -100,7 +100,7 @@ describe('Phase 6 public CTA hierarchy and alignment', () => {
   it('leaves Services and Tools destinations unchanged and does not invent routes', () => {
     expect(SERVICES_NAV_LINKS.map((item) => item.to)).toEqual([
       ROUTES.protectionAnalysis,
-      ROUTES.reportCard + '#review-topics',
+      ROUTES.retirementReportCard,
       ROUTES.insurance,
       ROUTES.healthDisability,
       ROUTES.credit,
@@ -110,7 +110,14 @@ describe('Phase 6 public CTA hierarchy and alignment', () => {
       ROUTES.taxStrategy,
       ROUTES.solutions,
     ])
-    expect(TOOLS_NAV_LINKS.map((item) => item.to)).toEqual([ROUTES.reportCard, ROUTES.businessReportCard])
+    expect(TOOLS_NAV_LINKS.map((item) => item.to)).toEqual([
+      ROUTES.reportCard,
+      ROUTES.businessReportCard,
+      ROUTES.retirementReportCard,
+      ROUTES.protectionAnalysis,
+      ROUTES.studentLoanReportCard,
+      ROUTES.creditReportCard,
+    ])
     const home = renderAt('/', createElement(HomePage))
     for (const path of FUTURE_UNBUILT_PUBLIC_PATHS) {
       expect(home).not.toContain(`href="${path}"`)

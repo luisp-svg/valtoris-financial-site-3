@@ -1,5 +1,3 @@
-import ReportCardTopicChooser from '../../publicSite/ReportCardTopicChooser'
-import { ROUTES } from '../../../constants/routes'
 import { useLocation } from 'react-router-dom'
 import DiagnosticLanding from '../../home/DiagnosticLanding'
 import SpecializedLocaleSwitcher, { useSpecializedDocumentLang } from '../../assessment/specialized/SpecializedLocaleSwitcher'
@@ -11,17 +9,15 @@ export default function ShortLanding({assessmentType}:{assessmentType:PublicRepo
   const location=useLocation(), locale=readSpecializedLocale(location.search), card=SHORT_CARDS[assessmentType]
   useSpecializedDocumentLang(locale)
   const t=(en:string,es:string)=>locale==='es'?es:en
-  const audience = assessmentType === 'family' || assessmentType === 'business' ? assessmentType : null
   const count=card.questions.length+3
   return <DiagnosticLanding
-    topicSelector={audience ? <ReportCardTopicChooser audience={audience} locale={locale} /> : undefined}
     pageClassName={`${assessmentType}-report-card-page`}
     headerExtra={<SpecializedLocaleSwitcher locale={locale} groupLabel={t('Language','Idioma')} englishLabel="English" spanishLabel="Español"/>}
     eyebrow={t('Your first planning conversation starts here','Tu primera conversación de planificación empieza aquí')}
     title={card.title[locale]}
-    heroCopies={audience ? [t('Start with a broad review or choose the topics you want help with.','Empieza con una revisión general o elige los temas en los que necesitas ayuda.'),t('Explore credit, insurance, retirement, and more at your own pace.','Explora crédito, seguros, jubilación y más a tu ritmo.')] : [t(`Answer up to ${count} questions, including contact details, for a focused first review.`,`Responde hasta ${count} preguntas, incluyendo datos de contacto, para una primera revisión enfocada.`),t('See observations supported by your answers, information to confirm, and topics for your next conversation.','Conoce observaciones basadas en tus respuestas, información por confirmar y temas para tu próxima conversación.')]}
-    ctaLabel={audience ? t('Choose a topic','Elegir un tema') : t('Start my short review','Comenzar mi revisión breve')}
-    ctaTo={withSpecializedLocale(audience ? (audience === 'family' ? ROUTES.reportCard : ROUTES.businessReportCard) + '#review-topics' : card.assessmentPath,locale,location.search)}
+    heroCopies={[t(`Answer up to ${count} questions, including contact details, for a focused first review.`,`Responde hasta ${count} preguntas, incluyendo datos de contacto, para una primera revisión enfocada.`),t('See observations supported by your answers, information to confirm, and topics for your next conversation.','Conoce observaciones basadas en tus respuestas, información por confirmar y temas para tu próxima conversación.')]}
+    ctaLabel={t('Start my short review','Comenzar mi revisión breve')}
+    ctaTo={withSpecializedLocale(card.assessmentPath,locale,location.search)}
     heroMicrocopy={t('Phone is optional. Outreach and marketing permissions are optional.','El teléfono es opcional. Los permisos de contacto y marketing son opcionales.')}
     receiveHeading={t('What you receive','Qué recibirás')}
     receiveLead={t('A clear starting point based on what you share.','Un punto de partida claro basado en lo que compartes.')}

@@ -41,7 +41,6 @@ export type DiagnosticLandingProps = {
   closingTitle: string
   closingCopy: string
   closingMicrocopy: string
-  topicSelector?: ReactNode
   headerExtra?: ReactNode
   receiveHeading?: string
   sampleHeading?: string
@@ -54,7 +53,6 @@ export default function DiagnosticLanding({
   pageClassName,
   eyebrow,
   title,
-  topicSelector,
   heroCopies,
   ctaLabel,
   ctaTo,
@@ -101,7 +99,6 @@ export default function DiagnosticLanding({
         </div>
       </section>
 
-      {topicSelector}
       <section className="platform-section platform-tone-blue" aria-labelledby="receive-heading">
         <div className="container platform-section-inner">
           <h2 id="receive-heading" className="platform-section-title">

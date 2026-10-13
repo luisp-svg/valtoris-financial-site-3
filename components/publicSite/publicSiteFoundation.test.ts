@@ -105,7 +105,7 @@ describe('public site foundation chrome', () => {
   it('maps Services and Tools menus to existing landing destinations', () => {
     expect(SERVICES_NAV_LINKS.map((item) => item.to)).toEqual([
       ROUTES.protectionAnalysis,
-      ROUTES.reportCard + '#review-topics',
+      ROUTES.retirementReportCard,
       ROUTES.insurance,
       ROUTES.healthDisability,
       ROUTES.credit,
@@ -115,19 +115,26 @@ describe('public site foundation chrome', () => {
       ROUTES.taxStrategy,
       ROUTES.solutions,
     ])
-    expect(TOOLS_NAV_LINKS.map((item) => item.to)).toEqual([ROUTES.reportCard, ROUTES.businessReportCard])
+    expect(TOOLS_NAV_LINKS.map((item) => item.to)).toEqual([
+      ROUTES.reportCard,
+      ROUTES.businessReportCard,
+      ROUTES.retirementReportCard,
+      ROUTES.protectionAnalysis,
+      ROUTES.studentLoanReportCard,
+      ROUTES.creditReportCard,
+    ])
   })
 
   it('makes Student Loan and Credit discoverable in nav and footer', () => {
     const html = renderChrome('/')
     expect(html).toContain(ROUTES.studentLoans)
     expect(html).toContain(ROUTES.credit)
-    expect(html).not.toContain(ROUTES.studentLoanReportCard)
-    expect(html).not.toContain(ROUTES.creditReportCard)
+    expect(html).toContain(ROUTES.studentLoanReportCard)
+    expect(html).toContain(ROUTES.creditReportCard)
     expect(FAMILIES_FOOTER_LINKS.some((item) => item.to === ROUTES.studentLoans)).toBe(true)
     expect(FAMILIES_FOOTER_LINKS.some((item) => item.to === ROUTES.credit)).toBe(true)
-    expect(TOOLS_NAV_LINKS.map(item => item.id)).toEqual(['family', 'business'])
-    expect(TOOLS_NAV_LINKS.map(item => item.id)).toEqual(['family', 'business'])
+    expect(TOOLS_NAV_LINKS.some((item) => item.to === ROUTES.studentLoanReportCard)).toBe(true)
+    expect(TOOLS_NAV_LINKS.some((item) => item.to === ROUTES.creditReportCard)).toBe(true)
   })
 
   it('does not point navigation at unbuilt service, tools, about, or contact routes', () => {
@@ -144,7 +151,7 @@ describe('public site foundation chrome', () => {
     ].map((item) => item.to)
     for (const to of destinations) {
       expect(FUTURE_UNBUILT_PUBLIC_PATHS).not.toContain(to)
-      expect(EXISTING_PUBLIC_PATHS.has(to.split('#')[0])).toBe(true)
+      expect(EXISTING_PUBLIC_PATHS.has(to)).toBe(true)
     }
   })
 
@@ -201,18 +208,18 @@ describe('public site foundation chrome', () => {
 
   it('preserves UTM and card params on header and footer links', () => {
     const html = renderChrome('/solutions?utm_source=card&utm_campaign=spring&card=abc')
-    expect(html).toContain('/report-card?utm_source=card&amp;utm_campaign=spring&amp;card=abc')
+    expect(html).toContain('/credit-report-card?utm_source=card&amp;utm_campaign=spring&amp;card=abc')
     expect(html).toContain(
-      '/business-report-card?utm_source=card&amp;utm_campaign=spring&amp;card=abc',
+      '/student-loan-report-card?utm_source=card&amp;utm_campaign=spring&amp;card=abc',
     )
     expect(html).toContain('/schedule?utm_source=card&amp;utm_campaign=spring&amp;card=abc')
   })
 
   it('adds lang=es to public links while keeping attribution, and omits lang in English', () => {
     const es = renderChrome('/report-card?lang=es&utm_medium=qr')
-    expect(es).toContain('/report-card?lang=es&amp;utm_medium=qr')
+    expect(es).toContain('/credit-report-card?lang=es&amp;utm_medium=qr')
     const en = renderChrome('/report-card?utm_medium=qr')
-    expect(en).toContain('/report-card?utm_medium=qr')
+    expect(en).toContain('/credit-report-card?utm_medium=qr')
     expect(en).not.toContain('lang=en')
   })
 
@@ -240,8 +247,8 @@ describe('public site foundation chrome', () => {
 
   it('exposes Student Loan and Credit in the footer tools sitemap', () => {
     const html = renderChrome('/')
-    expect(html).toContain('Family Report Card™')
-    expect(html).toContain('Business Report Card™')
+    expect(html).toContain('Student Loan Report Card™')
+    expect(html).toContain('Credit Report Card™')
     expect(source('components/SiteFooter.tsx')).toContain('TOOLS_NAV_LINKS')
   })
 

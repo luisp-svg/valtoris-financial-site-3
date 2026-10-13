@@ -130,7 +130,14 @@ describe('Phase 4 insurance, health, and business formation service pages', () =
     )
     expect(SERVICES_NAV_LINKS.find((item) => item.id === 'credit')?.to).toBe(ROUTES.credit)
     expect(SERVICES_NAV_LINKS.find((item) => item.id === 'studentLoans')?.to).toBe(ROUTES.studentLoans)
-    expect(TOOLS_NAV_LINKS.map((item) => item.to)).toEqual([ROUTES.reportCard, ROUTES.businessReportCard])
+    expect(TOOLS_NAV_LINKS.map((item) => item.to)).toEqual([
+      ROUTES.reportCard,
+      ROUTES.businessReportCard,
+      ROUTES.retirementReportCard,
+      ROUTES.protectionAnalysis,
+      ROUTES.studentLoanReportCard,
+      ROUTES.creditReportCard,
+    ])
     const html = renderChrome('/')
     expect(html).toContain(`href="${ROUTES.insurance}"`)
     expect(html).toContain(`href="${ROUTES.healthDisability}"`)
@@ -143,7 +150,14 @@ describe('Phase 4 insurance, health, and business formation service pages', () =
   it('updates the homepage insurance service card and keeps Business Planning on solutions', () => {
     expect(HOME_SERVICE_CARDS.find((item) => item.id === 'insurance')?.to).toBe(ROUTES.insurance)
     expect(HOME_SERVICE_CARDS.find((item) => item.id === 'business')?.to).toBe(ROUTES.solutions)
-    expect(HOME_FEATURED_DIAGNOSTICS.map((item) => item.to)).toEqual([ROUTES.reportCard, ROUTES.businessReportCard])
+    expect(HOME_FEATURED_DIAGNOSTICS.map((item) => item.to)).toEqual([
+      ROUTES.reportCard,
+      ROUTES.businessReportCard,
+      ROUTES.studentLoanReportCard,
+      ROUTES.creditReportCard,
+      ROUTES.retirementReportCard,
+      ROUTES.protectionAnalysis,
+    ])
     const html = renderAt('/', createElement(HomePage))
     expect(html).toContain(`href="${ROUTES.insurance}"`)
     const diagnostics = html.match(/id="home-diagnostics"[\s\S]*?<\/section>/)?.[0] ?? ''
