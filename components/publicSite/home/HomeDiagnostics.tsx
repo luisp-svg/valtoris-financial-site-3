@@ -17,7 +17,7 @@ export default function HomeDiagnostics({ copy }: HomeDiagnosticsProps) {
       kicker={copy.diagnosticsBrand}
       lead={copy.diagnosticsLead}
     >
-      <div className="site-home-card-grid site-home-card-grid--3">
+      <div className="site-home-card-grid site-home-card-grid--2">
         {HOME_FEATURED_DIAGNOSTICS.map((item) => (
           <article key={item.id} className="site-home-card site-home-card--centered">
             <h3 className="site-home-card-title">{copy[item.titleKey]}</h3>
