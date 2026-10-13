@@ -28,20 +28,6 @@ export const HOME_AUDIENCE_PATHS: readonly HomeLinkItem[] = [
     bodyKey: 'audienceBusinessBody',
     ctaKey: 'audienceBusinessCta',
   },
-  {
-    id: 'studentLoans',
-    to: ROUTES.studentLoanReportCard,
-    titleKey: 'audienceStudentTitle',
-    bodyKey: 'audienceStudentBody',
-    ctaKey: 'audienceStudentCta',
-  },
-  {
-    id: 'credit',
-    to: ROUTES.creditReportCard,
-    titleKey: 'audienceCreditTitle',
-    bodyKey: 'audienceCreditBody',
-    ctaKey: 'audienceCreditCta',
-  },
 ]
 
 export const HOME_SERVICE_CARDS: readonly HomeLinkItem[] = [
@@ -107,29 +93,5 @@ export const HOME_FEATURED_DIAGNOSTICS: readonly HomeLinkItem[] = [
     to: ROUTES.businessReportCard,
     titleKey: 'diagnosticsBusinessTitle',
     bodyKey: 'diagnosticsBusinessBody',
-  },
-  {
-    id: 'studentLoan',
-    to: ROUTES.studentLoanReportCard,
-    titleKey: 'diagnosticsStudentTitle',
-    bodyKey: 'diagnosticsStudentBody',
-  },
-  {
-    id: 'credit',
-    to: ROUTES.creditReportCard,
-    titleKey: 'diagnosticsCreditTitle',
-    bodyKey: 'diagnosticsCreditBody',
-  },
-  {
-    id: 'retirement',
-    to: ROUTES.retirementReportCard,
-    titleKey: 'diagnosticsRetirementTitle',
-    bodyKey: 'diagnosticsRetirementBody',
-  },
-  {
-    id: 'protection',
-    to: ROUTES.protectionAnalysis,
-    titleKey: 'diagnosticsProtectionTitle',
-    bodyKey: 'diagnosticsProtectionBody',
   },
 ]

@@ -191,7 +191,7 @@ describe('Phase 8 solutions hub', () => {
       ROUTES.privacy,
       ROUTES.crmLogin,
     ])
-    expect(TOOLS_NAV_LINKS).toHaveLength(6)
+    expect(TOOLS_NAV_LINKS).toHaveLength(2)
     const chrome = renderChrome('/')
     expect(chrome).toContain('Explore All Solutions')
     expect(chrome).toContain('View Solutions')

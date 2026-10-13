@@ -16,7 +16,7 @@ export default function HomeAudiencePaths({ copy }: HomeAudiencePathsProps) {
       title={copy.audienceHeading}
       lead={copy.audienceLead}
     >
-      <div className="site-home-card-grid site-home-card-grid--4">
+      <div className="site-home-card-grid site-home-card-grid--2">
         {HOME_AUDIENCE_PATHS.map((item) => (
           <article key={item.id} className="site-home-card site-home-card--centered">
             <h3 className="site-home-card-title">{copy[item.titleKey]}</h3>
