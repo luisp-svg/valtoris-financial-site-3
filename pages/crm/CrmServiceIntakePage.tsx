@@ -1,3 +1,4 @@
+import HouseholdDocuments from '../../crm/households/HouseholdDocuments'
 import LifeSensitivePanel from '../../crm/serviceIntakes/LifeSensitivePanel'
 import SharedProfilePanel from '../../crm/serviceIntakes/SharedProfilePanel'
 import { useEffect, useMemo, useState, type ComponentType } from 'react'
@@ -105,6 +106,7 @@ function IntakeWorkspace({ householdId, query, definition }: { householdId: stri
         setSaved(null); setAnswers(source.answers); setBaseline(JSON.stringify(source.answers)); setMessage('New review started. Confirm current information and save a draft.'); setErrors([])
       }}>{history.some(r => r.status === 'draft') ? 'Resume current draft' : 'Start another review'}</button></div>}
       <Form answers={answers} disabled={busy || completed} onChange={next => { setAnswers(next); setMessage(''); setConfirmComplete(false) }} />
+      {title === 'Property & Casualty intake' && <HouseholdDocuments key={householdId} householdId={householdId} quoteOnly title="P&C quote documents" />}
       {!completed && <div className="crm-service-intake-actions">
         <span>{busy ? 'Saving…' : dirty ? 'Unsaved changes' : saved ? 'Saved' : 'Save a draft before completing intake'}</span>
         <button type="button" className="crm-secondary-btn" disabled={busy} onClick={() => void persist(false)}>Save draft</button>

@@ -1,3 +1,4 @@
+import HouseholdDocuments from '../../HouseholdDocuments'
 import { useEffect, useState } from 'react'
 import Widget from '../../../components/ui/Widget'
 import InsuranceQuoteDetail from '../../../intake/InsuranceQuoteDetail'
@@ -28,6 +29,7 @@ export default function InsuranceQuotesWidget({ householdId }: { householdId: st
   }, [householdId, page, attempt])
 
   return <Widget title="Insurance quote requests" titleId="crm-widget-insurance-quotes" wide>
+    <HouseholdDocuments key={householdId} householdId={householdId} quoteOnly title="P&C quote documents" />
     <p className="crm-muted">Open a request to review the information submitted by the client.</p>
     {error ? <div role="alert"><p>Unable to load quote requests.</p><button type="button" className="crm-text-btn" onClick={() => setAttempt(value => value + 1)}>Retry</button></div>
       : !history ? <p role="status">Loading quote requests…</p>

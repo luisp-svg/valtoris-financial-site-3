@@ -638,6 +638,19 @@ export async function createHouseholdMember(
   supabase: SupabaseClient,
   input: CreateHouseholdMemberInput,
 ): Promise<HouseholdMemberSummary> {
+  const { data: household, error: householdError } = await supabase.from('households')
+    .select('lead_source').eq('id', input.household_id).single()
+  if (householdError) throw householdError
+  if (household?.lead_source === 'manual_contact') {
+    const { data, error } = await supabase.rpc('add_household_member', {
+      p_household_id: input.household_id,
+      p_member: buildMemberWritePayload(input),
+    })
+    if (error) throw error
+    const member = normalizeMemberRow(data as Record<string, unknown>)
+    if (!member) throw new Error('Created member could not be normalized')
+    return member
+  }
   const activeCount = await countActiveMembers(supabase, input.household_id)
   const wantPrimary = activeCount === 0 ? true : Boolean(input.is_primary_contact)
 
