@@ -1,0 +1,8 @@
+.crm-household-documents { min-width: 0; overflow-wrap: anywhere; }
+.crm-household-documents form { display: grid; gap: 12px; min-width: 0; }
+.crm-household-documents label { display: grid; gap: 6px; min-width: 0; }
+.crm-household-documents input,
+.crm-household-documents select { width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; }
+.crm-household-documents li { min-width: 0; margin-bottom: 14px; }
+.crm-household-documents li span { display: block; overflow-wrap: anywhere; }
+.crm-household-documents button { max-width: 100%; white-space: normal; }

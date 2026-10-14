@@ -1,3 +1,4 @@
+import './householdDocuments.css'
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { createSupabaseBrowserClient } from '../../lib/supabase/client'
 import { downloadHouseholdDocument, listHouseholdDocuments, uploadHouseholdDocument, validateQuoteFile, type HouseholdDocument } from './documentsApi'
@@ -45,7 +46,7 @@ export default function HouseholdDocuments({ householdId, quoteOnly = false, tit
     } catch { setError('This document could not be downloaded. Try again.') }
   }
   const shown = documents.filter(document => !quoteOnly || document.doc_type.startsWith('pc_quote_'))
-  return <section className="crm-panel" aria-label={title}>
+  return <section className="crm-panel crm-household-documents" aria-label={title}>
     <h2>{title}</h2>
     <p className="crm-muted">Upload PDFs up to 20 MB each. Files are private to advisors who can access this household.</p>
     <form onSubmit={event => void upload(event)}>
@@ -59,7 +60,7 @@ export default function HouseholdDocuments({ householdId, quoteOnly = false, tit
     {error && <p role="alert">{error}</p>}{message && <p role="status">{message}</p>}
     {loading ? <p role="status">Loading documents…</p> : shown.length ? <ul>{shown.map(document => <li key={document.id}>
       <span>{document.file_name} · {document.doc_type.replace(/_/g, ' ')} · {new Date(document.created_at).toLocaleDateString()}</span>{' '}
-      <button type="button" className="crm-text-btn" onClick={() => void download(document)}>Download {document.file_name}</button>
+      <button type="button" className="crm-text-btn" aria-label={`Download ${document.file_name}`} onClick={() => void download(document)}>Download PDF</button>
     </li>)}</ul> : <p>No documents uploaded.</p>}
     <button type="button" className="crm-text-btn" disabled={busy} onClick={() => { setError(''); setAttempt(value => value + 1) }}>Refresh documents</button>
   </section>
