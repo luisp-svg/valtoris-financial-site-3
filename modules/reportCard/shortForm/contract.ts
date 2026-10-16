@@ -1,6 +1,6 @@
 import { isValidEmailFormat, normalizePhone } from '../../../crm/households/normalizeContact.js'
 import { US_STATES } from '../../../components/assessment/constants.js'
-import { SHORT_CARDS, SHORT_FORM_FORMAT, type ShortQuestion } from './catalog.js'
+import { LEGACY_HOME_BUYER_QUESTIONS, SHORT_CARDS, SHORT_FORM_FORMAT, type ShortQuestion } from './catalog.js'
 import type { PublicReportCardAssessmentType } from '../publicIngestCatalog.js'
 
 export type ShortDiagnostic = Record<string, string | string[]>
@@ -9,7 +9,9 @@ export function isShortForm(value: unknown): value is ShortAnswers {
   return !!value && typeof value === 'object' && (value as { format?: unknown }).format === SHORT_FORM_FORMAT
 }
 export function visibleQuestions(type: PublicReportCardAssessmentType, diagnostic: ShortDiagnostic): readonly ShortQuestion[] {
-  return SHORT_CARDS[type].questions.filter(q => !q.when || diagnostic[q.when.field] !== q.when.not)
+  const legacyHomeBuyer = type === 'home_buyer' && (Object.prototype.hasOwnProperty.call(diagnostic, 'income_months') || Object.prototype.hasOwnProperty.call(diagnostic, 'reserves'))
+  const questions = legacyHomeBuyer ? LEGACY_HOME_BUYER_QUESTIONS : SHORT_CARDS[type].questions
+  return questions.filter(q => !q.when || diagnostic[q.when.field] !== q.when.not)
 }
 export function numericAnswer(value: unknown): number | null {
   if (typeof value !== 'string' || !/^\d+(\.\d{1,2})?$/.test(value)) return null
@@ -18,7 +20,7 @@ export function numericAnswer(value: unknown): number | null {
 }
 export function validQuestion(q: ShortQuestion, value: unknown): boolean {
   if (q.kind === 'number') {
-    if (value === 'unknown') return true
+    if (value === 'unknown') return q.allowUnknown !== false
     const n = numericAnswer(value)
     return n !== null && n >= (['age','target_age','household_size'].includes(q.id) ? 1 : 0) && n <= (q.max ?? 1_000_000_000) && (!['age','target_age','household_size','children','dependents','inquiries'].includes(q.id) || Number.isInteger(n))
   }
