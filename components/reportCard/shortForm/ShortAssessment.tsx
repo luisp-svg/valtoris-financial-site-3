@@ -1,3 +1,4 @@
+import { buildShortResult } from '../../../modules/reportCard/shortForm/results'
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import AssessmentLayout from '../../assessment/AssessmentLayout'
@@ -47,7 +48,7 @@ export default function ShortAssessment({ assessmentType }: { assessmentType: Pu
       const completed=await completePublicReportCardCrmSubmission({assessmentType,answers,consent,session:session.current,honeypotWebsite:honeypot,storageKey,phone:contact.phone})
       session.current=completed.session
       if(!completed.result.ok) {setError(t('We could not confirm the save. Your answers are kept here. Retry uses the same submission to avoid duplicates.','No pudimos confirmar el guardado. Tus respuestas siguen aquí. Reintentar usa el mismo envío para evitar duplicados.'));return}
-      const saved={format:SHORT_FORM_FORMAT,assessmentType,diagnostic}
+      const saved={format:SHORT_FORM_FORMAT,assessmentType,diagnostic,...(assessmentType === 'home_buyer' ? { result: buildShortResult(assessmentType, diagnostic) } : {})}
       try {sessionStorage.setItem(card.storageKey,JSON.stringify(saved))} catch { /* In-memory navigation still works. */ }
       navigate(withSpecializedLocale(REPORT_PATH_BY_ASSESSMENT[assessmentType],locale,location.search),{state:{answers:saved,crmSubmitted:true}})
     } catch {setError(t('The connection was interrupted. Please retry the same submission.','La conexión se interrumpió. Reintenta el mismo envío.'))}
