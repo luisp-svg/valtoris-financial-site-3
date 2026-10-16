@@ -2401,7 +2401,9 @@ const revisedHomeBuyerQuestions: readonly ShortQuestion[] = LEGACY_HOME_BUYER_QU
       case 'debt_payment': return { ...q, helper: bilingual(
         'Include total minimum credit card payments and monthly installment payments, such as car loans and student loans. Count shared debts once.',
         'Incluye el total de pagos mínimos de tarjetas de crédito y pagos mensuales de préstamos a plazos, como préstamos de auto y estudiantiles. Cuenta las deudas compartidas una sola vez.') }
-      case 'budget': return { ...q, label: bilingual(
+      case 'budget': return { ...q, helper: bilingual(
+        'Include principal, interest, property taxes, homeowners insurance, mortgage insurance and HOA fees, when applicable.',
+        'Incluye capital, intereses, impuestos de la propiedad, seguro de vivienda, seguro hipotecario y cuotas HOA, cuando correspondan.'), label: bilingual(
         'What is the maximum monthly housing payment that fits your budget?',
         '¿Cuál es el pago mensual máximo de vivienda que cabe en tu presupuesto?') }
       case 'purchase_funds': return { ...q, label: bilingual(

@@ -26,3 +26,16 @@
 .short-actions button:disabled { opacity: .55; cursor: default; }
 .short-form input:focus-visible, .short-form select:focus-visible, .short-form button:focus-visible, .short-actions button:focus-visible { outline: 3px solid #ab8547; outline-offset: 3px; }
 @media (max-width: 600px) { .short-form h1 { font-size: 2rem; } .short-actions button { flex: 1; } }
+
+.home-payment-range { background: #f0f6f7; color: #172f40; }
+.home-payment-range .home-payment-range-value { font-size: clamp(1.8rem, 5vw, 3rem); font-weight: 700; line-height: 1.2; margin: 1rem 0; overflow-wrap: anywhere; }
+.home-payment-range-value span { font-size: 1rem; font-weight: 500; white-space: nowrap; }
+.home-payment-range summary { font-weight: 600; cursor: pointer; padding: .5rem 0; }
+.home-payment-range details p { max-width: 64ch; }
+
+.buyer-readiness { background: #f8f5ee; color: #172f40; }
+.buyer-readiness .buyer-readiness-grade { font-size: 3.5rem; line-height: 1.1; font-weight: 700; margin: 1rem 0; }
+.buyer-readiness-grade span { font-size: 1.2rem; font-weight: 500; }
+.buyer-readiness-categories { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 0 1rem; }
+.buyer-readiness summary { cursor: pointer; font-weight: 600; padding: .5rem 0; }
+.buyer-readiness li { margin: .75rem 0; line-height: 1.6; }

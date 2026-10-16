@@ -52,7 +52,7 @@ export default function PublicFamilyDiagnosticHistoryList({ householdId, items }
                 </td>
                 <td>{formatDiagnosticSubmittedAt(item.completedAt)}</td>
                 <td>
-                  {item.scoringVersion === 3 ? 'Short-form review' : item.assessmentType === 'protection'
+                  {item.scoringVersion === 3 && !item.overallGrade ? 'Short-form review' : item.assessmentType === 'protection'
                     ? item.protectionGapFormatted ?? '—'
                     : `${item.overallScore ?? '—'}${item.overallGrade ? ` · ${item.overallGrade}` : ''}`}
                 </td>
@@ -91,7 +91,7 @@ export default function PublicFamilyDiagnosticHistoryList({ householdId, items }
             <p>
               {item.scoringVersion === 3 ? 'Result' : item.assessmentType === 'protection' ? 'Gap' : 'Score'}:{' '}
               <strong>
-                {item.scoringVersion === 3 ? 'Short-form review' : item.assessmentType === 'protection'
+                {item.scoringVersion === 3 && !item.overallGrade ? 'Short-form review' : item.assessmentType === 'protection'
                   ? item.protectionGapFormatted ?? '—'
                   : `${item.overallScore ?? '—'}${item.overallGrade ? ` · ${item.overallGrade}` : ''}`}
               </strong>

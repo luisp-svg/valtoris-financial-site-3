@@ -127,11 +127,11 @@ function buildCanonicalResult(
     const result = buildShortResult(assessmentType, answers.diagnostic)
     const priorities = result.findings.filter(f => f.status !== 'reported').slice(0, 3).map(f => ({ level: f.status === 'unknown' ? 'information_needed' : 'review', title: f.title.en, why: f.detail.en, timeline: 'Advisor review' }))
     const names = splitFullName(answers.contact.fullName)
-    return { overallScore: null, overallGrade: null, scoringVersion: SHORT_FORM_VERSION, priorities,
-      derivedMetrics: { shortFormResult: result, currentLevel: 'Short-form review — no numerical grade',
+    return { overallScore: result.overallScore, overallGrade: result.overallGrade, scoringVersion: SHORT_FORM_VERSION, priorities,
+      derivedMetrics: { shortFormResult: result, currentLevel: result.buyerReadiness ? result.buyerReadiness.provisional ? 'Provisional buyer readiness — information needed' : `Buyer readiness ${result.overallGrade} — educational rubric v1` : 'Short-form review — no numerical grade',
         protectionGapFormatted: assessmentType === 'protection' && result.metrics.find(m=>m.id==='simple_protection_gap') ? new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(result.metrics.find(m=>m.id==='simple_protection_gap')!.value) : null },
       sheetsPayload: buildMasterLeadPayload({ ...names, fullName: answers.contact.fullName, email: answers.contact.email, phone: answers.contact.phone,
-        overallScore: '', overallGrade: '', notes: 'Short-form v3 — educational review; no numerical grade.',
+        overallScore: result.overallScore ?? '', overallGrade: result.overallGrade ?? '', notes: result.buyerReadiness ? `Home-buyer educational rubric v1${result.buyerReadiness.provisional ? ' — provisional; confirm unknown answers' : ''}; not mortgage approval.` : 'Short-form v3 — educational review; no numerical grade.',
         topPriority1: priorities[0]?.title, topPriority2: priorities[1]?.title, topPriority3: priorities[2]?.title,
         sourcePage: sourcePage ?? '', submittedAt, rawAnswers: JSON.stringify({ format: answers.format, assessmentType, diagnostic: answers.diagnostic }) }) }
   }

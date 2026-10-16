@@ -22,16 +22,17 @@ export default function ShortLanding({assessmentType}:{assessmentType:PublicRepo
     receiveHeading={t('What you receive','Qué recibirás')}
     receiveLead={t('A clear starting point based on what you share.','Un punto de partida claro basado en lo que compartes.')}
     receiveItems={[
-      {icon:'priorities',title:t('Review topics','Temas para revisar'),description:t('Observations tied to your reported situation.','Observaciones vinculadas con tu situación reportada.')},
-      {icon:'blueprint',title:t('Your answer summary','Resumen de tus respuestas'),description:t('A record you can bring to an advisor conversation.','Un registro que puedes llevar a una conversación con tu asesor.')},
+      ...(assessmentType === 'home_buyer' ? [{icon:'priorities' as const,title:t('Buyer-readiness grade','Calificación de preparación'),description:t('A transparent breakdown of your preparation, marked provisional when key answers are unknown.','Un desglose transparente de tu preparación, provisional cuando faltan respuestas clave.')},{icon:'blueprint' as const,title:t('Monthly home-payment range','Rango de pago mensual'),description:t('A planning estimate based on income, debt payments and your housing budget.','Una estimación basada en ingresos, pagos de deudas y presupuesto de vivienda.')}] : []),
+      {icon:'priorities' as const,title:t('Review topics','Temas para revisar'),description:t('Observations tied to your reported situation.','Observaciones vinculadas con tu situación reportada.')},
+      {icon:'blueprint' as const,title:t('Your answer summary','Resumen de tus respuestas'),description:t('A record you can bring to an advisor conversation.','Un registro que puedes llevar a una conversación con tu asesor.')},
       {icon:'session',title:t('Optional next steps','Próximos pasos opcionales'),description:t('Detailed planning questions are saved for your private intake.','Las preguntas detalladas de planificación se reservan para tu formulario privado.')},
     ]}
     sampleHeading={t('How to read your review','Cómo leer tu revisión')}
-    sampleLead={t('This short form provides educational observations, without a letter grade or calibrated readiness score.','Esta evaluación breve ofrece observaciones educativas, sin calificación ni puntaje calibrado.')}
+    sampleLead={assessmentType === 'home_buyer' ? t('Your buyer-readiness grade summarizes preparation under a visible educational rubric. Your estimated monthly home-payment range is separate. Neither is mortgage approval.', 'Tu calificación resume la preparación según una rúbrica educativa visible. El rango estimado del pago mensual es independiente. Ninguno es aprobación hipotecaria.') : t('This short form provides educational observations, without a letter grade or calibrated readiness score.','Esta evaluación breve ofrece observaciones educativas, sin calificación ni puntaje calibrado.')}
     samplePreview={<div className="crm-panel"><h3>{t('Information to confirm','Información por confirmar')}</h3><p>{t('Example: “Not sure” is recorded as missing information. It is not treated as zero or an established financial problem.','Ejemplo: “No sé” se registra como información por confirmar. No se considera cero ni un problema financiero comprobado.')}</p></div>}
     categoriesHeading={t('What we ask about','Sobre qué preguntamos')}
     categoriesLead={t('Short answers now; supporting details during your private intake.','Respuestas breves ahora; detalles de respaldo durante tu formulario privado.')}
-    categories={card.questions.slice(0,6).map(q=>({icon:'blueprint',title:q.label[locale],description:q.unit?.[locale]??t('Choose the answer that best reflects your situation.','Elige la respuesta que mejor refleje tu situación.')}))}
+    categories={card.questions.slice(0,6).map(q=>({icon:'blueprint' as const,title:q.label[locale],description:q.unit?.[locale]??t('Choose the answer that best reflects your situation.','Elige la respuesta que mejor refleje tu situación.')}))}
     howHeading={t('How it works','Cómo funciona')}
     howLead={t('Move at your own pace. You can go back before submitting.','Avanza a tu ritmo. Puedes regresar antes de enviar.')}
     howSteps={[
