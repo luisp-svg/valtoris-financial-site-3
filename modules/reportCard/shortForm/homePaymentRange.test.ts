@@ -78,15 +78,18 @@ describe('home-payment planning range', () => {
       return { data: null, error: null }
     })
     const diagnostic = Object.fromEntries(SHORT_CARDS.home_buyer.questions.map(q => [q.id, q.kind === 'multi' ? ['unknown'] : q.options?.[0].value ?? '0']))
-    const answers: ShortAnswers = { format: SHORT_FORM_FORMAT, assessmentType: 'home_buyer', diagnostic: { ...diagnostic, ...input }, contact: { fullName: 'QA Rivera', email: 'qa@example.invalid', phone: '' } }
+    const answers: ShortAnswers = { format: SHORT_FORM_FORMAT, assessmentType: 'home_buyer', diagnostic: { ...diagnostic, ...input, purchase_funds: '30000', credit_issues: ['none'], documents: ['none'] }, contact: { fullName: 'QA Rivera', email: 'qa@example.invalid', phone: '' } }
     const body = validIngestRequestBodyFixture({ assessmentType: 'home_buyer', assessmentVersion: 3, answers, clientReportedScore: 100, clientReportedGrade: 'A+' })
     body.consent = { ...(body.consent as object), contactPermission: false, emailMarketingConsent: false, smsMarketingConsent: false }
     const result = await ingestFamilyReportCard(body, { admin: { rpc } as unknown as SupabaseClient, findCandidates: async () => [], sheetsWriter: vi.fn().mockResolvedValue({ status: 'succeeded' }), orchestrateFollowUpTask: vi.fn().mockResolvedValue({ status: 'not_required' }) })
     expect(result.ok).toBe(true)
     const detail = mapPublicFamilyDiagnosticDetail({ ...payload, id: 'assessment-1', completed_at: '2026-10-16T06:00:00Z', capture_channel: 'public_self_report', status: 'completed' }, 'hh-1', null)
     expect(detail?.shortFormResult?.homePaymentRange).toEqual(calculateHomePaymentRange(input))
-    expect(payload.overall_score).toBeNull()
-    expect(payload.overall_grade).toBeNull()
+    expect(payload.overall_score).toBe(65)
+    expect(payload.overall_grade).toBe('D')
+    expect(detail?.overallGrade).toBe('D')
+    expect(detail?.overallScore).toBe(65)
+    expect(detail?.shortFormResult?.buyerReadiness).toMatchObject({ score: 65, grade: 'D', provisional: false })
     expect(JSON.stringify(payload.answers)).not.toContain('qa@example.invalid')
   })
 })

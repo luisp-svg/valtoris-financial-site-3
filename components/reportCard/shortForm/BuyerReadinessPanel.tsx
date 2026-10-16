@@ -1,0 +1,28 @@
+import type { BuyerReadiness } from '../../../modules/reportCard/shortForm/buyerReadiness'
+import type { Locale } from '../../../modules/reportCard/shortForm/catalog'
+
+export default function BuyerReadinessPanel({ result, locale }: { result: BuyerReadiness; locale: Locale }) {
+  const es = locale === 'es'
+  const t = (en: string, spanish: string) => es ? spanish : en
+  const labels = { credit: t('Credit preparation', 'Preparación crediticia'), debt_budget: t('Debt and housing-budget fit', 'Deudas y presupuesto de vivienda'), purchase_funds: t('Purchase funds', 'Fondos de compra'), employment: t('Employment history', 'Historial laboral'), documents: t('Document readiness', 'Documentos listos') }
+  return <section className="buyer-readiness" aria-label={t('Buyer-readiness grade', 'Calificación de preparación para comprar')}>
+    <p className="short-kicker">{t('YOUR BUYER READINESS', 'TU PREPARACIÓN PARA COMPRAR')}</p>
+    <h2>{t('Buyer-readiness grade', 'Calificación de preparación para comprar')}</h2>
+    <p className="buyer-readiness-grade">{result.grade} <span>{result.score}/100</span></p>
+    <p><strong>{result.provisional ? t('Provisional — some answers are unknown', 'Provisional — faltan respuestas por confirmar') : t('Based on your reported answers', 'Basada en tus respuestas declaradas')}</strong></p>
+    <p>{t('This grade summarizes preparation under Valtoris’s educational rubric. It is separate from your payment range and does not determine mortgage eligibility or approval.', 'Esta calificación resume la preparación según la rúbrica educativa de Valtoris. Es independiente del rango de pago y no determina elegibilidad ni aprobación hipotecaria.')}</p>
+    {result.provisional ? <p>{t('Unknown categories receive no points yet, so this is a conservative preliminary grade. Missing information is not evidence of a financial problem. Confirm those answers before relying on the grade.', 'Las categorías desconocidas aún no reciben puntos, por lo que esta es una calificación preliminar conservadora. La información faltante no demuestra un problema financiero. Confirma esas respuestas antes de basarte en la calificación.')}</p> : null}
+    <dl className="buyer-readiness-categories">{result.categories.map(c => <div key={c.id}><dt>{labels[c.id]}</dt><dd>{c.score === null ? t('Not enough information', 'Falta información') : `${c.score} / ${c.max}`}</dd></div>)}</dl>
+    <details><summary>{t('How the grade is calculated', 'Cómo se calcula la calificación')}</summary>
+      <p>{t('Rubric v1: credit 30 points, debt/budget 25, purchase funds 20, employment 15 and documents 10. These are planning criteria, not calibrated predictions or lender requirements.', 'Rúbrica v1: crédito 30 puntos, deudas/presupuesto 25, fondos de compra 20, empleo 15 y documentos 10. Son criterios de planificación, no predicciones calibradas ni requisitos de prestamistas.')}</p>
+      <ul>
+        <li>{t('Credit: 740+ = 30; 700–739 = 27; 620–699 = 20; below 620 = 10. Subtract 5 for late payments, 7 for collections, 10 for bankruptcy/foreclosure and 3 for reported errors/identity concerns, with a minimum of 0.', 'Crédito: 740+ = 30; 700–739 = 27; 620–699 = 20; menos de 620 = 10. Se restan 5 por atrasos, 7 por cobranzas, 10 por bancarrota/ejecución y 3 por errores/problemas de identidad indicados, con mínimo de 0.')}</li>
+        <li>{t('Debt/budget: divide your monthly debts plus your stated maximum housing budget by gross monthly income. Up to 36% = 25; up to 43% = 18; up to 50% = 8; above 50% = 0. Zero income or a zero housing budget receives 0.', 'Deudas/presupuesto: divide deudas mensuales más tu presupuesto máximo de vivienda entre ingreso bruto mensual. Hasta 36% = 25; hasta 43% = 18; hasta 50% = 8; más de 50% = 0. Ingreso cero o presupuesto de vivienda cero recibe 0.')}</li>
+        <li>{t('Purchase funds: at least 6 times your stated monthly housing budget = 20; at least 3 times = 15; at least 1 time = 8; a smaller positive amount = 4; zero funds or zero budget = 0. This comparison does not establish enough cash for a down payment, closing costs or reserves.', 'Fondos de compra: al menos 6 veces tu presupuesto mensual de vivienda = 20; al menos 3 veces = 15; al menos 1 vez = 8; un monto positivo menor = 4; fondos o presupuesto cero = 0. Esta comparación no determina que haya efectivo suficiente para anticipo, cierre ni reservas.')}</li>
+        <li>{t('Employment: 2 years or more in your current position or line of work = 15; less than 2 years = 7. This does not establish qualifying income.', 'Empleo: 2 años o más en el puesto o área de trabajo = 15; menos de 2 años = 7. Esto no determina ingresos admisibles para un préstamo.')}</li>
+        <li>{t('Documents: pay stubs/W-2s = 5 and two months of bank statements = 5. Tax and investment/retirement statements remain in your checklist but add no points because applicability varies.', 'Documentos: recibos de sueldo/W-2 = 5 y dos meses de estados bancarios = 5. Las declaraciones fiscales y estados de inversión/jubilación siguen en la lista sin puntos adicionales porque su pertinencia varía.')}</li>
+      </ul>
+      <p>{t('Grades: A 93–100; A− 90–92; B+ 87–89; B 83–86; B− 80–82; C+ 77–79; C 73–76; C− 70–72; D+ 67–69; D 60–66; F below 60. Buying timeline, occupancy and lender relationships do not add or subtract points. Higher scores do not promise financing or a better interest rate.', 'Calificaciones: A 93–100; A− 90–92; B+ 87–89; B 83–86; B− 80–82; C+ 77–79; C 73–76; C− 70–72; D+ 67–69; D 60–66; F menos de 60. Plazo de compra, ocupación y relación con prestamistas no cambian puntos. Un puntaje mayor no promete financiamiento ni una mejor tasa.')}</p>
+    </details>
+  </section>
+}

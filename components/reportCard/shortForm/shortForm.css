@@ -32,3 +32,10 @@
 .home-payment-range-value span { font-size: 1rem; font-weight: 500; white-space: nowrap; }
 .home-payment-range summary { font-weight: 600; cursor: pointer; padding: .5rem 0; }
 .home-payment-range details p { max-width: 64ch; }
+
+.buyer-readiness { background: #f8f5ee; color: #172f40; }
+.buyer-readiness .buyer-readiness-grade { font-size: 3.5rem; line-height: 1.1; font-weight: 700; margin: 1rem 0; }
+.buyer-readiness-grade span { font-size: 1.2rem; font-weight: 500; }
+.buyer-readiness-categories { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 0 1rem; }
+.buyer-readiness summary { cursor: pointer; font-weight: 600; padding: .5rem 0; }
+.buyer-readiness li { margin: .75rem 0; line-height: 1.6; }

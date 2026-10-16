@@ -1,9 +1,10 @@
+import { scoreBuyerReadiness, isBuyerReadiness, type BuyerReadiness } from './buyerReadiness.js'
 import { calculateHomePaymentRange, isHomePaymentRange, type HomePaymentRange } from './homePaymentRange.js'
 import { SHORT_FORM_VERSION, type Copy, type Locale, type ShortQuestion } from './catalog.js'
 import { numericAnswer, visibleQuestions, type ShortDiagnostic } from './contract.js'
 import type { PublicReportCardAssessmentType } from '../publicIngestCatalog.js'
 export type ShortFinding = { id: string; status: 'review' | 'reported' | 'unknown'; title: Copy; detail: Copy }
-export type ShortResult = { version: 3; kind: 'short-form-review'; overallScore: null; overallGrade: null; findings: ShortFinding[]; metrics: { id: string; label: Copy; value: number; unit: 'USD' | 'USD/month' }[]; homePaymentRange?: HomePaymentRange; limitations: Copy }
+export type ShortResult = { version: 3; kind: 'short-form-review'; overallScore: number | null; overallGrade: string | null; findings: ShortFinding[]; metrics: { id: string; label: Copy; value: number; unit: 'USD' | 'USD/month' }[]; buyerReadiness?: BuyerReadiness; homePaymentRange?: HomePaymentRange; limitations: Copy }
 const copy = (en: string, es: string): Copy => ({ en, es })
 export function displayShortAnswer(q: ShortQuestion, value: unknown, locale: Locale): string {
   if (value === 'unknown') return locale === 'es' ? 'No sé' : 'Not sure'
@@ -11,7 +12,7 @@ export function displayShortAnswer(q: ShortQuestion, value: unknown, locale: Loc
   if (Array.isArray(value)) return value.map(v => q.options?.find(o => o.value === v)?.label[locale] ?? '—').join(', ')
   return q.options?.find(o => o.value === value)?.label[locale] ?? (typeof value === 'string' ? value : '—')
 }
-/** Observations and explicit arithmetic only. No invented values or uncalibrated letter grades. */
+/** Shared server/client results. The home-buyer grade uses an explicit versioned educational rubric. */
 export function buildShortResult(type: PublicReportCardAssessmentType, d: ShortDiagnostic): ShortResult {
   const findings: ShortFinding[] = [], metrics: ShortResult['metrics'] = []
   const add = (id: string,status: ShortFinding['status'],en: string,es: string,detail: string,detalle: string) => findings.push({id,status,title:copy(en,es),detail:copy(detail,detalle)})
@@ -57,7 +58,8 @@ export function buildShortResult(type: PublicReportCardAssessmentType, d: ShortD
   const unknown = visibleQuestions(type,d).filter(q=>d[q.id]==='unknown'||(Array.isArray(d[q.id]) && d[q.id].includes('unknown')))
   if (unknown.length) add('unknowns','unknown','Confirm unknown information','Confirma la información desconocida',`${unknown.length} answer(s) were marked not sure. These are information gaps, not established financial problems.`,`${unknown.length} respuesta(s) se marcaron como desconocidas. Son datos por confirmar, no problemas financieros comprobados.`)
   if (!findings.length) add('review','reported','Review your stated priorities','Revisa tus prioridades indicadas','Bring the answers below to your advisor review. This short form does not establish that every planning area is complete.','Lleva estas respuestas a la revisión con tu asesor. Esta evaluación breve no determina que toda la planificación esté completa.')
-  return {version:SHORT_FORM_VERSION,kind:'short-form-review',overallScore:null,overallGrade:null,findings,metrics,...(type === 'home_buyer' ? { homePaymentRange: calculateHomePaymentRange(d) } : {}),limitations:copy('Short-form educational review based on self-reported answers. No letter grade or calibrated readiness score is assigned. Historical full-report grades are separate. Detailed planning belongs in the private intake.','Revisión educativa breve basada en tus respuestas. No asigna calificación ni puntaje calibrado. Las calificaciones de reportes completos anteriores se mantienen separadas. La planificación detallada corresponde al formulario privado.')}
+  const buyerReadiness = type === 'home_buyer' ? scoreBuyerReadiness(d) : undefined
+  return {version:SHORT_FORM_VERSION,kind:'short-form-review',overallScore:buyerReadiness && !buyerReadiness.provisional ? buyerReadiness.score : null,overallGrade:buyerReadiness && !buyerReadiness.provisional ? buyerReadiness.grade : null,findings,metrics,...(buyerReadiness ? { buyerReadiness } : {}),...(type === 'home_buyer' ? { homePaymentRange: calculateHomePaymentRange(d) } : {}),limitations:buyerReadiness ? copy('Educational review based on self-reported answers. The buyer-readiness grade uses the displayed Valtoris planning rubric; it is not a lender score or mortgage approval. The payment estimate is separate. Historical full-report grades use a different rubric.', 'Revisión educativa basada en tus respuestas. La calificación usa la rúbrica de planificación de Valtoris indicada; no es puntaje de un prestamista ni aprobación hipotecaria. La estimación de pago es independiente. Las calificaciones de reportes completos anteriores usan otra rúbrica.') : copy('Short-form educational review based on self-reported answers. No letter grade or calibrated readiness score is assigned. Historical full-report grades are separate. Detailed planning belongs in the private intake.','Revisión educativa breve basada en tus respuestas. No asigna calificación ni puntaje calibrado. Las calificaciones de reportes completos anteriores se mantienen separadas. La planificación detallada corresponde al formulario privado.')}
 }
 export function shortAnswerRows(type: PublicReportCardAssessmentType,d: ShortDiagnostic,locale: Locale) {
   return visibleQuestions(type,d).map(q=>({id:q.id,label:q.label[locale],value:displayShortAnswer(q,d[q.id],locale)}))
@@ -67,9 +69,12 @@ export function shortAnswerRows(type: PublicReportCardAssessmentType,d: ShortDia
 export function readShortResult(value: unknown): ShortResult | undefined {
   const record = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v)
   const bilingual = (v: unknown): boolean => record(v) && typeof v.en === 'string' && typeof v.es === 'string'
-  if (!record(value) || value.version !== 3 || value.kind !== 'short-form-review' || value.overallScore !== null || value.overallGrade !== null || !bilingual(value.limitations)) return undefined
+  if (!record(value) || value.version !== 3 || value.kind !== 'short-form-review' || !bilingual(value.limitations)) return undefined
   if (!Array.isArray(value.findings) || !value.findings.every(f => record(f) && typeof f.id === 'string' && ['review','reported','unknown'].includes(String(f.status)) && bilingual(f.title) && bilingual(f.detail))) return undefined
   if (!Array.isArray(value.metrics) || !value.metrics.every(m => record(m) && typeof m.id === 'string' && bilingual(m.label) && typeof m.value === 'number' && Number.isFinite(m.value) && m.value >= 0 && ['USD','USD/month'].includes(String(m.unit)))) return undefined
   if (value.homePaymentRange !== undefined && !isHomePaymentRange(value.homePaymentRange)) return undefined
+  if (value.buyerReadiness !== undefined && !isBuyerReadiness(value.buyerReadiness)) return undefined
+  const grade = value.buyerReadiness as BuyerReadiness | undefined
+  if (value.overallScore !== (grade && !grade.provisional ? grade.score : null) || value.overallGrade !== (grade && !grade.provisional ? grade.grade : null)) return undefined
   return value as ShortResult
 }

@@ -1,3 +1,4 @@
+import BuyerReadinessPanel from './BuyerReadinessPanel'
 import HomePaymentRangePanel from './HomePaymentRangePanel'
 import { useEffect, useRef, type ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
@@ -12,7 +13,7 @@ import './shortForm.css'
 
 export function ShortResultBody({result,locale='en'}:{result:ShortResult;locale?:Locale}) {
   const es=locale==='es'
-  return <>{result.homePaymentRange ? <HomePaymentRangePanel result={result.homePaymentRange} locale={locale} /> : null}<p>{result.limitations[locale]}</p>{result.metrics.length?<section aria-label={es?'Cálculos simples':'Simple calculations'}>{result.metrics.map(metric=><div key={metric.id}><h3>{metric.label[locale]}</h3><p className="short-metric">{new Intl.NumberFormat(es?'es-US':'en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(metric.value)}{metric.unit==='USD/month'?(es?' / mes':' / month'):''}</p></div>)}</section>:null}<section><h2>{es?'Observaciones y próximos pasos':'Observations and next steps'}</h2>{result.findings.map(f=><article key={f.id}><p>{f.status==='unknown'?(es?'Información por confirmar':'Information to confirm'):f.status==='review'?(es?'Tema para revisar':'Review topic'):(es?'Según tus respuestas':'Based on your answers')}</p><h3>{f.title[locale]}</h3><p>{f.detail[locale]}</p></article>)}</section></>
+  return <>{result.buyerReadiness ? <BuyerReadinessPanel result={result.buyerReadiness} locale={locale} /> : null}{result.homePaymentRange ? <HomePaymentRangePanel result={result.homePaymentRange} locale={locale} /> : null}<p>{result.limitations[locale]}</p>{result.metrics.length?<section aria-label={es?'Cálculos simples':'Simple calculations'}>{result.metrics.map(metric=><div key={metric.id}><h3>{metric.label[locale]}</h3><p className="short-metric">{new Intl.NumberFormat(es?'es-US':'en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(metric.value)}{metric.unit==='USD/month'?(es?' / mes':' / month'):''}</p></div>)}</section>:null}<section><h2>{es?'Observaciones y próximos pasos':'Observations and next steps'}</h2>{result.findings.map(f=><article key={f.id}><p>{f.status==='unknown'?(es?'Información por confirmar':'Information to confirm'):f.status==='review'?(es?'Tema para revisar':'Review topic'):(es?'Según tus respuestas':'Based on your answers')}</p><h3>{f.title[locale]}</h3><p>{f.detail[locale]}</p></article>)}</section></>
 }
 function loadSession(state:unknown,key:string):unknown {
   if(state&&typeof state==='object'&&'answers' in state)return (state as {answers:unknown}).answers
