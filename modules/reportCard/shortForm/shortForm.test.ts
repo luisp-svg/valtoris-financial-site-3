@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { SHORT_CARDS, SHORT_FORM_FORMAT } from './catalog'
+import { LEGACY_HOME_BUYER_QUESTIONS, SHORT_CARDS, SHORT_FORM_FORMAT } from './catalog'
 import { validateShortAnswers, updateShortAnswer, visibleQuestions, type ShortAnswers } from './contract'
-import { buildShortResult, readShortResult } from './results'
+import { buildShortResult, readShortResult, shortAnswerRows } from './results'
 import type { PublicReportCardAssessmentType } from '../publicIngestCatalog'
 import { validIngestRequestBodyFixture } from '../../../server/ingest/familyReportCard/testFixtures'
 import { validateFamilyReportCardIngestRequest } from '../../../server/ingest/familyReportCard/validation'
@@ -11,7 +11,7 @@ import { mapPublicFamilyDiagnosticDetail } from '../../../crm/households/assessm
 
 const types=Object.keys(SHORT_CARDS) as PublicReportCardAssessmentType[]
 function answers(type:PublicReportCardAssessmentType):ShortAnswers {
-  return {format:SHORT_FORM_FORMAT,assessmentType:type,contact:{fullName:'QA Rivera',email:'qa@example.invalid',phone:''},diagnostic:Object.fromEntries(SHORT_CARDS[type].questions.map(q=>[q.id,q.kind==='multi'?['unknown']:q.options && !q.options.some(o=>o.value==='unknown') ? q.options[q.options.length-1].value : 'unknown']))}
+  return {format:SHORT_FORM_FORMAT,assessmentType:type,contact:{fullName:'QA Rivera',email:'qa@example.invalid',phone:''},diagnostic:Object.fromEntries(SHORT_CARDS[type].questions.map(q=>[q.id,q.kind==='multi'?['unknown']:q.kind==='number' && q.allowUnknown===false ? '0' : q.options && !q.options.some(o=>o.value==='unknown') ? q.options[q.options.length-1].value : 'unknown']))}
 }
 describe('versioned short reviews',()=>{
   it.each(types)('%s stays within fifteen fields and preserves explicit unknowns',type=>{
@@ -74,5 +74,40 @@ describe('versioned short reviews',()=>{
     expect(detail?.submittedAnswers.length).toBe(SHORT_CARDS[type].questions.length)
     expect(JSON.stringify(detail?.submittedAnswers)).not.toContain('qa@example.invalid')
     expect(readShortResult({...detail?.shortFormResult,metrics:[{value:Infinity}]})).toBeUndefined()
+  })
+})
+
+describe('revised home-buyer questions', () => {
+  it('validates the revised questions and optional phone through the ingest boundary', () => {
+    const a = answers('home_buyer')
+    a.diagnostic = { timing: 'year', occupancy: 'primary', credit_range: '620_699', credit_issues: ['bankruptcy_foreclosure'], income: '8500', employment_tenure: '2_plus_years', debt_payment: '650', budget: '2200', purchase_funds: '30000', documents: ['income', 'tax', 'bank', 'investment_retirement'], lender: 'no' }
+    expect(SHORT_CARDS.home_buyer.questions).toHaveLength(11)
+    expect(validateShortAnswers('home_buyer', a)).toEqual(a)
+    expect(validateFamilyReportCardIngestRequest(validIngestRequestBodyFixture({ assessmentType: 'home_buyer', assessmentVersion: 3, answers: a })).ok).toBe(true)
+    expect(visibleQuestions('home_buyer', a.diagnostic).some(q => ['reserves', 'income_months'].includes(q.id))).toBe(false)
+    const rows = shortAnswerRows('home_buyer', a.diagnostic, 'en')
+    expect(rows.find(r => r.id === 'documents')?.value).toContain('Investment / retirement')
+    expect(rows.find(r => r.id === 'credit_issues')?.value).toBe('Bankruptcy / foreclosure')
+    for (const key of ['income', 'employment_tenure', 'lender']) {
+      expect(validateShortAnswers('home_buyer', { ...a, diagnostic: { ...a.diagnostic, [key]: 'unknown' } })).toBeNull()
+    }
+    expect(validateShortAnswers('home_buyer', { ...a, diagnostic: { ...a.diagnostic, income: '' } })).toBeNull()
+    expect(validateShortAnswers('home_buyer', { ...a, diagnostic: { ...a.diagnostic, income: '0' } })).not.toBeNull()
+    expect(validateShortAnswers('home_buyer', { ...a, diagnostic: { ...a.diagnostic, reserves: '6' } })).toBeNull()
+    expect(validateShortAnswers('home_buyer', { ...a, diagnostic: { ...a.diagnostic, documents: ['id'] } })).toBeNull()
+  })
+  it('preserves original saved answers, wording and options without relabeling them', () => {
+    const a = answers('home_buyer')
+    a.diagnostic = Object.fromEntries(LEGACY_HOME_BUYER_QUESTIONS.map(q => [q.id, q.kind === 'multi' ? ['unknown'] : 'unknown']))
+    a.diagnostic.credit_range = '660_699'
+    a.diagnostic.documents = ['id']
+    a.diagnostic.income_months = '18'
+    a.diagnostic.reserves = '6'
+    expect(validateShortAnswers('home_buyer', a)).toEqual(a)
+    const rows = shortAnswerRows('home_buyer', a.diagnostic, 'en')
+    expect(rows).toHaveLength(12)
+    expect(rows.find(r => r.id === 'credit_range')?.value).toBe('660–699')
+    expect(rows.find(r => r.id === 'documents')?.value).toBe('Government ID')
+    expect(rows.find(r => r.id === 'income_months')?.label).toBe('For how many months has that income been stable?')
   })
 })

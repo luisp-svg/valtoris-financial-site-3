@@ -1,12 +1,12 @@
 import type { PublicReportCardAssessmentType } from '../publicIngestCatalog.js'
 export type Locale = 'en' | 'es'
 export type Copy = Record<Locale, string>
-export type ShortQuestion = { id: string; label: Copy; kind: 'number' | 'select' | 'multi' | 'state'; options?: readonly { value: string; label: Copy }[]; unit?: Copy; max?: number; when?: { field: string; not: string } }
+export type ShortQuestion = { id: string; label: Copy; kind: 'number' | 'select' | 'multi' | 'state'; options?: readonly { value: string; label: Copy }[]; unit?: Copy; helper?: Copy; allowUnknown?: boolean; max?: number; when?: { field: string; not: string } }
 export type ShortCard = { title: Copy; assessmentPath: string; storageKey: string; questions: readonly ShortQuestion[] }
 /** Version 3 avoids the deployed Home Buyer v2 contract. Legacy versions remain immutable. */
 export const SHORT_FORM_VERSION = 3
 export const SHORT_FORM_FORMAT = 'short-form-v3' as const
-export const SHORT_CARDS: Record<PublicReportCardAssessmentType, ShortCard> = {
+const ORIGINAL_SHORT_CARDS: Record<PublicReportCardAssessmentType, ShortCard> = {
   "family": {
     "title": {
       "en": "Family Report Card",
@@ -2370,4 +2370,55 @@ export const SHORT_CARDS: Record<PublicReportCardAssessmentType, ShortCard> = {
       }
     ]
   }
+}
+
+/** Preserve the original wording and options for saved reviews and in-flight submissions. */
+export const LEGACY_HOME_BUYER_QUESTIONS = ORIGINAL_SHORT_CARDS.home_buyer.questions
+const bilingual = (en: string, es: string): Copy => ({ en, es })
+const choice = (value: string, en: string, es: string) => ({ value, label: bilingual(en, es) })
+const revisedHomeBuyerQuestions: readonly ShortQuestion[] = LEGACY_HOME_BUYER_QUESTIONS
+  .filter(q => q.id !== 'reserves')
+  .map(q => {
+    switch (q.id) {
+      case 'credit_range': return { ...q, options: [
+        choice('740_plus', '740 or higher', '740 o más'),
+        choice('700_739', '700–739', '700–739'),
+        choice('620_699', '620–699', '620–699'),
+        choice('below_620', 'Below 620', 'Menos de 620'),
+        choice('unknown', 'Not sure', 'No sé'),
+      ] }
+      case 'credit_issues': return { ...q, options: q.options!.map(o => o.value === 'bankruptcy'
+        ? choice('bankruptcy_foreclosure', 'Bankruptcy / foreclosure', 'Bancarrota / ejecución hipotecaria') : o) }
+      case 'income': return { ...q, allowUnknown: false, label: bilingual(
+        'What is all applicants’ total gross monthly income before taxes?',
+        '¿Cuál es el ingreso bruto mensual total de todos los solicitantes, antes de impuestos?') }
+      case 'income_months': return {
+        id: 'employment_tenure', kind: 'select', label: bilingual(
+          'How long have you worked in your current position or line of work?',
+          '¿Cuánto tiempo has trabajado en tu puesto actual o en tu área de trabajo?'),
+        options: [choice('under_2_years', 'Less than 2 years', 'Menos de 2 años'), choice('2_plus_years', '2 years or more', '2 años o más')],
+      }
+      case 'debt_payment': return { ...q, helper: bilingual(
+        'Include total minimum credit card payments and monthly installment payments, such as car loans and student loans. Count shared debts once.',
+        'Incluye el total de pagos mínimos de tarjetas de crédito y pagos mensuales de préstamos a plazos, como préstamos de auto y estudiantiles. Cuenta las deudas compartidas una sola vez.') }
+      case 'budget': return { ...q, label: bilingual(
+        'What is the maximum monthly housing payment that fits your budget?',
+        '¿Cuál es el pago mensual máximo de vivienda que cabe en tu presupuesto?') }
+      case 'purchase_funds': return { ...q, label: bilingual(
+        'How much do you have available for the purchase?',
+        '¿Cuánto tienes disponible para la compra?') }
+      case 'documents': return { ...q, options: [
+        choice('income', 'Pay stubs / W-2s', 'Recibos de sueldo / formularios W-2'),
+        choice('tax', 'Tax returns (if self-employed)', 'Declaraciones de impuestos (si trabajas por cuenta propia)'),
+        choice('bank', 'Two months of bank statements', 'Dos meses de estados de cuenta bancarios'),
+        choice('investment_retirement', 'Investment / retirement account statements', 'Estados de cuenta de inversiones / jubilación'),
+        choice('none', 'None ready', 'Ninguno listo'), choice('unknown', 'Not sure', 'No sé'),
+      ] }
+      case 'lender': return { ...q, options: q.options!.filter(o => o.value !== 'unknown') }
+      default: return q
+    }
+  })
+export const SHORT_CARDS: Record<PublicReportCardAssessmentType, ShortCard> = {
+  ...ORIGINAL_SHORT_CARDS,
+  home_buyer: { ...ORIGINAL_SHORT_CARDS.home_buyer, questions: revisedHomeBuyerQuestions },
 }
