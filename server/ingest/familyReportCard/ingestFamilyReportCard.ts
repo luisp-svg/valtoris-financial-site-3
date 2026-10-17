@@ -1,3 +1,4 @@
+import { isGuidedReport, guidedResult, GUIDED_REPORT_VERSION } from '../../../modules/reportCard/specialtyPreview/submission.js'
 import { isShortForm } from '../../../modules/reportCard/shortForm/contract.js'
 import { SHORT_FORM_VERSION } from '../../../modules/reportCard/shortForm/catalog.js'
 import { buildShortResult } from '../../../modules/reportCard/shortForm/results.js'
@@ -89,10 +90,12 @@ function persistableAssessmentAnswers(
   answers: PublicReportCardAnswers,
 ):
   | PublicReportCardAnswers
+  | Omit<import('../../../modules/reportCard/specialtyPreview/submission.js').GuidedReportAnswers, 'contact'>
   | Omit<import('../../../modules/reportCard/shortForm/contract.js').ShortAnswers, 'contact'>
   | { diagnostic: StudentLoanAssessmentAnswers['diagnostic'] }
   | { diagnostic: CreditAssessmentAnswers['diagnostic'] }
   | { diagnostic: HomeBuyerAssessmentAnswers['diagnostic'] } {
+  if (isGuidedReport(answers)) return {format:answers.format,assessmentType:answers.assessmentType,diagnostic:answers.diagnostic,locale:answers.locale}
   if (isShortForm(answers)) return { format: answers.format, assessmentType: answers.assessmentType, diagnostic: answers.diagnostic }
   if (assessmentType === 'student_loan') {
     return { diagnostic: (answers as StudentLoanAssessmentAnswers).diagnostic }
@@ -123,8 +126,15 @@ function buildCanonicalResult(
   clientReportedScore: number | null,
   clientReportedGrade: string | null,
 ): CanonicalResult {
+  if (isGuidedReport(answers)) {
+    const result=guidedResult(answers.assessmentType,answers.diagnostic,answers.locale)
+    const priorities=result.priorities.slice(0,3),names=splitFullName(answers.contact.fullName)
+    return {overallScore:result.overallScore,overallGrade:result.overallGrade,scoringVersion:GUIDED_REPORT_VERSION,priorities,
+      derivedMetrics:{guidedReportResult:result,categories:result.grade.measures.map(m=>({id:m.id,title:m.label[answers.locale],score:m.score,grade:null})),currentLevel:result.grade.provisional?'Preliminary planning-preparation grade':`Planning-preparation grade ${result.overallGrade??'N/A'}`},
+      sheetsPayload:buildMasterLeadPayload({...names,fullName:answers.contact.fullName,email:answers.contact.email,phone:answers.contact.phone,overallScore:result.overallScore??'',overallGrade:result.overallGrade??'',notes:'Guided Report Card v4; educational planning-preparation rubric; no eligibility, savings, or product recommendation.',topPriority1:priorities[0]?.title,topPriority2:priorities[1]?.title,topPriority3:priorities[2]?.title,sourcePage:sourcePage??'',submittedAt,rawAnswers:JSON.stringify({format:answers.format,assessmentType,diagnostic:answers.diagnostic,locale:answers.locale})})}
+  }
   if (isShortForm(answers)) {
-    const result = buildShortResult(assessmentType, answers.diagnostic)
+    const result = buildShortResult(answers.assessmentType, answers.diagnostic)
     const priorities = result.findings.filter(f => f.status !== 'reported').slice(0, 3).map(f => ({ level: f.status === 'unknown' ? 'information_needed' : 'review', title: f.title.en, why: f.detail.en, timeline: 'Advisor review' }))
     const names = splitFullName(answers.contact.fullName)
     return { overallScore: result.overallScore, overallGrade: result.overallGrade, scoringVersion: SHORT_FORM_VERSION, priorities,

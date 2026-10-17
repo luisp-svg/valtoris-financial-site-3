@@ -1,4 +1,4 @@
-import type { PublicReportCardAssessmentType } from '../publicIngestCatalog.js'
+import type { LegacyPublicReportCardAssessmentType as PublicReportCardAssessmentType } from '../publicIngestCatalog.js'
 export type Locale = 'en' | 'es'
 export type Copy = Record<Locale, string>
 export type ShortQuestion = { id: string; label: Copy; kind: 'number' | 'select' | 'multi' | 'state'; options?: readonly { value: string; label: Copy }[]; unit?: Copy; helper?: Copy; allowUnknown?: boolean; max?: number; when?: { field: string; not: string } }

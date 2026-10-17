@@ -77,6 +77,7 @@ export type IntakeDiagnosticSummary = {
     | 'Student Loan Report Card'
     | 'Credit Report Card'
     | 'Home Buyer Report Card'
+    | 'Health Insurance Report Card' | 'TSP Report Card' | 'Employee Benefits Report Card' | 'Tax Review Report Card'
   assessmentType: string | null
   protectionGapFormatted: string | null
   netProtectionGap: number | null

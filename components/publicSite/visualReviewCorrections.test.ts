@@ -133,15 +133,15 @@ describe('visual review corrections', () => {
     expect(en).not.toContain('lang=en')
   })
 
-  it('renders four homepage audience cards and preserves the separate six-tool catalog', () => {
+  it('renders eleven Report Card links and preserves the separate six-tool catalog', () => {
     const html = renderAt('/', createElement(HomePage))
     const diagnostics = html.match(/id="home-diagnostics"[\s\S]*?<\/section>/)?.[0] ?? ''
-    expect(diagnostics).toContain('site-home-card-grid--4')
-    expect(diagnostics.match(/class="site-home-card site-home-card--centered"/g)?.length).toBe(4)
-    expect(diagnostics).toContain('Take the Family Financial Report Card')
-    expect(diagnostics).toContain('Take the Business Financial Report Card')
-    expect(diagnostics).toContain('Take the Student Loan Report Card')
-    expect(diagnostics).toContain('Take the Credit Report Card')
+    expect(diagnostics).toContain('home-ask-cards')
+    expect(diagnostics.match(/class="home-ask-card-copy"/g)?.length).toBe(11)
+    expect(diagnostics).toContain('Protect my family')
+    expect(diagnostics).toContain('Strengthen my business')
+    expect(diagnostics).toContain('Review student loans')
+    expect(diagnostics).toContain('Understand my credit')
     expect(diagnostics).not.toContain('Also available')
     expect(diagnostics).not.toContain('site-home-more-tools')
     expect(HOME_FEATURED_DIAGNOSTICS.map((item) => item.id)).toEqual([
@@ -260,7 +260,7 @@ describe('visual review corrections', () => {
       .filter((name) => name.endsWith('.sql'))
       .sort()
     // Existing main includes the household-member migration; phase 1 adds none.
-    expect(files).toHaveLength(85)
+    expect(files).toHaveLength(87)
     expect(files.some((name) => name.startsWith('053_'))).toBe(true)
     expect(files.some((name) => name.startsWith('054_'))).toBe(true)
     expect(existsSync(join(ROOT, 'supabase/migrations/053_visual_review.sql'))).toBe(false)

@@ -41,6 +41,8 @@ export const FAMILY_SERVICE_TAG = 'service-family-planning'
 export const RETIREMENT_SERVICE_TAG = 'service-retirement-planning'
 
 export type ReportCardAgentCrmConfig =
+  | {assessmentType:'health'|'tsp'|'benefits'|'tax';source:string;serviceTag:string;enabled:boolean}
+
   | {
       assessmentType: 'student_loan'
       source: typeof STUDENT_LOAN_CONTACT_SOURCE
@@ -145,15 +147,24 @@ const ENABLED_CONFIGS: Record<string, ReportCardAgentCrmConfig> = {
 
 /** Returns the sync configuration for an enabled Report Card. Every other type stays inactive. */
 export function getReportCardAgentCrmConfig(assessmentType: string): ReportCardAgentCrmConfig | null {
+  const specialty=guidedConfigs().find(c=>c.assessmentType===assessmentType)
+  if(specialty)return specialty
   const config = ENABLED_CONFIGS[assessmentType]
   if (!config?.enabled) return null
   return config
 }
 
 export function isEnabledReportCardContactSource(source: string): boolean {
-  return Object.values(ENABLED_CONFIGS).some((config) => config.enabled && config.source === source)
+  return [...Object.values(ENABLED_CONFIGS),...guidedConfigs()].some((config) => config.enabled && config.source === source)
 }
 
 export function isEnabledReportCardServiceTag(serviceTag: string): boolean {
-  return Object.values(ENABLED_CONFIGS).some((config) => config.enabled && config.serviceTag === serviceTag)
+  return [...Object.values(ENABLED_CONFIGS),...guidedConfigs()].some((config) => config.enabled && config.serviceTag === serviceTag)
+}
+
+/** User-approved routing labels. Runtime metadata checks verify tags before external delivery. */
+export const GUIDED_REPORT_SERVICE_TAGS={health:'Health Insurance',tsp:'TSP',benefits:'Employee Benefits',tax:'Tax Review'} as const
+function guidedConfigs():ReportCardAgentCrmConfig[]{
+ const labels={health:'Health Insurance Report Card',tsp:'TSP Report Card',benefits:'Employee Benefits Report Card',tax:'Tax Review Report Card'} as const
+ return (Object.keys(labels) as (keyof typeof labels)[]).map(type=>({assessmentType:type,source:labels[type],serviceTag:GUIDED_REPORT_SERVICE_TAGS[type],enabled:true}))
 }

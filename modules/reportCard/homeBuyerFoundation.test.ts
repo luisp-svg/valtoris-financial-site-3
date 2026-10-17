@@ -35,6 +35,10 @@ describe('Home Buyer Batch 1 catalog foundation', () => {
       'student_loan',
       'credit',
       'home_buyer',
+      'health',
+      'tsp',
+      'benefits',
+      'tax',
     ])
     expect(isPublicReportCardAssessmentType('home_buyer')).toBe(true)
     expect(isPublicReportCardAssessmentType('household_onboarding')).toBe(false)

@@ -12,8 +12,10 @@ export const PUBLIC_REPORT_CARD_ASSESSMENT_TYPES = [
   'student_loan',
   'credit',
   'home_buyer',
+  'health', 'tsp', 'benefits', 'tax',
 ] as const
 
+export type LegacyPublicReportCardAssessmentType = 'family'|'business'|'retirement'|'protection'|'student_loan'|'credit'|'home_buyer'
 export type PublicReportCardAssessmentType = (typeof PUBLIC_REPORT_CARD_ASSESSMENT_TYPES)[number]
 
 export const PUBLIC_REPORT_CARD_LEAD_TYPES = [
@@ -24,6 +26,7 @@ export const PUBLIC_REPORT_CARD_LEAD_TYPES = [
   'Student Loan Report Card',
   'Credit Report Card',
   'Home Buyer Report Card',
+  'Health Insurance Report Card', 'TSP Report Card', 'Employee Benefits Report Card', 'Tax Review Report Card',
 ] as const
 
 export type PublicReportCardLeadType = (typeof PUBLIC_REPORT_CARD_LEAD_TYPES)[number]
@@ -36,6 +39,7 @@ export const LEAD_TYPE_BY_ASSESSMENT = {
   student_loan: 'Student Loan Report Card',
   credit: 'Credit Report Card',
   home_buyer: 'Home Buyer Report Card',
+  health: 'Health Insurance Report Card', tsp: 'TSP Report Card', benefits: 'Employee Benefits Report Card', tax: 'Tax Review Report Card',
 } as const satisfies Record<PublicReportCardAssessmentType, PublicReportCardLeadType>
 
 export const HOUSEHOLD_LEAD_SOURCE_BY_ASSESSMENT = {
@@ -46,6 +50,7 @@ export const HOUSEHOLD_LEAD_SOURCE_BY_ASSESSMENT = {
   student_loan: 'student_loan_report_card',
   credit: 'credit_report_card',
   home_buyer: 'home_buyer_report_card',
+  health: 'health_report_card', tsp: 'tsp_report_card', benefits: 'employee_benefits_report_card', tax: 'tax_planning_report_card',
 } as const satisfies Record<PublicReportCardAssessmentType, string>
 
 export const REPORT_PATH_BY_ASSESSMENT = {
@@ -56,6 +61,7 @@ export const REPORT_PATH_BY_ASSESSMENT = {
   student_loan: '/student-loan-results',
   credit: '/credit-results',
   home_buyer: '/home-buyer-results',
+  health: '/health-insurance-report-card', tsp: '/tsp-report-card', benefits: '/employee-benefits-report-card', tax: '/tax-review-report-card',
 } as const satisfies Record<PublicReportCardAssessmentType, string>
 
 /** CRM display labels. Family keeps the established Initial Financial Diagnostic name. */
@@ -67,6 +73,7 @@ export const CRM_PRODUCT_LABEL_BY_ASSESSMENT = {
   student_loan: 'Student Loan Report Card',
   credit: 'Credit Report Card',
   home_buyer: 'Home Buyer Report Card',
+  health: 'Health Insurance Report Card', tsp: 'TSP Report Card', benefits: 'Employee Benefits Report Card', tax: 'Tax Review Report Card',
 } as const satisfies Record<PublicReportCardAssessmentType, string>
 
 export const PUBLIC_REPORT_CARD_SCORING_VERSION = {
@@ -77,6 +84,7 @@ export const PUBLIC_REPORT_CARD_SCORING_VERSION = {
   student_loan: 1,
   credit: 1,
   home_buyer: 1,
+  health: 4, tsp: 4, benefits: 4, tax: 4,
 } as const satisfies Record<PublicReportCardAssessmentType, number>
 
 export const PUBLIC_REPORT_CARD_ASSESSMENT_VERSION = 1
@@ -91,7 +99,7 @@ export function isPublicReportCardAssessmentType(
     value === 'protection' ||
     value === 'student_loan' ||
     value === 'credit' ||
-    value === 'home_buyer'
+    value === 'home_buyer' || value === 'health' || value === 'tsp' || value === 'benefits' || value === 'tax'
   )
 }
 
@@ -128,5 +136,9 @@ export function assessmentTypeForLeadType(
   if (leadType === 'Student Loan Report Card') return 'student_loan'
   if (leadType === 'Credit Report Card') return 'credit'
   if (leadType === 'Home Buyer Report Card') return 'home_buyer'
+  if (leadType === 'Health Insurance Report Card') return 'health'
+  if (leadType === 'TSP Report Card') return 'tsp'
+  if (leadType === 'Employee Benefits Report Card') return 'benefits'
+  if (leadType === 'Tax Review Report Card') return 'tax'
   return null
 }

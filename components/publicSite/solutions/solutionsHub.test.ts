@@ -247,7 +247,7 @@ describe('Phase 8 solutions hub', () => {
       .filter((name) => name.endsWith('.sql'))
       .sort()
     // Existing main includes the household-member migration; phase 1 adds none.
-    expect(files).toHaveLength(85)
+    expect(files).toHaveLength(87)
     expect(files.some((name) => name.startsWith('053_'))).toBe(true)
     expect(files.some((name) => name.startsWith('054_'))).toBe(true)
     expect(existsSync(join(ROOT, 'supabase/migrations/053_solutions_hub.sql'))).toBe(false)

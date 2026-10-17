@@ -1,10 +1,11 @@
+import { guidedReportCardsEnabled } from '../modules/reportCard/guidedRelease'
 import ShortLanding from '../components/reportCard/shortForm/ShortLanding'
 import ShortAssessment from '../components/reportCard/shortForm/ShortAssessment'
 import VersionedReportResults from '../components/reportCard/shortForm/ShortResults'
 import CrmAdditionalServiceIntakePage from '../pages/crm/CrmAdditionalServiceIntakePage'
 import CrmClientIntakeNewPage from '../pages/crm/CrmClientIntakeNewPage'
 import CrmArchivedRecordsPage from '../pages/crm/CrmArchivedRecordsPage'
-import { ReactNode } from 'react'
+import { lazy, ReactNode, Suspense } from 'react'
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom'
 import ScrollToTop from '../components/ScrollToTop'
 import SiteHeader from '../components/SiteHeader'
@@ -68,6 +69,9 @@ import CrmProductionNewPage from '../pages/crm/CrmProductionNewPage'
 import CrmProductionEditPage from '../pages/crm/CrmProductionEditPage'
 import CrmProductionDetailPage from '../pages/crm/CrmProductionDetailPage'
 
+
+const SpecialtyReportCardPreview = guidedReportCardsEnabled ? lazy(() => import('../pages/SpecialtyReportCardPreview')) : null
+
 function SiteLayout({ children }: { children: ReactNode }) {
   return (
     <div className="site-shell">
@@ -91,6 +95,22 @@ export default function App() {
     <>
       <ScrollToTop />
       <Routes>
+      {SpecialtyReportCardPreview && <>
+       {import.meta.env.DEV && <>
+        <Route path="/preview/report-cards/family" element={<SiteLayout><Suspense fallback={<p>Loading…</p>}><SpecialtyReportCardPreview key="family" type="family" /></Suspense></SiteLayout>} />
+        <Route path="/preview/report-cards/business" element={<SiteLayout><Suspense fallback={<p>Loading…</p>}><SpecialtyReportCardPreview key="business" type="business" /></Suspense></SiteLayout>} />
+        <Route path="/preview/report-cards/protection" element={<SiteLayout><Suspense fallback={<p>Loading…</p>}><SpecialtyReportCardPreview key="protection" type="protection" /></Suspense></SiteLayout>} />
+        <Route path="/preview/report-cards/retirement" element={<SiteLayout><Suspense fallback={<p>Loading…</p>}><SpecialtyReportCardPreview key="retirement" type="retirement" /></Suspense></SiteLayout>} />
+        <Route path="/preview/report-cards/credit" element={<SiteLayout><Suspense fallback={<p>Loading…</p>}><SpecialtyReportCardPreview key="credit" type="credit" /></Suspense></SiteLayout>} />
+        <Route path="/preview/report-cards/student_loan" element={<SiteLayout><Suspense fallback={<p>Loading…</p>}><SpecialtyReportCardPreview key="student_loan" type="student_loan" /></Suspense></SiteLayout>} />
+        <Route path="/preview/report-cards/home_buyer" element={<SiteLayout><Suspense fallback={<p>Loading…</p>}><SpecialtyReportCardPreview key="home_buyer" type="home_buyer" /></Suspense></SiteLayout>} />
+       </>}
+        <Route path="/health-insurance-report-card" element={<SiteLayout><Suspense fallback={<p>Loading…</p>}><SpecialtyReportCardPreview key="health" type="health" /></Suspense></SiteLayout>} />
+        <Route path="/tsp-report-card" element={<SiteLayout><Suspense fallback={<p>Loading…</p>}><SpecialtyReportCardPreview key="tsp" type="tsp" /></Suspense></SiteLayout>} />
+        <Route path="/employee-benefits-report-card" element={<SiteLayout><Suspense fallback={<p>Loading…</p>}><SpecialtyReportCardPreview key="benefits" type="benefits" /></Suspense></SiteLayout>} />
+        <Route path="/tax-review-report-card" element={<SiteLayout><Suspense fallback={<p>Loading…</p>}><SpecialtyReportCardPreview key="tax" type="tax" /></Suspense></SiteLayout>} />
+        <Route path="/tax-planning-report-card" element={<SiteLayout><Suspense fallback={<p>Loading…</p>}><SpecialtyReportCardPreview key="tax" type="tax" /></Suspense></SiteLayout>} />
+      </>}
       <Route path={ROUTES.reportCards} element={<SiteLayout><ReportCardsPage /></SiteLayout>} />
       <Route path={ROUTES.education} element={<SiteLayout><EducationPage /></SiteLayout>} />
       <Route path={ROUTES.getQuote} element={<SiteLayout><GetQuotePage /></SiteLayout>} />

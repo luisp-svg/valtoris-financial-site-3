@@ -1,3 +1,4 @@
+import { isGuidedReport, guidedResult, GUIDED_REPORT_VERSION, type GuidedReportAnswers } from '../../../modules/reportCard/specialtyPreview/submission'
 import { isShortForm, type ShortAnswers } from '../../../modules/reportCard/shortForm/contract'
 import { SHORT_FORM_VERSION } from '../../../modules/reportCard/shortForm/catalog'
 import { scoreBusinessAssessment } from '../../assessment/scoring/scoreBusinessAssessment'
@@ -58,6 +59,7 @@ export type FamilySubmitOrchestrationResult =
 export async function completePublicReportCardCrmSubmission(input: {
   assessmentType: PublicReportCardAssessmentType
   answers:
+    | GuidedReportAnswers
     | ShortAnswers
     | DemoAssessmentAnswers
     | BusinessAssessmentAnswers
@@ -105,7 +107,10 @@ export async function completePublicReportCardCrmSubmission(input: {
   const nowIso = input.nowIso ?? new Date().toISOString()
   let clientReportedScore: number | null = null
   let clientReportedGrade: string | null = null
-  if (isShortForm(input.answers)) {
+  if (isGuidedReport(input.answers)) {
+    const result=guidedResult(input.answers.assessmentType,input.answers.diagnostic,input.answers.locale)
+    clientReportedScore=result.overallScore;clientReportedGrade=result.overallGrade
+  } else if (isShortForm(input.answers)) {
     // Short reviews deliberately have no numeric score or letter grade.
   } else if (input.assessmentType === 'family') {
     const scored = scoreFamilyAssessment(input.answers as DemoAssessmentAnswers)
@@ -165,7 +170,7 @@ export async function completePublicReportCardCrmSubmission(input: {
     submittedAt: nowIso,
     honeypotWebsite: input.honeypotWebsite ?? '',
     assessmentType: input.assessmentType,
-    assessmentVersion: isShortForm(input.answers) ? SHORT_FORM_VERSION : input.assessmentType === 'home_buyer' && (input.answers as HomeBuyerAssessmentAnswers).diagnostic.v2 ? 2 : 1,
+    assessmentVersion: isGuidedReport(input.answers) ? GUIDED_REPORT_VERSION : isShortForm(input.answers) ? SHORT_FORM_VERSION : input.assessmentType === 'home_buyer' && (input.answers as HomeBuyerAssessmentAnswers).diagnostic.v2 ? 2 : 1,
   })
 
   const crm = await submitFamilyReportCardToCrm(payload, input.submitOptions)
