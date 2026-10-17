@@ -9,6 +9,7 @@ function fixture(patch: Partial<FollowUpDelivery> = {}) {
  const transport = {
   get:vi.fn(async(path:string): Promise<unknown> => {
    if(path==='/opportunities/search')return {opportunities:state.opportunities,meta:{total:state.opportunities.length,startAfterId:state.opportunities[0]?.id}}
+   if(path.startsWith('/opportunities/'))return {opportunity:state.opportunities.find(o=>path.endsWith('/'+o.id))}
    if(path==='/contacts/contact1/tasks')return {tasks:state.tasks}
    return {task:state.tasks.find(t=>path.endsWith('/'+t.id))}
   }),
@@ -99,9 +100,31 @@ describe('per-submission Report Card follow-up',()=>{
   const f=fixture();f.state.opportunities[0].contactId='other'
   await expect(deliverReportCardFollowUp(f.input)).rejects.toThrow('opportunity_scope_conflict');expect(f.transport.post).not.toHaveBeenCalled()
  })
- it('does not recreate an opportunity whose returned ID is absent from search',async()=>{
-  const f=fixture({opportunity_id:'knownOpp'});f.state.opportunities=[]
-  await expect(deliverReportCardFollowUp(f.input)).rejects.toThrow('opportunity_search_pending');expect(f.transport.post).not.toHaveBeenCalled()
+ it('uses direct read-back when a checkpointed opportunity has not appeared in search',async()=>{
+  const f=fixture({opportunity_id:'opp1',opportunity_create_started:true})
+  const original=f.transport.get.getMockImplementation()!
+  f.transport.get.mockImplementation(path=>path==='/opportunities/search'?Promise.resolve({opportunities:[],meta:{total:0}}):original(path))
+  await expect(deliverReportCardFollowUp(f.input)).resolves.toEqual({opportunityId:'opp1',taskId:'task1'})
+  expect(f.transport.post.mock.calls.map(([path])=>path)).toEqual(['/contacts/contact1/tasks'])
+ })
+ it('creates a task without waiting for a new opportunity to be searchable',async()=>{
+  const f=fixture();f.state.opportunities=[]
+  const original=f.transport.get.getMockImplementation()!
+  f.transport.get.mockImplementation(path=>path==='/opportunities/search'?Promise.resolve({opportunities:[],meta:{total:0}}):original(path))
+  await expect(deliverReportCardFollowUp(f.input)).resolves.toEqual({opportunityId:'newOpp',taskId:'task1'})
+  expect(f.transport.get.mock.calls.filter(([path])=>path==='/opportunities/search')).toHaveLength(1)
+  expect(f.transport.get).toHaveBeenCalledWith('/opportunities/newOpp',undefined)
+ })
+ it.each(['id','contactId','pipelineId','locationId'])('holds a mismatched direct opportunity %s before creating a task',async field=>{
+  const f=fixture();const original=f.transport.get.getMockImplementation()!
+  f.transport.get.mockImplementation(path=>path==='/opportunities/opp1'?Promise.resolve({opportunity:{...f.state.opportunities[0],[field]:'foreign'}}):original(path))
+  await expect(deliverReportCardFollowUp(f.input)).rejects.toThrow(field==='id'?'opportunity_link_conflict':'opportunity_scope_conflict')
+  expect(f.transport.post).not.toHaveBeenCalled()
+ })
+ it('does not create another opportunity or task when direct read-back is unavailable',async()=>{
+  const f=fixture({opportunity_id:'opp1'});const original=f.transport.get.getMockImplementation()!
+  f.transport.get.mockImplementation(async path=>{if(path==='/opportunities/opp1')throw new Error('network');return original(path)})
+  await expect(deliverReportCardFollowUp(f.input)).rejects.toThrow('network');expect(f.transport.post).not.toHaveBeenCalled()
  })
  it('does not retry unknown opportunity creation',async()=>{
   const f=fixture({opportunity_create_started:true});f.state.opportunities=[]

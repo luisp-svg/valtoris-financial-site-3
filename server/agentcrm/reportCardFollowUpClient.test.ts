@@ -2,6 +2,16 @@ import { describe, expect, it, vi } from 'vitest'
 import { ReportCardFollowUpClient } from './reportCardFollowUpClient'
 
 describe('scoped Report Card provider transport', () => {
+  it('reads a known opportunity by ID without allowing writes to that endpoint',async()=>{
+    const fetcher=vi.fn<typeof fetch>(async()=>new Response('{"opportunity":{"id":"opp123"}}',{status:200}))
+    const client=new ReportCardFollowUpClient('test-token',fetcher)
+    await client.get('/opportunities/opp123')
+    expect(String(fetcher.mock.calls[0][0])).toBe('https://services.leadconnectorhq.com/opportunities/opp123')
+    expect(fetcher.mock.calls[0][1]).toMatchObject({method:'GET',redirect:'error',headers:{Version:'v3'}})
+    await expect(client.post('/opportunities/opp123',{})).rejects.toThrow('invalid_response')
+    await expect(client.get('/opportunities/../contacts')).rejects.toThrow('invalid_response')
+    expect(fetcher).toHaveBeenCalledTimes(1)
+  })
   it('updates only the owner field, leaving tags, source and consent untouched',async()=>{
     const fetcher=vi.fn<typeof fetch>(async()=>new Response('{"succeeded":true}',{status:200}))
     await new ReportCardFollowUpClient('test-token',fetcher).assignContactOwner('contact123','liz123')
