@@ -420,8 +420,8 @@ export default function CrmIntakePage() {
       </header>
 
       <p className="crm-banner crm-banner-warning" role="status">
-        Public release remains blocked until the Privacy Policy at /privacy receives legal review.
-        The current page describes application behavior and is not attorney-approved legal coverage.
+        The Privacy Policy at /privacy describes current application behavior. Legal review has
+        not been completed.
       </p>
 
       {archiveSuccess ? (

@@ -12,5 +12,5 @@ export const HOUSEHOLD_IFD_BROWSER_QA_CHECKLIST = [
   'After keep-separate, diagnostic remains on provisional household; candidate does not receive it.',
   'Authorized owner/advisor access follows household RLS; cross-household assessment URL shows unavailable; public routes cannot access.',
   'Mobile history uses cards; long emails wrap; no raw JSON or capture_channel labels.',
-  'Privacy Policy route exists at /privacy; production release remains blocked until legal review.',
+  'Privacy Policy route exists at /privacy and reflects application behavior; legal review status is disclosed without blocking release.',
 ] as const

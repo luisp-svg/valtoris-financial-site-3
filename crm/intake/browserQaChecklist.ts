@@ -24,7 +24,7 @@ export const INTAKE_BROWSER_QA_CHECKLIST = [
   'Advisor does not see enabled Confirm / Keep separate controls (owner-only v1).',
   'Stale/already-resolved reviews show a safe conflict message without corrupting UI state.',
   'Public Family submission flow remains unchanged.',
-  'Privacy Policy route exists at /privacy; production release remains blocked until legal review.',
+  'Privacy Policy route exists at /privacy and reflects application behavior; legal review status is disclosed without blocking release.',
   'Owner sees Archive / Dismiss on Intake detail; Open household remains the primary CTA.',
   'Assigned advisor sees Archive only when existing household assignment proves access; unassigned-pool visibility does not enable Archive.',
   'Owner sees Assign Advisor on Intake detail; assigned and unassigned-pool advisors do not see reassignment control.',
