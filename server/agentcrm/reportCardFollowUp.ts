@@ -91,8 +91,7 @@ export async function deliverReportCardFollowUp(input: {
     if (opportunityId && opportunityId !== found) throw new DeliveryHold('opportunity_link_conflict')
     opportunityId = found
     await checkpoint({ opportunity_id: opportunityId })
-  } else {
-    if (opportunityId) throw new Error('opportunity_search_pending')
+  } else if (!opportunityId) {
     if (d.opportunity_create_started) throw new DeliveryHold('opportunity_outcome_unknown')
     const contactName = input.contactName.trim().replace(/\s+/g, ' ')
     if (!contactName) throw new DeliveryHold('invalid_contact_name')
@@ -105,9 +104,13 @@ export async function deliverReportCardFollowUp(input: {
     opportunityId = providerId(record(response.opportunity).id)
     await checkpoint({ opportunity_id: opportunityId })
   }
-  const verified = await opportunities()
-  if (!verified.length) throw new Error('opportunity_search_pending')
-  if (verified[0].id !== opportunityId) throw new DeliveryHold('opportunity_link_conflict')
+  // A freshly created record can be readable before it appears in search.
+  // Verify the checkpointed ID directly; never create again because indexing lags.
+  const verified = record(record(await get(`/opportunities/${opportunityId}`)).opportunity)
+  if (typeof verified.id !== 'string') throw new Error('invalid_opportunity_response')
+  if (verified.id !== opportunityId) throw new DeliveryHold('opportunity_link_conflict')
+  const verifiedContact = verified.contactId ?? record(verified.contact).id
+  if (verifiedContact !== contactId || verified.pipelineId !== t.pipelineId || verified.locationId !== t.locationId) throw new DeliveryHold('opportunity_scope_conflict')
 
   const taskPath = `/contacts/${contactId}/tasks`
   const verifyTask = (value: unknown, expectedId: string) => {

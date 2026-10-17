@@ -11,6 +11,7 @@ vi.mock('./client.js', () => ({LeadConnectorClient: class {
 vi.mock('./reportCardFollowUpClient.js', () => ({ReportCardFollowUpClient: class {
   async get(path: string) {
     if (path === '/opportunities/search') return {opportunities:[{id:'opp123',contactId:'contact123',pipelineId:'PsDkzCwY1xpySYvqd4j0',status:'won'}],meta:{total:1}}
+    if (path === '/opportunities/opp123') return {opportunity:{id:'opp123',contactId:'contact123',pipelineId:target.pipelineId,locationId:target.locationId,status:'won'}}
     if (path.endsWith('/tasks')) return {tasks:remote.tasks}
     return {task:remote.tasks.find(t=>path.endsWith('/'+t.id))}
   }

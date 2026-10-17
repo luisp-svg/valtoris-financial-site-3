@@ -21,7 +21,7 @@ export class ReportCardFollowUpClient implements FollowUpTransport {
   }
   private async request(method: 'GET' | 'POST' | 'PUT', path: string, query: Record<string, string | number>, body?: Record<string, unknown>) {
     const allowed = method === 'GET'
-      ? path === '/opportunities/search' || /^\/contacts\/[a-zA-Z0-9]{1,128}\/tasks(?:\/[a-zA-Z0-9]{1,128})?$/.test(path)
+      ? path === '/opportunities/search' || /^\/opportunities\/[a-zA-Z0-9]{1,128}$/.test(path) || /^\/contacts\/[a-zA-Z0-9]{1,128}\/tasks(?:\/[a-zA-Z0-9]{1,128})?$/.test(path)
       : method === 'POST'
         ? path === '/opportunities/' || /^\/contacts\/[a-zA-Z0-9]{1,128}\/tasks$/.test(path)
         : /^\/contacts\/[a-zA-Z0-9]{1,128}$/.test(path)
