@@ -74,7 +74,7 @@ function normalizeTask(row: Record<string, unknown>): CrmTask {
 
 export async function fetchVisibleTasks(
   supabase: SupabaseClient,
-  options?: { dueOn?: string; assignedUserId?: string; limit?: number; completed?: boolean; householdId?: string; opportunityId?: string },
+  options?: { dueBefore?: string; dueOn?: string; assignedUserId?: string; limit?: number; completed?: boolean; householdId?: string; opportunityId?: string },
 ): Promise<CrmTask[]> {
   let query = supabase
     .from('tasks')
@@ -86,6 +86,9 @@ export async function fetchVisibleTasks(
 
   if (options?.opportunityId) query = query.eq('opportunity_id', options.opportunityId)
   if (options?.householdId) query = query.eq('household_id', options.householdId)
+  if (options?.dueBefore && !options.completed) {
+    query = query.lt('due_date', options.dueBefore)
+  }
   if (options?.dueOn) {
     query = query.eq('due_date', options.dueOn)
   }

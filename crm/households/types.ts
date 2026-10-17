@@ -1,3 +1,5 @@
+import type { PublicReportCardAssessmentType } from '../../modules/reportCard/publicIngestCatalog'
+
 export type HouseholdStatus = 'lead' | 'prospect' | 'client' | 'inactive' | 'lost'
 
 /** DB enum values — includes legacy partner/dependent retained for existing rows. */
@@ -27,26 +29,10 @@ export type MemberRelationshipCreateOption =
   | 'other'
 
 /** All persisted `public.assessment_type` values. */
-export type AssessmentType =
-  | 'family'
-  | 'business'
-  | 'retirement'
-  | 'protection'
-  | 'student_loan'
-  | 'credit'
-  | 'household_onboarding'
+export type AssessmentType = PublicReportCardAssessmentType | 'household_onboarding'
 
-/**
- * Assessment types loaded into Client Workspace as latest-completed summaries.
- * Excludes `household_onboarding` (dedicated onboarding APIs only in this sprint).
- */
-export type WorkspaceAssessmentType =
-  | 'family'
-  | 'business'
-  | 'retirement'
-  | 'protection'
-  | 'student_loan'
-  | 'credit'
+/** Public Report Card types loaded into the household workspace. */
+export type WorkspaceAssessmentType = PublicReportCardAssessmentType
 
 /** `public.assessment_status` lifecycle values. */
 export type AssessmentLifecycleStatus = 'draft' | 'completed'

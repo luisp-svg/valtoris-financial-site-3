@@ -255,12 +255,12 @@ describe('Home Buyer Phase C ingest', () => {
     )
   })
 
-  it('keeps Home Buyer out of the CRM workspace and does not add Migration 056', () => {
+  it('keeps Home Buyer available in household history with its existing ingest boundary', () => {
     expect(HOME_BUYER_CRM_INGEST_ENABLED).toBe(true)
     expect(canSubmitHomeBuyerToCrm()).toBe(true)
     expect(source('src/App.tsx')).toContain('<ShortAssessment key="home_buyer" assessmentType="home_buyer" />')
     expect(source('src/App.tsx')).toContain('homeBuyerAssessment')
-    expect(WORKSPACE_ASSESSMENT_TYPES).not.toContain('home_buyer')
+    expect(WORKSPACE_ASSESSMENT_TYPES).toContain('home_buyer')
     const files = readdirSync(join(ROOT, 'supabase/migrations')).filter((name) => name.endsWith('.sql')).sort()
     expect(files.some((name) => name.startsWith('056_'))).toBe(true)
     expect(files.filter((name) => name.startsWith('054_'))).toEqual(['054_home_buyer_report_card_ingest.sql'])

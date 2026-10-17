@@ -10,6 +10,7 @@ import {
   fetchOpportunityOptions,
   fetchVisibleTasks,
   formatSupabaseError,
+  localDateString,
 } from '../../crm/tasks/tasksApi'
 import type {
   AssigneeOption,
@@ -77,7 +78,7 @@ export default function CrmTasksPage() {
 
   const loadTasks = useCallback(async () => {
     const supabase = createSupabaseBrowserClient()
-    const rows = await fetchVisibleTasks(supabase, { completed: searchParams.get('view') === 'completed', householdId: searchParams.get('household') || undefined, opportunityId: searchParams.get('opportunity') || undefined })
+    const rows = await fetchVisibleTasks(supabase, { dueBefore: searchParams.get('due') === 'overdue' ? localDateString() : undefined, completed: searchParams.get('view') === 'completed', householdId: searchParams.get('household') || undefined, opportunityId: searchParams.get('opportunity') || undefined })
     setTasks(rows)
   }, [searchParams])
 
@@ -207,13 +208,14 @@ export default function CrmTasksPage() {
     }
   }, [form.household_id])
 
-  function taskViewPath(completed = false) {
+  function taskViewPath(completed = false, overdue = false) {
     const params = new URLSearchParams()
     for (const key of ['household', 'opportunity']) {
       const value = searchParams.get(key)
       if (value) params.set(key, value)
     }
     if (completed) params.set('view', 'completed')
+    else if (overdue) params.set('due', 'overdue')
     return '/crm/tasks' + (params.size ? '?' + params.toString() : '')
   }
 
@@ -545,10 +547,10 @@ export default function CrmTasksPage() {
         </section>
       ) : null}
 
-      <nav aria-label="Task views"><Link to={taskViewPath()}>Open tasks</Link>{' · '}<Link to={taskViewPath(true)}>Completed tasks</Link></nav>
+      <nav aria-label="Task views"><Link to={taskViewPath()}>Open tasks</Link>{' · '}<Link to={taskViewPath(false, true)}>Overdue tasks</Link>{' · '}<Link to={taskViewPath(true)}>Completed tasks</Link></nav>
       <section className="crm-panel">
         <div className="crm-panel-head">
-          <h2>{searchParams.get('view') === 'completed' ? 'Completed tasks' : 'Open tasks'}</h2>
+          <h2>{searchParams.get('view') === 'completed' ? 'Completed tasks' : searchParams.get('due') === 'overdue' ? 'Overdue tasks' : 'Open tasks'}</h2>
           <span className="crm-count-pill">{loading ? '…' : `${tasks.length}`}</span>
         </div>
 

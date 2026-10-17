@@ -2,9 +2,6 @@ import { guidedReportCardsEnabled } from '../modules/reportCard/guidedRelease'
 import ShortLanding from '../components/reportCard/shortForm/ShortLanding'
 import ShortAssessment from '../components/reportCard/shortForm/ShortAssessment'
 import VersionedReportResults from '../components/reportCard/shortForm/ShortResults'
-import CrmAdditionalServiceIntakePage from '../pages/crm/CrmAdditionalServiceIntakePage'
-import CrmClientIntakeNewPage from '../pages/crm/CrmClientIntakeNewPage'
-import CrmArchivedRecordsPage from '../pages/crm/CrmArchivedRecordsPage'
 import { lazy, ReactNode, Suspense } from 'react'
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom'
 import ScrollToTop from '../components/ScrollToTop'
@@ -38,37 +35,42 @@ import ScheduleReportCardPage from '../pages/ScheduleReportCardPage'
 import PrivacyPolicyPage from '../pages/PrivacyPolicyPage'
 import NotFoundPage from '../pages/NotFoundPage'
 import PublicAdvisorCardPage from '../pages/PublicAdvisorCardPage'
-import CrmLoginPage from '../pages/crm/CrmLoginPage'
-import CrmPasswordRecoveryPage from '../pages/crm/CrmPasswordRecoveryPage'
-import CrmHomePage from '../pages/crm/CrmHomePage'
-import CrmHouseholdsPage from '../pages/crm/CrmHouseholdsPage'
-import CrmHouseholdWorkspacePage from '../pages/crm/CrmHouseholdWorkspacePage'
-import CrmHouseholdOnboardingPage from '../pages/crm/CrmHouseholdOnboardingPage'
-import CrmHouseholdAssessmentsPage from '../pages/crm/CrmHouseholdAssessmentsPage'
-import CrmOpportunitiesPage from '../pages/crm/CrmOpportunitiesPage'
-import CrmRecruitingPage from '../pages/crm/CrmRecruitingPage'
-import CrmRecruitDetailPage from '../pages/crm/CrmRecruitDetailPage'
-import CrmOpportunityWorkspacePage from '../pages/crm/CrmOpportunityWorkspacePage'
-import CrmIntakePage from '../pages/crm/CrmIntakePage'
-import CrmContactsPage from '../pages/crm/CrmContactsPage'
-import CrmContactNewPage from '../pages/crm/CrmContactNewPage'
-import CrmContactDetailPage from '../pages/crm/CrmContactDetailPage'
-import CrmStudentLoanIntakePage from '../pages/crm/CrmStudentLoanIntakePage'
-import CrmLifeInsuranceIntakePage from '../pages/crm/CrmLifeInsuranceIntakePage'
-import CrmPlaceholderPage from '../pages/crm/CrmPlaceholderPage'
-import CrmTasksPage from '../pages/crm/CrmTasksPage'
-import CrmOperationsPage from '../pages/crm/CrmOperationsPage'
-import CrmCampaignsPage from '../pages/crm/CrmCampaignsPage'
-import CrmServiceProductionPage from '../pages/crm/CrmServiceProductionPage'
-import CrmProductionPage from '../pages/crm/CrmProductionPage'
-import CrmCommissionsPage from '../pages/crm/CrmCommissionsPage'
-import CrmCommissionsImportPage from '../pages/crm/CrmCommissionsImportPage'
-import CrmCommissionsPendingImportPage from '../pages/crm/CrmCommissionsPendingImportPage'
-import CrmProductionCatalogPage from '../pages/crm/CrmProductionCatalogPage'
-import CrmProductionNewPage from '../pages/crm/CrmProductionNewPage'
-import CrmProductionEditPage from '../pages/crm/CrmProductionEditPage'
-import CrmProductionDetailPage from '../pages/crm/CrmProductionDetailPage'
 
+
+// Load agent tools only when an agent opens their route.
+const CrmAdditionalServiceIntakePage = lazy(() => import('../pages/crm/CrmAdditionalServiceIntakePage'))
+const CrmClientIntakeNewPage = lazy(() => import('../pages/crm/CrmClientIntakeNewPage'))
+const CrmArchivedRecordsPage = lazy(() => import('../pages/crm/CrmArchivedRecordsPage'))
+const CrmLoginPage = lazy(() => import('../pages/crm/CrmLoginPage'))
+const CrmPasswordRecoveryPage = lazy(() => import('../pages/crm/CrmPasswordRecoveryPage'))
+const CrmHomePage = lazy(() => import('../pages/crm/CrmHomePage'))
+const CrmHouseholdsPage = lazy(() => import('../pages/crm/CrmHouseholdsPage'))
+const CrmHouseholdWorkspacePage = lazy(() => import('../pages/crm/CrmHouseholdWorkspacePage'))
+const CrmHouseholdOnboardingPage = lazy(() => import('../pages/crm/CrmHouseholdOnboardingPage'))
+const CrmHouseholdAssessmentsPage = lazy(() => import('../pages/crm/CrmHouseholdAssessmentsPage'))
+const CrmOpportunitiesPage = lazy(() => import('../pages/crm/CrmOpportunitiesPage'))
+const CrmRecruitingPage = lazy(() => import('../pages/crm/CrmRecruitingPage'))
+const CrmRecruitDetailPage = lazy(() => import('../pages/crm/CrmRecruitDetailPage'))
+const CrmOpportunityWorkspacePage = lazy(() => import('../pages/crm/CrmOpportunityWorkspacePage'))
+const CrmIntakePage = lazy(() => import('../pages/crm/CrmIntakePage'))
+const CrmContactsPage = lazy(() => import('../pages/crm/CrmContactsPage'))
+const CrmContactNewPage = lazy(() => import('../pages/crm/CrmContactNewPage'))
+const CrmContactDetailPage = lazy(() => import('../pages/crm/CrmContactDetailPage'))
+const CrmStudentLoanIntakePage = lazy(() => import('../pages/crm/CrmStudentLoanIntakePage'))
+const CrmLifeInsuranceIntakePage = lazy(() => import('../pages/crm/CrmLifeInsuranceIntakePage'))
+const CrmPlaceholderPage = lazy(() => import('../pages/crm/CrmPlaceholderPage'))
+const CrmTasksPage = lazy(() => import('../pages/crm/CrmTasksPage'))
+const CrmOperationsPage = lazy(() => import('../pages/crm/CrmOperationsPage'))
+const CrmCampaignsPage = lazy(() => import('../pages/crm/CrmCampaignsPage'))
+const CrmServiceProductionPage = lazy(() => import('../pages/crm/CrmServiceProductionPage'))
+const CrmProductionPage = lazy(() => import('../pages/crm/CrmProductionPage'))
+const CrmCommissionsPage = lazy(() => import('../pages/crm/CrmCommissionsPage'))
+const CrmCommissionsImportPage = lazy(() => import('../pages/crm/CrmCommissionsImportPage'))
+const CrmCommissionsPendingImportPage = lazy(() => import('../pages/crm/CrmCommissionsPendingImportPage'))
+const CrmProductionCatalogPage = lazy(() => import('../pages/crm/CrmProductionCatalogPage'))
+const CrmProductionNewPage = lazy(() => import('../pages/crm/CrmProductionNewPage'))
+const CrmProductionEditPage = lazy(() => import('../pages/crm/CrmProductionEditPage'))
+const CrmProductionDetailPage = lazy(() => import('../pages/crm/CrmProductionDetailPage'))
 
 const SpecialtyReportCardPreview = guidedReportCardsEnabled ? lazy(() => import('../pages/SpecialtyReportCardPreview')) : null
 
@@ -94,6 +96,7 @@ export default function App() {
   return (
     <>
       <ScrollToTop />
+      <Suspense fallback={<p role="status" aria-live="polite">Loading page…</p>}>
       <Routes>
       {SpecialtyReportCardPreview && <>
        {import.meta.env.DEV && <>
@@ -356,6 +359,7 @@ export default function App() {
         }
       />
     </Routes>
+      </Suspense>
     </>
   )
 }

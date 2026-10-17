@@ -99,6 +99,9 @@ const EXPECTED_MIGRATIONS = [
   '20261012232328_operations_workspaces_release.sql',
   '20261012232342_operations_collaboration_release.sql',
   '20261012232346_production_follow_up_release.sql',
+  '20261014153052_household_member_add.sql',
+  '20261017041000_guided_report_card_types.sql',
+  '20261017041100_guided_report_card_ingest.sql',
 ]
 
 describe('Phase A production dashboard contracts', () => {
