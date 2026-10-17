@@ -1,2 +1,2 @@
-/** Enable the reviewed cards only after database and CRM release checks pass. */
-export const guidedReportCardsEnabled = import.meta.env.DEV || import.meta.env.VITE_ENABLE_GUIDED_REPORT_CARDS === 'true'
+/** Released after database and CRM verification. Explicit false is the rollback switch. */
+export const guidedReportCardsEnabled = import.meta.env.VITE_ENABLE_GUIDED_REPORT_CARDS !== 'false'
