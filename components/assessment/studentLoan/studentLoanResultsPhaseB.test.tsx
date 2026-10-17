@@ -4,7 +4,7 @@ import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
-import { CALENDLY_REPORT_CARD_URL } from '../../../constants/urls'
+import { STUDENT_LOAN_BOOKING_URL } from '../../../constants/booking'
 import StudentLoanReportCardResults from '../../../pages/StudentLoanReportCardResults'
 import { PUBLIC_REPORT_CARD_ASSESSMENT_TYPES } from '../../../modules/reportCard/publicIngestCatalog'
 import { canSubmitStudentLoanToCrm } from './ingestBoundary'
@@ -53,7 +53,7 @@ describe('Student Loan Phase B results', () => {
     expect(model.categoryScores).toHaveLength(5)
     expect(model.primaryGoal).toBe('understand_options')
     expect(model.informationalBalance).toBe('over_100k')
-    expect(model.recommendedNextStep?.href).toBe(CALENDLY_REPORT_CARD_URL)
+    expect(model.recommendedNextStep?.href).toBe(STUDENT_LOAN_BOOKING_URL)
 
     const html = renderResults({ answers: resultsSessionFrom() })
     expect(html).toContain('Student Loan Report Card Score')
@@ -69,7 +69,7 @@ describe('Student Loan Phase B results', () => {
     expect(html).not.toContain('alex@example.com')
     expect(html).not.toContain('5551112222')
     expect(html).toContain('Review My Results With Valtoris')
-    expect(html).toContain(CALENDLY_REPORT_CARD_URL)
+    expect(html).toContain(STUDENT_LOAN_BOOKING_URL)
     expect(html).toContain('not a government determination')
     expect(html).toContain('not the U.S. Department of Education or a federal loan servicer')
     expect(html).not.toContain('Your Student Loan Report Card results are not available yet.')

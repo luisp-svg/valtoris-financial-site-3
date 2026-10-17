@@ -1,4 +1,4 @@
-import { CALENDLY_REPORT_CARD_URL } from '../../../constants/urls'
+import { STUDENT_LOAN_BOOKING_URL } from '../../../constants/booking'
 import { isStudentLoanDiagnosticComplete } from './completeness'
 import {
   scoreStudentLoanAssessment,
@@ -62,7 +62,7 @@ export type StudentLoanResultsModel = {
 
 const REVIEW_CTA: StudentLoanBookingCta = {
   labelKey: 'reviewWithValtoris',
-  href: CALENDLY_REPORT_CARD_URL,
+  href: STUDENT_LOAN_BOOKING_URL,
 }
 
 export function studentLoanTopReviewAreasHeadingKey(

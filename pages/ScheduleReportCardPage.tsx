@@ -8,6 +8,7 @@ import PublicLocaleSwitcher from '../components/publicSite/PublicLocaleSwitcher'
 import { usePublicDocumentLang } from '../components/publicSite/usePublicDocumentLang'
 import { ROUTES } from '../constants/routes'
 import { useHomeDocumentMeta } from '../components/publicSite/home/useHomeDocumentMeta'
+import { readBookingService } from '../constants/booking'
 
 const scheduleCopy = {
   en: {
@@ -33,6 +34,8 @@ export default function ScheduleReportCardPage() {
   const location = useLocation()
   const locale = readPublicLocale(location.search)
   const copy = scheduleCopy[locale]
+  const bookingService = readBookingService(location.search)
+  const specialist = bookingService === 'health' ? 'Jazmin' : bookingService === 'student_loan' ? 'Lizbeth' : bookingService === 'tsp' ? 'Luis' : null
   const chrome = chromeCopy[locale]
   usePublicDocumentLang(locale)
   useHomeDocumentMeta({
@@ -57,6 +60,7 @@ export default function ScheduleReportCardPage() {
           <p className="schedule-kicker">{copy.kicker}</p>
           <h1>{copy.title}</h1>
           <p className="schedule-lead">{copy.lead}</p>
+          {specialist && <p>{locale === 'es' ? 'Tu reunión será con' : 'Your meeting will be with'} {specialist}.</p>}
 
           <div className="schedule-expectations">
             <h2>{locale === 'es' ? 'Qué esperar' : 'What to expect'}</h2>
@@ -68,7 +72,7 @@ export default function ScheduleReportCardPage() {
             <p>{locale === 'es' ? 'El botón abre el calendario de Valtoris en otra pestaña. Revisa allí los horarios y detalles disponibles antes de confirmar tu cita.' : 'The button opens the Valtoris booking calendar in a new tab. Review available times and meeting details there before confirming your appointment.'}</p>
           </div>
 
-          <ScheduleReportCardLink className="platform-btn platform-btn-primary">
+          <ScheduleReportCardLink bookingService={bookingService} className="platform-btn platform-btn-primary">
             {copy.cta}
           </ScheduleReportCardLink>
 

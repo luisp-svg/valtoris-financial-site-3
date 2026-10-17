@@ -253,7 +253,7 @@ export default function StudentLoanReportCardResults() {
         <section className="results-cta">
           <h2 className="results-cta-headline">{t('results', 'reviewWithValtoris')}</h2>
           <p className="results-cta-support">{t('ui', 'nextStepSupport')}</p>
-          <ScheduleReportCardLink className="platform-btn platform-btn-secondary">
+          <ScheduleReportCardLink bookingService="student_loan" className="platform-btn platform-btn-secondary">
             {t('results', 'reviewWithValtoris')}
           </ScheduleReportCardLink>
           <Link

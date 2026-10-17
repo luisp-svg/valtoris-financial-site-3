@@ -1,27 +1,30 @@
 import { MouseEvent, ReactNode } from 'react'
+import { bookingUrlForAssessment } from '../constants/booking'
 import {
   CALENDLY_REPORT_CARD_BUTTON_LABEL,
-  CALENDLY_REPORT_CARD_URL,
 } from '../constants/urls'
 
 type ScheduleReportCardLinkProps = {
   className?: string
   children?: ReactNode
+  bookingService?: string
 }
 
 export default function ScheduleReportCardLink({
   className,
   children = CALENDLY_REPORT_CARD_BUTTON_LABEL,
+  bookingService,
 }: ScheduleReportCardLinkProps) {
+  const bookingUrl = bookingUrlForAssessment(bookingService)
   function handleClick(event: MouseEvent<HTMLAnchorElement>) {
     event.preventDefault()
-    window.open(CALENDLY_REPORT_CARD_URL, '_blank', 'noopener,noreferrer')
+    window.open(bookingUrl, '_blank', 'noopener,noreferrer')
   }
 
   return (
     <a
       className={className}
-      href={CALENDLY_REPORT_CARD_URL}
+      href={bookingUrl}
       target="_blank"
       rel="noopener noreferrer"
       onClick={handleClick}
