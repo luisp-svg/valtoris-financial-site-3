@@ -1,7 +1,6 @@
 import PublicLink from '../PublicLink'
 import { ROUTES } from '../../../constants/routes'
 import type { HomeCopy } from './copy'
-import { HOME_DIAGNOSTICS_HASH } from './homeConfig'
 
 type HomeHeroProps = {
   copy: HomeCopy
@@ -19,10 +18,10 @@ export default function HomeHero({ copy }: HomeHeroProps) {
           <p className="site-home-hero-support">{copy.heroSupport}</p>
           <p className="site-home-hero-brand">{copy.heroBrand}</p>
           <div className="site-home-hero-actions">
-            <PublicLink className="platform-btn platform-btn-primary" to={HOME_DIAGNOSTICS_HASH}>
+            <PublicLink className="platform-btn platform-btn-primary" to={ROUTES.reportCard}>
               {copy.heroPrimaryCta}
             </PublicLink>
-            <PublicLink className="platform-btn platform-btn-secondary" to={ROUTES.schedule}>
+            <PublicLink className="platform-btn platform-btn-secondary" to={ROUTES.businessReportCard}>
               {copy.heroSecondaryCta}
             </PublicLink>
           </div>

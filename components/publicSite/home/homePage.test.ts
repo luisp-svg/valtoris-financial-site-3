@@ -52,11 +52,11 @@ const FORBIDDEN = [
   'best financial',
 ]
 
-describe('service-led bilingual homepage', () => {
-  it('positions Valtoris around coordinated financial life, not the Family Report Card', () => {
+describe('assessment-first bilingual homepage', () => {
+  it('leads with assessment while preserving the coordinated strategy and existing assets', () => {
     const html = renderHome('/')
     const h1 = html.match(/<h1[^>]*>(.*?)<\/h1>/)?.[1]
-    expect(h1).toBe("Your Financial Life Shouldn&#x27;t Be Managed in Pieces.")
+    expect(h1).toBe("Know Your Score. See Your Risks. Build Your Plan.")
     expect(html).toContain('Valtoris Financial')
     expect(html).toContain('complete financial picture')
     expect(html).toContain('Understand Your Situation. Clarify Your Next Steps.')
@@ -67,13 +67,16 @@ describe('service-led bilingual homepage', () => {
     expect(html).toContain('sample-results-preview')
     expect(html).toContain('/images/valtoris-home-hero.webp')
     expect(html).toContain('Meet Luis Perez, Financial Strategist and Founder.')
-    expect(html.indexOf("Your Financial Life Shouldn&#x27;t Be Managed in Pieces.")).toBeLessThan(
+    expect(html.indexOf("Know Your Score. See Your Risks. Build Your Plan.")).toBeLessThan(
       html.indexOf('Understand Your Situation. Clarify Your Next Steps.'),
     )
   })
 
-  it('uses Find Out Where I Stand as the primary hero CTA and keeps Book a Meeting', () => {
+  it('offers direct Family and Business hero CTAs while retaining scheduling', () => {
     const html = renderHome('/')
+    expect(html).toContain('Start My Family Report Card')
+    expect(html).toContain('Start My Business Report Card')
+    expect(html).toContain(`href="${ROUTES.reportCards}"`)
     expect(html).toContain('Find Out Where I Stand')
     expect(html).toContain(`href="${HOME_DIAGNOSTICS_HASH}"`)
     expect(html).toContain('Book a Meeting')
@@ -94,14 +97,14 @@ describe('service-led bilingual homepage', () => {
     expect(html).toContain('Take the Student Loan Report Card')
     expect(html).toContain('Take the Credit Report Card')
     expect(html).toContain('Your Strategy Determines the Solution. Not the Other Way Around.')
-    expect(html).toContain('Protection')
-    expect(html).toContain('Retirement')
+    expect(html).toContain('Protect')
+    expect(html).toContain('Retirement readiness')
     expect(html).toContain('Credit')
-    expect(html).toContain('Student Loans')
-    expect(html).toContain('Business Planning')
-    expect(html).toContain('Property &amp; Business Insurance')
-    expect(html).toContain('Estate / Legacy Coordination')
-    expect(html).toContain('Tax Strategy Coordination')
+    expect(html).toContain('Student loans')
+    expect(html).toContain('Business formation')
+    expect(html).toContain('Insurance')
+    expect(html).toContain('Estate &amp; legacy')
+    expect(html).toContain('Tax strategy')
     expect(html).toContain('Diagnose')
     expect(html).toContain('Prioritize')
     expect(html).toContain('Build')
@@ -188,7 +191,7 @@ describe('service-led bilingual homepage', () => {
     const html = renderHome(
       '/?lang=es&utm_source=qa&utm_medium=site&utm_campaign=home&utm_content=hero&utm_term=family&card=test-card',
     )
-    expect(html).toContain('Descubre en qué punto estás')
+    expect(html).toContain('Reporte para mi familia')
     expect(html).toContain('Agendar una reunión')
     expect(html).toContain('Explorar soluciones')
     expect(html).toContain(
@@ -205,7 +208,7 @@ describe('service-led bilingual homepage', () => {
     for (const phrase of FORBIDDEN) {
       expect(blob).not.toContain(phrase)
     }
-    expect(homeCopy.es.heroTitle).toBe('Tu vida financiera no debería gestionarse en pedazos.')
+    expect(homeCopy.es.heroTitle).toBe('Conoce tu puntuación. Identifica tus riesgos. Construye tu plan.')
     expect(homeCopy.en.heroBrand).toBe('Understand Your Situation. Clarify Your Next Steps.')
     expect(homeCopy.es.heroBrand).toBe('Comprenda su situación. Aclare sus próximos pasos.')
     expect(homeCopy.es.diagnosticsFamilyTitle).toBe('Family Report Card™')
@@ -216,7 +219,8 @@ describe('service-led bilingual homepage', () => {
     const files = readdirSync(join(ROOT, 'supabase/migrations'))
       .filter((name) => name.endsWith('.sql'))
       .sort()
-    expect(files).toHaveLength(84)
+    // Existing main includes the household-member migration; phase 1 adds none.
+    expect(files).toHaveLength(85)
     expect(files.some((name) => name.startsWith('053_'))).toBe(true)
     expect(files.some((name) => name.startsWith('054_'))).toBe(true)
     expect(existsSync(join(ROOT, 'supabase/migrations/053_homepage.sql'))).toBe(false)

@@ -60,7 +60,7 @@ describe('Phase 6 public CTA hierarchy and alignment', () => {
     const html = renderAt('/', createElement(HomePage))
     const diagnostics = section(html, 'home-audience-heading')
     expect(diagnostics.match(/class="site-home-card site-home-card--centered"/g)?.length).toBe(4)
-    expect(diagnostics.match(/class="site-home-card-link"/g)?.length).toBe(4)
+    expect(diagnostics.match(/class="site-home-card-link"/g)?.length).toBe(5)
     expect(diagnostics).not.toContain('platform-btn')
     expect(diagnostics).not.toContain('Also available')
   })
@@ -128,7 +128,8 @@ describe('Phase 6 public CTA hierarchy and alignment', () => {
     const files = readdirSync(join(ROOT, 'supabase/migrations'))
       .filter((name) => name.endsWith('.sql'))
       .sort()
-    expect(files).toHaveLength(84)
+    // Existing main includes the household-member migration; phase 1 adds none.
+    expect(files).toHaveLength(85)
     expect(files.some((name) => name.startsWith('053_'))).toBe(true)
     expect(files.some((name) => name.startsWith('054_'))).toBe(true)
     expect(existsSync(join(ROOT, 'supabase/migrations/053_visual_cta.sql'))).toBe(false)

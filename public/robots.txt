@@ -1,2 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /crm
+Disallow: /api/
+
+Sitemap: https://www.valtorisfinancial.com/sitemap.xml

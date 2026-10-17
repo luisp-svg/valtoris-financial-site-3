@@ -79,6 +79,7 @@ export default function SiteMobileNav({ open, onClose, locale, copy }: SiteMobil
 
   useEffect(() => {
     if (!open) return
+    const previousFocus = document.activeElement
     const previousOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     document.body.classList.add('site-mobile-nav-open')
@@ -94,7 +95,7 @@ export default function SiteMobileNav({ open, onClose, locale, copy }: SiteMobil
       if (!root) return
       const focusable = Array.from(
         root.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), summary'),
-      ).filter((node) => !node.hasAttribute('disabled'))
+      ).filter((node) => !node.hasAttribute('disabled') && node.getClientRects().length > 0)
       if (focusable.length === 0) return
       const first = focusable[0]
       const last = focusable[focusable.length - 1]
@@ -109,7 +110,7 @@ export default function SiteMobileNav({ open, onClose, locale, copy }: SiteMobil
     }
 
     function onResize() {
-      if (window.innerWidth >= 1024) onClose()
+      if (window.innerWidth >= 1440) onClose()
     }
 
     window.addEventListener('keydown', onKey)
@@ -117,6 +118,7 @@ export default function SiteMobileNav({ open, onClose, locale, copy }: SiteMobil
     return () => {
       document.body.style.overflow = previousOverflow
       document.body.classList.remove('site-mobile-nav-open')
+      if (previousFocus instanceof HTMLElement && previousFocus.isConnected) previousFocus.focus()
       window.removeEventListener('keydown', onKey)
       window.removeEventListener('resize', onResize)
     }
@@ -171,6 +173,8 @@ export default function SiteMobileNav({ open, onClose, locale, copy }: SiteMobil
             copy={copy}
             onNavigate={onClose}
           />
+          <PublicLink className="site-mobile-link" to={ROUTES.reportCards} onClick={onClose}>{locale === 'es' ? 'Todos los reportes' : 'Report Card Hub'}</PublicLink>
+          <PublicLink className="site-mobile-link" to={ROUTES.education} onClick={onClose}>{locale === 'es' ? 'Educación' : 'Learn'}</PublicLink>
           <MobileAccordion
             id="site-mobile-tools"
             label={copy.navTools}

@@ -13,6 +13,8 @@ import { ROUTES } from '../constants/routes'
 import { CrmAuthProvider } from '../crm/auth/CrmAuthContext'
 import { CrmLoginGate, CrmProtectedGate } from '../crm/components/CrmGate'
 import HomePage from '../pages/HomePage'
+import ReportCardsPage from '../pages/ReportCardsPage'
+import EducationPage from '../pages/EducationPage'
 import GetQuotePage from '../pages/GetQuotePage'
 import InsuranceQuotePage from '../pages/InsuranceQuotePage'
 import CheckupPage from '../pages/CheckupPage'
@@ -89,6 +91,8 @@ export default function App() {
     <>
       <ScrollToTop />
       <Routes>
+      <Route path={ROUTES.reportCards} element={<SiteLayout><ReportCardsPage /></SiteLayout>} />
+      <Route path={ROUTES.education} element={<SiteLayout><EducationPage /></SiteLayout>} />
       <Route path={ROUTES.getQuote} element={<SiteLayout><GetQuotePage /></SiteLayout>} />
       {(['auto', 'home', 'commercial'] as const).map(kind => <Route key={kind} path={`/${kind}-quote`} element={<SiteLayout><InsuranceQuotePage key={kind} kind={kind} /></SiteLayout>} />)}
       <Route path={ROUTES.familyAssessment} element={<ShortAssessment key="family" assessmentType="family" />} />

@@ -436,7 +436,7 @@ main { flex: 1 0 auto; }
   justify-content: flex-start;
 }
 
-@media (max-width: 1199px) {
+@media (max-width: 1439px) {
   .site-header-desktop {
     display: none;
   }
@@ -14325,3 +14325,15 @@ button.public-card-diagnostic:disabled {
 }
 .crm-sales-pipeline .crm-field { min-width: 0; }
 .crm-sales-pipeline .crm-field select { width: 100%; min-width: 0; }
+
+/* Public answers share the visible copy used in structured data. */
+.site-home-answer-attribution {
+  margin: 28px auto 0;
+  max-width: 80ch;
+  color: var(--text);
+  line-height: 1.7;
+}
+
+.site-home #answers {
+  scroll-margin-top: 160px;
+}

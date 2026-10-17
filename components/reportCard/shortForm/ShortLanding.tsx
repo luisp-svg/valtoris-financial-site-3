@@ -1,3 +1,4 @@
+import { useHomeDocumentMeta } from '../../publicSite/home/useHomeDocumentMeta'
 import { useLocation } from 'react-router-dom'
 import DiagnosticLanding from '../../home/DiagnosticLanding'
 import SpecializedLocaleSwitcher, { useSpecializedDocumentLang } from '../../assessment/specialized/SpecializedLocaleSwitcher'
@@ -9,6 +10,7 @@ export default function ShortLanding({assessmentType}:{assessmentType:PublicRepo
   const location=useLocation(), locale=readSpecializedLocale(location.search), card=SHORT_CARDS[assessmentType]
   useSpecializedDocumentLang(locale)
   const t=(en:string,es:string)=>locale==='es'?es:en
+  useHomeDocumentMeta({ metaTitle: `${card.title[locale]} | Valtoris Financial`, metaDescription: t(`Start your free ${card.title[locale]} educational review. Understand observations, information to confirm, and next steps.`, `Comienza tu revisión educativa gratuita: ${card.title[locale]}. Conoce observaciones y próximos pasos.`) })
   const count=card.questions.length+3
   return <DiagnosticLanding
     pageClassName={`${assessmentType}-report-card-page`}
@@ -43,7 +45,7 @@ export default function ShortLanding({assessmentType}:{assessmentType:PublicRepo
     faqHeading={t('Before you begin','Antes de comenzar')}
     faqLead={t('A few helpful details.','Algunos detalles útiles.')}
     faqs={[
-      {question:t('Will I receive a grade?','¿Recibiré una calificación?'),answer:t('New short-form reviews do not assign numerical scores or letter grades. Previous full-report results remain separate and unchanged.','Las revisiones breves nuevas no asignan puntajes ni calificaciones. Los resultados completos anteriores permanecen separados y sin cambios.')},
+      {question:t('Will I receive a grade?','¿Recibiré una calificación?'),answer:assessmentType === 'home_buyer' ? t('The homebuyer review includes an educational buyer-readiness grade. It does not determine mortgage approval. Other short-form reviews provide observations rather than grades.', 'La revisión de vivienda incluye una calificación educativa de preparación. No determina aprobación hipotecaria. Las otras revisiones breves ofrecen observaciones en lugar de calificaciones.') : t('New short-form reviews do not assign numerical scores or letter grades. Previous full-report results remain separate and unchanged.','Las revisiones breves nuevas no asignan puntajes ni calificaciones. Los resultados completos anteriores permanecen separados y sin cambios.')},
       {question:t('Does this approve or qualify me for anything?','¿Esto me aprueba o califica para algo?'),answer:t('No. This educational review cannot establish eligibility, loan approval, coverage needs, or financial outcomes.','No. Esta revisión educativa no determina elegibilidad, aprobación de préstamos, necesidades de cobertura ni resultados financieros.')},
       {question:t('Where do the detailed questions go?','¿Dónde van las preguntas detalladas?'),answer:t('Your advisor’s private intake collects the supporting details needed for a fuller review.','El formulario privado de tu asesor recoge los detalles de respaldo necesarios para una revisión más completa.')},
     ]}

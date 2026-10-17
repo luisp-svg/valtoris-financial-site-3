@@ -127,18 +127,18 @@ export type HomeCopy = {
 
 export const homeCopy: Record<PublicLocale, HomeCopy> = {
   en: {
-    metaTitle: 'Valtoris Financial | Financial Strategy for Families & Business Owners',
+    metaTitle: 'Valtoris Financial | Know Your Score. See Your Risks. Build Your Plan.',
     metaDescription:
       'Valtoris Financial helps families and business owners understand their complete financial picture, identify risks and opportunities, and build a strategy around what matters most.',
     heroEyebrow: 'Valtoris Financial',
-    heroTitle: "Your Financial Life Shouldn't Be Managed in Pieces.",
+    heroTitle: "Know Your Score. See Your Risks. Build Your Plan.",
     heroSupport:
       'Valtoris Financial helps families and business owners understand their complete financial picture, identify their biggest risks and opportunities, and build a strategy around what matters most.',
     heroBrand: 'Understand Your Situation. Clarify Your Next Steps.',
-    heroPrimaryCta: 'Find Out Where I Stand',
-    heroSecondaryCta: 'Book a Meeting',
+    heroPrimaryCta: 'Start My Family Report Card',
+    heroSecondaryCta: 'Start My Business Report Card',
     heroTertiaryCta: 'Explore Solutions',
-    heroMicrocopy: 'Free educational assessment · About 3–5 minutes · No obligation',
+    heroMicrocopy: 'Free educational review · No obligation. Most Report Cards provide observations and next steps, not a numeric score.',
     heroImageAlt: 'Luis Perez and his wife reviewing a financial strategy together',
     heroPanelLabel: 'We diagnose first',
     heroPanelProtection: 'Diagnose',
@@ -278,14 +278,14 @@ export const homeCopy: Record<PublicLocale, HomeCopy> = {
     metaDescription:
       'Valtoris Financial ayuda a familias y dueños de negocio a entender su panorama financiero completo, identificar riesgos y oportunidades, y construir una estrategia alrededor de lo que más importa.',
     heroEyebrow: 'Valtoris Financial',
-    heroTitle: 'Tu vida financiera no debería gestionarse en pedazos.',
+    heroTitle: 'Conoce tu puntuación. Identifica tus riesgos. Construye tu plan.',
     heroSupport:
       'Valtoris Financial ayuda a familias y dueños de negocio a entender su panorama financiero completo, identificar sus mayores riesgos y oportunidades, y construir una estrategia alrededor de lo que más importa.',
     heroBrand: 'Comprenda su situación. Aclare sus próximos pasos.',
-    heroPrimaryCta: 'Descubre en qué punto estás',
-    heroSecondaryCta: 'Agendar una reunión',
+    heroPrimaryCta: 'Reporte para mi familia',
+    heroSecondaryCta: 'Reporte para mi negocio',
     heroTertiaryCta: 'Explorar soluciones',
-    heroMicrocopy: 'Evaluación educativa gratuita · Aproximadamente 3–5 minutos · Sin compromiso',
+    heroMicrocopy: 'Revisión educativa gratuita · Sin obligación. La mayoría de los reportes ofrecen observaciones y próximos pasos, no un puntaje numérico.',
     heroImageAlt: 'Luis Perez y su esposa revisando juntos una estrategia financiera',
     heroPanelLabel: 'Primero diagnosticamos',
     heroPanelProtection: 'Diagnosticar',
