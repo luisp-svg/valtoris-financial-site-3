@@ -141,8 +141,8 @@ export default function CrmHouseholdAssessmentsPage() {
         </div>
       </header>
       <p className="crm-banner crm-banner-warning" role="status">
-        Public production release remains blocked until the Privacy Policy at /privacy receives
-        legal review.
+        The Privacy Policy at /privacy describes current application behavior. Legal review has
+        not been completed.
       </p>
       <PublicFamilyDiagnosticHistoryList householdId={householdId} items={items} />
     </div>
