@@ -26,7 +26,7 @@ export default function HomePage() {
       {guidedReportCardsEnabled && <HomeAskValtoris locale={locale} />}
       {!guidedReportCardsEnabled && <HomeAudiencePaths copy={copy} />}
       <HomeProcess copy={copy} />
-      <HomeReportCardShowcase copy={copy} />
+      <HomeReportCardShowcase copy={copy} locale={locale} />
       <HomeServiceGrid copy={copy} />
       <HomeWhyValtoris copy={copy} />
       <HomeFounderStory copy={copy} />

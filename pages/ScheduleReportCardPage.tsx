@@ -53,6 +53,16 @@ export default function ScheduleReportCardPage() {
           <h1>{copy.title}</h1>
           <p className="schedule-lead">{copy.lead}</p>
 
+          <div className="schedule-expectations">
+            <h2>{locale === 'es' ? 'Qué esperar' : 'What to expect'}</h2>
+            <ul>
+              <li>{locale === 'es' ? 'Comparta su prioridad y las preguntas que desea resolver.' : 'Share your main priority and the questions you want to address.'}</li>
+              <li>{locale === 'es' ? 'Tenga a mano su Report Card, si ya completó uno. No necesita enviar números de cuenta para agendar.' : 'Have your Report Card handy if you completed one. You do not need to send account numbers to book.'}</li>
+              <li>{locale === 'es' ? 'Conversen sobre posibles próximos pasos; no necesita elegir un producto para iniciar la conversación.' : 'Discuss possible next steps; you do not need to choose a product to start the conversation.'}</li>
+            </ul>
+            <p>{locale === 'es' ? 'El botón abre Calendly en otra pestaña. Revise allí los horarios y detalles disponibles antes de confirmar su cita.' : 'The button opens Calendly in a new tab. Review available times and meeting details there before confirming your appointment.'}</p>
+          </div>
+
           <ScheduleReportCardLink className="platform-btn platform-btn-primary">
             {copy.cta}
           </ScheduleReportCardLink>
