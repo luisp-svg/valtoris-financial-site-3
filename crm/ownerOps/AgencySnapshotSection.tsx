@@ -32,7 +32,7 @@ const CARDS: Array<{
     href: `${ROUTES.crmPipeline}?status=lost`,
   },
   { key: 'tasksDueToday', label: 'Tasks due today', href: ROUTES.crmTasks },
-  { key: 'overdueTasks', label: 'Overdue tasks', href: ROUTES.crmTasks },
+  { key: 'overdueTasks', label: 'Overdue tasks', href: `${ROUTES.crmTasks}?due=overdue` },
   {
     key: 'staleOpportunities',
     label: 'Stale opportunities',

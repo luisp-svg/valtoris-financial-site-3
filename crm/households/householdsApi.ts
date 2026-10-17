@@ -36,7 +36,7 @@ import type {
   WorkspaceAssessmentType,
   WorkspaceLoadResult,
 } from './types'
-import { isPublicReportCardAssessmentType } from '../../modules/reportCard/publicIngestCatalog'
+import { PUBLIC_REPORT_CARD_ASSESSMENT_TYPES, isPublicReportCardAssessmentType } from '../../modules/reportCard/publicIngestCatalog'
 
 /**
  * households has two FKs to advisor_profiles (assigned + original) — pin assigned_advisor_id.
@@ -179,14 +179,7 @@ export const MEMBER_RELATIONSHIP_CREATE_OPTIONS: {
  * Completed assessment types returned by workspace loading.
  * Intentionally excludes `household_onboarding` (dedicated onboarding APIs).
  */
-export const WORKSPACE_ASSESSMENT_TYPES: readonly WorkspaceAssessmentType[] = [
-  'family',
-  'business',
-  'retirement',
-  'protection',
-  'student_loan',
-  'credit',
-] as const
+export const WORKSPACE_ASSESSMENT_TYPES: readonly WorkspaceAssessmentType[] = PUBLIC_REPORT_CARD_ASSESSMENT_TYPES
 
 const WORKSPACE_ASSESSMENT_TYPE_SET = new Set<string>(WORKSPACE_ASSESSMENT_TYPES)
 

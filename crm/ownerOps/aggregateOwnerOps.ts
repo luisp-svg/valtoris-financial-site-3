@@ -189,7 +189,7 @@ export function buildOwnerAlerts(input: {
       title: 'Overdue tasks',
       detail: `${input.snapshot.overdueTasks} open task${input.snapshot.overdueTasks === 1 ? '' : 's'} past due`,
       count: input.snapshot.overdueTasks,
-      href: ROUTES.crmTasks,
+      href: `${ROUTES.crmTasks}?due=overdue`,
     })
   }
 

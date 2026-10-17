@@ -234,7 +234,7 @@ describe('Phase 5 estate and tax strategy service pages', () => {
     expect(sl).toContain(`href="${ROUTES.studentLoanReportCard}"`)
     expect(credit).toContain(`href="${ROUTES.creditReportCard}"`)
     expect(insurance).toContain(`href="${ROUTES.schedule}"`)
-    expect(health).toContain(`href="${ROUTES.schedule}"`)
+    expect(health).toContain(`href="/health-insurance-report-card"`)
   })
 
   it('does not change scoring, ingest, CRM, credit_repair, or add Migration 053', () => {

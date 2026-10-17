@@ -10,8 +10,8 @@ export const healthServiceCopy: Record<PublicLocale, ServiceCopy> = {
     heroTitle: 'Protect Your Health, Income, and Financial Stability.',
     heroSupport:
       'Unexpected medical costs or an interruption in income can affect the entire financial plan. Valtoris helps you review existing protection, identify gaps, and understand options that may strengthen your financial safety net. Product availability varies by state, carrier, and underwriting.',
-    heroPrimaryCta: 'Book a Meeting',
-    heroSecondaryCta: 'Explore Solutions',
+    heroPrimaryCta: 'Take the Health Report Card',
+    heroSecondaryCta: 'Review Employee Benefits',
     heroTertiaryCta: 'See How It Works',
     audienceHeading: 'This May Be Helpful If...',
     audienceLead:
@@ -88,11 +88,11 @@ export const healthServiceCopy: Record<PublicLocale, ServiceCopy> = {
       },
     ],
     bridgeKicker: 'Strategy conversation',
-    bridgeTitle: 'Start with a Review Conversation',
+    bridgeTitle: 'Start with the Right Report Card',
     bridgeBody:
-      'There is not a public health or disability diagnostic on this site yet. A meeting can review existing coverage, employer benefits, and income-protection questions in an educational setting.',
-    bridgePrimaryCta: 'Book a Meeting',
-    bridgeSecondaryCta: 'Explore Solutions',
+      'Use the Health Insurance Report Card for personal or family coverage, supplemental insurance, and income-protection questions. Employers reviewing group health coverage should start with the Employee Benefits Report Card. These educational assessments are not quotes or applications.',
+    bridgePrimaryCta: 'Take the Health Report Card',
+    bridgeSecondaryCta: 'Review Employee Benefits',
     complianceHeading: 'Important information',
     complianceBody:
       'Health and disability products, eligibility, premiums, benefits, and claims depend on the carrier, product, underwriting, and state rules. This page is educational and does not guarantee eligibility, approval, coverage, a premium level, benefits, or claim payment. Valtoris does not operate a public quoting or application tool for these products on this site.',
@@ -100,9 +100,9 @@ export const healthServiceCopy: Record<PublicLocale, ServiceCopy> = {
     complianceResourceHref: '',
     finalHeading: 'Ready to Review Health and Income Protection Together?',
     finalLead:
-      'Book a meeting to talk through existing coverage and possible gaps, or explore broader Valtoris solutions first.',
-    finalPrimaryCta: 'Book a Meeting',
-    finalSecondaryCta: 'Explore Solutions',
+      'Review personal coverage with the Health Insurance Report Card, or assess group coverage with the Employee Benefits Report Card.',
+    finalPrimaryCta: 'Take the Health Report Card',
+    finalSecondaryCta: 'Review Employee Benefits',
   },
   es: {
     metaTitle: 'Seguros de salud y discapacidad | Valtoris Financial',
@@ -112,8 +112,8 @@ export const healthServiceCopy: Record<PublicLocale, ServiceCopy> = {
     heroTitle: 'Proteja su salud, su ingreso y su estabilidad financiera.',
     heroSupport:
       'Un gasto médico inesperado o una interrupción del ingreso puede afectar todo el plan financiero. Valtoris le ayuda a revisar la protección actual, identificar brechas y entender opciones que pueden fortalecer su red de seguridad. La disponibilidad de productos varía según el estado, la aseguradora y la suscripción.',
-    heroPrimaryCta: 'Agendar una reunión',
-    heroSecondaryCta: 'Explorar soluciones',
+    heroPrimaryCta: 'Evaluar mi seguro de salud',
+    heroSecondaryCta: 'Revisar beneficios laborales',
     heroTertiaryCta: 'Vea cómo funciona',
     audienceHeading: 'Esto puede ser útil si...',
     audienceLead:
@@ -190,11 +190,11 @@ export const healthServiceCopy: Record<PublicLocale, ServiceCopy> = {
       },
     ],
     bridgeKicker: 'Conversación de estrategia',
-    bridgeTitle: 'Empiece con una conversación de revisión',
+    bridgeTitle: 'Empiece con la evaluación adecuada',
     bridgeBody:
-      'Todavía no hay un diagnóstico público de salud o discapacidad en este sitio. Una reunión puede revisar la cobertura actual, los beneficios del empleador y las preguntas de protección del ingreso en un entorno educativo.',
-    bridgePrimaryCta: 'Agendar una reunión',
-    bridgeSecondaryCta: 'Explorar soluciones',
+      'Use la evaluación de seguro de salud para cobertura personal o familiar, seguros complementarios y protección del ingreso. Los empleadores que revisan un seguro de salud grupal deben empezar con la evaluación de beneficios laborales. Estas evaluaciones educativas no son cotizaciones ni solicitudes.',
+    bridgePrimaryCta: 'Evaluar mi seguro de salud',
+    bridgeSecondaryCta: 'Revisar beneficios laborales',
     complianceHeading: 'Información importante',
     complianceBody:
       'Los productos de salud y discapacidad, la elegibilidad, las primas, los beneficios y los reclamos dependen de la aseguradora, el producto, la suscripción y las normas estatales. Esta página es educativa y no garantiza elegibilidad, aprobación, cobertura, un nivel de prima, beneficios ni el pago de un reclamo. Valtoris no opera una herramienta pública de cotización o solicitud para estos productos en este sitio.',
@@ -202,8 +202,8 @@ export const healthServiceCopy: Record<PublicLocale, ServiceCopy> = {
     complianceResourceHref: '',
     finalHeading: '¿Listo para revisar juntos la protección de salud e ingreso?',
     finalLead:
-      'Agende una reunión para conversar la cobertura actual y posibles brechas, o explore primero las soluciones más amplias de Valtoris.',
-    finalPrimaryCta: 'Agendar una reunión',
-    finalSecondaryCta: 'Explorar soluciones',
+      'Revise su cobertura personal con la evaluación de seguro de salud, o la cobertura grupal con la evaluación de beneficios laborales.',
+    finalPrimaryCta: 'Evaluar mi seguro de salud',
+    finalSecondaryCta: 'Revisar beneficios laborales',
   },
 }

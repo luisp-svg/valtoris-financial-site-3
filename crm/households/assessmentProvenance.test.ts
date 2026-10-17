@@ -5,6 +5,7 @@ import {
   normalizeAssessmentCaptureChannel,
   normalizeWorkspaceAssessment,
   selectLatestPublicFamilyDiagnostic,
+  selectLatestPublicSelfReportAssessment,
   selectLatestWorkspaceAssessments,
 } from './householdsApi'
 
@@ -165,3 +166,12 @@ describe('selectLatestPublicFamilyDiagnostic', () => {
     expect(selectLatestWorkspaceAssessments(rows).familyAssessment?.overall_score).toBe(88)
   })
 })
+
+for (const assessmentType of ['home_buyer', 'health', 'tsp', 'benefits', 'tax']) {
+  it(`retains ${assessmentType} in public household history without using it as verified evidence`, () => {
+    const row = completedFamilyRow({ assessment_type: assessmentType, overall_grade: 'A', overall_score: 100 })
+    expect(normalizeWorkspaceAssessment(row)?.assessment_type).toBe(assessmentType)
+    expect(selectLatestPublicSelfReportAssessment([row])?.overall_grade).toBe('A')
+    expect(Object.values(selectLatestWorkspaceAssessments([row])).every(value => value === null)).toBe(true)
+  })
+}
