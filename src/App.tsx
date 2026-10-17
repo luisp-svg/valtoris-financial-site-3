@@ -5,6 +5,7 @@ import VersionedReportResults from '../components/reportCard/shortForm/ShortResu
 import { lazy, ReactNode, Suspense } from 'react'
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom'
 import ScrollToTop from '../components/ScrollToTop'
+import PublicRouteIndexing from '../components/publicSite/PublicRouteIndexing'
 import SiteHeader from '../components/SiteHeader'
 import SiteFooter from '../components/SiteFooter'
 import { ROUTES } from '../constants/routes'
@@ -96,6 +97,7 @@ export default function App() {
   return (
     <>
       <ScrollToTop />
+      <PublicRouteIndexing />
       <Suspense fallback={<p role="status" aria-live="polite">Loading page…</p>}>
       <Routes>
       {SpecialtyReportCardPreview && <>

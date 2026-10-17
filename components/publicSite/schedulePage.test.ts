@@ -7,7 +7,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 import { getModule } from '../../platform/registry/registry'
 import ScheduleReportCardPage from '../../pages/ScheduleReportCardPage'
-import { CALENDLY_REPORT_CARD_URL } from '../../constants/urls'
+import { CALENDLY_REPORT_CARD_URL, STRATEGY_SESSION_BOOKING_URL } from '../../constants/urls'
 import { SCHEDULE_CTA } from '../../constants/homepage'
 import { ROUTES } from '../../constants/routes'
 
@@ -68,17 +68,17 @@ describe('generic strategy-meeting schedule page', () => {
     }
   })
 
-  it('keeps the existing Calendly URL and opens it from Choose a Time', () => {
-    expect(CALENDLY_REPORT_CARD_URL).toBe('https://calendly.com/valtoris/reportcard')
+  it('uses the verified active Valtoris calendar instead of the invalid Calendly destination', () => {
+    expect(STRATEGY_SESSION_BOOKING_URL).toBe('https://link.agent-crm.com/widget/booking/aM4Wwt4WNABaaoGNT5qQ')
+    expect(CALENDLY_REPORT_CARD_URL).toBe(STRATEGY_SESSION_BOOKING_URL)
     const html = renderSchedule('/schedule')
     expect(html).toContain(`href="${CALENDLY_REPORT_CARD_URL}"`)
     expect(html).toContain('target="_blank"')
     expect(html).toContain('rel="noopener noreferrer"')
     expect(source('pages/ScheduleReportCardPage.tsx')).toContain('ScheduleReportCardLink')
     expect(source('pages/ScheduleReportCardPage.tsx')).not.toContain('SCHEDULE_CTA')
-    expect(source('constants/urls.ts')).toContain(
-      "export const CALENDLY_REPORT_CARD_URL = 'https://calendly.com/valtoris/reportcard'",
-    )
+    expect(html).not.toContain('calendly.com/valtoris/reportcard')
+    expect(html).toContain('Valtoris booking calendar')
     expect(source('constants/homepage.ts')).toContain(
       "export const SCHEDULE_CTA = 'Schedule Complimentary Strategy Session™'",
     )

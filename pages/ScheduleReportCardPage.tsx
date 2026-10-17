@@ -7,6 +7,7 @@ import PublicLink from '../components/publicSite/PublicLink'
 import PublicLocaleSwitcher from '../components/publicSite/PublicLocaleSwitcher'
 import { usePublicDocumentLang } from '../components/publicSite/usePublicDocumentLang'
 import { ROUTES } from '../constants/routes'
+import { useHomeDocumentMeta } from '../components/publicSite/home/useHomeDocumentMeta'
 
 const scheduleCopy = {
   en: {
@@ -34,6 +35,10 @@ export default function ScheduleReportCardPage() {
   const copy = scheduleCopy[locale]
   const chrome = chromeCopy[locale]
   usePublicDocumentLang(locale)
+  useHomeDocumentMeta({
+    metaTitle: `${copy.title} | Valtoris Financial`,
+    metaDescription: copy.lead,
+  })
 
   return (
     <div className="schedule-shell">
@@ -60,7 +65,7 @@ export default function ScheduleReportCardPage() {
               <li>{locale === 'es' ? 'Tenga a mano su Report Card, si ya completó uno. No necesita enviar números de cuenta para agendar.' : 'Have your Report Card handy if you completed one. You do not need to send account numbers to book.'}</li>
               <li>{locale === 'es' ? 'Conversen sobre posibles próximos pasos; no necesita elegir un producto para iniciar la conversación.' : 'Discuss possible next steps; you do not need to choose a product to start the conversation.'}</li>
             </ul>
-            <p>{locale === 'es' ? 'El botón abre Calendly en otra pestaña. Revise allí los horarios y detalles disponibles antes de confirmar su cita.' : 'The button opens Calendly in a new tab. Review available times and meeting details there before confirming your appointment.'}</p>
+            <p>{locale === 'es' ? 'El botón abre el calendario de Valtoris en otra pestaña. Revisa allí los horarios y detalles disponibles antes de confirmar tu cita.' : 'The button opens the Valtoris booking calendar in a new tab. Review available times and meeting details there before confirming your appointment.'}</p>
           </div>
 
           <ScheduleReportCardLink className="platform-btn platform-btn-primary">

@@ -1,6 +1,10 @@
 import { SCHEDULE_CTA } from './homepage.js'
 
-export const CALENDLY_REPORT_CARD_URL = 'https://calendly.com/valtoris/reportcard'
+/** Existing active Valtoris Strategy Session calendar; permanent link survives slug edits. */
+export const STRATEGY_SESSION_BOOKING_URL = 'https://link.agent-crm.com/widget/booking/aM4Wwt4WNABaaoGNT5qQ'
+
+/** Compatibility alias for existing result-page consumers. */
+export const CALENDLY_REPORT_CARD_URL = STRATEGY_SESSION_BOOKING_URL
 
 /** Official Federal Student Aid site. Not a Valtoris property or partnership. */
 export const STUDENTAID_GOV_URL = 'https://studentaid.gov'
