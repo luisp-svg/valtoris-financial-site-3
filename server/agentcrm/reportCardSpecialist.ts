@@ -1,8 +1,8 @@
 import { assertAgentCrmServerOnly } from './config.js'
 import { DeliveryHold } from './insurance/deliver.js'
-import { STUDENT_LOAN_CONTACT_OWNER_ID } from './reportCardFollowUpConfig.js'
+import { reportCardContactOwner } from './reportCardFollowUpConfig.js'
 
-/** Direct student-loan ownership replaces reliance on adding a service tag. */
+/** Direct specialist ownership avoids firing tag-based routing workflows. */
 export async function assignReportCardSpecialist(input: {
   assessmentType: string
   contactId: string
@@ -11,14 +11,15 @@ export async function assignReportCardSpecialist(input: {
   assignOwner(contactId: string, ownerId: string): Promise<unknown>
 }) {
   assertAgentCrmServerOnly()
-  if (input.assessmentType !== 'student_loan') return
+  const ownerId = reportCardContactOwner(input.assessmentType)
+  if (!ownerId) return
   if (!/^[a-zA-Z0-9]{1,128}$/.test(input.contactId)) throw new DeliveryHold('invalid_contact_id')
   await input.checkpoint({})
-  if (await input.readVerifiedOwner() === STUDENT_LOAN_CONTACT_OWNER_ID) return
+  if (await input.readVerifiedOwner() === ownerId) return
   // Idempotent single-field assignment. Consent and the live lease fence each write.
   // A retry reads current ownership first; never send tags, source or consent fields.
   await input.checkpoint({})
-  await input.assignOwner(input.contactId, STUDENT_LOAN_CONTACT_OWNER_ID)
+  await input.assignOwner(input.contactId, ownerId)
   await input.checkpoint({})
-  if (await input.readVerifiedOwner() !== STUDENT_LOAN_CONTACT_OWNER_ID) throw new DeliveryHold('contact_owner_verification_failed')
+  if (await input.readVerifiedOwner() !== ownerId) throw new DeliveryHold('contact_owner_verification_failed')
 }

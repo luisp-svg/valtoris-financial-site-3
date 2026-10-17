@@ -11,7 +11,7 @@ import { runReportCardAgentCrmSync, type ReportCardSyncInput } from './reportCar
 import { assignReportCardSpecialist } from './reportCardSpecialist.js'
 import { deliverReportCardFollowUp } from './reportCardFollowUp.js'
 import { ReportCardFollowUpClient } from './reportCardFollowUpClient.js'
-import { REPORT_CARD_FOLLOW_UP_TARGET, reportCardFollowUpReady, reportCardTaskDueDate } from './reportCardFollowUpConfig.js'
+import { reportCardFollowUpTarget, reportCardFollowUpReady, reportCardTaskDueDate } from './reportCardFollowUpConfig.js'
 import { DeliveryHold, record } from './insurance/deliver.js'
 
 type ReportDelivery = { lead_id: string; claim_token: string; delivery_kind: string; target_location_id: string; contact_id: string | null; contact_create_started: boolean; tag_write_started: boolean; tag_applied: boolean; opportunity_id: string | null; opportunity_create_started: boolean; task_id: string | null; task_create_started: boolean }
@@ -120,7 +120,7 @@ export async function syncReportCardDelivery(leadId?: string, deps: { admin?: Su
         assignOwner: (id, owner) => transport.assignContactOwner(id, owner),
       })
       await deliverReportCardFollowUp({
-        delivery: { ...delivery, contact_id: contactId }, target: REPORT_CARD_FOLLOW_UP_TARGET,
+        delivery: { ...delivery, contact_id: contactId }, target: reportCardFollowUpTarget(input.assessmentType),
         assessmentType: input.assessmentType, dueDate, transport, checkpoint,
         contactName: `${input.firstName} ${input.lastName}`,
         async verifyContact() {
