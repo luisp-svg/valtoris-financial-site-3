@@ -1,7 +1,19 @@
 import { describe, expect, it } from 'vitest'
-import { REPORT_CARD_FOLLOW_UP_TARGET as target, reportCardFollowUpReady, reportCardTaskDueDate } from './reportCardFollowUpConfig'
+import { REPORT_CARD_FOLLOW_UP_TARGET as target, reportCardFollowUpReady, reportCardTaskDueDate, reportCardContactOwner, reportCardFollowUpTarget, HEALTH_CONTACT_OWNER_ID, STUDENT_LOAN_CONTACT_OWNER_ID } from './reportCardFollowUpConfig'
 
 describe('Report Card follow-up configuration', () => {
+  it.each([['tsp',target.assignedUserId],['health',HEALTH_CONTACT_OWNER_ID]])('keeps %s contact ownership and follow-up tasks aligned', (type,owner) => {
+    expect(reportCardContactOwner(type)).toBe(owner)
+    expect(reportCardFollowUpTarget(type)).toEqual({...target,assignedUserId:owner})
+  })
+  it('preserves existing Student Loan contact ownership with Lizbeth and review tasks with Luis', () => {
+    expect(reportCardContactOwner('student_loan')).toBe(STUDENT_LOAN_CONTACT_OWNER_ID)
+    expect(reportCardFollowUpTarget('student_loan')).toEqual(target)
+  })
+  it.each(['family','business','retirement','protection','credit','home_buyer','unknown'])('preserves the existing %s follow-up default without overriding contact ownership', type => {
+    expect(reportCardContactOwner(type)).toBeNull()
+    expect(reportCardFollowUpTarget(type)).toEqual(target)
+  })
   it.each([
     ['2026-09-28T18:00:00Z', '2026-09-29T14:00:00.000Z'],
     ['2026-09-26T01:00:00Z', '2026-09-28T14:00:00.000Z'],

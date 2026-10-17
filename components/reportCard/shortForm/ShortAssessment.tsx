@@ -41,7 +41,7 @@ export default function ShortAssessment({ assessmentType }: { assessmentType: Pu
       setStep(step+1);setShowErrors(false);return
     }
     const answers: ShortAnswers={format:SHORT_FORM_FORMAT,assessmentType,diagnostic,contact}
-    if(!validateShortAnswers(assessmentType,answers)||!validateRequiredFamilyConsent(consent).ok) {setShowErrors(true);setError(t('Review your answers, full name, email and required acknowledgments. Retirement age cannot be earlier than current age.','Revisa tus respuestas, nombre completo, correo y confirmaciones obligatorias. La edad de jubilación no puede ser menor que la edad actual.'));return}
+    if(!validateShortAnswers(assessmentType,answers)||!validateRequiredFamilyConsent(consent).ok) {setShowErrors(true);setError(t('Review your answers, full name, email and required acknowledgments.','Revisa tus respuestas, nombre completo, correo y confirmaciones obligatorias.') + (assessmentType === 'retirement' ? t(' Retirement age cannot be earlier than current age.',' La edad de jubilación no puede ser menor que la edad actual.') : ''));return}
     session.current=ensureFamilySubmissionId(session.current,undefined,storageKey).session
     inFlight.current=true;setBusy(true);setLocked(true);setError('')
     try {

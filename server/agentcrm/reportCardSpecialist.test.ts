@@ -1,15 +1,15 @@
 import { describe, expect, it, vi } from 'vitest'
 import { assignReportCardSpecialist } from './reportCardSpecialist'
-import { STUDENT_LOAN_CONTACT_OWNER_ID as liz } from './reportCardFollowUpConfig'
+import { STUDENT_LOAN_CONTACT_OWNER_ID as liz, HEALTH_CONTACT_OWNER_ID as jaz, REPORT_CARD_FOLLOW_UP_TARGET } from './reportCardFollowUpConfig'
 function fixture() {
   let owner = 'previousOwner'
   const input = {assessmentType:'student_loan',contactId:'contact123',checkpoint:vi.fn(async()=>{}),readVerifiedOwner:vi.fn(async()=>owner),assignOwner:vi.fn(async(_contact:string,next:string)=>{owner=next})}
   return {input}
 }
-describe('direct student-loan specialist routing',()=>{
-  it('assigns Lizbeth even when another owner exists, then verifies ownership',async()=>{
-    const {input}=fixture();await assignReportCardSpecialist(input)
-    expect(input.assignOwner).toHaveBeenCalledWith('contact123',liz)
+describe('direct priority-funnel specialist routing',()=>{
+  it.each([['student_loan',liz],['health',jaz],['tsp',REPORT_CARD_FOLLOW_UP_TARGET.assignedUserId]])('assigns the approved %s specialist, verifies ownership, and avoids repeat writes',async(assessmentType,owner)=>{
+    const {input}=fixture();input.assessmentType=assessmentType;await assignReportCardSpecialist(input)
+    expect(input.assignOwner).toHaveBeenCalledWith('contact123',owner)
     expect(input.readVerifiedOwner).toHaveBeenCalledTimes(2)
     await assignReportCardSpecialist(input);expect(input.assignOwner).toHaveBeenCalledTimes(1)
   })

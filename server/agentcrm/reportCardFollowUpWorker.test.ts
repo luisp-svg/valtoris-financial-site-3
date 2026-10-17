@@ -1,11 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { syncReportCardDelivery } from './reportCardDelivery'
-import { REPORT_CARD_FOLLOW_UP_TARGET as target, STUDENT_LOAN_CONTACT_OWNER_ID as liz } from './reportCardFollowUpConfig'
+import { REPORT_CARD_FOLLOW_UP_TARGET as target, STUDENT_LOAN_CONTACT_OWNER_ID as liz, HEALTH_CONTACT_OWNER_ID as jaz } from './reportCardFollowUpConfig'
+import { getReportCardAgentCrmConfig } from './reportCardSyncConfig'
 const remote = vi.hoisted(() => ({ tasks: [] as Record<string, unknown>[], posts: [] as string[], contactSync: vi.fn(), owner: 'otherOwner', assignments: [] as string[] }))
 vi.mock('./reportCardSync.js', () => ({runReportCardAgentCrmSync: remote.contactSync}))
 vi.mock('./client.js', () => ({LeadConnectorClient: class {
-  async get() { return {contact:{id:'contact123',locationId:'I2Y36c45rBLFZhCQwkDC',firstName:'Test',lastName:'Person',email:'qa@example.invalid',phone:null,assignedTo:remote.owner}} }
+  async get(path: string) { if(path.endsWith('/tags')) return {tags:[{name:'Health Insurance'},{name:'TSP'}]}; return {contact:{id:'contact123',locationId:'I2Y36c45rBLFZhCQwkDC',firstName:'Test',lastName:'Person',email:'qa@example.invalid',phone:null,assignedTo:remote.owner}} }
 }}))
 vi.mock('./reportCardFollowUpClient.js', () => ({ReportCardFollowUpClient: class {
   async get(path: string) {
@@ -20,7 +21,9 @@ vi.mock('./reportCardFollowUpClient.js', () => ({ReportCardFollowUpClient: class
   }
 }}))
 const env={SUPABASE_URL:'https://phanoknohbidqtgrpwvk.supabase.co',AGENTCRM_REPORT_CARD_SYNC_ENABLED:'true',AGENTCRM_CONTACT_LINKING_ENABLED:'true',AGENTCRM_PRIVATE_INTEGRATION_TOKEN:'test-token',AGENTCRM_LOCATION_ID:target.locationId,AGENTCRM_REPORT_CARD_TRIGGERS_VERIFIED:'true',AGENTCRM_REPORT_CARD_DIRECT_FOLLOW_UP_VERIFIED:'true'}
-function fixture(studentLoan = false) {
+function fixture(studentLoan: boolean | 'health' | 'tsp' = false) {
+  const type = typeof studentLoan === 'string' ? studentLoan : studentLoan ? 'student_loan' : 'family'
+  const source = getReportCardAgentCrmConfig(type)!.source
   const delivery={lead_id:'00000000-0000-4000-8000-000000000001',claim_token:'claim',delivery_kind:'report_card',target_location_id:target.locationId,contact_id:null as string|null,contact_create_started:false,tag_write_started:false,tag_applied:false,opportunity_id:null,opportunity_create_started:false,task_id:null,task_create_started:false}
   const patches:Record<string,unknown>[]=[]
   const rpc=vi.fn(async(name:string,args?:Record<string,unknown>)=>{
@@ -28,7 +31,7 @@ function fixture(studentLoan = false) {
     const patch=args!.p_patch as Record<string,unknown>;patches.push({...patch});Object.assign(delivery,patch);return {data:true,error:null}
   })
   const from=(table:string)=>{
-    const result={data:table==='leads'?{id:delivery.lead_id,created_at:'2026-09-28T18:00:00Z',household_id:'household',assessment_type:studentLoan?'student_loan':'family',lead_type:studentLoan?'Student Loan Report Card':'Family Report Card',raw_payload:{firstName:'Test',lastName:'Person'},normalized_email:'qa@example.invalid',normalized_phone:null,consent_snapshot:{contactPermission:true}}:table==='households'?{id:'household'}:[{id:'member',first_name:'Test',last_name:'Person'}],error:null}
+    const result={data:table==='leads'?{id:delivery.lead_id,created_at:'2026-09-28T18:00:00Z',household_id:'household',assessment_type:type,lead_type:source,raw_payload:{firstName:'Test',lastName:'Person'},normalized_email:'qa@example.invalid',normalized_phone:null,consent_snapshot:{contactPermission:true}}:table==='households'?{id:'household'}:[{id:'member',first_name:'Test',last_name:'Person'}],error:null}
     const query={select:()=>query,eq:()=>query,is:()=>query,single:async()=>result,maybeSingle:async()=>result,then:(resolve:(value:unknown)=>unknown)=>Promise.resolve(result).then(resolve)}
     return query
   }
@@ -39,6 +42,15 @@ beforeEach(()=>{
   remote.contactSync.mockImplementation(async(_input,deps)=>{await deps.delivery.checkpoint({contact_id:'contact123'});return {status:'ALREADY_LINKED'}})
 })
 describe('Report Card worker follow-up integration',()=>{
+  it.each([['health',jaz],['tsp',target.assignedUserId]] as const)('routes %s contact and review task to the approved owner without duplicate writes',async(type,owner)=>{
+    const f=fixture(type)
+    expect(await syncReportCardDelivery(undefined,{admin:f.admin,env})).toBe('synced')
+    expect(remote.assignments).toEqual([owner]);expect(remote.owner).toBe(owner)
+    expect(remote.tasks[0].assignedTo).toBe(owner)
+    expect(await syncReportCardDelivery(undefined,{admin:f.admin,env})).toBe('synced')
+    expect(remote.assignments).toEqual([owner]);expect(remote.posts).toEqual(['/contacts/contact123/tasks'])
+    expect(remote.contactSync.mock.calls[0][1].taggingEnabled).toBe(false)
+  })
   it('routes student-loan ownership to Lizbeth while keeping review tasks with Luis',async()=>{
     const f=fixture(true)
     expect(await syncReportCardDelivery(undefined,{admin:f.admin,env})).toBe('synced')

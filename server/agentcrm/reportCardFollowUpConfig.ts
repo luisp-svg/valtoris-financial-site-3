@@ -12,6 +12,23 @@ export const REPORT_CARD_FOLLOW_UP_TARGET = {
 // Lizbeth's account ID verified in My Staff; direct student-loan assignment approved.
 export const STUDENT_LOAN_CONTACT_OWNER_ID = 'jHigWJV8e0wu5VidwMTx'
 
+/** Verified in AgentCRM Users; service ownership requested by Luis on 2026-10-17. */
+export const HEALTH_CONTACT_OWNER_ID = 'gxrvJMHczw375SQveVHi'
+
+export function reportCardContactOwner(assessmentType: string): string | null {
+  if (assessmentType === 'health') return HEALTH_CONTACT_OWNER_ID
+  if (assessmentType === 'tsp') return REPORT_CARD_FOLLOW_UP_TARGET.assignedUserId
+  if (assessmentType === 'student_loan') return STUDENT_LOAN_CONTACT_OWNER_ID
+  return null
+}
+
+/** Route Health follow-up to Jazmin; retain existing task ownership for other services. */
+export function reportCardFollowUpTarget(assessmentType: string) {
+  return { ...REPORT_CARD_FOLLOW_UP_TARGET,
+    assignedUserId: assessmentType === 'health' ? HEALTH_CONTACT_OWNER_ID : REPORT_CARD_FOLLOW_UP_TARGET.assignedUserId,
+  }
+}
+
 export function reportCardFollowUpReady(env: NodeJS.ProcessEnv, locationId: string): boolean {
   assertAgentCrmServerOnly()
   // The second attestation covers direct opportunity/task and contact-owner triggers.
