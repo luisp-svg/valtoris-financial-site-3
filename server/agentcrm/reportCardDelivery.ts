@@ -46,7 +46,7 @@ export async function verifyGuidedReportServiceTag(type: string, locationId: str
   if (!['health','tsp','benefits','tax'].includes(type)) return
   const required = getReportCardAgentCrmConfig(type)?.serviceTag
   const response = record(await reader.get(`/locations/${encodeURIComponent(locationId)}/tags`))
-  if (!required || !Array.isArray(response.tags) || !response.tags.some(value => value !== null && typeof value === 'object' && !Array.isArray(value) && (value as Record<string, unknown>).name === required)) throw new DeliveryHold('service_tag_missing')
+  if (!required || !Array.isArray(response.tags) || !response.tags.some(value => value !== null && typeof value === 'object' && !Array.isArray(value) && typeof (value as Record<string, unknown>).name === 'string' && String((value as Record<string, unknown>).name).trim().toLowerCase() === required.toLowerCase())) throw new DeliveryHold('service_tag_missing')
 }
 /** Only a persisted lead ID enters this worker; browser identity and replay fields are ignored. */
 export async function syncReportCardDelivery(leadId?: string, deps: { admin?: SupabaseClient; env?: NodeJS.ProcessEnv; deadline?: number } = {}): Promise<string> {

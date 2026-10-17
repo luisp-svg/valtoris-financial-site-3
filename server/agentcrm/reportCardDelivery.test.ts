@@ -157,8 +157,11 @@ describe('guided Report Card routing preflight', () => {
   get.mockResolvedValue({tags:[{name:'Tax Planning'}]})
   await expect(verifyGuidedReportServiceTag(type,'location',{get})).rejects.toThrow('service_tag_missing')
  })
- it.each([{}, {tags:null}, {tags:[null,{}, {name:'tax review'}]}])('holds malformed or nonmatching tag responses', async response => {
+ it.each([{}, {tags:null}, {tags:[null,{}, {name:'unrelated'}]}])('holds malformed or nonmatching tag responses', async response => {
   await expect(verifyGuidedReportServiceTag('tax','location',{get:vi.fn().mockResolvedValue(response)})).rejects.toThrow('service_tag_missing')
+ })
+ it('accepts AgentCRM canonical lowercase labels', async () => {
+  await expect(verifyGuidedReportServiceTag('tax','location',{get:vi.fn().mockResolvedValue({tags:[{name:'tax review'}]})})).resolves.toBeUndefined()
  })
  it('preserves existing cards without requiring an extra provider read', async () => {
   const get=vi.fn()
