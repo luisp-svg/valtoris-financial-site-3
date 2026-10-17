@@ -26,6 +26,8 @@ export default function HomeFounderStory({ copy }: HomeFounderStoryProps) {
             {copy.founderHeading}
           </h2>
           <p>{copy.founderBody}</p>
+          <p><strong>{copy.founderExperience}</strong></p>
+          <p>{copy.founderLicenses}</p>
           <p className="site-home-founder-signature">{copy.founderName}</p>
           <p className="site-home-founder-role">{copy.founderRole}</p>
           <PublicLink className="platform-btn platform-btn-secondary" to={ROUTES.schedule}>
