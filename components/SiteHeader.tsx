@@ -31,6 +31,20 @@ export default function SiteHeader() {
   const setAboutOpen = useCallback((open: boolean) => setOpenMenu(open ? 'about' : null), [])
 
   useEffect(() => {
+    const existing = document.querySelector<HTMLLinkElement>('link[rel="canonical"]')
+    const canonical = existing ?? document.createElement('link')
+    const previousHref = existing?.getAttribute('href')
+    canonical.rel = 'canonical'
+    canonical.href = `https://www.valtorisfinancial.com${location.pathname}${locale === 'es' ? '?lang=es' : ''}`
+    if (!existing) document.head.appendChild(canonical)
+    return () => {
+      if (!existing) canonical.remove()
+      else if (previousHref) canonical.setAttribute('href', previousHref)
+      else canonical.removeAttribute('href')
+    }
+  }, [location.pathname, locale])
+
+  useEffect(() => {
     setMobileOpen(false)
     setOpenMenu(null)
   }, [location.pathname])
@@ -66,6 +80,8 @@ export default function SiteHeader() {
               open={openMenu === 'services'}
               onOpenChange={setServicesOpen}
             />
+            <PublicLink className="site-nav-text-link" to={ROUTES.reportCards}>{locale === 'es' ? 'Todos los reportes' : 'Report Card Hub'}</PublicLink>
+            <PublicLink className="site-nav-text-link" to={ROUTES.education}>{locale === 'es' ? 'Educación' : 'Learn'}</PublicLink>
             <SiteNavDropdown
               label={copy.navTools}
               items={toolItems}

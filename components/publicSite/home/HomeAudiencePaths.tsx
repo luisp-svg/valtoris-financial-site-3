@@ -1,3 +1,4 @@
+import { ROUTES } from '../../../constants/routes'
 import PublicLink from '../PublicLink'
 import type { HomeCopy } from './copy'
 import { HOME_AUDIENCE_PATHS } from './homeConfig'
@@ -29,6 +30,7 @@ export default function HomeAudiencePaths({ copy }: HomeAudiencePathsProps) {
           </article>
         ))}
       </div>
+      <PublicLink className="site-home-card-link" to={ROUTES.reportCards}>{copy.showcaseSecondaryCta}</PublicLink>
     </SiteHomeSection>
   )
 }

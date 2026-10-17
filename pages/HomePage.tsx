@@ -1,3 +1,4 @@
+import AnswerSection from '../components/publicSite/aeo/AnswerSection'
 import { useLocation } from 'react-router-dom'
 import HomeAudiencePaths from '../components/publicSite/home/HomeAudiencePaths'
 import HomeFinalCta from '../components/publicSite/home/HomeFinalCta'
@@ -26,6 +27,7 @@ export default function HomePage() {
       <HomeServiceGrid copy={copy} />
       <HomeWhyValtoris copy={copy} />
       <HomeFounderStory copy={copy} />
+      <AnswerSection page="home" locale={locale} />
       <HomeFinalCta copy={copy} />
     </div>
   )

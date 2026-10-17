@@ -25,7 +25,7 @@ export default function HomeReportCardShowcase({ copy }: HomeReportCardShowcaseP
             <PublicLink className="platform-btn platform-btn-primary" to={ROUTES.reportCard}>
               {copy.showcaseCta}
             </PublicLink>
-            <PublicLink className="site-home-text-link" to={ROUTES.solutions}>
+            <PublicLink className="site-home-text-link" to={ROUTES.reportCards}>
               {copy.showcaseSecondaryCta}
             </PublicLink>
           </div>

@@ -1,5 +1,7 @@
 export const ROUTES = {
   home: '/',
+  reportCards: '/report-cards',
+  education: '/education',
   getQuote: '/get-a-quote',
   solutions: '/solutions',
   reportCard: '/report-card',
