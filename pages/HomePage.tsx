@@ -32,13 +32,14 @@ export default function HomePage() {
       <HomeFounderStory copy={copy} />
       <section className="site-home-founder" aria-labelledby="home-liz-heading">
         <div className="container site-home-founder-grid">
-          <div className="site-home-founder-image-wrap">
+          <div className="site-home-founder-image-wrap" style={{ width: '100%', maxWidth: 280, justifySelf: 'center' }}>
             <img
               className="site-home-founder-image"
               src="/images/advisors/liz.jpg"
               alt={locale === 'es' ? 'Liz, estratega de préstamos estudiantiles y especialista en salud' : 'Liz, Student Loan Strategist and Health Specialist'}
               width="841"
               height="1280"
+              style={{ height: 'auto' }}
               loading="lazy"
             />
           </div>
@@ -51,6 +52,11 @@ export default function HomePage() {
               {locale === 'es' ? 'Estratega de préstamos estudiantiles y especialista en salud' : 'Student Loan Strategist & Health Specialist'}
             </p>
             <p><strong>{locale === 'es' ? '10 años de experiencia' : '10 years of experience'}</strong></p>
+            <p>
+              {locale === 'es'
+                ? 'Liz aporta 10 años de experiencia a su labor como estratega de préstamos estudiantiles y especialista en salud en Valtoris. Su enfoque es ayudar a las personas y familias a comprender sus opciones y definir sus próximos pasos en estas áreas importantes de su vida financiera.'
+                : 'Liz brings 10 years of experience to her role as a Student Loan Strategist and Health Specialist at Valtoris. She focuses on helping individuals and families understand their options and clarify their next steps in these important areas of their financial lives.'}
+            </p>
           </div>
         </div>
       </section>
