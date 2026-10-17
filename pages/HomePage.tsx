@@ -30,6 +30,30 @@ export default function HomePage() {
       <HomeServiceGrid copy={copy} />
       <HomeWhyValtoris copy={copy} />
       <HomeFounderStory copy={copy} />
+      <section className="site-home-founder" aria-labelledby="home-liz-heading">
+        <div className="container site-home-founder-grid">
+          <div className="site-home-founder-image-wrap">
+            <img
+              className="site-home-founder-image"
+              src="/images/advisors/liz.jpg"
+              alt={locale === 'es' ? 'Liz, estratega de préstamos estudiantiles y especialista en salud' : 'Liz, Student Loan Strategist and Health Specialist'}
+              width="841"
+              height="1280"
+              loading="lazy"
+            />
+          </div>
+          <div className="site-home-founder-copy">
+            <p className="site-home-kicker">{locale === 'es' ? 'Conozca a nuestro equipo' : 'Meet our team'}</p>
+            <h2 id="home-liz-heading" className="platform-section-title">
+              {locale === 'es' ? 'Conozca a Liz' : 'Meet Liz'}
+            </h2>
+            <p className="site-home-founder-role">
+              {locale === 'es' ? 'Estratega de préstamos estudiantiles y especialista en salud' : 'Student Loan Strategist & Health Specialist'}
+            </p>
+            <p><strong>{locale === 'es' ? '10 años de experiencia' : '10 years of experience'}</strong></p>
+          </div>
+        </div>
+      </section>
       <AnswerSection page="home" locale={locale} />
       <HomeFinalCta copy={copy} />
     </div>
