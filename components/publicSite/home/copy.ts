@@ -115,6 +115,8 @@ export type HomeCopy = {
   founderKicker: string
   founderHeading: string
   founderBody: string
+  founderExperience: string
+  founderLicenses: string
   founderName: string
   founderRole: string
   founderCta: string
@@ -263,6 +265,8 @@ export const homeCopy: Record<PublicLocale, HomeCopy> = {
     founderHeading: 'Meet Luis Perez, Financial Strategist and Founder.',
     founderBody:
       'Valtoris was built around a simple belief: families and business owners deserve to understand their full financial picture before being asked to buy a product. Luis brings the perspective of a business owner and father to every strategy conversation—helping clients turn disconnected decisions into a plan built around the people and goals that matter most.',
+    founderExperience: '17 years in sales · 8 years in financial services',
+    founderLicenses: 'Insurance licenses in Texas, California, Virginia, Florida, Arizona, and Colorado.',
     founderName: 'Luis Perez',
     founderRole: 'Founder · Financial Strategist',
     founderCta: 'Meet With Luis',
@@ -412,6 +416,8 @@ export const homeCopy: Record<PublicLocale, HomeCopy> = {
     founderHeading: 'Conozca a Luis Perez, Financial Strategist y fundador.',
     founderBody:
       'Valtoris nació de una idea sencilla: las familias y los dueños de negocio merecen entender todo su panorama financiero antes de que se les pida comprar un producto. Luis aporta a cada conversación la perspectiva de un dueño de negocio y padre, ayudando a convertir decisiones desconectadas en un plan alrededor de las personas y metas que más importan.',
+    founderExperience: '17 años en ventas · 8 años en servicios financieros',
+    founderLicenses: 'Licencias de seguros en Texas, California, Virginia, Florida, Arizona y Colorado.',
     founderName: 'Luis Perez',
     founderRole: 'Fundador · Financial Strategist',
     founderCta: 'Reunirse con Luis',
