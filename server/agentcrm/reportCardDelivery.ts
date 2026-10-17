@@ -41,6 +41,13 @@ export function verifyReportContact(value: unknown, location: string, input: Rep
     || String(contact.lastName ?? '').trim().toLowerCase() !== input.lastName.trim().toLowerCase()) throw new DeliveryHold('contact_verification_failed')
   return { hasTag: Array.isArray(contact.tags) && contact.tags.includes(tag) }
 }
+/** Read-only preflight: new routing labels must already exist before contact writes. */
+export async function verifyGuidedReportServiceTag(type: string, locationId: string, reader: {get(path: string): Promise<unknown>}): Promise<void> {
+  if (!['health','tsp','benefits','tax'].includes(type)) return
+  const required = getReportCardAgentCrmConfig(type)?.serviceTag
+  const response = record(await reader.get(`/locations/${encodeURIComponent(locationId)}/tags`))
+  if (!required || !Array.isArray(response.tags) || !response.tags.some(value => value !== null && typeof value === 'object' && !Array.isArray(value) && typeof (value as Record<string, unknown>).name === 'string' && String((value as Record<string, unknown>).name).trim().toLowerCase() === required.toLowerCase())) throw new DeliveryHold('service_tag_missing')
+}
 /** Only a persisted lead ID enters this worker; browser identity and replay fields are ignored. */
 export async function syncReportCardDelivery(leadId?: string, deps: { admin?: SupabaseClient; env?: NodeJS.ProcessEnv; deadline?: number } = {}): Promise<string> {
   const deadline = deps.deadline ?? Date.now() + 45000
@@ -88,6 +95,7 @@ export async function syncReportCardDelivery(leadId?: string, deps: { admin?: Su
     const input = canonicalReportIdentity(lead, members.data ?? [])
     const dueDate = reportCardTaskDueDate(lead.created_at)
     const reader = new LeadConnectorClient({ token: config.token })
+    await verifyGuidedReportServiceTag(input.assessmentType, config.locationId, reader)
     const decision = await runReportCardAgentCrmSync(input, { admin, env, taggingEnabled: false, triggersVerified: env.AGENTCRM_REPORT_CARD_TRIGGERS_VERIFIED === 'true', delivery: {
       contactId: delivery.contact_id, createStarted: delivery.contact_create_started, tagStarted: delivery.tag_write_started, tagApplied: delivery.tag_applied,
       checkpoint,

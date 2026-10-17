@@ -444,8 +444,10 @@ export function mapPublicFamilyDiagnosticDetail(
     shortFormResult: list.scoringVersion === 3 ? readShortResult(derived.shortFormResult) : undefined,
     affordability: row.assessment_type === 'home_buyer' ? readAffordabilitySnapshot(derived.affordability) : undefined,
     submittedAnswers:
-      isShortForm(row.answers) && row.answers.diagnostic && isPublicReportCardAssessmentType(row.assessment_type)
-        ? shortAnswerRows(row.assessment_type, row.answers.diagnostic, 'en')
+      list.scoringVersion === 4 && Array.isArray(asRecord(derived.guidedReportResult).answerRows)
+        ? (asRecord(derived.guidedReportResult).answerRows as unknown[]).flatMap(entry=>{const r=asRecord(entry);const id=asTrimmedString(r.id),label=asTrimmedString(r.label),value=asTrimmedString(r.value);return id&&label&&value?[{id,label,value}]:[]})
+        :       isShortForm(row.answers) && row.answers.diagnostic && isPublicReportCardAssessmentType(row.assessment_type)
+        ? shortAnswerRows(row.answers.assessmentType, row.answers.diagnostic, 'en')
         : row.assessment_type === 'student_loan'
         ? extractStudentLoanSubmittedAnswers(row.answers)
         : row.assessment_type === 'credit'

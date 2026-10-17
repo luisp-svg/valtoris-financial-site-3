@@ -126,6 +126,7 @@ describe('fetchIntakeQueue', () => {
       'student_loan',
       'credit',
       'home_buyer',
+      'health', 'tsp', 'benefits', 'tax',
     ])
     expect(assessmentsQuery.eq).not.toHaveBeenCalledWith('assessment_type', 'family')
   })

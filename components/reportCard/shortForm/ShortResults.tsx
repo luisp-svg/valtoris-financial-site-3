@@ -8,7 +8,7 @@ import { readSpecializedLocale, withSpecializedLocale } from '../../assessment/s
 import { SHORT_CARDS, type Locale } from '../../../modules/reportCard/shortForm/catalog'
 import { isShortForm, validQuestion, visibleQuestions, type ShortDiagnostic } from '../../../modules/reportCard/shortForm/contract'
 import { buildShortResult, readShortResult, shortAnswerRows, type ShortResult } from '../../../modules/reportCard/shortForm/results'
-import type { PublicReportCardAssessmentType } from '../../../modules/reportCard/publicIngestCatalog'
+import type { LegacyPublicReportCardAssessmentType as PublicReportCardAssessmentType } from '../../../modules/reportCard/publicIngestCatalog'
 import './shortForm.css'
 
 export function ShortResultBody({result,locale='en'}:{result:ShortResult;locale?:Locale}) {

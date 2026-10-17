@@ -4,7 +4,7 @@ import DiagnosticLanding from '../../home/DiagnosticLanding'
 import SpecializedLocaleSwitcher, { useSpecializedDocumentLang } from '../../assessment/specialized/SpecializedLocaleSwitcher'
 import { readSpecializedLocale, withSpecializedLocale } from '../../assessment/specialized/locale'
 import { SHORT_CARDS } from '../../../modules/reportCard/shortForm/catalog'
-import type { PublicReportCardAssessmentType } from '../../../modules/reportCard/publicIngestCatalog'
+import type { LegacyPublicReportCardAssessmentType as PublicReportCardAssessmentType } from '../../../modules/reportCard/publicIngestCatalog'
 
 export default function ShortLanding({assessmentType}:{assessmentType:PublicReportCardAssessmentType}) {
   const location=useLocation(), locale=readSpecializedLocale(location.search), card=SHORT_CARDS[assessmentType]

@@ -327,8 +327,8 @@ describe('public site foundation chrome', () => {
       .filter((name) => name.endsWith('.sql'))
       .sort()
     // Existing main includes the household-member migration; phase 1 adds none.
-    expect(files).toHaveLength(85)
-    expect(files[files.length - 1]).toBe('20261014153052_household_member_add.sql')
+    expect(files).toHaveLength(87)
+    expect(files[files.length - 1]).toBe('20261017041100_guided_report_card_ingest.sql')
     expect(files.some((name) => name.startsWith('053_'))).toBe(true)
     expect(files.some((name) => name.startsWith('054_'))).toBe(true)
     expect(existsSync(join(ROOT, 'supabase/migrations/053_website_foundation.sql'))).toBe(false)

@@ -1,7 +1,7 @@
 import { isValidEmailFormat, normalizePhone } from '../../../crm/households/normalizeContact.js'
 import { US_STATES } from '../../../components/assessment/constants.js'
 import { LEGACY_HOME_BUYER_QUESTIONS, SHORT_CARDS, SHORT_FORM_FORMAT, type ShortQuestion } from './catalog.js'
-import type { PublicReportCardAssessmentType } from '../publicIngestCatalog.js'
+import type { LegacyPublicReportCardAssessmentType as PublicReportCardAssessmentType } from '../publicIngestCatalog.js'
 
 export type ShortDiagnostic = Record<string, string | string[]>
 export type ShortAnswers = { format: typeof SHORT_FORM_FORMAT; assessmentType: PublicReportCardAssessmentType; diagnostic: ShortDiagnostic; contact: { fullName: string; email: string; phone: string } }

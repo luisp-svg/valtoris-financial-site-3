@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { runReportCardAgentCrmSync, type ReportCardDeliveryContext, type ReportCardSyncDeps, type ReportCardSyncInput } from './reportCardSync'
-import { canonicalReportIdentity, syncReportCardDelivery, verifyReportContact } from './reportCardDelivery'
+import { canonicalReportIdentity, syncReportCardDelivery, verifyReportContact, verifyGuidedReportServiceTag } from './reportCardDelivery'
 import { DeliveryHold } from './insurance/deliver'
 const input: ReportCardSyncInput = { assessmentType:'family',contactPermission:true,matchStatus:'new_prospect',memberId:'member',submissionId:'lead',firstName:'Test',lastName:'Person',email:'test@example.invalid',phone:'+15555551234' }
 function fixture(patch: Partial<ReportCardDeliveryContext> = {}) {
@@ -145,5 +145,27 @@ describe('optional phone durable delivery', () => {
   expect(verifyReportContact({contact},'location',identity,'tag','contact123')).toEqual({hasTag:false})
   expect(()=>verifyReportContact({contact:{...contact,phone:input.phone}},'location',identity,'tag','contact123')).toThrow('contact_verification_failed')
   expect(()=>verifyReportContact({contact:{...contact,lastName:'Other'}},'location',identity,'tag','contact123')).toThrow('contact_verification_failed')
+ })
+})
+
+
+describe('guided Report Card routing preflight', () => {
+ it.each([['health','Health Insurance'],['tsp','TSP'],['benefits','Employee Benefits'],['tax','Tax Review']])('requires the approved %s tag before proceeding', async (type, name) => {
+  const get = vi.fn().mockResolvedValue({tags:[{name}]})
+  await expect(verifyGuidedReportServiceTag(type,'location/id',{get})).resolves.toBeUndefined()
+  expect(get).toHaveBeenCalledExactlyOnceWith('/locations/location%2Fid/tags')
+  get.mockResolvedValue({tags:[{name:'Tax Planning'}]})
+  await expect(verifyGuidedReportServiceTag(type,'location',{get})).rejects.toThrow('service_tag_missing')
+ })
+ it.each([{}, {tags:null}, {tags:[null,{}, {name:'unrelated'}]}])('holds malformed or nonmatching tag responses', async response => {
+  await expect(verifyGuidedReportServiceTag('tax','location',{get:vi.fn().mockResolvedValue(response)})).rejects.toThrow('service_tag_missing')
+ })
+ it('accepts AgentCRM canonical lowercase labels', async () => {
+  await expect(verifyGuidedReportServiceTag('tax','location',{get:vi.fn().mockResolvedValue({tags:[{name:'tax review'}]})})).resolves.toBeUndefined()
+ })
+ it('preserves existing cards without requiring an extra provider read', async () => {
+  const get=vi.fn()
+  await verifyGuidedReportServiceTag('family','location',{get})
+  expect(get).not.toHaveBeenCalled()
  })
 })

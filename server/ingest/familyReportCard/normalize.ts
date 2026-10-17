@@ -1,3 +1,4 @@
+import { isGuidedReport } from '../../../modules/reportCard/specialtyPreview/submission.js'
 import { isShortForm } from '../../../modules/reportCard/shortForm/contract.js'
 import { splitFullName } from '../../../utils/submitLeadToGoogleSheets.js'
 import { normalizeEmail, normalizePhone } from '../../../crm/households/normalizeContact.js'
@@ -128,13 +129,14 @@ export function normalizePublicReportCardContact(
   assessmentType: PublicReportCardAssessmentType,
   answers: PublicReportCardAnswers,
 ): NormalizedSubmittedContact {
-  if (isShortForm(answers)) {
+  if (isGuidedReport(answers) || isShortForm(answers)) {
     const d = answers.diagnostic
     return fromContactFields({ ...splitFullName(answers.contact.fullName), email: answers.contact.email, phone: answers.contact.phone,
       age: typeof d.age === 'string' ? d.age : '', state: typeof d.state === 'string' && d.state !== 'unknown' ? d.state : '',
       maritalStatus: typeof d.marital === 'string' ? d.marital : '', numberOfChildren: typeof d.children === 'string' ? d.children : '' })
   }
   switch (assessmentType) {
+    case 'health': case 'tsp': case 'benefits': case 'tax': throw new Error('invalid_guided_report')
     case 'family':
       return normalizeSubmittedContact(answers as DemoAssessmentAnswers)
     case 'business':

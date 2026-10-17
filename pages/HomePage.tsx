@@ -1,3 +1,5 @@
+import { guidedReportCardsEnabled } from '../modules/reportCard/guidedRelease'
+import HomeAskValtoris from '../components/publicSite/home/HomeAskValtoris'
 import AnswerSection from '../components/publicSite/aeo/AnswerSection'
 import { useLocation } from 'react-router-dom'
 import HomeAudiencePaths from '../components/publicSite/home/HomeAudiencePaths'
@@ -21,7 +23,8 @@ export default function HomePage() {
   return (
     <div className="platform-home site-home">
       <HomeHero copy={copy} />
-      <HomeAudiencePaths copy={copy} />
+      {guidedReportCardsEnabled && <HomeAskValtoris locale={locale} />}
+      {!guidedReportCardsEnabled && <HomeAudiencePaths copy={copy} />}
       <HomeProcess copy={copy} />
       <HomeReportCardShowcase copy={copy} />
       <HomeServiceGrid copy={copy} />

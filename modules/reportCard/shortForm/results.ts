@@ -2,7 +2,7 @@ import { scoreBuyerReadiness, isBuyerReadiness, type BuyerReadiness } from './bu
 import { calculateHomePaymentRange, isHomePaymentRange, type HomePaymentRange } from './homePaymentRange.js'
 import { SHORT_FORM_VERSION, type Copy, type Locale, type ShortQuestion } from './catalog.js'
 import { numericAnswer, visibleQuestions, type ShortDiagnostic } from './contract.js'
-import type { PublicReportCardAssessmentType } from '../publicIngestCatalog.js'
+import type { LegacyPublicReportCardAssessmentType as PublicReportCardAssessmentType } from '../publicIngestCatalog.js'
 export type ShortFinding = { id: string; status: 'review' | 'reported' | 'unknown'; title: Copy; detail: Copy }
 export type ShortResult = { version: 3; kind: 'short-form-review'; overallScore: number | null; overallGrade: string | null; findings: ShortFinding[]; metrics: { id: string; label: Copy; value: number; unit: 'USD' | 'USD/month' }[]; buyerReadiness?: BuyerReadiness; homePaymentRange?: HomePaymentRange; limitations: Copy }
 const copy = (en: string, es: string): Copy => ({ en, es })

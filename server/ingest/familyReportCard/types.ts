@@ -1,3 +1,4 @@
+import type { GuidedReportAnswers } from '../../../modules/reportCard/specialtyPreview/submission.js'
 import type { ShortAnswers } from '../../../modules/reportCard/shortForm/contract.js'
 import type { BusinessAssessmentAnswers } from '../../../components/assessment/business/types.js'
 import type { RetirementAssessmentAnswers } from '../../../components/assessment/retirement/types.js'
@@ -61,6 +62,7 @@ export type ConsentSnapshot = {
 }
 
 export type PublicReportCardAnswers =
+  | GuidedReportAnswers
   | ShortAnswers
   | DemoAssessmentAnswers
   | BusinessAssessmentAnswers
