@@ -41,6 +41,7 @@ describe('Intake / Households / dashboard Manual Contact separation', () => {
       'Student Loan Report Card',
       'Credit Report Card',
       'Home Buyer Report Card',
+      'Health Insurance Report Card', 'TSP Report Card', 'Employee Benefits Report Card', 'Tax Review Report Card',
       'Digital Identity',
       BULK_LEAD_IMPORT_LEAD_TYPE,
       ...QUOTE_LEAD_TYPES,
