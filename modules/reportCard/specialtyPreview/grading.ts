@@ -41,7 +41,14 @@ export function gradeReport(type:Specialty,answers:Answers):ReportGrade{
   yes('beneficiaries','Beneficiary and survivor review','Revisión de beneficiarios y sobrevivientes')
   yes('options','Comparison of available options','Comparación de opciones disponibles')
  }
- if(type==='benefits')review('review','Benefits cost and payroll review','Revisión de costos de beneficios y nómina')
+ if(type==='benefits'){
+  review('review','Benefits cost and payroll review','Revisión de costos de beneficios y nómina')
+  add('records_ready','Supporting records readiness','Preparación de registros',{yes:100,partial:50,no:0},'Available = 100; partial = 50; not gathered = 0. No employee documents are collected here.','Disponibles = 100; parciales = 50; sin reunir = 0. No se recopilan documentos de empleados aquí.')
+  for(const id of ['fulltime','covered','contribution','renewal','payroll_provider','payroll_frequency','decision_role']){
+   const q=active.find(q=>q.id===id)
+   if(q)measures.push({id,label:q.label,score:valid(q,answers[id])&&answers[id]!=='unknown'?100:null,rule:c('Known information = 100 for preparation; unknown is unscored and makes the grade preliminary. The amount, provider, role, and employee count do not change points or establish program fit.','Información conocida = 100 para preparación; desconocida sin puntuar y hace preliminar la calificación. Monto, proveedor, función y número de empleados no cambian puntos ni establecen compatibilidad.')})
+  }
+ }
  if(type==='tax'){
   add('support','Planning support','Apoyo de planificación',{planning:100,filing:50,none:0},'Proactive planning = 100; filing only = 50; no regular support = 0. Does not measure tax savings.','Planificación proactiva = 100; solo declaración = 50; sin apoyo = 0. No mide ahorros fiscales.')
   yes('payments_review','Current tax payments reviewed','Pagos fiscales actuales revisados')

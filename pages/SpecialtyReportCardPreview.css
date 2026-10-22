@@ -2,3 +2,6 @@
 .specialty-pathway{background:#eef3ff;border-left:4px solid var(--brand);padding:18px 22px;margin:16px 0;border-radius:8px}.specialty-pathway h4{margin:0;color:var(--brand)}
 .specialty-grade{background:#eef3ff;border:1px solid #bdccef;padding:24px;border-radius:16px;margin:20px 0}.specialty-grade>strong{display:block;font-size:38px;line-height:1.2;color:var(--brand)}
 .specialty-attention{background:#fff7e6;border-left:4px solid #a66800;padding:18px 22px;border-radius:10px;margin:20px 0}.specialty-attention h3{margin-top:0}
+
+.benefits-review .specialty-actions{flex-wrap:wrap}.benefits-review .specialty-pathway h3{margin-top:0}
+@media print{body:has(.benefits-review)>#root header,body:has(.benefits-review)>#root footer,.benefits-review button,.benefits-review .specialty-actions,.benefits-review>aside,.benefits-review>.specialty-draft{display:none!important}.benefits-review{max-width:none;padding:0;color:#111}.benefits-review .specialty-panel{border:0;padding:0}.benefits-review .specialty-pathway,.benefits-review .specialty-grade{background:#fff;border:1px solid #bbb;break-inside:avoid}.benefits-review details:not([open]){display:none}}
