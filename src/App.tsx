@@ -3,6 +3,7 @@ import ShortLanding from '../components/reportCard/shortForm/ShortLanding'
 import ShortAssessment from '../components/reportCard/shortForm/ShortAssessment'
 import VersionedReportResults from '../components/reportCard/shortForm/ShortResults'
 import { lazy, ReactNode, Suspense } from 'react'
+const CrmStudentLoansPage = lazy(() => import('../pages/crm/CrmStudentLoansPage'))
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom'
 import ScrollToTop from '../components/ScrollToTop'
 import PublicRouteIndexing from '../components/publicSite/PublicRouteIndexing'
@@ -331,6 +332,7 @@ export default function App() {
           <Route path="recruiting" element={<CrmRecruitingPage />} />
           <Route path="recruiting/:recruitId" element={<CrmRecruitDetailPage />} />
           <Route path="opportunities/:opportunityId" element={<CrmOpportunityWorkspacePage />} />
+          <Route path="student-loans" element={<CrmStudentLoansPage />} />
           <Route path="tasks" element={<CrmTasksPage />} />
           <Route path="operations" element={<CrmOperationsPage />} />
           <Route path="appointments" element={<CrmPlaceholderPage />} />

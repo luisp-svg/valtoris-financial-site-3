@@ -136,6 +136,7 @@ export const MODULE_CATALOG: readonly ModuleManifest[] = [
     ],
     dependencies: ['initial_financial_diagnostic', 'tasks'],
   }),
+  shellNav({key: 'student_loan_workspace', displayName: 'Student Loans', description: 'Private aid data and automatic student loan recommendations.', icon: 'file-text', order: 21, route: '/crm/student-loans', category: 'planning', permissions: ['crm.nav.view']}),
   shellNav({
     key: 'contacts',
     displayName: 'Contacts',

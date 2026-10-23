@@ -19,6 +19,7 @@ import {
 const CANONICAL_CRM_NAV = [
   { label: 'Home', path: '/crm' },
   { label: 'Intake', path: '/crm/intake' },
+  { label: 'Student Loans', path: '/crm/student-loans' },
   { label: 'Contacts', path: '/crm/contacts' },
   { label: 'Campaigns', path: '/crm/campaigns' },
   { label: 'Households', path: '/crm/households' },

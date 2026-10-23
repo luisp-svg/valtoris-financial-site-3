@@ -10,7 +10,7 @@ export type SavedServiceIntake = {
   updatedAt: string
   answers: IntakeAnswers
 }
-export function createServiceIntakeApi(assessmentType: string, rpcName: string, validate: (raw: unknown, complete?: boolean) => string[], serviceId?: string) {
+export function createServiceIntakeApi(assessmentType: string, rpcName: string, validate: (raw: unknown, complete?: boolean) => string[], serviceId?: string, validateSaved = validate) {
   async function fetchIntakes(client: SupabaseClient, origin: IntakeOrigin): Promise<SavedServiceIntake[]> {
     const { data, error } = await client.from('assessments').select('id, household_id, assessment_type, capture_channel, status, updated_at, completed_at, deleted_at, answers')
       .eq('household_id', origin.householdId).eq('assessment_type', assessmentType).eq('capture_channel', 'advisor_onboarding')
@@ -23,7 +23,7 @@ export function createServiceIntakeApi(assessmentType: string, rpcName: string, 
     const row = raw as Record<string, unknown>
     if (typeof row.id !== 'string' || row.household_id !== householdId || row.assessment_type !== assessmentType || row.capture_channel !== 'advisor_onboarding' || !['draft', 'completed'].includes(String(row.status)) || typeof row.updated_at !== 'string' || row.deleted_at != null || validate(row.answers).length) throw new Error('The intake could not be confirmed as saved.')
     if ((row.status === 'completed') !== (typeof row.completed_at === 'string')) throw new Error('The intake status could not be confirmed.')
-    if (row.status === 'completed' && validate(row.answers, true).length) throw new Error('The completed intake could not be confirmed.')
+    if (row.status === 'completed' && validateSaved(row.answers, true).length) throw new Error('The completed intake could not be confirmed.')
     return { id: row.id, householdId, status: row.status as SavedServiceIntake['status'], updatedAt: row.updated_at, answers: row.answers as IntakeAnswers }
   }
   async function saveIntake(client: SupabaseClient, origin: IntakeOrigin, answers: IntakeAnswers, previous: SavedServiceIntake | null, complete: boolean): Promise<SavedServiceIntake> {

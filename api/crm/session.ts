@@ -10,6 +10,10 @@ import { checkRateLimit } from '../../server/ingest/familyReportCard/abuse.js'
  * Never returns or uses the service-role key.
  */
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (req.query?.workflow === 'student-loans') {
+    const { studentLoanHandler } = await import('../../server/studentLoanReview/handler.js')
+    return studentLoanHandler(req, res)
+  }
   res.setHeader('Cache-Control', 'no-store')
   res.setHeader('X-Content-Type-Options', 'nosniff')
   if (req.method !== 'GET') {

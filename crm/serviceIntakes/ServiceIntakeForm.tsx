@@ -25,11 +25,11 @@ export default function ServiceIntakeForm({ answers, onChange, disabled = false,
         <div className="crm-service-intake-grid">{section.fields.map(f => {
           const name = `intake-${section.id}-${index}-${f.id}`
           const change = (value: string) => update(section.id, index, f.id, value)
-          if (f.kind === 'select') return <SelectInput key={f.id} label={f.label} name={name} value={row[f.id]} onChange={change} options={(f.options ?? []).map(value => ({ value, label: value }))} required={f.required} />
+          if (f.kind === 'select') return <SelectInput key={f.id} label={f.label} name={name} value={row[f.id] ?? ''} onChange={change} options={(f.options ?? []).map(value => ({ value, label: value }))} required={f.required} />
           if (f.kind === 'multiline' || f.kind === 'date') return <FieldShell key={f.id} label={f.label} name={name} required={f.required}>
-            {f.kind === 'date' ? <input id={fieldId(name)} type="date" className="assessment-input" value={row[f.id]} onChange={e => change(e.target.value)} /> : <textarea id={fieldId(name)} className="assessment-input" rows={3} maxLength={2000} value={row[f.id]} onChange={e => change(e.target.value)} />}
+            {f.kind === 'date' ? <input id={fieldId(name)} type="date" className="assessment-input" value={row[f.id] ?? ''} onChange={e => change(e.target.value)} /> : <textarea id={fieldId(name)} className="assessment-input" rows={3} maxLength={2000} value={row[f.id] ?? ''} onChange={e => change(e.target.value)} />}
           </FieldShell>
-          return <TextInput key={f.id} label={f.label} name={name} value={row[f.id]} onChange={change} type={f.kind === 'email' ? 'email' : 'text'} inputMode={f.kind === 'money' || f.kind === 'number' ? 'decimal' : undefined} maxLength={300} required={f.required} />
+          return <TextInput key={f.id} label={f.label} name={name} value={row[f.id] ?? ''} onChange={change} type={f.kind === 'email' ? 'email' : 'text'} inputMode={f.kind === 'money' || f.kind === 'number' ? 'decimal' : undefined} maxLength={300} required={f.required} />
         })}</div>
         {section.repeatable ? <button type="button" className="crm-secondary-btn" onClick={() => onChange({ ...answers, sections: { ...answers.sections, [section.id]: answers.sections[section.id].filter((_, i) => i !== index) } })}>Remove {section.title.toLowerCase()} {index + 1}</button> : null}
       </fieldset>)}

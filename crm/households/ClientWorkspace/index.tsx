@@ -1,3 +1,5 @@
+import IntakeAssignAdvisorDialog from '../../intake/IntakeAssignAdvisorDialog'
+import { assignIntakeHousehold } from '../../intake/intakeAssignment'
 import ArchiveButton from '../../archive/ArchiveButton'
 import { useCallback, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
@@ -54,6 +56,9 @@ export default function ClientWorkspace({ householdId }: ClientWorkspaceProps) {
 
   const activeTab = tabIdFromSearchParams(searchParams)
 
+  const [assignOpen, setAssignOpen] = useState(false)
+  const [assignBusy, setAssignBusy] = useState(false)
+  const [assignError, setAssignError] = useState<string | null>(null)
   const [memberForm, setMemberForm] = useState<MemberFormState>({ open: false })
   const [deleteConfirm, setDeleteConfirm] = useState<HouseholdMemberSummary | null>(null)
   const [deletingMember, setDeletingMember] = useState(false)
@@ -255,6 +260,25 @@ export default function ClientWorkspace({ householdId }: ClientWorkspaceProps) {
       {!loading && !error && workspace && tabProps ? (
         <>
           <WorkspaceHeader workspace={workspace} />
+          <Link className="crm-secondary-btn" to={`/crm/student-loans?household=${workspace.household.id}`}>Student Loan Data</Link>
+          {profile?.role === 'owner' && <button type="button" className="crm-secondary-btn" onClick={() => { setAssignError(null); setAssignOpen(true) }}>Assign Advisor</button>}
+          {assignOpen && profile?.role === 'owner' && <IntakeAssignAdvisorDialog
+            householdName={workspace.household.display_name}
+            currentAdvisorName={workspace.household.assigned_advisor?.display_name ?? null}
+            currentAdvisorId={workspace.household.assigned_advisor_id}
+            submitting={assignBusy} error={assignError}
+            onCancel={() => { if (!assignBusy) setAssignOpen(false) }}
+            onConfirm={async advisorId => {
+              if (assignBusy) return
+              setAssignBusy(true); setAssignError(null)
+              try {
+                const result = await assignIntakeHousehold(createSupabaseBrowserClient(), { householdId: workspace.household.id, advisorId })
+                if (!result.ok) { setAssignError(result.message); return }
+                setAssignOpen(false)
+                await refreshAfterMutation('Household assignment updated.')
+              } catch { setAssignError('Unable to confirm the assignment. Refresh the household before trying again.') }
+              finally { setAssignBusy(false) }
+            }} /> }
           <ArchiveButton kind="household" id={workspace.household.id} name={workspace.household.display_name} onArchived={() => navigate("/crm/households")} />
 
           <div className="crm-client-workspace-layout">

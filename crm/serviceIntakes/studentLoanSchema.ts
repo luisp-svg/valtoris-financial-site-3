@@ -8,6 +8,7 @@ export type IntakeField = {
   min?: number
   max?: number
   integer?: boolean
+  introduced?: boolean
 }
 export type IntakeSection = {
   id: string
@@ -23,11 +24,14 @@ const select = (id: string, label: string, options: readonly string[], required 
 export const STUDENT_LOAN_TRACKS = ['Repayment review', 'PSLF review', 'Delinquency or default', 'Borrower Defense review', 'General review'] as const
 export const STUDENT_LOAN_INTAKE_SECTIONS: readonly IntakeSection[] = [
   { id: 'client', title: 'Client and request', description: 'Confirm the existing client information. Changes here stay with this intake until separately updated in the contact record.', fields: [
-    field('firstName', 'Legal first name', 'text', true), field('lastName', 'Legal last name', 'text', true), field('email', 'Email', 'email', true), field('phone', 'Phone', 'text', true),
+    field('firstName', 'Legal first name', 'text', true), { ...field('dateOfBirth', 'Date of birth', 'date', true), introduced: true }, field('lastName', 'Legal last name', 'text', true), field('email', 'Email', 'email', true), field('phone', 'Phone', 'text', true),
     field('state', 'State of residence', 'text', true), select('borrowerRole', 'Whose loans are being reviewed?', ['My own loans', 'Loans I borrowed for my child', 'Loans I co-signed', 'Someone else’s loans', 'Not sure'], true),
     field('goal', 'What would you like help with?', 'multiline', true), select('accountAccess', 'Can you access your accounts yourself?', ['Yes', 'No', 'Need help'], true),
     select('deadlineNotice', 'Have you received a notice with a deadline?', yesNo, true), field('deadline', 'Notice deadline, if known', 'date'), field('noticeType', 'Notice type'),
     select('contactPreference', 'Preferred contact method', ['Email', 'Phone', 'Text', 'No preference']), field('language', 'Preferred language'), field('contactWindow', 'Best time to contact'),
+    { ...select('fsaLoginReady', 'FSA account: can the borrower sign in themselves?', ['Yes', 'Needs username recovery', 'Needs password reset', 'Needs account creation', 'Not checked']), introduced: true },
+    { ...select('fsaDataStatus', 'Download My Aid Data status', ['Not requested', 'Requested', 'Downloaded by borrower', 'Received securely', 'Needs updated file']), introduced: true },
+    { ...field('fsaDataDate', 'Aid data download date', 'date'), introduced: true },
     select('confirmed', 'Client information and requested review confirmed?', ['Yes', 'Not yet'], true),
   ] },
   { id: 'loans', title: 'Loan inventory', repeatable: true, description: 'Add each loan or identified loan group. Use masked references only. Unknown amounts stay blank; enter zero only when confirmed.', fields: [
@@ -74,7 +78,10 @@ export function visibleIntakeSections(answers: IntakeAnswers) {
   return STUDENT_LOAN_INTAKE_SECTIONS.filter(s => !s.track || answers.tracks.includes(s.track))
 }
 export function validateStudentLoanIntake(raw: unknown, complete = false): string[] {
-  return validateIntakeStructure(raw, STUDENT_LOAN_INTAKE_SECTIONS, STUDENT_LOAN_TRACKS, complete, ['loans', 'employment', 'schools'])
+  const errors = validateIntakeStructure(raw, STUDENT_LOAN_INTAKE_SECTIONS, STUDENT_LOAN_TRACKS, complete, ['loans', 'employment', 'schools'])
+  const dob = (raw as IntakeAnswers | null)?.sections?.client?.[0]?.dateOfBirth
+  if (dob && /^\d{4}-\d{2}-\d{2}$/.test(dob) && dob > new Date().toISOString().slice(0, 10)) errors.push('Date of birth cannot be in the future.')
+  return errors
 }
 export function validateIntakeStructure(raw: unknown, sections: readonly IntakeSection[], tracks: readonly string[], complete = false, requiredRows: readonly string[] = []): string[] {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return ['Invalid intake.']
@@ -91,7 +98,7 @@ export function validateIntakeStructure(raw: unknown, sections: readonly IntakeS
     for (const [i, row] of rows.entries()) {
       if (!row || typeof row !== 'object' || Array.isArray(row) || Object.keys(row).some(k => !s.fields.some(f => f.id === k))) { errors.push(`${s.title}: invalid fields.`); continue }
       for (const f of s.fields) {
-        const v = row[f.id]
+        const v = row[f.id] ?? (f.introduced ? '' : undefined)
         const label = `${s.title} ${i + 1} — ${f.label}`
         if (typeof v !== 'string' || v.length > (f.kind === 'multiline' ? 2000 : 300)) { errors.push(`${label}: invalid value.`); continue }
         if (complete && active && f.required && !v.trim()) errors.push(`${label}: required.`)
@@ -107,4 +114,11 @@ export function validateIntakeStructure(raw: unknown, sections: readonly IntakeS
   }
   if (complete && a.sections.client?.[0]?.confirmed !== 'Yes') errors.push('Confirm the client information before completing intake.')
   return errors
+}
+
+/** Existing completed intakes are historical records; require DOB on subsequent completions. */
+export function validateSavedStudentLoanIntake(raw: unknown, complete = false): string[] {
+  if (!(raw as IntakeAnswers | null)?.sections?.client?.[0] || Object.prototype.hasOwnProperty.call((raw as IntakeAnswers).sections.client[0], 'dateOfBirth')) return validateStudentLoanIntake(raw, complete)
+  const legacySections = STUDENT_LOAN_INTAKE_SECTIONS.map(s => ({ ...s, fields: s.fields.map(f => f.id === 'dateOfBirth' ? { ...f, required: false } : f) }))
+  return validateIntakeStructure(raw, legacySections, STUDENT_LOAN_TRACKS, complete, ['loans', 'employment', 'schools'])
 }

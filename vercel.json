@@ -18,6 +18,9 @@
   "functions": {
     "api/insurance-quote.ts": {
       "maxDuration": 60
+    },
+    "api/crm/session.ts": {
+      "maxDuration": 60
     }
   },
   "headers": [
