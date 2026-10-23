@@ -20,6 +20,6 @@ The existing session function dispatches the workflow at `POST /api/crm/session?
 
 ## Rollout and verification
 
-Apply the additive intake contract/validation, Liz default routing, and private upload/review migrations. Existing completed intakes lacking DOB remain readable. New completions require a valid non-future DOB. Student-loan referral attribution is retained separately from the default assignee; possible duplicate status is retained.
+Apply the additive intake contract/validation, Liz default routing, and private upload/review migrations. The existing unassigned Student Loan Report Cards are routed to Liz with activity entries, without reassigning other household work. Existing completed intakes lacking DOB remain readable. New completions require a valid non-future DOB. Student-loan referral attribution is retained separately from the default assignee; possible duplicate status is retained.
 
 Run focused parser, API and RLS/database tests, typecheck, build, function-budget and server-import checks. The production database must be verified after migrations, and the deployed UI/API checked with an existing authenticated owner session. Live AI generation can only be certified after a configured/funded provider successfully handles a synthetic test.
