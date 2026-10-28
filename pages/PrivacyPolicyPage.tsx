@@ -206,10 +206,10 @@ export default function PrivacyPolicyPage() {
         <p>
           Our website and service providers may use cookies, browser storage, and technical request
           information to operate forms, remember preferences, maintain authenticated sessions, and
-          protect the service. The contact page loads an Agent CRM / LeadConnector message widget;
+          protect the service. The contact page loads an Agent CRM / LeadConnector contact form;
           that provider receives technical connection information and processes the contact details,
-          message, and consent choices you submit. Browser privacy settings may limit storage or
-          block the widget. You can contact us by email or phone instead. Technical storage does
+          contact request, and consent choices you submit. Browser privacy settings may limit storage or
+          block the form. You can contact us by email or phone instead. Technical storage does
           not grant permission to send marketing messages.
         </p>
       </section>
