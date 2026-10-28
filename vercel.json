@@ -1,6 +1,18 @@
 {
   "rewrites": [
     {
+      "source": "/sms-consent",
+      "destination": "/sms-consent.html"
+    },
+    {
+      "source": "/life-insurance",
+      "destination": "/sms-consent.html"
+    },
+    {
+      "source": "/sms-terms",
+      "destination": "/sms-terms.html"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api/$1"
     },

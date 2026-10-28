@@ -84,6 +84,8 @@ export default function SiteFooter() {
         <div className="site-footer-legal">
           <nav className="site-footer-legal-nav" aria-label={copy.footerLegalNav}>
             <PublicLink to={ROUTES.privacy}>{copy.footerPrivacy}</PublicLink>
+            <a href="/sms-terms">{locale === 'es' ? 'Términos de SMS' : 'SMS Terms'}</a>
+            <a href="/sms-consent">{locale === 'es' ? 'Contacto y consentimiento SMS' : 'Contact & SMS Consent'}</a>
           </nav>
           <p className="notice site-footer-disclaimer">{copy.footerDisclaimer}</p>
           <PublicLocaleSwitcher
