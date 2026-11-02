@@ -10,6 +10,7 @@ import {
   LETS_CONNECT_FOLLOW_UP_OPTIONS,
   LETS_CONNECT_REASON_OPTIONS,
   letsConnectModalCopy,
+  letsConnectNextStep,
   validateLetsConnectFormClient,
 } from './letsConnectForm'
 
@@ -46,7 +47,7 @@ describe('letsConnectForm helpers', () => {
       'none',
     ])
     const copy = letsConnectModalCopy()
-    expect(copy.title).toBe("Let's Connect")
+    expect(copy.title).toBe('Exchange Contact Info')
     expect(copy.successTitle).toBe("We're connected.")
   })
 
@@ -128,5 +129,25 @@ describe('letsConnectForm helpers', () => {
     })
     expect(body).not.toHaveProperty('advisorId')
     expect(body).not.toHaveProperty('householdId')
+  })
+})
+
+describe('contact exchange improvements', () => {
+  it('rejects malformed provided contact details even when another contact is valid', () => {
+    const values = { ...createEmptyLetsConnectFormValues(), firstName: 'Jamie', lastName: 'Rivera', email: 'jamie@example.com', consent: { ...INITIAL_DIGITAL_IDENTITY_CONSENT_STATE, privacyAcknowledged: true } }
+    expect(validateLetsConnectFormClient({ ...values, email: 'bad-address' }).errors.contact).toBeTruthy()
+    expect(validateLetsConnectFormClient({ ...values, phone: 'abc1234567890' }).errors.contact).toBeTruthy()
+    expect(validateLetsConnectFormClient({ ...values, phone: '123' }).errors.contact).toBeTruthy()
+    expect(validateLetsConnectFormClient({ ...values, email: '', phone: '+1 (312) 555-0100' }).ok).toBe(true)
+  })
+
+  it('offers only a next step relevant to the selected interest', () => {
+    expect(letsConnectNextStep('Business planning')?.href).toBe('/business-assessment')
+    expect(letsConnectNextStep('Credit improvement')?.href).toBe('/credit-assessment')
+    expect(letsConnectNextStep('Family financial planning')?.href).toBe('/family-assessment')
+    expect(letsConnectNextStep('Insurance')?.href).toBe('/insurance')
+    for (const reason of ['', 'Networking', 'Other', 'Business funding'] as const) {
+      expect(letsConnectNextStep(reason)).toBeNull()
+    }
   })
 })

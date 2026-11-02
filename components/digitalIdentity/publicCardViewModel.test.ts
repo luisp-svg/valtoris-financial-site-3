@@ -99,10 +99,10 @@ describe('publicCardViewModel', () => {
     const connect = actions.find((a) => a.key === 'lets_connect')
     const save = actions.find((a) => a.key === 'save_contact')
     const share = actions.find((a) => a.key === 'share')
-    expect(connect?.label).toBe("Let's Connect")
+    expect(connect?.label).toBe('Exchange Contact Info')
     expect(connect?.mode).toBe('opens_connect_form')
     expect(save?.mode).toBe('vcard_download')
-    expect(save?.label).toBe('Save Contact')
+    expect(save?.label).toBe('Save My Contact')
     expect(share?.label).toBe('Share')
     expect(share?.mode).toBe('share_card')
     expect(share?.href).toBeNull()
@@ -127,12 +127,12 @@ describe('publicCardViewModel', () => {
     expect(text?.href).toBe('sms:+15125550100')
     expect(email?.href).toBe('mailto:jane@example.com')
     expect(actions.map((a) => a.key).slice(0, 6)).toEqual([
+      'lets_connect',
+      'save_contact',
+      'book_appointment',
       'call',
       'text',
       'email',
-      'save_contact',
-      'share',
-      'lets_connect',
     ])
   })
 
