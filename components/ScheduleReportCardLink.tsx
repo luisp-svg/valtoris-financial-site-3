@@ -1,5 +1,6 @@
-import { MouseEvent, ReactNode } from 'react'
-import { bookingUrlForAssessment } from '../constants/booking'
+import { ReactNode } from 'react'
+import { schedulePathForAssessment } from '../constants/booking'
+import { Link, useLocation } from 'react-router-dom'
 import {
   CALENDLY_REPORT_CARD_BUTTON_LABEL,
 } from '../constants/urls'
@@ -15,21 +16,10 @@ export default function ScheduleReportCardLink({
   children = CALENDLY_REPORT_CARD_BUTTON_LABEL,
   bookingService,
 }: ScheduleReportCardLinkProps) {
-  const bookingUrl = bookingUrlForAssessment(bookingService)
-  function handleClick(event: MouseEvent<HTMLAnchorElement>) {
-    event.preventDefault()
-    window.open(bookingUrl, '_blank', 'noopener,noreferrer')
-  }
-
+  const location = useLocation()
   return (
-    <a
-      className={className}
-      href={bookingUrl}
-      target="_blank"
-      rel="noopener noreferrer"
-      onClick={handleClick}
-    >
+    <Link className={className} to={schedulePathForAssessment(bookingService ?? '', location.search)}>
       {children}
-    </a>
+    </Link>
   )
 }

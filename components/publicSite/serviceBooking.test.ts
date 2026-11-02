@@ -28,9 +28,9 @@ describe('priority service booking handoff', () => {
     expect(parsed.searchParams.get('service')).toBe(type)
     expect(bookingUrlForAssessment(readBookingService(parsed.search))).toBe(url)
     const html = renderToStaticMarkup(createElement(MemoryRouter, { initialEntries: [entry] }, createElement(ScheduleReportCardPage)))
-    expect(html).toContain(`href="${url}"`)
+    expect(html).toContain('Selecciona un agente para ver su calendario.')
     expect(html).toContain(owner)
-    expect(html).toContain('Tu reunión será con')
+    expect(html).toContain('Elige tu agente')
   })
   it.each(['family','business','retirement','home_buyer','unknown'])('uses general scheduling for %s and clears stale service context', type => {
     const entry = schedulePathForAssessment(type,'?service=health&utm_source=facebook')

@@ -14337,3 +14337,19 @@ button.public-card-diagnostic:disabled {
 .site-home #answers {
   scroll-margin-top: 160px;
 }
+
+/* Agent selection and embedded AgentCRM scheduling. */
+.appointment-booking { margin: 24px 0 32px; }
+.booking-service-label, .booking-agent-options legend { display: block; margin-bottom: 12px; font-weight: 700; color: var(--brand); }
+.appointment-booking select { width: 100%; min-height: 48px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: white; color: var(--text); font: inherit; }
+.booking-agent-options { border: 0; padding: 0; margin: 24px 0; display: grid; gap: 12px; min-width: 0; }
+.booking-agent { display: flex; align-items: center; gap: 12px; padding: 16px; border: 1px solid var(--line); border-radius: 14px; cursor: pointer; }
+.booking-agent-selected { border-color: var(--brand); background: #f0f5fa; }
+.booking-agent:focus-within { outline: 2px solid var(--brand); outline-offset: 3px; }
+.booking-agent input { width: 20px; height: 20px; accent-color: var(--brand); flex-shrink: 0; }
+.booking-agent-specialty { display: block; margin-top: 4px; color: var(--muted); font-size: 14px; }
+.booking-calendar h2 { font-size: 1.2rem; color: var(--brand); }
+.booking-calendar p, .booking-empty { color: var(--muted); line-height: 1.6; }
+.booking-calendar a { display: inline-block; margin: 0 0 16px; text-decoration: underline; }
+.booking-calendar-frame { width: 100%; height: 900px; border: 1px solid var(--line); border-radius: 12px; background: white; }
+@media (max-width: 520px) { .booking-calendar-frame { height: 1100px; } .schedule-card { padding: 24px 16px; } }
