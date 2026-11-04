@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { IntakeOrigin } from './intakeSource'
 import type { IntakeAnswers } from './studentLoanSchema'
+import { withIntakeSaveDeadline } from './intakeSaveDeadline'
 
 /** Private intake persistence; server migration owns authorization and lifecycle validation. */
 export type SavedServiceIntake = {
@@ -32,7 +33,7 @@ export function createServiceIntakeApi(assessmentType: string, rpcName: string, 
     if (previous && previous.householdId !== origin.householdId) throw new Error('The intake does not belong to this household.')
     const errors = validate(answers, complete)
     if (errors.length) throw new Error(errors[0])
-    const { data, error } = await client.rpc(rpcName, {
+    const { data, error } = await withIntakeSaveDeadline(client.rpc(rpcName, {
       p_household_id: origin.householdId,
       p_origin_kind: origin.kind,
       p_origin_id: origin.id,
@@ -40,9 +41,13 @@ export function createServiceIntakeApi(assessmentType: string, rpcName: string, 
       p_expected_updated_at: previous?.updatedAt ?? null,
       p_answers: answers,
       p_complete: complete,
-    })
+    }))
     if (error) {
       if (error.message?.includes('INTAKE:conflict')) throw new Error('Another advisor changed this intake. Reload it before saving again.')
+      const keepEntries = ' Your current entries remain on this page. Keep this tab open.'
+      if (error.code === 'PGRST301' || error.code === 'PGRST303') throw new Error('Your sign-in session could not be verified. Sign in again in another tab, then retry saving here.' + keepEntries)
+      if (error.message?.includes('INTAKE:unavailable') || error.code === '42501') throw new Error('The save could not be authorized for this client. Ask the TAC owner to check your client assignment and access.' + keepEntries)
+      if (error.message?.includes('INTAKE:preserved_record')) throw new Error('This intake has already been completed. Open its saved version before starting another review.' + keepEntries)
       throw new Error('Unable to save intake. Your current entries remain on this page; try again.')
     }
     const saved = normalizeSavedIntake(data, origin.householdId)

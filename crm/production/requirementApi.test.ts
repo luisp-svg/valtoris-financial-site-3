@@ -107,18 +107,18 @@ describe('requirement API RPC mapping', () => {
   it('batches urgency reads for loaded application IDs without labels or DML', async () => {
     const from = vi.fn().mockReturnValue({
       select: (columns: string) => {
-        expect(columns).toBe('application_id, status, due_date')
+        expect(columns).toBe('id, application_id, status, due_date')
         expect(columns).not.toContain('custom_label')
         return {
           in: () => ({
             is: () => ({
-              limit: async () => ({
+              order: () => ({ range: async () => ({
                 data: [
-                  { application_id: 'a1', status: 'open', due_date: '2026-08-19' },
-                  { application_id: 'a1', status: 'complete', due_date: '2026-08-01' },
+                  { id:'r1', application_id: 'a1', status: 'open', due_date: '2026-08-19' },
+                  { id:'r2', application_id: 'a1', status: 'complete', due_date: '2026-08-01' },
                 ],
                 error: null,
-              }),
+              }) }),
             }),
           }),
         }

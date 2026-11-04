@@ -1,3 +1,4 @@
+import { PUBLIC_REPORT_CARD_LEAD_TYPES } from '../../modules/reportCard/publicIngestCatalog'
 import { isQuoteLead } from '../../modules/insuranceQuote/catalog'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -12,7 +13,7 @@ import {
   INTAKE_ARCHIVE_TASK_COMPLETED_COPY,
   intakeArchiveVisibilityForItem,
 } from '../../crm/intake/intakeArchiveUi'
-import { assignIntakeHousehold } from '../../crm/intake/intakeAssignment'
+import { assignIntakeHousehold, assignIntakeSubmission } from '../../crm/intake/intakeAssignment'
 import {
   INTAKE_ASSIGN_SUCCESS_COPY,
   intakeAssignVisibilityForItem,
@@ -77,6 +78,7 @@ export default function CrmIntakePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [filter, setFilter] = useState<IntakeFilterId>('all')
+  const [page, setPage] = useState(1)
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null)
   const [advisorProfileId, setAdvisorProfileId] = useState<string | null>(null)
   const [viewportWidth, setViewportWidth] = useState(
@@ -165,6 +167,9 @@ export default function CrmIntakePage() {
     () => buildIntakeCounts(items, advisorProfileId),
     [items, advisorProfileId],
   )
+  const pageCount = Math.max(1, Math.ceil(filteredItems.length / 50))
+  const currentPage = Math.min(page, pageCount)
+  const visibleItems = filteredItems.slice((currentPage - 1) * 50, currentPage * 50)
 
   const viewState = getIntakeListViewState({
     loading,
@@ -358,7 +363,8 @@ export default function CrmIntakePage() {
 
     try {
       const supabase = createSupabaseBrowserClient()
-      const result = await assignIntakeHousehold(supabase, {
+      const isReport=(PUBLIC_REPORT_CARD_LEAD_TYPES as readonly string[]).includes(selectedItem.leadType);
+      const result = isReport ? await assignIntakeSubmission(supabase,{leadId:selectedItem.leadId,advisorId,expectedUpdatedAt:selectedItem.assignmentUpdatedAt ?? ''}) : await assignIntakeHousehold(supabase, {
         householdId: selectedItem.household.id,
         advisorId,
       })
@@ -366,7 +372,7 @@ export default function CrmIntakePage() {
         setAssignDialogError(result.message)
         return
       }
-      setAssignSuccess(advisorName.trim() ? `${INTAKE_ASSIGN_SUCCESS_COPY} Assigned to ${advisorName}.` : INTAKE_ASSIGN_SUCCESS_COPY)
+      setAssignSuccess(advisorName.trim() ? `${isReport ? "Submission assignment updated." : INTAKE_ASSIGN_SUCCESS_COPY} Assigned to ${advisorName}.` : INTAKE_ASSIGN_SUCCESS_COPY)
       setAssignDialogOpen(false)
       setAssignDialogError(null)
       setReloadToken((token) => token + 1)
@@ -453,7 +459,7 @@ export default function CrmIntakePage() {
               type="button"
               className={`crm-intake-filter-chip${selected ? ' is-selected' : ''}`}
               aria-pressed={selected}
-              onClick={() => setFilter(option.id)}
+              onClick={() => { setFilter(option.id); setPage(1) }}
             >
               <span>{option.label}</span>
               <span className="crm-intake-filter-count">{counts[option.id]}</span>
@@ -462,6 +468,12 @@ export default function CrmIntakePage() {
         })}
       </div>
 
+      {viewState.kind === 'ready' && <nav aria-label="Incoming leads pages" className="crm-panel" style={{ display: 'flex', flexWrap: 'wrap', gap: '.75rem', alignItems: 'center' }}>
+        <span role="status">Showing {(currentPage - 1) * 50 + 1}–{Math.min(currentPage * 50, filteredItems.length)} of {filteredItems.length} · Page {currentPage} of {pageCount}</span>
+        <button type="button" className="crm-secondary-btn" style={{ minHeight: 44 }} disabled={currentPage === 1} onClick={() => setPage(currentPage - 1)}>Previous</button>
+        <button type="button" className="crm-secondary-btn" style={{ minHeight: 44 }} disabled={currentPage === pageCount} onClick={() => setPage(currentPage + 1)}>Next</button>
+      </nav>}
+
       {viewState.kind === 'loading' ? (
         <p className="crm-muted" role="status">
           Loading incoming leads…
@@ -469,9 +481,10 @@ export default function CrmIntakePage() {
       ) : null}
 
       {viewState.kind === 'error' ? (
-        <p className="crm-banner crm-banner-error" role="alert">
+        <div className="crm-banner crm-banner-error" role="alert">
           {viewState.message}
-        </p>
+          <button type="button" className="crm-secondary-btn" onClick={() => setReloadToken(token => token + 1)}>Retry</button>
+        </div>
       ) : null}
 
       {viewState.kind === 'empty' || viewState.kind === 'filtered_empty' ? (
@@ -482,7 +495,7 @@ export default function CrmIntakePage() {
             <button
               type="button"
               className="platform-btn platform-btn-outline"
-              onClick={() => setFilter('all')}
+              onClick={() => { setFilter('all'); setPage(1) }}
             >
               Clear filters
             </button>
@@ -508,7 +521,7 @@ export default function CrmIntakePage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredItems.map((item) => (
+                {visibleItems.map((item) => (
                   <tr
                     key={item.leadId}
                     className={selectedLeadId === item.leadId ? 'is-selected' : undefined}
@@ -561,7 +574,7 @@ export default function CrmIntakePage() {
                         <span className="crm-muted">—</span>
                       ) : null}
                     </td>
-                    <td>{item.assignedAdvisor?.displayName ?? 'Unassigned'}</td>
+                    <td>{item.reviewAssignments?.length ? item.reviewAssignments.map(review=>`${review.reviewType.replace(/_/g,' ')}: ${review.displayName}`).join('; ') : item.assignedAdvisor?.displayName ?? 'Unassigned'}</td>
                     <td>
                       {item.consent.contactPermission ? (
                         <span className="crm-intake-chip is-positive">Contact permitted</span>
@@ -589,7 +602,7 @@ export default function CrmIntakePage() {
           </div>
         ) : (
           <div className="crm-intake-card-list">
-            {filteredItems.map((item) => (
+            {visibleItems.map((item) => (
               <article
                 key={item.leadId}
                 className={`crm-panel crm-intake-card${selectedLeadId === item.leadId ? ' is-selected' : ''}`}
@@ -617,7 +630,7 @@ export default function CrmIntakePage() {
                     )}
                   </p>
                   <p>{mapMatchStatusLabel(item.ingestMatchStatus)}</p>
-                  <p>{item.assignedAdvisor?.displayName ?? 'Unassigned'}</p>
+                  <p>{item.reviewAssignments?.length ? item.reviewAssignments.map(review=>`${review.reviewType.replace(/_/g,' ')}: ${review.displayName}`).join('; ') : item.assignedAdvisor?.displayName ?? 'Unassigned'}</p>
                   <p>
                     {item.consent.contactPermission ? 'Contact permitted' : 'No contact permission'}
                   </p>
@@ -725,14 +738,15 @@ export default function CrmIntakePage() {
 
       {assignDialogOpen && selectedItem?.household ? (
         <IntakeAssignAdvisorDialog
+          submissionOnly={(PUBLIC_REPORT_CARD_LEAD_TYPES as readonly string[]).includes(selectedItem.leadType)}
           householdName={selectedItem.household.displayName}
           currentAdvisorName={
-            selectedItem.household.assignedAdvisor?.displayName ??
+            selectedItem.reviewAssignments?.length ? [...new Set(selectedItem.reviewAssignments.map(review=>review.displayName))].join(', ') : selectedItem.household.assignedAdvisor?.displayName ??
             selectedItem.assignedAdvisor?.displayName ??
             null
           }
           currentAdvisorId={
-            selectedItem.household.assignedAdvisor?.id ??
+            selectedItem.reviewAssignments?.length ? (new Set(selectedItem.reviewAssignments.map(review=>review.advisorId)).size===1 ? selectedItem.reviewAssignments[0].advisorId : null) : selectedItem.household.assignedAdvisor?.id ??
             selectedItem.assignedAdvisor?.id ??
             null
           }

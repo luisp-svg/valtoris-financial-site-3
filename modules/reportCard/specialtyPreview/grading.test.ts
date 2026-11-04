@@ -2,7 +2,7 @@ import { describe,expect,it } from 'vitest'
 import { gradeReport,letterGrade } from './grading'
 import { SPECIALTY_CARDS,Specialty,Answers } from './catalog'
 import { visibleQuestions } from './engine'
-function complete(type:Specialty){const a:Answers={};for(let i=0;i<4;i++)for(const q of visibleQuestions(type,a))if(!a[q.id])a[q.id]=q.kind==='number'?'10':q.kind==='multi'?[q.options![0][0]]:q.options![0][0];return a}
+function complete(type:Specialty){const a:Answers={};for(let i=0;i<4;i++)for(const q of visibleQuestions(type,a))if(!a[q.id])a[q.id]=q.kind==='date'?'2027-01-01':q.kind==='number'?'10':q.kind==='multi'?[q.options![0][0]]:q.options![0][0];return a}
 describe('transparent Report Card draft grades',()=>{
  it.each(Object.keys(SPECIALTY_CARDS) as Specialty[])('%s has a grade after a complete review',type=>{const r=gradeReport(type,complete(type));expect(r.letter).toMatch(/^[ABCDF]$/);expect(r.provisional).toBe(false);expect(r.measures.length).toBeGreaterThan(0)})
  it('does not turn all unknowns into an F',()=>{const a=Object.fromEntries(SPECIALTY_CARDS.health.questions.map(q=>[q.id,'unknown']));const r=gradeReport('health',a);expect(r.score).toBeNull();expect(r.letter).toBeNull();expect(r.provisional).toBe(true)})
@@ -15,7 +15,7 @@ describe('transparent Report Card draft grades',()=>{
 
 describe('health routes and fair exclusions',()=>{
  it('does not penalize no regular prescriptions or no provider preference',()=>{
- const r=gradeReport('health',{purpose:'individual',coverage:'all',afford:'comfortable',cost_understanding:'yes',access:'na',prescriptions:'na'})
+ const r=gradeReport('health',{purpose:'individual',coverage:'all',afford:'comfortable',cost_understanding:'yes',exposure_review:'yes',access:'na',prescriptions:'na'})
  expect(r.score).toBe(100);expect(r.provisional).toBe(false);expect(r.measures.map(m=>m.id)).not.toContain('prescriptions')
  })
  it('grades supplemental preparation separately from major-medical coverage',()=>{

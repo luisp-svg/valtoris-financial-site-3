@@ -28,6 +28,7 @@ export const SERVICES_NAV_GROUPS: readonly PublicNavGroup[] = [
       { id: 'retirement', to: ROUTES.retirementReportCard, labelKey: 'servicesRetirement' },
       { id: 'insurance', to: ROUTES.insurance, labelKey: 'servicesInsurance' },
       { id: 'health', to: ROUTES.healthDisability, labelKey: 'servicesHealth' },
+      { id: 'amazeHealth', to: ROUTES.amazeHealth, labelKey: 'servicesAmazeHealth' },
       { id: 'credit', to: ROUTES.credit, labelKey: 'servicesCredit' },
       { id: 'studentLoans', to: ROUTES.studentLoans, labelKey: 'servicesStudentLoans' },
       { id: 'estate', to: ROUTES.estateLegacy, labelKey: 'servicesEstate' },
@@ -55,9 +56,21 @@ export const TOOLS_NAV_LINKS: readonly PublicNavLink[] = [
   { id: 'protection', to: ROUTES.protectionAnalysis, labelKey: 'toolsProtection' },
   { id: 'studentLoan', to: ROUTES.studentLoanReportCard, labelKey: 'toolsStudentLoan' },
   { id: 'credit', to: ROUTES.creditReportCard, labelKey: 'toolsCredit' },
+  { id: 'homeBuyer', to: ROUTES.homeBuyerReportCard, labelKey: 'toolsHomeBuyer' },
+  { id: 'tsp', to: '/tsp-report-card', labelKey: 'toolsTsp' },
+  { id: 'health', to: '/health-insurance-report-card', labelKey: 'toolsHealth' },
+  { id: 'benefits', to: '/employee-benefits-report-card', labelKey: 'toolsBenefits' },
+  { id: 'taxReview', to: '/tax-review-report-card', labelKey: 'toolsTax' },
+  { id: 'lifestyle', to: '/lifestyle-report-card', labelKey: 'toolsLifestyle' },
 ]
 
 export const QUOTE_NAV: PublicNavLink = { id: 'quotes', to: ROUTES.getQuote, labelKey: 'navGetQuote' }
+
+export const AUDIENCE_NAV_LINKS: readonly PublicNavLink[] = [
+  {id: 'personalFamily', to: '/personal-family', labelKey: 'navPersonalFamily'},
+  {id: 'privateClient', to: '/private-client', labelKey: 'navPrivateClient'},
+  {id: 'businessOwners', to: '/business-owners', labelKey: 'navBusinessOwners'},
+]
 
 export const HOME_NAV: PublicNavLink = {
   id: 'home',
@@ -93,8 +106,10 @@ export const COMPANY_FOOTER_LINKS: readonly PublicNavLink[] = [
 ]
 
 export const FAMILIES_FOOTER_LINKS: readonly PublicNavLink[] = [
+  {id: 'personalFamily', to: '/personal-family', labelKey: 'navPersonalFamily'},
   { id: 'insurance', to: ROUTES.insurance, labelKey: 'servicesInsurance' },
   { id: 'health', to: ROUTES.healthDisability, labelKey: 'servicesHealth' },
+  { id: 'amazeHealth', to: ROUTES.amazeHealth, labelKey: 'servicesAmazeHealth' },
   { id: 'estate', to: ROUTES.estateLegacy, labelKey: 'servicesEstate' },
   { id: 'studentLoans', to: ROUTES.studentLoans, labelKey: 'servicesStudentLoans' },
   { id: 'credit', to: ROUTES.credit, labelKey: 'servicesCredit' },
@@ -109,7 +124,7 @@ export const BUSINESS_FOOTER_LINKS: readonly PublicNavLink[] = [
 ]
 
 /** Top-level visible peers. About and Contact are omitted until they have unique destinations. */
-export const VISIBLE_TOP_LEVEL_NAV_IDS = ['home', 'services', 'tools', 'quotes'] as const
+export const VISIBLE_TOP_LEVEL_NAV_IDS = ['home', 'personalFamily', 'privateClient', 'businessOwners', 'priorities'] as const
 
 export const FUTURE_UNBUILT_PUBLIC_PATHS = [
   '/services',

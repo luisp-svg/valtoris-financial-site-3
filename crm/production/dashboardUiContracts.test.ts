@@ -1,3 +1,4 @@
+import { EXPECTED_MIGRATION_FILES } from '../../tests/helpers/migrationInventory'
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -14,100 +15,12 @@ const dashboardUi = readFileSync(join(here, 'ProductionDashboard.tsx'), 'utf8')
 const productionMetrics = readFileSync(join(here, 'productionMetrics.ts'), 'utf8')
 const styles = readFileSync(join(here, '../../src/styles.css'), 'utf8')
 
-const EXPECTED_MIGRATIONS = [
-  '001_extensions_and_enums.sql',
-  '002_profiles_roles_settings_audit.sql',
-  '003_verticals_pipelines_stages.sql',
-  '004_referral_sources_households_members_duplicates.sql',
-  '005_leads_assessments_recommendations.sql',
-  '006_opportunities_assignments.sql',
-  '007_tasks_notes_activities.sql',
-  '008_policies_appointments_reviews.sql',
-  '009_documents_portal.sql',
-  '010_rls_policies.sql',
-  '011_seed_pipelines.sql',
-  '012_secure_rpcs.sql',
-  '013_storage_policies.sql',
-  '014_security_hardening.sql',
-  '015_member_relationship_enum_values.sql',
-  '016_household_members_soft_delete_rpc.sql',
-  '017_soft_delete_note_rpc.sql',
-  '018_assessment_type_household_onboarding.sql',
-  '019_assessment_lifecycle_status.sql',
-  '020_public_family_diagnostic_ingest.sql',
-  '021_public_family_duplicate_resolution.sql',
-  '022_public_family_task_automation.sql',
-  '023_confirm_same_allows_ingest_resolve_task.sql',
-  '024_authenticated_crm_privileges_and_duplicate_notes_fix.sql',
-  '025_digital_identity_cards.sql',
-  '026_digital_identity_connect_ingest.sql',
-  '027_digital_identity_relationship_photo.sql',
-  '028_digital_identity_campaign_attribution.sql',
-  '029_security_hardening_opportunities_and_relationships.sql',
-  '030_revoke_authenticated_activity_inserts.sql',
-  '031_quick_add_contact_foundation.sql',
-  '032_policy_production_foundation.sql',
-  '033_writing_advisor_compensation_foundation.sql',
-  '034_writing_advisor_expected_compensation.sql',
-  '035_writing_advisor_actual_commission_ledger.sql',
-  '036_commission_import_reconciliation.sql',
-  '037_client_production_workflow_extensions.sql',
-  '038_historical_import_support.sql',
-  '039_commission_import_review_post_hardening.sql',
-  '040_commission_pending_import.sql',
-  '041_commission_pending_review.sql',
-  '042_writing_receivable_eligibility.sql',
-  '043_public_report_card_ingest.sql',
-  '044_policy_application_requirements.sql',
-  '045_policy_post_placement_lifecycle.sql',
-  '046_opportunity_case_conversion.sql',
-  '047_credit_repair_student_loan_sales_catalog.sql',
-  '048_student_loan_report_card_ingest.sql',
-  '049_specialize_public_report_card_follow_up_copy.sql',
-  '050_credit_report_card_ingest.sql',
-  '051_intake_archive_workflow.sql',
-  '052_fix_intake_archive_activity_order.sql',
-  '053_bulk_lead_import_writer.sql',
-  '054_home_buyer_report_card_ingest.sql',
-  '055_integration_contact_links.sql',
-  '056_insurance_quote_intake.sql',
-  '057_insurance_quote_delivery.sql',
-  '058_student_loan_intake_type.sql',
-  '059_student_loan_intake_contract.sql',
-  '060_student_loan_intake_persistence.sql',
-  '061_student_loan_intake_revision.sql',
-  '062_life_insurance_intake_type.sql',
-  '063_life_insurance_intake_contract.sql',
-  '064_life_insurance_intake_persistence.sql',
-  '065_crm_archive_recovery.sql',
-  '066_shared_client_intake_profile.sql',
-  '067_service_intake_type.sql',
-  '068_service_intake_contracts.sql',
-  '069_service_intake_persistence.sql',
-  '070_life_intake_sensitive.sql',
-  '071_crm_task_actions.sql',
-  '072_public_report_card_concurrency.sql',
-  '073_service_production_foundation.sql',
-  '074_service_case_management.sql',
-      '075_commission_payment_legs.sql',
-      '076_digital_card_permanent_identity.sql',
-      '077_opportunity_presented_product.sql',
-      '078_active_household_access.sql',
-      '079_recruiting_readiness.sql',
-      '080_agentcrm_shared_delivery.sql',
-      '081_agentcrm_report_card_task_delivery.sql',
-  '20261012232328_operations_workspaces_release.sql',
-  '20261012232342_operations_collaboration_release.sql',
-  '20261012232346_production_follow_up_release.sql',
-  '20261014153052_household_member_add.sql',
-  '20261017041000_guided_report_card_types.sql',
-  '20261017041100_guided_report_card_ingest.sql',
-]
+
 
 describe('Phase A production dashboard contracts', () => {
   it('does not add a production dashboard or Case table migration and preserves 001–055 and permits insurance 056', () => {
     const files = readdirSync(migrationsDir).filter((name) => name.endsWith('.sql')).sort()
-    expect(files).toEqual(EXPECTED_MIGRATIONS)
+    expect(files).toEqual(EXPECTED_MIGRATION_FILES)
     expect(existsSync(join(migrationsDir, '044_case_management.sql'))).toBe(false)
     expect(files.filter((name) => name.startsWith('044_'))).toEqual([
       '044_policy_application_requirements.sql',
@@ -169,8 +82,8 @@ describe('Phase A production dashboard contracts', () => {
     expect(queuePage).toContain('Written state')
     expect(queuePage).toContain('Submitted from')
     expect(queuePage).toContain('Submitted to')
-    expect(queuePage).toContain('productionListCapWarning')
-    expect(queuePage).toContain('PRODUCTION_LIST_DEFAULT_LIMIT')
+    expect(queuePage).not.toContain('productionListCapWarning')
+    expect(queuePage).toContain('all matching applications')
     expect(queuePage).toContain('DEFAULT_PRODUCTION_DASHBOARD_PERIOD')
     expect(queuePage).toContain('DEFAULT_COMPENSATION_DASHBOARD_PERIOD')
     expect(queuePage).not.toMatch(/useEffect\([\s\S]*, \[[^\]]*productionPeriod/)

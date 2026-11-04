@@ -260,7 +260,6 @@ export default function ClientWorkspace({ householdId }: ClientWorkspaceProps) {
       {!loading && !error && workspace && tabProps ? (
         <>
           <WorkspaceHeader workspace={workspace} />
-          <Link className="crm-secondary-btn" to={`/crm/student-loans?household=${workspace.household.id}`}>Student Loan Data</Link>
           {profile?.role === 'owner' && <button type="button" className="crm-secondary-btn" onClick={() => { setAssignError(null); setAssignOpen(true) }}>Assign Advisor</button>}
           {assignOpen && profile?.role === 'owner' && <IntakeAssignAdvisorDialog
             householdName={workspace.household.display_name}

@@ -1,0 +1,12 @@
+.git
+.vercel
+node_modules
+dist
+tmp
+.env*
+!.env.example
+*.log
+scripts/local-tac
+.preview-upload-manifest.json
+work
+outputs

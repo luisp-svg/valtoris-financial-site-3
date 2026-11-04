@@ -31,7 +31,7 @@ export default function ServicePage({ copy, links }: ServicePageProps) {
       <ServiceRelated copy={copy} to={links.relatedTo} />
       <ServiceProcess copy={copy} />
       <ServiceOffer copy={copy} to={links.secondaryTo} />
-      <ServiceDiagnosticBridge copy={copy} primaryTo={links.bridgePrimaryTo} />
+      {links.bridgePrimaryTo !== links.primaryTo ? <ServiceDiagnosticBridge copy={copy} primaryTo={links.bridgePrimaryTo} /> : <p className="container premium-fineprint">{copy.bridgeBody}</p>}
       <ServiceCompliance copy={copy} />
       <ServiceFinalCta copy={copy} primaryTo={links.finalPrimaryTo} secondaryTo={links.finalSecondaryTo} />
     </div>

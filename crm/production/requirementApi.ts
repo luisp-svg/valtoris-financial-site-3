@@ -1,3 +1,4 @@
+import { readRowsForIds } from '../../lib/readAllPages'
 /**
  * Case requirement read/write API.
  * Reads: authenticated SELECT through RLS.
@@ -64,8 +65,7 @@ const HISTORY_SELECT = `
   changed_at
 `
 
-const URGENCY_SELECT = 'application_id, status, due_date'
-const URGENCY_BATCH_LIMIT = 5000
+const URGENCY_SELECT = 'id, application_id, status, due_date'
 
 export type RequirementMutationResult<T> =
   | { ok: true; data: T }
@@ -178,13 +178,12 @@ export async function fetchRequirementUrgencyByApplicationIds(
 ): Promise<RequirementUrgencyRow[]> {
   const ids = [...new Set(applicationIds.filter(Boolean))]
   if (ids.length === 0) return []
-  const { data, error } = await supabase
+  const data = await readRowsForIds<Record<string, unknown>>(ids, (batch, start, end) => supabase
     .from('policy_application_requirements')
     .select(URGENCY_SELECT)
-    .in('application_id', ids)
+    .in('application_id', batch)
     .is('deleted_at', null)
-    .limit(URGENCY_BATCH_LIMIT)
-  if (error) throw error
+    .order('id', { ascending: true }).range(start, end))
   return (data ?? []).map(mapUrgency).filter((row): row is RequirementUrgencyRow => row != null)
 }
 

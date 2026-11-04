@@ -5,8 +5,7 @@ import { visibleQuestions } from './engine'
 import { GUIDED_REPORT_FORMAT,validateGuidedReport,guidedResult } from './submission'
 import { validIngestRequestBodyFixture } from '../../../server/ingest/familyReportCard/testFixtures'
 import { ingestPublicReportCard } from '../../../server/ingest/familyReportCard/ingestFamilyReportCard'
-import { mapPublicFamilyDiagnosticDetail } from '../../../crm/households/assessments/diagnosticFormatters'
-export function sampleGuided(type:Specialty){const diagnostic:Answers={};for(let pass=0;pass<4;pass++)for(const q of visibleQuestions(type,diagnostic))if(!diagnostic[q.id])diagnostic[q.id]=q.kind==='number'?'10':q.kind==='multi'?[q.options![0][0]]:q.options![0][0];return {format:GUIDED_REPORT_FORMAT,assessmentType:type,diagnostic,locale:'en' as const,contact:{fullName:'QA Sample',email:'qa@example.invalid',phone:''}}}
+export function sampleGuided(type:Specialty){const diagnostic:Answers={};for(let pass=0;pass<4;pass++)for(const q of visibleQuestions(type,diagnostic))if(!diagnostic[q.id])diagnostic[q.id]=q.kind==='date'?'2027-01-01':q.kind==='number'?'10':q.kind==='multi'?[q.options![0][0]]:q.options![0][0];return {format:GUIDED_REPORT_FORMAT,assessmentType:type,diagnostic,locale:'en' as const,contact:{fullName:'QA Sample',email:'qa@example.invalid',phone:''}}}
 describe('v4 Report Card server handoff',()=>{
  it.each(Object.keys(SPECIALTY_CARDS) as Specialty[])('%s validates and persists canonical results without contact duplication in answer history',async type=>{
   const a=sampleGuided(type);expect(validateGuidedReport(type,a)).toEqual(a)

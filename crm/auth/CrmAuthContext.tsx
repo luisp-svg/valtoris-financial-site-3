@@ -10,6 +10,7 @@ import {
 import type { User } from '@supabase/supabase-js'
 import { createSupabaseBrowserClient } from '../../lib/supabase/client'
 import { isCrmSupportedRole, type CrmProfile, type CrmSupportedRole } from '../types'
+import { deferredAuthRefresh } from './deferredAuthRefresh'
 
 type CrmAuthStatus = 'loading' | 'unauthenticated' | 'authenticated' | 'unprovisioned'
 
@@ -113,19 +114,16 @@ export function CrmAuthProvider({ children }: { children: ReactNode }) {
     void refresh()
 
     let subscription: { unsubscribe: () => void } | undefined
+    const deferred = deferredAuthRefresh(refresh)
     try {
       const supabase = createSupabaseBrowserClient()
-      const { data } = supabase.auth.onAuthStateChange((event) => {
-        // Initial load is handled by refresh() above; avoid a double fetch loop.
-        if (event === 'INITIAL_SESSION') return
-        void refresh()
-      })
+      const { data } = supabase.auth.onAuthStateChange(deferred.onChange)
       subscription = data.subscription
     } catch {
       // refresh() already surfaces config errors
     }
 
-    return () => subscription?.unsubscribe()
+    return () => { deferred.dispose(); subscription?.unsubscribe() }
   }, [refresh])
 
   const signIn = useCallback(async (email: string, password: string) => {

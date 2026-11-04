@@ -463,6 +463,65 @@ export async function fetchVisibleHouseholds(
   return (data ?? []).map((row) => normalizeHouseholdListItem(row as Record<string, unknown>))
 }
 
+export type HouseholdDirectoryOption = { id: string; name: string }
+export type HouseholdDirectoryPage = {
+  rows: CrmHouseholdListItem[]
+  total: number
+  page: number
+  pageSize: number
+  stages: HouseholdDirectoryOption[]
+  advisors: HouseholdDirectoryOption[]
+}
+
+export const HOUSEHOLD_DIRECTORY_PAGE_SIZE = 50
+
+/** Server search/count/paging share one RLS-protected database snapshot. */
+export async function fetchHouseholdDirectory(
+  supabase: SupabaseClient,
+  options: {
+    search?: string
+    stageId?: string
+    advisorId?: string
+    assignment?: 'all' | 'assigned' | 'unassigned'
+    page?: number
+  } = {},
+): Promise<HouseholdDirectoryPage> {
+  const { data, error } = await supabase.rpc('search_household_directory', {
+    p_search: options.search?.trim() ?? '',
+    p_stage_id: options.stageId && options.stageId !== 'all' ? options.stageId : null,
+    p_advisor_id: options.advisorId && options.advisorId !== 'all' ? options.advisorId : null,
+    p_assignment: options.assignment ?? 'all',
+    p_page: options.page ?? 1,
+    p_page_size: HOUSEHOLD_DIRECTORY_PAGE_SIZE,
+  })
+  if (error) throw error
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
+    throw new Error('Invalid household directory response')
+  }
+  const payload = data as Record<string, unknown>
+  const validOptions = (value: unknown): value is HouseholdDirectoryOption[] =>
+    Array.isArray(value) && value.every((item) => item && typeof item === 'object'
+      && typeof item.id === 'string' && typeof item.name === 'string')
+  if (!Number.isSafeInteger(payload.total) || Number(payload.total) < 0
+    || !Number.isSafeInteger(payload.page) || Number(payload.page) < 1
+    || payload.pageSize !== HOUSEHOLD_DIRECTORY_PAGE_SIZE
+    || Number(payload.page) > Math.max(1, Math.ceil(Number(payload.total) / HOUSEHOLD_DIRECTORY_PAGE_SIZE))
+    || !Array.isArray(payload.rows) || payload.rows.length > HOUSEHOLD_DIRECTORY_PAGE_SIZE
+    || !payload.rows.every((row) => row && typeof row === 'object'
+      && typeof row.id === 'string' && typeof row.display_name === 'string')
+    || !validOptions(payload.stages) || !validOptions(payload.advisors)) {
+    throw new Error('Invalid household directory response')
+  }
+  return {
+    rows: payload.rows.map((row) => normalizeHouseholdListItem(row as Record<string, unknown>)),
+    total: Number(payload.total),
+    page: Number(payload.page),
+    pageSize: HOUSEHOLD_DIRECTORY_PAGE_SIZE,
+    stages: payload.stages,
+    advisors: payload.advisors,
+  }
+}
+
 export async function fetchHouseholdById(
   supabase: SupabaseClient,
   householdId: string,

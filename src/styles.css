@@ -8132,6 +8132,30 @@ p { color: var(--muted); line-height: 1.7; }
   justify-content: flex-end;
 }
 
+.crm-households-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin: 12px 0 20px;
+}
+
+.crm-households-pagination > p {
+  flex: 1 1 240px;
+  margin: 0;
+}
+
+.crm-households-pagination-buttons {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 12px;
+}
+
+.crm-households-pagination .crm-text-btn {
+  min-height: 44px;
+  min-width: 64px;
+}
+
 .crm-households-table-wrap {
   overflow-x: auto;
 }
@@ -14337,6 +14361,118 @@ button.public-card-diagnostic:disabled {
 .site-home #answers {
   scroll-margin-top: 160px;
 }
+
+
+/* One public-facing palette: deep navy, warm ivory, restrained champagne. */
+.site-shell,
+.premium-assessment,
+.premium-results {
+  --brand: #07144d;
+  --brand-dark: #10245f;
+  --gold: #aa9160;
+  --bg: #f7f5ef;
+  --text: #1e293b;
+  --muted: #566176;
+  --line: #d8d9d0;
+  --platform-border: #d8d9d0;
+  --platform-btn-radius: 2px;
+}
+.site-shell .platform-home {
+  --platform-text: #1e293b;
+  --platform-muted: #566176;
+  --platform-border: #d8d9d0;
+  --platform-tone-blue: #f0ede4;
+  --platform-tone-gray: #f7f5ef;
+  --platform-card-shadow: 0 1px 2px rgba(7, 20, 77, 0.04);
+  --platform-card-shadow-hover: 0 8px 24px rgba(7, 20, 77, 0.08);
+}
+.site-shell .site-header,
+.site-shell .site-home-tone-white,
+.site-shell .site-service-hero,
+.site-shell .site-home-showcase,
+.site-shell .site-home-founder,
+.site-shell footer {
+  background: #f7f5ef;
+}
+.site-shell .site-home-hero-caption,
+.site-shell .home-ask-response {
+  background: #10245f;
+  border-color: #71838a;
+  box-shadow: none;
+}
+.site-shell .site-home-trust-strip {
+  border-radius: 0;
+  background: #71838a;
+}
+.site-shell .site-home-trust-strip span,
+.site-shell .home-ask,
+.site-shell .site-home-final {
+  background: #07144d;
+  color: #f7f5ef;
+}
+.site-shell .site-home-hero-caption strong,
+.site-shell .home-ask .home-ask-eyebrow,
+.site-shell .home-ask-response a {
+  color: #ded2b4;
+}
+.site-shell .home-ask-input,
+.site-shell .home-ask-input button {
+  border-color: #ded2b4;
+}
+.site-shell .home-ask-input button,
+.site-shell .site-home-final .platform-btn-primary {
+  background: #ded2b4;
+  border-color: #ded2b4;
+  color: #07144d;
+}
+.site-shell .site-home-final .platform-btn-primary:hover:not(:disabled),
+.site-shell .site-home-hero .platform-btn-primary:hover:not(:disabled) {
+  background: #ece2ca;
+  border-color: #ece2ca;
+  color: #07144d;
+}
+.site-shell .home-ask-response article + article {
+  border-color: #71838a;
+}
+.site-shell .home-ask-cards a {
+  background: #f7f5ef;
+}
+.site-shell .home-ask-card-copy small {
+  color: #566176;
+}
+.site-shell .site-home-showcase-list li::before {
+  background: #eee7d8;
+  color: #78623d;
+}
+
+/* Compact public masthead; secondary destinations remain in menus and footer. */
+@media (min-width:1440px) {
+  .site-shell .site-header-inner { max-width:1440px; width:90%; gap:28px; min-height:100px; }
+  .site-shell .site-header-desktop { gap:24px; }
+  .site-shell .site-nav-text-link,.site-shell .site-nav-trigger { font-size:12px; padding-inline:10px; font-weight:500; }
+  .site-shell .site-header-utilities { flex-wrap:nowrap; gap:16px; }
+  .site-shell .site-locale-switcher { font-size:11px; }
+  .site-shell .site-header-advisor { display:none; }
+  .site-shell .site-header-book { font-size:11px; padding:12px 18px; box-shadow:none; }
+}
+
+@media print { body:has(.premium-report) header, body:has(.premium-report) footer, body:has(.premium-report) button { display:none!important } .premium-report { break-inside:avoid; color:#111; background:#fff } }
+
+@media (min-width:1200px) {
+ .site-shell .site-header-desktop { display:flex; gap:18px; }
+ .site-shell .site-menu-toggle { display:none; }
+ .site-shell .site-header-advisor { display:none; }
+ .site-shell .site-header-inner { width:94%; gap:20px; }
+ .site-shell .site-nav-primary { gap:4px; }
+ .site-shell .site-nav-text-link,.site-shell .site-nav-trigger { font-size:12px; padding-inline:8px; }
+ .site-shell .site-header-utilities { gap:12px; }
+ .site-shell .site-header-book { font-size:12px; padding:12px; }
+}
+
+.public-card-connect-details summary { cursor: pointer; padding: 12px 0; font-weight: 600; }
+.public-card-connect-details summary:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+.public-card-connect-details[open] summary { margin-bottom: 12px; }
+
 
 /* Agent selection and embedded AgentCRM scheduling. */
 .appointment-booking { margin: 24px 0 32px; }

@@ -1,0 +1,11 @@
+# Parallel sales cycles in TAC
+
+One household is the shared client record. Create a separate opportunity for each distinct service engagement; its sales pipeline, stage, advisor, next action and due date move independently. Multiple opportunities may refer to the same household, including multiple engagements in one vertical. Database constraints do not impose one opportunity per household. The service-production uniqueness rule is per live opportunity, not per household.
+
+Pipeline is the sales-cycle board across configured service verticals. Production remains the life/annuity application and placement log. Service Production handles delivery for P&C personal/commercial, health, student loans, credit repair, wills/trusts and tax strategy. Other verticals can have opportunities without yet having a complete service-specific delivery workflow. Do not equate an active module entry with complete delivery coverage.
+
+The board groups by actual pipeline and stage IDs, retains empty stages in configured order and uses the existing filters. Each card is an opportunity, showing its title, client, vertical, advisor, next action and due date. An authorized household-level count identifies parallel active opportunities. Open the card to update the stage through existing guarded controls; moving a sales card does not move another opportunity or the household relationship stage.
+
+The standalone aid-data Student Loan workspace has been retired from navigation and the household shortcut. Its legacy URL redirects to Pipeline. Student-loan intakes, saved records, loans, upload evidence and backend access rules are retained. No data purge or background-job configuration change is part of this UI cleanup.
+
+Pagination: Appointments uses exact-count server-filtered 50-row pages; upcoming sorts nearest first. Production loads applications in stable 100-row batches before filters and dashboard totals, and paginates its table/cards by 50. The Production board keeps its full case set and correct column counts. Expected compensation, commission events and requirement urgency are chunked by application IDs and paged separately. Full-list assembly remains a scaling limit; a server-side aggregate endpoint is future work. Existing offset readers are not transaction snapshots.

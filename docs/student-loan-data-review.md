@@ -1,3 +1,5 @@
+> UI retired October 28, 2026: the standalone Student Loans menu and household data shortcut were removed. The old route redirects to Pipeline. Intake forms and stored evidence remain available under existing access rules. The notes below describe the retained underlying data-review implementation.
+
 # Student loan data and recommendations
 
 TAC provides a Student Loans menu at `/crm/student-loans` and a Student Loan Data link on household pages. Uploads require an active owner/advisor session, access to the household or an assigned student-loan lead, a borrower permission reference, and confirmation of the selected household. The borrower obtains their My Aid Data text file themselves. FSA credentials are never requested.

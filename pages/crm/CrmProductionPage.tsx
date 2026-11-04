@@ -1,3 +1,4 @@
+import '../../crm/relaunch/relaunch.css'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ROUTES } from '../../constants/routes'
@@ -31,7 +32,6 @@ import {
   DEFAULT_PRODUCTION_QUEUE_VIEW,
   getProductionListPresentation,
   getProductionListViewState,
-  productionListCapWarning,
   type ProductionQueueViewMode,
 } from '../../crm/production/listLoadState'
 import {
@@ -48,7 +48,6 @@ import {
   fetchProductionApplications,
   fetchProductionCarrierOptions,
   formatProductionSupabaseError,
-  PRODUCTION_LIST_DEFAULT_LIMIT,
 } from '../../crm/production/productionApi'
 import {
   fetchOverdueRequirementCountsByApplicationIds,
@@ -133,6 +132,7 @@ export default function CrmProductionPage() {
   const [caseView, setCaseView] = useState<CaseWorkspaceView>(DEFAULT_CASE_WORKSPACE_VIEW)
   const [writingAdvisorId, setWritingAdvisorId] = useState<string | null>(null)
   const [reloadKey, setReloadKey] = useState(0)
+  const [pagination, setPagination] = useState({ key: '', page: 1 })
   const [notesTarget, setNotesTarget] = useState<{
     householdId: string
     householdName: string
@@ -294,7 +294,10 @@ export default function CrmProductionPage() {
     [filteredItems, paidEvents, compensationPeriod, today],
   )
   const writtenStates = useMemo(() => writtenStateFilterOptions(items), [items])
-  const capWarning = productionListCapWarning(items.length, PRODUCTION_LIST_DEFAULT_LIMIT)
+  const pageKey = JSON.stringify({filters, caseView})
+  const pageCount = Math.max(1, Math.ceil(caseItems.length / 50))
+  const currentPage = Math.min(pagination.key === pageKey ? pagination.page : 1, pageCount)
+  const pagedCaseItems = caseItems.slice((currentPage - 1) * 50, currentPage * 50)
 
   const viewState = getProductionListViewState({
     loading,
@@ -384,6 +387,7 @@ export default function CrmProductionPage() {
           </p>
         </div>
         <div className="crm-production-header-actions">
+          <Link to="/crm/policies" className="crm-secondary-btn">Policy book</Link>
           <Link to="/crm/production/services" className="crm-secondary-btn">Service production</Link>
           <Link to={ROUTES.crmProductionNew} className="crm-primary-btn">
             New application
@@ -429,11 +433,7 @@ export default function CrmProductionPage() {
         </div>
       ) : null}
 
-      {capWarning ? (
-        <div className="crm-banner crm-banner-warning" role="status">
-          {capWarning}
-        </div>
-      ) : null}
+
 
       <ProductionDashboard
         model={dashboard}
@@ -659,7 +659,6 @@ export default function CrmProductionPage() {
               carriers & products.
             </p>
             <p className="crm-muted">
-              Issued book placeholder remains at <Link to="/crm/policies">/crm/policies</Link>.
             </p>
           </div>
         ) : null}
@@ -696,10 +695,15 @@ export default function CrmProductionPage() {
           />
         ) : null}
 
+        {viewState.kind === 'ready' && viewMode === 'table' && <nav aria-label="Production pages" className="crm-panel">
+          <p role="status">Showing {(currentPage - 1) * 50 + 1}–{Math.min(currentPage * 50, caseItems.length)} of {caseItems.length} · Dashboard totals include all matching applications.</p>
+          <button type="button" className="crm-secondary-btn" style={{minHeight:44}} disabled={currentPage===1} onClick={()=>setPagination({key:pageKey,page:currentPage-1})}>Previous</button>{' '}
+          <button type="button" className="crm-secondary-btn" style={{minHeight:44}} disabled={currentPage===pageCount} onClick={()=>setPagination({key:pageKey,page:currentPage+1})}>Next</button>
+        </nav>}
         {viewState.kind === 'ready' && viewMode === 'table' ? (
           tablePresentation === 'table' ? (
             <ProductionQueueTable
-              items={caseItems}
+              items={pagedCaseItems}
               viewer={viewer}
               role={role}
               hideCompensation={caseView !== 'all_applications'}
@@ -707,7 +711,7 @@ export default function CrmProductionPage() {
             />
           ) : (
             <ProductionQueueCards
-              items={caseItems}
+              items={pagedCaseItems}
               viewer={viewer}
               role={role}
               hideCompensation={caseView !== 'all_applications'}

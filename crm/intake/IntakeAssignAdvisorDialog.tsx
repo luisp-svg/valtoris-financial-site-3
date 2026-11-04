@@ -9,6 +9,7 @@ import {
 } from './intakeAssignmentUi'
 
 export type IntakeAssignAdvisorDialogProps = {
+  submissionOnly?: boolean
   householdName: string
   currentAdvisorName: string | null
   currentAdvisorId: string | null
@@ -19,6 +20,7 @@ export type IntakeAssignAdvisorDialogProps = {
 }
 
 export default function IntakeAssignAdvisorDialog({
+  submissionOnly=false,
   householdName,
   currentAdvisorName,
   currentAdvisorId,
@@ -112,7 +114,7 @@ export default function IntakeAssignAdvisorDialog({
       >
         <h2 id={titleId}>{INTAKE_ASSIGN_ADVISOR_ACTION_LABEL}</h2>
         <p className="crm-muted">
-          Household: <strong>{householdName}</strong>
+          {submissionOnly ? "Submission for" : "Household"}: <strong>{householdName}</strong>
         </p>
         <p>
           Currently assigned:{' '}
@@ -151,8 +153,8 @@ export default function IntakeAssignAdvisorDialog({
           ) : null}
           {selectedAdvisor ? (
             <>
-              <p>{intakeAssignConfirmationCopy(selectedAdvisor.display_name)}</p>
-              <p className="crm-muted">{INTAKE_ASSIGN_RPC_BEHAVIOR_COPY}</p>
+              <p>{submissionOnly ? `Assign this submission and its selected reviews to ${selectedAdvisor.display_name}?` : intakeAssignConfirmationCopy(selectedAdvisor.display_name)}</p>
+              <p className="crm-muted">{submissionOnly ? "This updates only the selected submission and its review assignments. Household ownership and other submissions are retained." : INTAKE_ASSIGN_RPC_BEHAVIOR_COPY}</p>
             </>
           ) : null}
           {error ? (

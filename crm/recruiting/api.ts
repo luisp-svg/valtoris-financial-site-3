@@ -23,6 +23,29 @@ export async function recruitingManager(db: SupabaseClient): Promise<boolean> {
   if (error) throw error
   return data === true
 }
+
+/** Load only RLS-visible evidence, with stable pagination across server row limits. */
+export async function licensingEvidence(db: SupabaseClient) {
+  async function all<T extends { id: string }>(table: string): Promise<T[]> {
+    const rows: T[] = []
+    let after = ''
+    for (;;) {
+      let query = db.from(table).select('*').order('id').limit(100)
+      if (after) query = query.gt('id', after)
+      const { data, error } = await query
+      if (error) throw error
+      if (!data?.length) return rows
+      const next = String(data[data.length - 1].id)
+      if (next <= after) throw new Error('Licensing records could not finish loading. Please refresh.')
+      rows.push(...data as T[])
+      after = next
+    }
+  }
+  const [credentials, carriers] = await Promise.all([
+    all<Credential>('recruit_credentials'), all<CarrierReview>('recruit_carrier_readiness'),
+  ])
+  return { credentials, carriers }
+}
 export async function recruitDetail(db: SupabaseClient, id: string, manager: boolean) {
   const results = await Promise.all([
     db.from('recruit_records').select('*').eq('id', id).maybeSingle(),

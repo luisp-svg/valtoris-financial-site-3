@@ -1,3 +1,4 @@
+import { isCombined, validateCombined, COMBINED_VERSION } from '../../../modules/reportCard/combined/engine.js'
 import { isGuidedReport, validateGuidedReport, GUIDED_REPORT_VERSION } from '../../../modules/reportCard/specialtyPreview/submission.js'
 import { isShortForm, validateShortAnswers } from '../../../modules/reportCard/shortForm/contract.js'
 import { SHORT_FORM_VERSION } from '../../../modules/reportCard/shortForm/catalog.js'
@@ -402,24 +403,28 @@ export function validateFamilyReportCardIngestRequest(
     assessmentType = rawBody.assessmentType
   }
 
-  if (assessmentType === 'home_buyer' && rawBody.assessmentVersion !== SHORT_FORM_VERSION && rawBody.assessmentVersion !== GUIDED_REPORT_VERSION) {
+  if (assessmentType === 'home_buyer' && !isCombined(rawBody.answers) && rawBody.assessmentVersion !== SHORT_FORM_VERSION && rawBody.assessmentVersion !== GUIDED_REPORT_VERSION) {
     const a = rawBody.answers as { diagnostic?: { v2?: unknown } } | null
     const hasV2 = !!a?.diagnostic && Object.prototype.hasOwnProperty.call(a.diagnostic, 'v2')
     if (rawBody.assessmentVersion !== (hasV2 ? 2 : 1)) return fail('invalid_assessment_version', 'Unsupported Home Buyer assessment version.')
   }
 
-  if (typeof rawBody.assessmentVersion !== 'number' || ![1, ...(assessmentType === 'home_buyer' ? [2] : []), SHORT_FORM_VERSION, GUIDED_REPORT_VERSION].includes(rawBody.assessmentVersion)) {
+  if (typeof rawBody.assessmentVersion !== 'number' || ![1, ...(assessmentType === 'home_buyer' ? [2] : []), SHORT_FORM_VERSION, GUIDED_REPORT_VERSION, 6, COMBINED_VERSION].includes(rawBody.assessmentVersion)) {
     return fail('invalid_assessment_version', 'Unsupported assessment version.')
   }
 
+  if (isCombined(rawBody.answers) && rawBody.assessmentVersion !== (rawBody.answers.format==='combined-priorities-v1'?6:COMBINED_VERSION)) return fail('invalid_assessment_version', 'Unsupported combined assessment version.')
   if (isShortForm(rawBody.answers) && rawBody.assessmentVersion !== SHORT_FORM_VERSION) {
     return fail('invalid_assessment_version', 'Unsupported short-form assessment version.')
   }
   if (isGuidedReport(rawBody.answers) && rawBody.assessmentVersion !== GUIDED_REPORT_VERSION) return fail('invalid_assessment_version','Unsupported guided report version.')
-  if (['health','tsp','benefits','tax'].includes(assessmentType) && rawBody.assessmentVersion !== GUIDED_REPORT_VERSION) return fail('invalid_assessment_version','This report requires version 4.')
+  if (['health','tsp','benefits','tax'].includes(assessmentType) && ![GUIDED_REPORT_VERSION, 6, COMBINED_VERSION].includes(rawBody.assessmentVersion)) return fail('invalid_assessment_version','This report requires a supported guided or combined version.')
+  const combined = isCombined(rawBody.answers) ? validateCombined(rawBody.answers, assessmentType) : null
   const guided = rawBody.assessmentVersion === GUIDED_REPORT_VERSION ? validateGuidedReport(assessmentType,rawBody.answers) : null
   const shortAnswers = rawBody.assessmentVersion === SHORT_FORM_VERSION ? validateShortAnswers(assessmentType as import('../../../modules/reportCard/publicIngestCatalog.js').LegacyPublicReportCardAssessmentType, rawBody.answers) : null
-  const answersResult: ValidationResult<PublicReportCardAnswers> = rawBody.assessmentVersion === GUIDED_REPORT_VERSION
+  const answersResult: ValidationResult<PublicReportCardAnswers> = isCombined(rawBody.answers)
+    ? combined ? {ok:true,value:combined} : fail('invalid_answers','Please review your assessment answers and contact details.')
+    : rawBody.assessmentVersion === GUIDED_REPORT_VERSION
     ? guided ? {ok:true,value:guided} : fail('invalid_answers','Please review report answers and contact details.')
     : rawBody.assessmentVersion === SHORT_FORM_VERSION
     ? shortAnswers ? { ok: true, value: shortAnswers } : fail('invalid_answers', 'Please review your short-form answers and contact details.')

@@ -10,6 +10,7 @@ export type LeadConnectorQuery = Record<string, string | number | undefined>
 
 export type LeadConnectorClientOptions = {
   token: string
+  apiVersion?: '2021-07-28' | '2021-04-15'
   fetchImpl?: typeof fetch
   timeoutMs?: number
   baseUrl?: string
@@ -20,6 +21,7 @@ export type LeadConnectorClientOptions = {
  * Exposes GET only. Callers cannot send a request body.
  */
 export class LeadConnectorClient {
+  private readonly apiVersion: string
   private readonly token: string
   private readonly fetchImpl: typeof fetch
   private readonly timeoutMs: number
@@ -31,6 +33,7 @@ export class LeadConnectorClient {
     if (!token) {
       throw new LeadConnectorError('unauthorized', null)
     }
+    this.apiVersion = options.apiVersion ?? LEADCONNECTOR_API_VERSION
     this.token = token
     this.fetchImpl = options.fetchImpl ?? fetch
     this.timeoutMs = options.timeoutMs ?? LEADCONNECTOR_TIMEOUT_MS
@@ -58,7 +61,7 @@ export class LeadConnectorClient {
         headers: {
           Accept: 'application/json',
           Authorization: `Bearer ${this.token}`,
-          Version: LEADCONNECTOR_API_VERSION,
+          Version: this.apiVersion,
         },
         signal: controller.signal,
       })

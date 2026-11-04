@@ -1,4 +1,5 @@
 import { useLocation } from 'react-router-dom'
+import AmazeHealthOffer from '../components/publicSite/services/AmazeHealthOffer'
 import { readPublicLocale } from '../components/publicSite/locale'
 import SolutionsHub from '../components/publicSite/solutions/SolutionsHub'
 import { solutionsCopy } from '../components/publicSite/solutions/copy'
@@ -10,5 +11,5 @@ export default function SolutionsPage() {
   const copy = solutionsCopy[locale]
   useServiceDocumentMeta(copy)
 
-  return <SolutionsHub copy={copy} />
+  return <><SolutionsHub copy={copy} /><AmazeHealthOffer /></>
 }

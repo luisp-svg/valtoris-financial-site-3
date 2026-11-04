@@ -449,3 +449,10 @@ describe('duplicate resolution availability', () => {
     expect(getDuplicateResolutionAvailability('advisor').canResolveWrites).toBe(false)
   })
 })
+
+it('includes explicitly assigned specialty reviews in My Assignments without calling them unassigned',()=>{
+ const item=makeItem({assignedAdvisor:null,reviewAssignments:[{reviewType:'health',advisorId:'jaz',displayName:'Jaz'}]});
+ expect(matchesIntakeFilter(item,'assigned_to_me','jaz')).toBe(true);
+ expect(matchesIntakeFilter(item,'assigned_to_me','liz')).toBe(false);
+ expect(matchesIntakeFilter(item,'unassigned','jaz')).toBe(false);
+});

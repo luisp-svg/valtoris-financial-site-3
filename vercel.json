@@ -1,6 +1,38 @@
 {
   "rewrites": [
     {
+      "source": "/personal-insurance-report-card",
+      "destination": "/funnel-entry/lifestyle.html"
+    },
+    {
+      "source": "/commercial-insurance-report-card",
+      "destination": "/funnel-entry/commercial.html"
+    },
+    {
+      "source": "/commercial-trucking-report-card",
+      "destination": "/funnel-entry/trucking.html"
+    },
+    {
+      "source": "/student-loan-report-card",
+      "destination": "/funnel-entry/student_loan.html"
+    },
+    {
+      "source": "/health-insurance-report-card",
+      "destination": "/funnel-entry/health.html"
+    },
+    {
+      "source": "/sms-consent",
+      "destination": "/sms-consent.html"
+    },
+    {
+      "source": "/life-insurance",
+      "destination": "/sms-consent.html"
+    },
+    {
+      "source": "/sms-terms",
+      "destination": "/sms-terms.html"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api/$1"
     },
@@ -113,6 +145,30 @@
           "value": "noindex, nofollow"
         }
       ]
+    },
+    {
+      "source": "/financial-assessment",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    },
+    {
+      "source": "/assessment-results",
+      "headers": [
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
     }
-  ]
+  ],
+  "git": {
+    "deploymentEnabled": {
+      "codex/restore-valtoris-v2": false,
+      "codex/academy-migration-audit": false
+    }
+  }
 }

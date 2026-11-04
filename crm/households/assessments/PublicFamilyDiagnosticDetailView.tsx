@@ -73,14 +73,14 @@ export default function PublicFamilyDiagnosticDetailView({
         <h2 id="crm-ifd-score-heading">Result summary</h2>
         <dl className="crm-client-workspace-info-list">
           <div>
-            <dt>{detail.shortFormResult ? 'Review type' : detail.assessmentType === 'protection' ? 'Protection gap' : 'Score'}</dt>
+            <dt>{detail.combinedReports || detail.shortFormResult ? 'Review type' : detail.assessmentType === 'protection' ? 'Protection gap' : 'Score'}</dt>
             <dd className="crm-financial-progress-score-emphasis" aria-label="Diagnostic score">
-              {detail.shortFormResult ? 'Short-form educational review' : detail.assessmentType === 'protection'
+              {detail.combinedReports ? 'Multi-priority educational assessment' : detail.shortFormResult ? 'Short-form educational review' : detail.assessmentType === 'protection'
                 ? detail.protectionGapFormatted ?? '—'
                 : detail.overallScore ?? '—'}
             </dd>
           </div>
-          {detail.shortFormResult || detail.assessmentType === 'protection' ? null : (
+          {detail.combinedReports || detail.shortFormResult || detail.assessmentType === 'protection' ? null : (
             <div>
               <dt>Grade</dt>
               <dd aria-label="Diagnostic grade">{detail.overallGrade ?? '—'}</dd>
@@ -103,7 +103,7 @@ export default function PublicFamilyDiagnosticDetailView({
         </dl>
       </section>
 
-      {detail.shortFormResult ? <section className="crm-panel crm-ifd-detail-section"><ShortResultBody result={detail.shortFormResult} /></section> : <>
+      {detail.combinedReports ? <section className="crm-panel crm-ifd-detail-section"><h2>Coordinated review areas</h2><p className="crm-muted">One parent intake and one contact. Planning-readiness grades are preliminary and based on self-reported answers. Detailed supporting intake remains available during consultation.</p><p>Booking verification: {detail.bookingVerifiedAt ? formatDiagnosticSubmittedAt(detail.bookingVerifiedAt) : 'Not yet verified'}</p>{detail.combinedReports.map(review=><article key={review.type}><h3>{review.title}</h3>{review.kind==='adaptive'?<p>{review.result.grade??'Needs review'}{review.result.score!==null?` · ${review.result.score}/100`:''} — {review.result.status}; {review.result.known}/{review.result.total} checks known.</p>:review.kind==='short'?<ShortResultBody result={review.result}/>:review.kind==='lifestyle'?<p>{review.result.summary}</p>:<><p>{review.result.grade.provisional?'Preliminary — information to confirm':review.result.overallGrade??'No grade'}{review.result.overallScore!==null ? ` · ${review.result.overallScore}/100` : ''}</p>{review.result.priorities.map((priority,index)=><p key={index}><strong>{priority.title}</strong>: {priority.why}</p>)}</>}</article>)}</section> : detail.shortFormResult ? <section className="crm-panel crm-ifd-detail-section"><ShortResultBody result={detail.shortFormResult} /></section> : <>
       <section className="crm-panel crm-ifd-detail-section" aria-labelledby="crm-ifd-categories-heading">
         <h2 id="crm-ifd-categories-heading">Category results</h2>
         {detail.categories.length === 0 ? (

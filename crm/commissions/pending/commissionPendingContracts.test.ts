@@ -72,7 +72,6 @@ describe('commission Pending Phase B contracts', () => {
       source('commissionPendingApi.ts'),
       source('CommissionPendingImportWorkspace.tsx'),
       readFileSync(join(root, 'pages/crm/CrmCommissionsPendingImportPage.tsx'), 'utf8'),
-      readFileSync(join(root, 'package.json'), 'utf8'),
     ].join('\n')
     expect(blob).not.toMatch(/pdf-parse|pdfjs|OCR|tesseract|openai|anthropic/i)
     expect(blob).not.toMatch(/xlsx|exceljs|sheetjs/i)

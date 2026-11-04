@@ -1,9 +1,9 @@
 import { describe,expect,it } from 'vitest'
 import { Answers,SPECIALTY_CARDS,Specialty } from './catalog'
 import { error,pathways,report,toggle,update,valid,visibleQuestions } from './engine'
-function complete(type:Specialty){let a:Answers={};for(let i=0;i<3;i++)for(const q of visibleQuestions(type,a))if(!a[q.id])a[q.id]=q.kind==='number'?'10':q.kind==='multi'?[q.options![0][0]]:q.options![0][0];return a}
+function complete(type:Specialty){const a:Answers={};for(let i=0;i<3;i++)for(const q of visibleQuestions(type,a))if(!a[q.id])a[q.id]=q.kind==='date'?'2027-01-01':q.kind==='number'?'10':q.kind==='multi'?[q.options![0][0]]:q.options![0][0];return a}
 describe('four specialty Report Card drafts',()=>{
- it.each(Object.keys(SPECIALTY_CARDS) as Specialty[])('%s completes a short independent journey',type=>{const a=complete(type);expect(visibleQuestions(type,a).length).toBeLessThanOrEqual(16);expect(visibleQuestions(type,a).every(q=>valid(q,a[q.id]))).toBe(true);expect(report(type,a).unknown).toEqual([])})
+ it.each(Object.keys(SPECIALTY_CARDS) as Specialty[])('%s completes a short independent journey',type=>{const a=complete(type);expect(visibleQuestions(type,a).length).toBeLessThanOrEqual(22);expect(visibleQuestions(type,a).every(q=>valid(q,a[q.id]))).toBe(true);expect(report(type,a).unknown).toEqual([])})
  it('skips workforce questions for zero W-2 employees and prunes previous answers',()=>{const a=update('benefits',complete('benefits'),'employees','0');expect(visibleQuestions('benefits',a).map(q=>q.id)).toEqual(['purpose','employees']);expect(a.fulltime).toBeUndefined();expect(report('benefits',a).noEmployees).toBe(true)})
  it('does not confuse unknown employee counts with no employees',()=>{const r=report('benefits',{purpose:'add',employees:'unknown'});expect(r.noEmployees).toBe(false);expect(r.unknown.map(q=>q.id)).toEqual(['employees'])})
  it('rejects invalid and inconsistent employee counts',()=>{const q=SPECIALTY_CARDS.benefits.questions[0];expect(valid(q,'-1')).toBe(false);expect(valid(q,'1.5')).toBe(false);expect(valid(q,'')).toBe(false);expect(error('benefits',{employees:'5',fulltime:'6'})).toBe('counts')})

@@ -10,3 +10,22 @@
 .recruiting-page dl { display: grid; gap: 8px; }
 .recruiting-page dt { font-weight: 600; }
 .recruiting-page dd { margin: 0 0 8px; }
+.license-summary { display: grid; grid-template-columns: repeat(auto-fit,minmax(145px,1fr)); gap: 12px; }
+.license-summary-card { display: grid; gap: 8px; text-align: left; cursor: pointer; font: inherit; color: inherit; }
+.license-summary-card strong { font-size: 1.8rem; }
+.license-summary-card[aria-pressed=true] { outline: 2px solid #305ca3; background: #edf3fc; }
+.license-summary-card:focus-visible { outline: 3px solid #305ca3; outline-offset: 3px; }
+.license-agent-card { display: flex; flex-direction: column; align-items: stretch; gap: 8px; }
+.license-agent-card p { margin: 0; }
+.license-agent-counts { display: flex !important; flex-wrap: wrap; gap: 18px !important; margin: 8px 0; }
+.license-agent-counts dt { font-size: .85rem; }
+.license-agent-counts dd { font-size: 1.2rem; }
+.license-attention-list { padding-left: 20px; margin: 0; }
+.license-attention-list:empty { display: none; }
+.license-next-action { border-top: 1px solid #dce3ee; padding-top: 12px; display: grid; gap: 6px; margin-top: auto; }
+.license-renewal { background: #fff6df; color: #644600; padding: 12px; border-radius: 8px; }
+.recruit-fields input[type=checkbox] { width: 20px; height: 20px; min-height: 20px; margin: 10px 0; }
+.license-type-options { border: 1px solid #dce3ee; border-radius: 10px; padding: 12px; margin: 0; }
+.license-type-options label { display: flex; align-items: center; gap: 10px; }
+.license-type-options legend { font-weight: 600; padding: 0 4px; }
+.recruit-fields { align-items: start; }

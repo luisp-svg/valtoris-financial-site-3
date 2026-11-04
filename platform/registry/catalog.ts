@@ -136,7 +136,6 @@ export const MODULE_CATALOG: readonly ModuleManifest[] = [
     ],
     dependencies: ['initial_financial_diagnostic', 'tasks'],
   }),
-  shellNav({key: 'student_loan_workspace', displayName: 'Student Loans', description: 'Private aid data and automatic student loan recommendations.', icon: 'file-text', order: 21, route: '/crm/student-loans', category: 'planning', permissions: ['crm.nav.view']}),
   shellNav({
     key: 'contacts',
     displayName: 'Contacts',
@@ -192,8 +191,8 @@ export const MODULE_CATALOG: readonly ModuleManifest[] = [
   }),
   shellNav({
     key: 'recruiting',
-    displayName: 'Recruiting',
-    description: 'Recruit onboarding and carrier readiness.',
+    displayName: 'Licensing & Appointments',
+    description: 'Multi-agent licensing, contracting, appointments, and follow-up.',
     icon: 'contacts',
     order: 45,
     route: '/crm/recruiting',
@@ -234,11 +233,10 @@ export const MODULE_CATALOG: readonly ModuleManifest[] = [
   shellNav({
     key: 'appointments',
     displayName: 'Appointments',
-    description: 'Appointment scheduling (placeholder).',
+    description: 'Consultations saved in TAC and synchronized with AgentCRM.',
     icon: 'appointments',
     order: 60,
     route: '/crm/appointments',
-    placeholder: true,
     permissions: ['crm.nav.view', 'appointment.read'],
   }),
   shellNav({

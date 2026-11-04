@@ -258,7 +258,7 @@ describe('Home Buyer Phase C ingest', () => {
   it('keeps Home Buyer available in household history with its existing ingest boundary', () => {
     expect(HOME_BUYER_CRM_INGEST_ENABLED).toBe(true)
     expect(canSubmitHomeBuyerToCrm()).toBe(true)
-    expect(source('src/App.tsx')).toContain('<ShortAssessment key="home_buyer" assessmentType="home_buyer" />')
+    expect(source('src/App.tsx')).toContain('<FinancialAssessmentPage key="home_buyer" initialPriority="home_buyer" />')
     expect(source('src/App.tsx')).toContain('homeBuyerAssessment')
     expect(WORKSPACE_ASSESSMENT_TYPES).toContain('home_buyer')
     const files = readdirSync(join(ROOT, 'supabase/migrations')).filter((name) => name.endsWith('.sql')).sort()

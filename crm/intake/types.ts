@@ -70,6 +70,7 @@ export type IntakeDiagnosticSummary = {
   completedAt: string | null
   /** UI label — never "Financial Progress". */
   productLabel:
+    | 'Valtoris Financial Assessment'
     | 'Initial Financial Diagnostic'
     | 'Business Report Card'
     | 'Retirement Report Card'
@@ -135,6 +136,8 @@ export type IntakeDuplicateReviewSummary = {
 }
 
 export type IntakeQueueItem = {
+  assignmentUpdatedAt?: string;
+  reviewAssignments?: {reviewType:string;advisorId:string;displayName:string}[];
   leadId: string
   householdId: string
   leadType: string

@@ -1,3 +1,4 @@
+import { EXPECTED_MIGRATION_FILES } from '../../tests/helpers/migrationInventory'
 import { createHash } from 'node:crypto'
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -55,6 +56,15 @@ function renderChrome(entry: string) {
 }
 
 const EXISTING_PUBLIC_PATHS = new Set<string>([
+  '/personal-family',
+  '/private-client',
+  '/business-owners',
+  '/tsp-report-card',
+  '/health-insurance-report-card',
+  '/employee-benefits-report-card',
+  '/tax-review-report-card',
+  '/lifestyle-report-card',
+  ROUTES.homeBuyerReportCard,
   ROUTES.home,
   ROUTES.solutions,
   ROUTES.reportCard,
@@ -79,6 +89,7 @@ const EXISTING_PUBLIC_PATHS = new Set<string>([
   ROUTES.creditReportCardResults,
   ROUTES.insurance,
   ROUTES.healthDisability,
+  ROUTES.amazeHealth,
   ROUTES.businessFormation,
   ROUTES.estateLegacy,
   ROUTES.taxStrategy,
@@ -90,10 +101,10 @@ const EXISTING_PUBLIC_PATHS = new Set<string>([
 
 describe('public site foundation chrome', () => {
   it('does not keep six Report Cards as top-level nav peers', () => {
-    expect(VISIBLE_TOP_LEVEL_NAV_IDS).toEqual(['home', 'services', 'tools', 'quotes'])
+    expect(VISIBLE_TOP_LEVEL_NAV_IDS).toEqual(['home', 'personalFamily', 'privateClient', 'businessOwners', 'priorities'])
     expect(ABOUT_NAV_LINKS).toEqual([])
     const header = source('components/SiteHeader.tsx')
-    expect(header).toContain('SERVICES_NAV_GROUPS')
+    expect(header).not.toContain('SERVICES_NAV_GROUPS')
     expect(header).toContain('TOOLS_NAV_LINKS')
     expect(header).not.toContain('copy.navContact')
     expect(header).not.toContain('to={ROUTES.reportCard}')
@@ -108,6 +119,7 @@ describe('public site foundation chrome', () => {
       ROUTES.retirementReportCard,
       ROUTES.insurance,
       ROUTES.healthDisability,
+  ROUTES.amazeHealth,
       ROUTES.credit,
       ROUTES.studentLoans,
       ROUTES.estateLegacy,
@@ -122,6 +134,12 @@ describe('public site foundation chrome', () => {
       ROUTES.protectionAnalysis,
       ROUTES.studentLoanReportCard,
       ROUTES.creditReportCard,
+      ROUTES.homeBuyerReportCard,
+      '/tsp-report-card',
+      '/health-insurance-report-card',
+      '/employee-benefits-report-card',
+      '/tax-review-report-card',
+      '/lifestyle-report-card',
     ])
   })
 
@@ -182,7 +200,7 @@ describe('public site foundation chrome', () => {
     const en = renderChrome('/')
     const es = renderChrome('/solutions?lang=es')
     expect(en).toContain('Home')
-    expect(en).toContain('Services')
+    expect(en).toContain('Solutions &amp; Report Cards')
     expect(en).toContain('Tools')
     expect(en).toContain('Book a Meeting')
     expect(en).toContain('Advisor Login')
@@ -192,7 +210,7 @@ describe('public site foundation chrome', () => {
     )
     expect(en).not.toContain('Coverage and solutions depend on underwriting')
     expect(es).toContain('Inicio')
-    expect(es).toContain('Servicios')
+    expect(es).toContain('Soluciones y Report Cards')
     expect(es).toContain('Herramientas')
     expect(es).toContain('Agendar una reunión')
     expect(es).toContain('Acceso para estrategas')
@@ -327,8 +345,8 @@ describe('public site foundation chrome', () => {
       .filter((name) => name.endsWith('.sql'))
       .sort()
     // Existing main includes the household-member migration; phase 1 adds none.
-    expect(files).toHaveLength(87)
-    expect(files[files.length - 1]).toBe('20261017041100_guided_report_card_ingest.sql')
+    expect(files).toEqual(EXPECTED_MIGRATION_FILES)
+    expect(files).toContain('20261023050825_route_unassigned_student_loan_reports.sql')
     expect(files.some((name) => name.startsWith('053_'))).toBe(true)
     expect(files.some((name) => name.startsWith('054_'))).toBe(true)
     expect(existsSync(join(ROOT, 'supabase/migrations/053_website_foundation.sql'))).toBe(false)

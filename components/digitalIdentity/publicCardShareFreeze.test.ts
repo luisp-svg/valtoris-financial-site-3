@@ -1,3 +1,4 @@
+import { EXPECTED_MIGRATION_FILES } from '../../tests/helpers/migrationInventory'
 import { createHash } from 'node:crypto'
 import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
@@ -71,7 +72,7 @@ describe('DI-A public share freeze', () => {
     const files = readdirSync(join(ROOT, 'supabase/migrations')).filter((name) =>
       name.endsWith('.sql'),
     )
-    expect(files).toHaveLength(87)
+    expect(files).toEqual(EXPECTED_MIGRATION_FILES)
     expect(files.some((name) => name.startsWith('053_bulk_lead_import_writer'))).toBe(true)
     expect(files.some((name) => name.startsWith('054'))).toBe(true)
     expect(existsSync(join(ROOT, 'supabase/migrations/053_digital_identity.sql'))).toBe(false)

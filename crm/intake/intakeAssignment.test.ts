@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import {
   assignIntakeHousehold,
+  assignIntakeSubmission,
   INTAKE_ASSIGN_HOUSEHOLD_RPC,
   mapAssignHouseholdRpcError,
 } from './intakeAssignment'
@@ -153,3 +154,9 @@ describe('assignIntakeHousehold client wrapper', () => {
     })
   })
 })
+
+it('assigns only a submission through the owner RPC with its current version',async()=>{
+ const rpc=vi.fn().mockResolvedValue({data:{id:'lead-1',assigned_advisor_id:'jaz'},error:null});
+ const result=await assignIntakeSubmission({rpc} as unknown as SupabaseClient,{leadId:'lead-1',advisorId:'jaz',expectedUpdatedAt:'2026-10-23T12:00:00Z'});
+ expect(result.ok).toBe(true);expect(rpc).toHaveBeenCalledWith('assign_intake_submission',{p_lead_id:'lead-1',p_advisor_id:'jaz',p_expected_updated_at:'2026-10-23T12:00:00Z'});
+});

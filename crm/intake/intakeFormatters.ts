@@ -1,3 +1,4 @@
+import { readStoredCombined } from '../../modules/reportCard/combined/engine'
 import { DIGITAL_IDENTITY_LEAD_TYPE } from '../../modules/digital-identity'
 import { BULK_LEAD_IMPORT_LEAD_TYPE } from '../../modules/bulkLeadImport'
 import {
@@ -136,10 +137,10 @@ export function matchesIntakeFilter(
     case 'resolved':
       return isResolvedIntake(item)
     case 'unassigned':
-      return !item.assignedAdvisor
+      return !item.assignedAdvisor && !item.reviewAssignments?.length
     case 'assigned_to_me':
       return Boolean(
-        currentAdvisorProfileId && item.assignedAdvisor?.id === currentAdvisorProfileId,
+        currentAdvisorProfileId && (item.assignedAdvisor?.id === currentAdvisorProfileId || item.reviewAssignments?.some(review=>review.advisorId===currentAdvisorProfileId)),
       )
     case 'sheets_failed':
       return item.sheetsSyncStatus === 'failed'
@@ -286,7 +287,7 @@ export function buildDiagnosticFromAssessmentRow(
   const fromAssessment = isPublicReportCardAssessmentType(row.assessment_type)
     ? crmProductLabelForAssessment(row.assessment_type)
     : null
-  const typedLabel = asIntakeDiagnosticProductLabel(fromLead || fromAssessment || '')
+  const typedLabel = readStoredCombined(row.answers) ? 'Valtoris Financial Assessment' : asIntakeDiagnosticProductLabel(fromLead || fromAssessment || '')
 
   const netProtectionGap =
     typeof derived.netProtectionGap === 'number' && Number.isFinite(derived.netProtectionGap)

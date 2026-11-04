@@ -27,20 +27,19 @@ export default function ServicePackages({ copy, startTo }: ServicePackagesProps)
               <p className="site-service-package-badge">{servicePackage.badge}</p>
             ) : null}
             <h3 className="site-service-package-name">{servicePackage.name}</h3>
-            <p className="site-service-package-price">{servicePackage.price}</p>
-            <p className="site-service-package-payment">{servicePackage.paymentNote}</p>
+            {servicePackage.price ? <p className="site-service-package-price">{servicePackage.price}</p> : null}
+            {servicePackage.paymentNote ? <p className="site-service-package-payment">{servicePackage.paymentNote}</p> : null}
             <p className="site-service-package-description">{servicePackage.description}</p>
             <ul className="site-service-package-features">
               {servicePackage.features.map((feature) => (
                 <li key={feature}>{feature}</li>
               ))}
             </ul>
-            <PublicLink className="platform-btn platform-btn-primary" to={startTo}>
-              {servicePackage.cta}
-            </PublicLink>
+
           </article>
         ))}
       </div>
+      <div className="site-home-hero-actions"><PublicLink className="platform-btn platform-btn-primary" to={startTo}>{copy.packages[0].cta}</PublicLink></div>
       {copy.packagesNote ? <p className="site-service-package-note">{copy.packagesNote}</p> : null}
     </SiteHomeSection>
   )

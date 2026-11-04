@@ -13,10 +13,10 @@ export default function HomeFounderStory({ copy }: HomeFounderStoryProps) {
         <div className="site-home-founder-image-wrap">
           <img
             className="site-home-founder-image"
-            src="/images/luis-family-story.webp"
+            src="/images/valtoris-home-hero.webp"
             alt={copy.founderImageAlt}
-            width="720"
-            height="1080"
+            width="1600"
+            height="800"
             loading="lazy"
           />
         </div>

@@ -1,7 +1,6 @@
 import PublicLink from '../PublicLink'
 import { ROUTES } from '../../../constants/routes'
 import type { HomeCopy } from './copy'
-import { HOME_DIAGNOSTICS_HASH } from './homeConfig'
 
 type HomeFinalCtaProps = {
   copy: HomeCopy
@@ -16,7 +15,7 @@ export default function HomeFinalCta({ copy }: HomeFinalCtaProps) {
         </h2>
         <p className="site-home-final-copy">{copy.finalLead}</p>
         <div className="site-home-final-actions">
-          <PublicLink className="platform-btn platform-btn-primary" to={HOME_DIAGNOSTICS_HASH}>
+          <PublicLink className="platform-btn platform-btn-primary" to="/financial-assessment">
             {copy.finalPrimaryCta}
           </PublicLink>
           <PublicLink className="platform-btn platform-btn-secondary" to={ROUTES.schedule}>

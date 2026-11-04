@@ -25,10 +25,10 @@ export default function PrivacyPolicyPage() {
         <p className="privacy-eyebrow">Valtoris Financial</p>
         <h1>Privacy Policy</h1>
         <p className="privacy-effective-date">
-          <strong>Effective date:</strong> Pending legal review
+          <strong>Updated:</strong> October 27, 2026
         </p>
         <p className="privacy-intro">
-          This page explains how Valtoris Financial (“Valtoris,” “we,” “us”) handles information
+          This page explains how Valtoris Financial LLC (“Valtoris Financial,” “Valtoris,” “we,” “us”) handles information
           submitted through this website, including the Family Financial Report Card™ Initial
           Financial Diagnostic. This description reflects the current application design and is not
           attorney-approved legal advice.
@@ -177,6 +177,43 @@ export default function PrivacyPolicyPage() {
         </p>
       </section>
 
+      <section aria-labelledby="privacy-sms-customer-care">
+        <h2 id="privacy-sms-customer-care">Customer care text messages and SMS privacy</h2>
+        <p>
+          Our customer care SMS program covers responses to your inquiries, appointment coordination,
+          and updates about services you request. On our <a href="/sms-consent">contact and SMS consent
+          page</a>, SMS consent is a separate, optional checkbox that is unchecked by default.
+          Entering a phone number alone does not authorize text messages. We retain your contact
+          details, inquiry, and consent choices to respond and document your permissions.
+        </p>
+        <p>
+          Message frequency varies. Message and data rates may apply. Reply STOP to unsubscribe or
+          HELP for help. Consent is not a condition of purchase or receiving services. Customer care
+          consent does not authorize marketing messages. See our <a href="/sms-terms">SMS Terms &amp;
+          Conditions</a> for the program details, age requirement, and support contacts.
+        </p>
+        <p>
+          We do not sell or share mobile numbers, SMS opt-in data, or SMS consent with third parties
+          or affiliates for marketing or promotional purposes. All other data-sharing descriptions
+          in this policy exclude SMS opt-in data and consent. Messaging service providers and
+          aggregators may process this information solely to operate and deliver our text messaging
+          service, not for their own marketing.
+        </p>
+      </section>
+
+      <section aria-labelledby="privacy-cookies">
+        <h2 id="privacy-cookies">Cookies, local storage, and third-party content</h2>
+        <p>
+          Our website and service providers may use cookies, browser storage, and technical request
+          information to operate forms, remember preferences, maintain authenticated sessions, and
+          protect the service. The contact page loads an Agent CRM / LeadConnector contact form;
+          that provider receives technical connection information and processes the contact details,
+          contact request, and consent choices you submit. Browser privacy settings may limit storage or
+          block the form. You can contact us by email or phone instead. Technical storage does
+          not grant permission to send marketing messages.
+        </p>
+      </section>
+
       <section aria-labelledby="privacy-retention">
         <h2 id="privacy-retention">Data retention</h2>
         <p>
@@ -228,7 +265,7 @@ export default function PrivacyPolicyPage() {
         <h2 id="privacy-contact">Contact information</h2>
         <p>
           Privacy questions and requests:{' '}
-          <a href="mailto:hello@valtorisfinancial.com">hello@valtorisfinancial.com</a>
+          <a href="mailto:luisp@valtorisfinancial.com">luisp@valtorisfinancial.com</a>
         </p>
         <p>
           You can also explore scheduling options on our{' '}

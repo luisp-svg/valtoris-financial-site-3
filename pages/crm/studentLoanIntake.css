@@ -8,6 +8,7 @@
 .crm-service-intake .assessment-input { width: 100%; box-sizing: border-box; }
 .crm-service-intake-actions { position: sticky; bottom: 0; display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; padding: 1rem; border: 1px solid #cbd5e1; background: #fff; box-shadow: 0 -4px 12px #0f172a0a; z-index: 2; }
 .crm-service-intake-actions > div { width: 100%; }
+.crm-service-intake-actions > .crm-banner-error { max-height: 30vh; overflow-y: auto; }
 .crm-service-intake-history { display: flex; flex-wrap: wrap; gap: .75rem; }
 .crm-service-intake-history [aria-pressed="true"] { outline: 2px solid #315b73; outline-offset: 2px; }
 .crm-service-intake details dl > div { margin: 1rem 0; }

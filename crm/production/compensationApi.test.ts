@@ -9,11 +9,10 @@ import {
 } from './compensationApi'
 
 function expectedSelectClient(result: { data: unknown; error: unknown }) {
-  const is = vi.fn().mockResolvedValue(result)
-  const inFn = vi.fn().mockReturnValue({ is })
-  const select = vi.fn().mockReturnValue({ in: inFn })
-  const from = vi.fn().mockReturnValue({ select })
-  return { client: { from } as never, from, select, inFn, is }
+  const q = { select: vi.fn(), in: vi.fn(), is: vi.fn(), eq: vi.fn(), order: vi.fn(), range: vi.fn().mockResolvedValue(result) }
+  for (const method of ['select','in','is','eq','order'] as const) q[method].mockReturnValue(q)
+  const from = vi.fn().mockReturnValue(q)
+  return { client: { from } as never, from, select:q.select, inFn:q.in, is:q.is }
 }
 
 describe('expected compensation mapping', () => {
@@ -116,11 +115,10 @@ describe('expected compensation mapping', () => {
 
 describe('paid commission list SELECT', () => {
   function paidSelectClient(result: { data: unknown; error: unknown }) {
-    const inFn = vi.fn().mockResolvedValue(result)
-    const eq = vi.fn().mockReturnValue({ in: inFn })
-    const select = vi.fn().mockReturnValue({ eq })
-    const from = vi.fn().mockReturnValue({ select })
-    return { client: { from } as never, from, select, inFn, eq }
+    const q = { select: vi.fn(), in: vi.fn(), eq: vi.fn(), order: vi.fn(), range: vi.fn().mockResolvedValue(result) }
+    for (const method of ['select','in','eq','order'] as const) q[method].mockReturnValue(q)
+    const from = vi.fn().mockReturnValue(q)
+    return { client: { from } as never, from, select:q.select, inFn:q.in, eq:q.eq }
   }
 
   it('loads 035 events in one batched SELECT and does not call the snapshot RPC', async () => {

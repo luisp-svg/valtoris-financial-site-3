@@ -38,9 +38,14 @@ export function withPublicLocale(
 ): string {
   const hashIndex = path.indexOf('#')
   const hash = hashIndex >= 0 ? path.slice(hashIndex) : ''
-  const pathOnly = hashIndex >= 0 ? path.slice(0, hashIndex) : path
+  const beforeHash = hashIndex >= 0 ? path.slice(0, hashIndex) : path
+  const queryIndex = beforeHash.indexOf('?')
+  const pathOnly = queryIndex >= 0 ? beforeHash.slice(0, queryIndex) : beforeHash
+  const destinationQuery = queryIndex >= 0 ? beforeHash.slice(queryIndex + 1) : ''
   const raw = currentSearch.startsWith('?') ? currentSearch.slice(1) : currentSearch
   const params = new URLSearchParams(raw)
+  // Explicit destination selections override any carried source-page parameters.
+  new URLSearchParams(destinationQuery).forEach((value, key) => params.set(key, value))
   params.delete('locale')
   if (locale === 'en') {
     params.delete('lang')

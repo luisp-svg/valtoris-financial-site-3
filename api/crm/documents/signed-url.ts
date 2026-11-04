@@ -21,6 +21,12 @@ export async function handleCrmDocumentSignedUrlRequest(
   req: VercelRequest,
   res: VercelResponse,
 ): Promise<VercelResponse> {
+  // A download link is a temporary bearer credential. Protect every response,
+  // including errors, from browser and shared intermediary caches.
+  res.setHeader('Cache-Control', 'private, no-store')
+  res.setHeader('CDN-Cache-Control', 'no-store')
+  res.setHeader('Vercel-CDN-Cache-Control', 'no-store')
+
   if (req.method !== 'GET') {
     res.setHeader('Allow', 'GET')
     return res.status(405).json({ ok: false, error: 'Method not allowed' })

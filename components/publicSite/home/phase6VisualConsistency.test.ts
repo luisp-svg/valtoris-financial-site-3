@@ -1,3 +1,4 @@
+import { EXPECTED_MIGRATION_FILES } from '../../../tests/helpers/migrationInventory'
 import { createHash } from 'node:crypto'
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -97,12 +98,13 @@ describe('Phase 6 public CTA hierarchy and alignment', () => {
     expect(related).not.toContain('site-home-text-link')
   })
 
-  it('leaves Services and Tools destinations unchanged and does not invent routes', () => {
+  it('keeps the published Services and Tools destinations', () => {
     expect(SERVICES_NAV_LINKS.map((item) => item.to)).toEqual([
       ROUTES.protectionAnalysis,
       ROUTES.retirementReportCard,
       ROUTES.insurance,
       ROUTES.healthDisability,
+      ROUTES.amazeHealth,
       ROUTES.credit,
       ROUTES.studentLoans,
       ROUTES.estateLegacy,
@@ -117,6 +119,12 @@ describe('Phase 6 public CTA hierarchy and alignment', () => {
       ROUTES.protectionAnalysis,
       ROUTES.studentLoanReportCard,
       ROUTES.creditReportCard,
+      ROUTES.homeBuyerReportCard,
+      '/tsp-report-card',
+      '/health-insurance-report-card',
+      '/employee-benefits-report-card',
+      '/tax-review-report-card',
+      '/lifestyle-report-card',
     ])
     const home = renderAt('/', createElement(HomePage))
     for (const path of FUTURE_UNBUILT_PUBLIC_PATHS) {
@@ -129,7 +137,7 @@ describe('Phase 6 public CTA hierarchy and alignment', () => {
       .filter((name) => name.endsWith('.sql'))
       .sort()
     // Existing main includes the household-member migration; phase 1 adds none.
-    expect(files).toHaveLength(87)
+    expect(files).toEqual(EXPECTED_MIGRATION_FILES)
     expect(files.some((name) => name.startsWith('053_'))).toBe(true)
     expect(files.some((name) => name.startsWith('054_'))).toBe(true)
     expect(existsSync(join(ROOT, 'supabase/migrations/053_visual_cta.sql'))).toBe(false)

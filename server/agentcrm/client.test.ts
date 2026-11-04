@@ -133,3 +133,12 @@ describe('AgentCRM server boundary', () => {
     expect(readsSource).not.toMatch(/\/contacts\/upsert|\/conversations\/messages/)
   })
 })
+
+it('uses the documented calendar read version without changing the contact client default', async () => {
+  const fetchImpl = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) => jsonResponse({ event: {} }))
+  await new LeadConnectorClient({ token: FAKE_TOKEN, fetchImpl, apiVersion: '2021-04-15' }).get('/calendars/events/appointments/event1')
+  await new LeadConnectorClient({ token: FAKE_TOKEN, fetchImpl }).get('/contacts/contact1/appointments')
+  expect(fetchImpl.mock.calls[0][1]?.headers).toHaveProperty('Version', '2021-04-15')
+  expect(fetchImpl.mock.calls[1][1]?.headers).toHaveProperty('Version', LEADCONNECTOR_API_VERSION)
+  for (const call of fetchImpl.mock.calls) expect(call[1]?.method).toBe('GET')
+})

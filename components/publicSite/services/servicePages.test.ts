@@ -1,3 +1,4 @@
+import { EXPECTED_MIGRATION_FILES } from '../../../tests/helpers/migrationInventory'
 import { createHash } from 'node:crypto'
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -118,8 +119,8 @@ describe('Phase 3 Student Loan and Credit service pages', () => {
     expect(html).toContain(`href="${ROUTES.studentLoans}"`)
     expect(html).toContain(`href="${ROUTES.credit}"`)
     const diagnostics = html.match(/id="home-diagnostics"[\s\S]*?<\/section>/)?.[0] ?? ''
-    expect(diagnostics).toContain(`href="${ROUTES.studentLoanReportCard}"`)
-    expect(diagnostics).toContain(`href="${ROUTES.creditReportCard}"`)
+    expect(html).toContain(`href="${ROUTES.studentLoanReportCard}"`)
+    expect(html).toContain(`href="${ROUTES.creditReportCard}"`)
     expect(diagnostics).not.toContain(`href="${ROUTES.studentLoans}"`)
     expect(diagnostics).not.toContain(`href="${ROUTES.credit}"`)
   })
@@ -138,11 +139,11 @@ describe('Phase 3 Student Loan and Credit service pages', () => {
     expect(en).toContain('Take the Student Loan Report Card™')
     expect(en).toContain('Book a Meeting')
     expect(en).toContain('StudentAid.gov')
-    expect(en).toContain('Student Loan Services and Pricing')
+    expect(en).toContain('Student Loan Services')
     expect(en).toContain('Income-Driven Repayment (IDR)')
-    expect(en).toContain('$299')
-    expect(en).toContain('$1,200')
-    expect(en).toContain('Starting at $799')
+    expect(en).not.toContain('$299')
+    expect(en).not.toContain('$1,200')
+    expect(en).not.toContain('Starting at $799')
     expect(en).toContain('Special Cases')
     expect(en).not.toContain('$299.99')
     expect(en).toContain('Start with the Report Card')
@@ -154,9 +155,10 @@ describe('Phase 3 Student Loan and Credit service pages', () => {
     expect(es).toContain('Entienda sus préstamos estudiantiles. Trace un camino más claro.')
     expect(es).toContain('Hacer el Reporte de Préstamos Estudiantiles™')
     expect(es).toContain('Agendar una reunión')
-    expect(es).toContain('Servicios y precios de préstamos estudiantiles')
+    expect(es).toContain('Servicios de préstamos estudiantiles')
     expect(es).toContain('Pago basado en los ingresos (IDR)')
-    expect(es).toContain('Desde $799')
+    expect(es).not.toContain('$')
+    expect(en).not.toContain('site-service-package-price')
     expect(es).toContain('Empezar con el Reporte')
     expect(es).not.toContain('Understand Your Student Loans. Build a Clearer Path Forward.')
     expect(Object.keys(studentLoanServiceCopy.en).sort()).toEqual(Object.keys(studentLoanServiceCopy.es).sort())
@@ -227,7 +229,7 @@ describe('Phase 3 Student Loan and Credit service pages', () => {
       .filter((name) => name.endsWith('.sql'))
       .sort()
     // Existing main includes the household-member migration; phase 1 adds none.
-    expect(files).toHaveLength(87)
+    expect(files).toEqual(EXPECTED_MIGRATION_FILES)
     expect(files.some((name) => name.startsWith('053_'))).toBe(true)
     expect(files.some((name) => name.startsWith('054_'))).toBe(true)
     expect(existsSync(join(ROOT, 'supabase/migrations/053_service_pages.sql'))).toBe(false)

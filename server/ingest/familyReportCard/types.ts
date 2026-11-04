@@ -1,3 +1,4 @@
+import type { CombinedAnswers } from '../../../modules/reportCard/combined/engine.js'
 import type { GuidedReportAnswers } from '../../../modules/reportCard/specialtyPreview/submission.js'
 import type { ShortAnswers } from '../../../modules/reportCard/shortForm/contract.js'
 import type { BusinessAssessmentAnswers } from '../../../components/assessment/business/types.js'
@@ -62,6 +63,7 @@ export type ConsentSnapshot = {
 }
 
 export type PublicReportCardAnswers =
+  | CombinedAnswers
   | GuidedReportAnswers
   | ShortAnswers
   | DemoAssessmentAnswers

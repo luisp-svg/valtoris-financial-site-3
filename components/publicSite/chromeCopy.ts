@@ -5,6 +5,9 @@ export type ChromeCopyKey =
   | 'mobileMenuLabel'
   | 'menuOpen'
   | 'menuClose'
+  | 'navPersonalFamily'
+  | 'navPrivateClient'
+  | 'navBusinessOwners'
   | 'navHome'
   | 'navGetQuote'
   | 'navServices'
@@ -24,6 +27,7 @@ export type ChromeCopyKey =
   | 'servicesStudentLoans'
   | 'servicesInsurance'
   | 'servicesHealth'
+  | 'servicesAmazeHealth'
   | 'servicesBusinessFormation'
   | 'servicesEstate'
   | 'servicesTax'
@@ -37,6 +41,12 @@ export type ChromeCopyKey =
   | 'toolsProtection'
   | 'toolsStudentLoan'
   | 'toolsCredit'
+  | 'toolsHomeBuyer'
+  | 'toolsTsp'
+  | 'toolsHealth'
+  | 'toolsBenefits'
+  | 'toolsTax'
+  | 'toolsLifestyle'
   | 'footerCompany'
   | 'footerFamilies'
   | 'footerBusiness'
@@ -55,6 +65,9 @@ export const chromeCopy: Record<PublicLocale, ChromeCopyCatalog> = {
     menuOpen: 'Open menu',
     menuClose: 'Close menu',
     navHome: 'Home',
+    navPersonalFamily: 'Personal & Family',
+    navPrivateClient: 'Private Client',
+    navBusinessOwners: 'Business Owners',
     navGetQuote: 'Get a Quote',
     navServices: 'Services',
     navTools: 'Report Cards',
@@ -73,6 +86,7 @@ export const chromeCopy: Record<PublicLocale, ChromeCopyCatalog> = {
     servicesStudentLoans: 'Student Loans',
     servicesInsurance: 'Property & Business Insurance',
     servicesHealth: 'Health & Disability',
+    servicesAmazeHealth: 'Amaze Health',
     servicesBusinessFormation: 'Business Formation',
     servicesEstate: 'Estate & Legacy',
     servicesTax: 'Tax Strategy',
@@ -86,6 +100,12 @@ export const chromeCopy: Record<PublicLocale, ChromeCopyCatalog> = {
     toolsProtection: 'Protection Gap',
     toolsStudentLoan: 'Student Loan Report Card™',
     toolsCredit: 'Credit Report Card™',
+    toolsHomeBuyer: 'Homebuyer Readiness Report Card',
+    toolsTsp: 'TSP & Federal Retirement Report Card',
+    toolsHealth: 'Health Coverage Report Card',
+    toolsBenefits: 'Employee Benefits Report Card',
+    toolsTax: 'Tax Planning Report Card',
+    toolsLifestyle: 'Lifestyle & Asset Protection Report Card',
     footerCompany: 'Company',
     footerFamilies: 'Families',
     footerBusiness: 'Business',
@@ -102,6 +122,9 @@ export const chromeCopy: Record<PublicLocale, ChromeCopyCatalog> = {
     menuOpen: 'Abrir menú',
     menuClose: 'Cerrar menú',
     navHome: 'Inicio',
+    navPersonalFamily: 'Personas y familias',
+    navPrivateClient: 'Protección patrimonial',
+    navBusinessOwners: 'Dueños de negocios',
     navGetQuote: 'Cotizar',
     navServices: 'Servicios',
     navTools: 'Reportes',
@@ -119,6 +142,7 @@ export const chromeCopy: Record<PublicLocale, ChromeCopyCatalog> = {
     servicesCredit: 'Crédito',
     servicesStudentLoans: 'Préstamos estudiantiles',
     servicesInsurance: 'Seguros de propiedad y negocio',
+    servicesAmazeHealth: 'Amaze Health',
     servicesHealth: 'Salud y discapacidad',
     servicesBusinessFormation: 'Constitución de negocio',
     servicesEstate: 'Patrimonio y legado',
@@ -133,6 +157,12 @@ export const chromeCopy: Record<PublicLocale, ChromeCopyCatalog> = {
     toolsProtection: 'Protection Gap',
     toolsStudentLoan: 'Student Loan Report Card™',
     toolsCredit: 'Credit Report Card™',
+    toolsHomeBuyer: 'Reporte de preparación para comprar vivienda',
+    toolsTsp: 'Reporte de TSP y jubilación federal',
+    toolsHealth: 'Reporte de cobertura de salud',
+    toolsBenefits: 'Reporte de beneficios para empleados',
+    toolsTax: 'Reporte de planificación fiscal',
+    toolsLifestyle: 'Reporte de protección patrimonial y estilo de vida',
     footerCompany: 'Compañía',
     footerFamilies: 'Familias',
     footerBusiness: 'Negocios',

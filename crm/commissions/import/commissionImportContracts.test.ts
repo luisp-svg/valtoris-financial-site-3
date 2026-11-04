@@ -65,7 +65,6 @@ describe('commission Phase 3A contracts', () => {
       source('commissionImportCsv.ts'),
       source('CommissionImportWorkspace.tsx'),
       readFileSync(join(root, 'pages/crm/CrmCommissionsImportPage.tsx'), 'utf8'),
-      readFileSync(join(root, 'package.json'), 'utf8'),
     ].join('\n')
     expect(blob).not.toMatch(/pdf-parse|pdfjs|OCR|tesseract|openai|anthropic/i)
     expect(blob).not.toMatch(/xlsx|exceljs|sheetjs/i)

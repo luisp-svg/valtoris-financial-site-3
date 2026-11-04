@@ -58,6 +58,25 @@ describe('public site locale', () => {
     ).toBe('/?utm_source=qa&utm_campaign=sitefoundation&card=test-card&lang=es#home-diagnostics')
   })
 
+  it('preserves a focused assessment priority alongside language and attribution', () => {
+    const url = withPublicLocale('/financial-assessment?priorities=home_buyer', 'es', '?lang=es&utm_source=qa')
+    const parsed = new URL(url, 'https://example.com')
+    expect(parsed.searchParams.get('priorities')).toBe('home_buyer')
+    expect(parsed.searchParams.get('lang')).toBe('es')
+    expect(parsed.searchParams.get('utm_source')).toBe('qa')
+    expect(url.match(/\?/g)).toHaveLength(1)
+    expect(withPublicLocale('/financial-assessment?priorities=tsp', 'en')).toBe('/financial-assessment?priorities=tsp')
+  })
+
+  it('lets destination priorities override source selections while preserving anchors', () => {
+    const url = withPublicLocale('/financial-assessment?priorities=retirement,protection#priorities', 'es', '?priorities=credit&card=test')
+    const parsed = new URL(url, 'https://example.com')
+    expect(parsed.searchParams.get('priorities')).toBe('retirement,protection')
+    expect(parsed.searchParams.get('card')).toBe('test')
+    expect(parsed.searchParams.get('lang')).toBe('es')
+    expect(parsed.hash).toBe('#priorities')
+  })
+
   it('is the same implementation used by specialized Student Loan / Credit locale helpers', () => {
     expect(readSpecializedLocale).toBe(readPublicLocale)
     expect(withSpecializedLocale).toBe(withPublicLocale)

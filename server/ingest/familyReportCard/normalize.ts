@@ -1,3 +1,4 @@
+import { isCombined, projectDiagnostic, primaryAssessment } from '../../../modules/reportCard/combined/engine.js'
 import { isGuidedReport } from '../../../modules/reportCard/specialtyPreview/submission.js'
 import { isShortForm } from '../../../modules/reportCard/shortForm/contract.js'
 import { splitFullName } from '../../../utils/submitLeadToGoogleSheets.js'
@@ -129,8 +130,8 @@ export function normalizePublicReportCardContact(
   assessmentType: PublicReportCardAssessmentType,
   answers: PublicReportCardAnswers,
 ): NormalizedSubmittedContact {
-  if (isGuidedReport(answers) || isShortForm(answers)) {
-    const d = answers.diagnostic
+  if (isCombined(answers) || isGuidedReport(answers) || isShortForm(answers)) {
+    const d = isCombined(answers) ? projectDiagnostic(primaryAssessment(answers.selected), answers.diagnostic) : answers.diagnostic
     return fromContactFields({ ...splitFullName(answers.contact.fullName), email: answers.contact.email, phone: answers.contact.phone,
       age: typeof d.age === 'string' ? d.age : '', state: typeof d.state === 'string' && d.state !== 'unknown' ? d.state : '',
       maritalStatus: typeof d.marital === 'string' ? d.marital : '', numberOfChildren: typeof d.children === 'string' ? d.children : '' })

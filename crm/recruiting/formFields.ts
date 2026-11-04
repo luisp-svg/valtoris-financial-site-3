@@ -1,11 +1,14 @@
 import type { Field } from './RecruitForm'
-import { RECRUIT_STAGES, stageLabel, type Option } from './types'
+import { RECRUIT_STAGES, LICENSE_TYPES, APPOINTING_ORGANIZATIONS, stageLabel, type Option } from './types'
 const choices = (...values: string[]): Option[] => values.map(value => ({ id: value, name: value === 'eo' ? 'E&O' : value[0].toUpperCase() + value.slice(1) }))
 export const createFields = (advisors: Option[]): Field[] => [
   { key: 'full_name', label: 'Full name', required: true, maxLength: 200 },
   { key: 'email', label: 'Email', type: 'email', required: true, maxLength: 254 },
   { key: 'phone', label: 'Phone', maxLength: 80 },
-  { key: 'assigned_advisor_id', label: 'Recruiting advisor', options: advisors, hint: 'Assignment tracks follow-up responsibility. Management remains with Luis and Jazmin.' },
+  { key: 'license_types', label: 'License types', type: 'checkboxes', options: [...LICENSE_TYPES], hint: 'Select all that apply. State license evidence is recorded separately.' },
+  { key: 'appointing_organization', label: 'Appointing under', options: [...APPOINTING_ORGANIZATIONS] },
+  { key: 'contract_level', label: 'Contract level', maxLength: 120, hint: 'Enter the exact level from the contract; leave blank if not yet confirmed.' },
+  { key: 'assigned_advisor_id', label: 'Follow-up owner', options: advisors, hint: 'Assignment tracks follow-up responsibility. Management remains with Luis and Jazmin.' },
 ]
 export const editFields = (advisors: Option[]): Field[] => [...createFields(advisors),
   { key: 'advisor_profile_id', label: 'Link existing advisor account', options: advisors, hint: 'Select only the same person. Their account email must match. This does not create an account or change access.' },
@@ -16,7 +19,7 @@ export const editFields = (advisors: Option[]): Field[] => [...createFields(advi
 ]
 export const credentialFields = (kind: 'license' | 'eo'): Field[] => [
   ...(kind === 'license' ? [{ key: 'state', label: 'State or territory (two letters)', required: true, maxLength: 2 }, { key: 'authority_scope', label: 'License scope', required: true, maxLength: 120, hint: 'Use the same scope on the carrier review, for example Life or Health.' }] as Field[] : []),
-  { key: 'provider_reference', label: kind === 'license' ? 'License reference' : 'E&O provider / policy reference', required: true },
+  { key: 'provider_reference', label: kind === 'license' ? 'License number / reference' : 'E&O provider / policy reference', required: true },
   { key: 'status', label: 'Verification status', required: true, options: choices('reported', 'verified', 'revoked') },
   { key: 'effective_on', label: 'Effective date', type: 'date' },
   { key: 'expires_on', label: 'Expiration date', type: 'date' },

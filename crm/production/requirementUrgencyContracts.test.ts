@@ -61,11 +61,11 @@ describe('Case Management Phase 2C overdue-requirement contracts', () => {
     expect(view).toContain('export function overdueRequirementCountsByApplicationId')
     expect(api).toContain('fetchRequirementUrgencyByApplicationIds')
     expect(api).toContain("select(URGENCY_SELECT)")
-    expect(api).toContain("URGENCY_SELECT = 'application_id, status, due_date'")
+    expect(api).toContain("URGENCY_SELECT = 'id, application_id, status, due_date'")
     expect(api).not.toMatch(/URGENCY_SELECT[\s\S]{0,80}custom_label/)
     expect(productionApi).not.toContain('policy_application_requirements')
     expect(queuePage).toContain('fetchOverdueRequirementCountsByApplicationIds(supabase, applicationIds)')
-    expect(queuePage).toContain('PRODUCTION_LIST_DEFAULT_LIMIT')
+    expect(queuePage).toContain('all matching applications')
     expect(casesTab).toContain('fetchOverdueRequirementCountsByApplicationIds')
   })
 

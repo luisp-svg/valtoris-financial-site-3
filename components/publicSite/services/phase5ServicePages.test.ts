@@ -1,3 +1,4 @@
+import { EXPECTED_MIGRATION_FILES } from '../../../tests/helpers/migrationInventory'
 import { createHash } from 'node:crypto'
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -117,13 +118,19 @@ describe('Phase 5 estate and tax strategy service pages', () => {
       ROUTES.protectionAnalysis,
       ROUTES.studentLoanReportCard,
       ROUTES.creditReportCard,
+      ROUTES.homeBuyerReportCard,
+      '/tsp-report-card',
+      '/health-insurance-report-card',
+      '/employee-benefits-report-card',
+      '/tax-review-report-card',
+      '/lifestyle-report-card',
     ])
     const html = renderChrome('/')
     expect(html).toContain(`href="${ROUTES.estateLegacy}"`)
     expect(html).toContain(`href="${ROUTES.taxStrategy}"`)
     expect(html).toContain('Estate &amp; Legacy')
     expect(html).toContain('Tax Strategy')
-    expect(html).toContain('site-nav-menu--grouped')
+    expect(html).toContain('site-nav-menu--catalog')
   })
 
   it('updates homepage estate and tax cards without moving diagnostic cards', () => {
@@ -233,7 +240,7 @@ describe('Phase 5 estate and tax strategy service pages', () => {
     const health = renderAt('/health-disability', createElement(HealthDisabilityServicePage))
     expect(sl).toContain(`href="${ROUTES.studentLoanReportCard}"`)
     expect(credit).toContain(`href="${ROUTES.creditReportCard}"`)
-    expect(insurance).toContain(`href="${ROUTES.schedule}"`)
+    expect(insurance).toContain('href="/personal-insurance-report-card"')
     expect(health).toContain(`href="/health-insurance-report-card"`)
   })
 
@@ -242,7 +249,7 @@ describe('Phase 5 estate and tax strategy service pages', () => {
       .filter((name) => name.endsWith('.sql'))
       .sort()
     // Existing main includes the household-member migration; phase 1 adds none.
-    expect(files).toHaveLength(87)
+    expect(files).toEqual(EXPECTED_MIGRATION_FILES)
     expect(files.some((name) => name.startsWith('053_'))).toBe(true)
     expect(files.some((name) => name.startsWith('054_'))).toBe(true)
     expect(existsSync(join(ROOT, 'supabase/migrations/053_phase5_services.sql'))).toBe(false)

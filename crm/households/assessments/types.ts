@@ -1,3 +1,4 @@
+import type { combinedResults } from '../../../modules/reportCard/combined/results'
 import type { ShortResult } from '../../../modules/reportCard/shortForm/results'
 import type { AffordabilityResult } from '../../../components/assessment/homeBuyer/affordability'
 /**
@@ -129,6 +130,8 @@ export type PublicFamilyDiagnosticDetail = {
   priorities: DiagnosticPriorityItem[]
   flags: DiagnosticFlagItem[]
   submittedSnapshot: SubmittedDiagnosticSnapshot
+  combinedReports?: ReturnType<typeof combinedResults>
+  bookingVerifiedAt?: string | null
   shortFormResult?: ShortResult
   affordability?: AffordabilityResult
   submittedAnswers: DiagnosticSubmittedAnswer[]

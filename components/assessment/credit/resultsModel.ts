@@ -1,4 +1,4 @@
-import { CALENDLY_REPORT_CARD_URL } from '../../../constants/urls'
+import { assessmentPathForBooking } from '../../../constants/booking'
 import { isCreditDiagnosticComplete } from './completeness'
 import {
   scoreCreditAssessment,
@@ -53,7 +53,7 @@ export type CreditResultsModel = {
 
 const REVIEW_CTA: CreditBookingCta = {
   labelKey: 'reviewWithValtoris',
-  href: CALENDLY_REPORT_CARD_URL,
+  href: assessmentPathForBooking(),
 }
 
 export function creditTopReviewAreasHeadingKey(
