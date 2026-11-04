@@ -34,11 +34,16 @@ it('database and RPC permissions block anon and authenticated booking writes',as
  for(const role of ['anon','authenticated'])await expect(sandbox.db.transaction(async tx=>{await tx.exec(`SET LOCAL ROLE ${role}`);await tx.query('SELECT tac_reserve_booking($1,$2,$3,$4,$5)',[f.journey.id,'qaLocation','qaCalendar',f.start,'UTC'])})).rejects.toThrow()
  await expect(sandbox.db.transaction(async tx=>{await tx.exec('SET LOCAL ROLE authenticated');await tx.query('SELECT * FROM tac_booking_contacts')})).rejects.toThrow()
 })
-it.each(PRIORITIES)('$id preserves identity-review rejection without provider writes; rejects foreign session and origin',async({id})=>{
- const f=await setup(id);await sandbox.db.query("UPDATE leads SET duplicate_review_status='pending' WHERE public_ingest_idempotency_key=$1",[f.journey.id])
- const rejected=await call(f,'book',{submissionId:f.journey.id,startTime:f.start,timezone:'UTC'})
- expect(rejected.status).toBe(409);expect(rejected.body.code).toBe('booking_identity_review_required')
- expect(f.provider.createContact).not.toHaveBeenCalled();expect(f.provider.createEvent).not.toHaveBeenCalled()
+it.each(PRIORITIES)('$id books during duplicate review and unlocks only its verified results',async({id})=>{
+ const f=await setup(id)
+ await sandbox.db.query("UPDATE leads SET duplicate_review_status='pending',status='duplicate_review' WHERE public_ingest_idempotency_key=$1",[f.journey.id])
+ expect((await call(f,'report')).status).toBe(423)
+ const result=await call(f,'book',{submissionId:f.journey.id,startTime:f.start,timezone:'UTC'})
+ expect(result.status).toBe(200);expect(result.body.state).toBe('confirmed')
+ expect((await call(f,'report')).status).toBe(200)
+ expect(f.provider.createEvent).toHaveBeenCalledTimes(1)
+ const lead=(await sandbox.db.query<{duplicate_review_status:string;status:string}>("SELECT duplicate_review_status,status FROM leads WHERE public_ingest_idempotency_key=$1",[f.journey.id])).rows[0]
+ expect(lead).toMatchObject({duplicate_review_status:'pending',status:'duplicate_review'})
  expect((await call(f,'book',{submissionId:randomUUID(),startTime:f.start,timezone:'UTC'})).status).toBe(401)
  expect((await call(f,'book',{submissionId:f.journey.id,startTime:f.start,timezone:'UTC'},{headers:{host:'localhost:5173',origin:'https://evil.example','content-type':'application/json'}})).status).toBe(403)
 })
@@ -90,4 +95,41 @@ it('books a contact-only conversation through TAC first without inventing report
  for(let i=0;i<2;i++)expect((await call(f,'book',{submissionId:f.journey.id,startTime:f.start,timezone:'UTC'})).body.state).toBe('confirmed');
  const report=await call(f,'report');expect(report.body.consultationOnly).toBe(true);expect(report.body.results).toEqual([]);
  expect(f.contacts.size).toBe(1);expect(f.events.size).toBe(1);
+})
+
+it('reuses an exact booking contact across separate duplicate submissions without merging their records',async()=>{
+ const first=await setup('tax'),second=await setup('family')
+ await first.service.book(first.journey.id,first.saved.answers,first.start,'UTC')
+ const original=(await store.load(first.journey.id))!
+ await sandbox.db.query(`UPDATE leads SET normalized_email=$2,normalized_phone=$3,duplicate_review_status='pending',status='duplicate_review'
+ WHERE public_ingest_idempotency_key=$1`,[second.journey.id,original.email,original.phone])
+ await sandbox.db.query(`UPDATE household_members SET normalized_email=$2,normalized_phone=$3 WHERE household_id=(SELECT household_id FROM leads WHERE public_ingest_idempotency_key=$1)`,[second.journey.id,original.email,original.phone])
+ const later=new Date(Date.parse(first.start)+3600000).toISOString()
+ await store.reserve(second.journey.id,'qaLocation','qaCalendar',later,'UTC')
+ const pending=(await store.load(second.journey.id))!
+ expect(pending.contact_key).toBe(original.contact_key)
+ expect(pending.assessment_id).not.toBe(original.assessment_id)
+ expect(pending.lead_id).not.toBe(original.lead_id)
+ expect((await call(second,'report')).status).toBe(423)
+ expect((await second.service.book(second.journey.id,second.saved.answers,later,'UTC')).state).toBe('confirmed')
+ expect((await call(second,'report')).status).toBe(200)
+ expect(second.provider.createContact).not.toHaveBeenCalled()
+ expect(second.provider.createEvent).toHaveBeenCalledTimes(1)
+ await second.service.book(second.journey.id,second.saved.answers,later,'UTC')
+ expect(second.provider.createEvent).toHaveBeenCalledTimes(1)
+ await sandbox.db.query('UPDATE assessments SET lead_id=$2 WHERE id=$1',[pending.assessment_id,original.lead_id])
+ expect(await store.load(second.journey.id)).toBeNull()
+})
+
+it('still blocks conflicting identities and inactive households even when duplicate review is pending',async()=>{
+ const first=await setup(),second=await setup()
+ await store.reserve(first.journey.id,'qaLocation','qaCalendar',first.start,'UTC')
+ const original=(await store.load(first.journey.id))!
+ await sandbox.db.query("UPDATE leads SET normalized_email=$2,duplicate_review_status='pending',status='duplicate_review' WHERE public_ingest_idempotency_key=$1",[second.journey.id,original.email])
+ await sandbox.db.query('UPDATE household_members SET normalized_email=$2 WHERE household_id=(SELECT household_id FROM leads WHERE public_ingest_idempotency_key=$1)',[second.journey.id,original.email])
+ await expect(store.reserve(second.journey.id,'qaLocation','qaCalendar',second.start,'UTC')).rejects.toThrow('booking_identity_review_required')
+ expect(await store.load(second.journey.id)).toBeNull()
+ const third=await setup()
+ await sandbox.db.query("UPDATE households SET deleted_at=now() WHERE id=(SELECT household_id FROM leads WHERE public_ingest_idempotency_key=$1)",[third.journey.id])
+ await expect(store.reserve(third.journey.id,'qaLocation','qaCalendar',third.start,'UTC')).rejects.toThrow('booking_identity_review_required')
 })
