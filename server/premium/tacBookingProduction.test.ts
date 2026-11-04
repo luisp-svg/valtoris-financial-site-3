@@ -34,9 +34,10 @@ it('database and RPC permissions block anon and authenticated booking writes',as
  for(const role of ['anon','authenticated'])await expect(sandbox.db.transaction(async tx=>{await tx.exec(`SET LOCAL ROLE ${role}`);await tx.query('SELECT tac_reserve_booking($1,$2,$3,$4,$5)',[f.journey.id,'qaLocation','qaCalendar',f.start,'UTC'])})).rejects.toThrow()
  await expect(sandbox.db.transaction(async tx=>{await tx.exec('SET LOCAL ROLE authenticated');await tx.query('SELECT * FROM tac_booking_contacts')})).rejects.toThrow()
 })
-it('does not call provider writes if TAC fails; rejects foreign session and origin',async()=>{
- const f=await setup();await sandbox.db.query("UPDATE leads SET duplicate_review_status='pending' WHERE public_ingest_idempotency_key=$1",[f.journey.id])
- expect((await call(f,'book',{submissionId:f.journey.id,startTime:f.start,timezone:'UTC'})).status).toBe(503)
+it.each(PRIORITIES)('$id preserves identity-review rejection without provider writes; rejects foreign session and origin',async({id})=>{
+ const f=await setup(id);await sandbox.db.query("UPDATE leads SET duplicate_review_status='pending' WHERE public_ingest_idempotency_key=$1",[f.journey.id])
+ const rejected=await call(f,'book',{submissionId:f.journey.id,startTime:f.start,timezone:'UTC'})
+ expect(rejected.status).toBe(409);expect(rejected.body.code).toBe('booking_identity_review_required')
  expect(f.provider.createContact).not.toHaveBeenCalled();expect(f.provider.createEvent).not.toHaveBeenCalled()
  expect((await call(f,'book',{submissionId:randomUUID(),startTime:f.start,timezone:'UTC'})).status).toBe(401)
  expect((await call(f,'book',{submissionId:f.journey.id,startTime:f.start,timezone:'UTC'},{headers:{host:'localhost:5173',origin:'https://evil.example','content-type':'application/json'}})).status).toBe(403)

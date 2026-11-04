@@ -52,6 +52,6 @@ export function bookingFixtureAdmin(sandbox:LocalTacSandbox):Pick<SupabaseClient
   try{
    const data=await sandbox.db.transaction(async tx=>{await tx.exec('SET LOCAL ROLE service_role');const result=await tx.query<{data:unknown}>(`SELECT public.${name}(${order[name].map((_,i)=>'$'+(i+1)).join(',')}) AS data`,order[name].map(key=>args[key]));return result.rows[0].data})
    return {data,error:null}
-  }catch{return {data:null,error:{message:'fixture_rpc_failed'}}}
+  }catch(error){return {data:null,error:{message:error instanceof Error?error.message:'fixture_rpc_failed',code:(error as {code?:string}).code}}}
  }} as unknown as Pick<SupabaseClient,'rpc'>
 }

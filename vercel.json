@@ -169,7 +169,8 @@
     "deploymentEnabled": {
       "codex/restore-valtoris-v2": false,
       "codex/academy-migration-audit": false,
-      "codex/report-card-booking-retry": false
+      "codex/report-card-booking-retry": false,
+      "codex/booking-review-feedback": false
     }
   }
 }
