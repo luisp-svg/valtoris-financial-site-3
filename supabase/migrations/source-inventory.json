@@ -100,6 +100,7 @@
     "20261023050825_route_unassigned_student_loan_reports.sql": "39a127008fca45dd29be2f075fc364e35af1c5199eec3d4b86d3a6df9bf2542f",
     "20261028150953_household_directory_pagination.sql": "60f19bfbbd2c543f93bb62f43e94461af595882ac5ec28e7241c22287065927f",
     "20261028150954_crm_privilege_hardening.sql": "2c37c8f2c8c4f5cb3818001e2b647087d6e0eb1f1a0b68a40b9cc86d5b707dd2",
-    "20261102223910_agent_licensing_profile.sql": "aab5cc7b861a43b468bc8662874af1ffca61f62eabe32b4cbd01289e51fc05eb"
+    "20261102223910_agent_licensing_profile.sql": "aab5cc7b861a43b468bc8662874af1ffca61f62eabe32b4cbd01289e51fc05eb",
+    "20261104200100_allow_duplicate_review_booking.sql": "95a1afccfdbf96cdaedfe986c26f34eb9e198564e78de9ea4733fcfab1f4c583"
   }
 }

@@ -14,6 +14,7 @@ export async function initializeProductionBookingFixture(sandbox:LocalTacSandbox
    if(!definition)throw new Error('Booking fixture function missing')
    await db.exec(definition.replace('CREATE FUNCTION','CREATE OR REPLACE FUNCTION'))
   }
+  await db.exec(await readFile(root+'/supabase/migrations/20261104200100_allow_duplicate_review_booking.sql','utf8'))
   return
  }
  await db.exec(`CREATE ROLE service_role BYPASSRLS;CREATE SCHEMA IF NOT EXISTS extensions;
@@ -37,6 +38,7 @@ export async function initializeProductionBookingFixture(sandbox:LocalTacSandbox
  await db.exec(await readFile(root+'/supabase/migrations/055_integration_contact_links.sql','utf8'))
  await db.exec(await readFile(root+'/'+BOOKING_MIGRATION,'utf8'))
  await db.exec('GRANT ALL ON ALL TABLES IN SCHEMA public TO service_role;CREATE TRIGGER insurance_quote_delivery_enqueue AFTER INSERT ON leads FOR EACH ROW EXECUTE FUNCTION enqueue_insurance_quote_delivery()')
+ await db.exec(await readFile(root+'/supabase/migrations/20261104200100_allow_duplicate_review_booking.sql','utf8'))
  await refreshProductionBookingParents(sandbox)
 }
 export async function refreshProductionBookingParents(sandbox:LocalTacSandbox){
