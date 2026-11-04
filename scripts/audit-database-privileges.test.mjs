@@ -7,9 +7,9 @@ import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import { auditDatabasePrivileges } from './audit-database-privileges.mjs'
 
-const empty = () => ({ formatVersion: 1, schema: 'public', relations: [], definerFunctions: [], defaultGrants: [] })
+const empty = () => ({ formatVersion: 2, schema: 'public', relations: [], columnReferences: [], definerFunctions: [], defaultGrants: [] })
 const relation = (overrides = {}) => ({ name: 'example', kind: 'r', role: 'authenticated', rls: true,
-  select: true, insert: false, update: false, delete: false, truncate: false, references: false, trigger: false, ...overrides })
+  select: true, insert: false, update: false, delete: false, truncate: false, references: false, trigger: false, maintain: false, ...overrides })
 
 test('flags dangerous base-table grants even when RLS is enabled', () => {
   const s = empty(); s.relations = [relation({ truncate: true })]
@@ -24,6 +24,27 @@ test('does not misrepresent view grants as truncatable base tables', () => {
   assert.equal(r.summary.high, 0)
   assert.ok(r.findings.some(x => x.code === 'non-table-grant-review'))
   assert.ok(r.findings.some(x => x.code === 'non-table-access-review'))
+})
+
+test('flags MAINTAIN on existing and future relations', () => {
+  const s = empty(); s.relations = [relation({ maintain: true })]
+  s.defaultGrants = [{ owner: 'postgres', scope: 'public', objectType: 'r', grantee: 'authenticated', privilege: 'MAINTAIN' }]
+  const r = auditDatabasePrivileges(s)
+  assert.equal(r.summary.high, 2)
+  assert.ok(r.findings.some(x => x.detail.includes('maintain')))
+})
+
+test('reports column-only REFERENCES and rejects contradictory or incomplete snapshots', () => {
+  const s = empty(); s.relations = [relation()]
+  s.columnReferences = [{ table: 'example', column: 'id', role: 'authenticated' }]
+  const r = auditDatabasePrivileges(s)
+  assert.equal(r.summary.columnReferenceRows, 1)
+  assert.equal(r.findings[0].code, 'column-reference-grant')
+  s.relations[0].references = true
+  assert.throws(() => auditDatabasePrivileges(s), /Invalid privilege snapshot/)
+  assert.throws(() => auditDatabasePrivileges({ ...empty(), formatVersion: 1 }), /Invalid privilege snapshot/)
+  const old = empty(); delete old.columnReferences
+  assert.throws(() => auditDatabasePrivileges(old), /Invalid privilege snapshot/)
 })
 
 test('distinguishes disabled RLS with effective access from inaccessible tables', () => {

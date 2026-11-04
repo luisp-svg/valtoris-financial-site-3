@@ -2,7 +2,7 @@
 -- Run with a trusted administrative read session for full catalog visibility.
 -- Only public is inspected; this does not establish Data API exposed schemas.
 SELECT jsonb_build_object(
-  'formatVersion', 1,
+  'formatVersion', 2,
   'schema', 'public',
   'relations', COALESCE((
     SELECT jsonb_agg(jsonb_build_object(
@@ -14,11 +14,24 @@ SELECT jsonb_build_object(
       'delete', has_table_privilege(r.role, c.oid, 'DELETE'),
       'truncate', has_table_privilege(r.role, c.oid, 'TRUNCATE'),
       'references', has_table_privilege(r.role, c.oid, 'REFERENCES'),
-      'trigger', has_table_privilege(r.role, c.oid, 'TRIGGER')
+      'trigger', has_table_privilege(r.role, c.oid, 'TRIGGER'),
+      'maintain', has_table_privilege(r.role, c.oid, 'MAINTAIN')
     ) ORDER BY c.relname, r.role)
     FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
     CROSS JOIN (VALUES ('anon'), ('authenticated')) AS r(role)
     WHERE n.nspname='public' AND c.relkind IN ('r','p','v','m','f')
+  ), '[]'::jsonb),
+  'columnReferences', COALESCE((
+    SELECT jsonb_agg(jsonb_build_object(
+      'table', c.relname, 'column', a.attname, 'role', r.role
+    ) ORDER BY c.relname, a.attnum, r.role)
+    FROM pg_attribute a JOIN pg_class c ON c.oid=a.attrelid
+    JOIN pg_namespace n ON n.oid=c.relnamespace
+    CROSS JOIN (VALUES ('anon'), ('authenticated')) AS r(role)
+    WHERE n.nspname='public' AND c.relkind IN ('r','p')
+      AND a.attnum>0 AND NOT a.attisdropped
+      AND NOT has_table_privilege(r.role,c.oid,'REFERENCES')
+      AND has_column_privilege(r.role,c.oid,a.attnum,'REFERENCES')
   ), '[]'::jsonb),
   'definerFunctions', COALESCE((
     SELECT jsonb_agg(jsonb_build_object(

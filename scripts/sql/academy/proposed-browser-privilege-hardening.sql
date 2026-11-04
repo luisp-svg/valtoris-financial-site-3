@@ -5,8 +5,11 @@
 BEGIN;
 
 DO $hardening$
-DECLARE target record; role_name text; function_id oid;
+DECLARE target record; role_name text; function_id oid; column_list text;
 BEGIN
+  IF current_setting('server_version_num')::integer < 170000 THEN
+    RAISE EXCEPTION 'hardening_requires_postgres_17_or_newer';
+  END IF;
   IF current_user <> 'postgres' THEN
     RAISE EXCEPTION 'hardening_requires_postgres_review_session';
   END IF;
@@ -15,6 +18,11 @@ BEGIN
       RAISE EXCEPTION 'hardening_expected_roles_missing';
     END IF;
   END LOOP;
+
+  IF EXISTS (SELECT 1 FROM pg_roles r WHERE r.rolname IN ('anon','authenticated')
+    AND pg_has_role(r.oid,'pg_maintain'::regrole,'USAGE')) THEN
+    RAISE EXCEPTION 'hardening_maintenance_role_review_required';
+  END IF;
 
   -- Schema-local default revocation cannot override a global or inherited grant.
   -- Abort rather than claim future-object safety when that separate review exists.
@@ -27,7 +35,7 @@ BEGIN
         AND a.grantee<>0
         AND a.grantee NOT IN (SELECT oid FROM pg_roles WHERE rolname IN ('anon','authenticated'))
       ))
-      AND a.privilege_type IN ('TRUNCATE','REFERENCES','TRIGGER')
+      AND a.privilege_type IN ('TRUNCATE','REFERENCES','TRIGGER','MAINTAIN')
       AND CASE WHEN a.grantee=0 THEN true ELSE EXISTS (
         SELECT 1 FROM pg_roles r WHERE r.rolname IN ('anon','authenticated')
           AND pg_has_role(r.oid,a.grantee,'USAGE')
@@ -42,7 +50,14 @@ BEGIN
     IF target.relowner <> (SELECT oid FROM pg_roles WHERE rolname='postgres') THEN
       RAISE EXCEPTION 'hardening_unexpected_table_owner';
     END IF;
-    EXECUTE format('REVOKE TRUNCATE, REFERENCES, TRIGGER ON TABLE public.%I FROM PUBLIC, anon, authenticated RESTRICT',target.relname);
+    EXECUTE format('REVOKE TRUNCATE, REFERENCES, TRIGGER, MAINTAIN ON TABLE public.%I FROM PUBLIC, anon, authenticated RESTRICT',target.relname);
+    -- Column-level REFERENCES survives a table-level REVOKE. Preserve column DML.
+    SELECT string_agg(format('%I',a.attname),', ' ORDER BY a.attnum)
+      INTO column_list FROM pg_attribute a
+      WHERE a.attrelid=target.oid AND a.attnum>0 AND NOT a.attisdropped;
+    IF column_list IS NOT NULL THEN
+      EXECUTE format('REVOKE REFERENCES (%s) ON TABLE public.%I FROM PUBLIC, anon, authenticated RESTRICT',column_list,target.relname);
+    END IF;
   END LOOP;
 
   FOREACH role_name IN ARRAY ARRAY['handle_new_auth_user','rls_auto_enable'] LOOP
@@ -67,13 +82,14 @@ BEGIN
     CROSS JOIN (VALUES ('anon'),('authenticated')) r(role_name)
     WHERE n.nspname='public' AND c.relkind IN ('r','p')
       AND (has_table_privilege(r.role_name,c.oid,'TRUNCATE')
-        OR has_table_privilege(r.role_name,c.oid,'REFERENCES')
-        OR has_table_privilege(r.role_name,c.oid,'TRIGGER'))
+        OR has_any_column_privilege(r.role_name,c.oid,'REFERENCES')
+        OR has_table_privilege(r.role_name,c.oid,'TRIGGER')
+        OR has_table_privilege(r.role_name,c.oid,'MAINTAIN'))
   ) THEN RAISE EXCEPTION 'hardening_inherited_table_grant_review_required'; END IF;
 END
 $hardening$;
 
 ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public
-  REVOKE TRUNCATE, REFERENCES, TRIGGER ON TABLES FROM PUBLIC, anon, authenticated;
+  REVOKE TRUNCATE, REFERENCES, TRIGGER, MAINTAIN ON TABLES FROM PUBLIC, anon, authenticated;
 
 COMMIT;

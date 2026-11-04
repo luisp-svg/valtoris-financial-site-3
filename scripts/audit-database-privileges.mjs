@@ -3,13 +3,13 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const ROLES = new Set(['anon', 'authenticated'])
-const BOOLEAN_FIELDS = ['rls', 'select', 'insert', 'update', 'delete', 'truncate', 'references', 'trigger']
-const DANGEROUS = ['truncate', 'references', 'trigger']
+const BOOLEAN_FIELDS = ['rls', 'select', 'insert', 'update', 'delete', 'truncate', 'references', 'trigger', 'maintain']
+const DANGEROUS = ['truncate', 'references', 'trigger', 'maintain']
 
 export function auditDatabasePrivileges(snapshot) {
   const invalid = () => { throw new Error('Invalid privilege snapshot; use the matching catalog query') }
-  if (!snapshot || snapshot.formatVersion !== 1 || snapshot.schema !== 'public') invalid()
-  for (const key of ['relations', 'definerFunctions', 'defaultGrants']) {
+  if (!snapshot || snapshot.formatVersion !== 2 || snapshot.schema !== 'public') invalid()
+  for (const key of ['relations', 'columnReferences', 'definerFunctions', 'defaultGrants']) {
     if (!Array.isArray(snapshot[key])) invalid()
   }
   const findings = []
@@ -35,6 +35,16 @@ export function auditDatabasePrivileges(snapshot) {
       add('non-table-access-review', 'info', object, row.role, 'Review view/foreign-table authorization separately; table RLS flags do not establish safety.')
     }
   }
+  for (const row of snapshot.columnReferences) {
+    if (!row || typeof row.table !== 'string' || typeof row.column !== 'string' || !ROLES.has(row.role)) invalid()
+    const key = `column:${JSON.stringify([row.table,row.column,row.role])}`
+    if (seen.has(key)) invalid()
+    seen.add(key)
+    const relation = snapshot.relations.find(x => x.name === row.table && x.role === row.role)
+    if (!relation || !['r','p'].includes(relation.kind) || relation.references) invalid()
+    add('column-reference-grant', 'high', `public.${row.table}.${row.column}`, row.role,
+      'Effective REFERENCES access remains on this column without table-level REFERENCES. Table-only revocation is insufficient.')
+  }
   for (const row of snapshot.definerFunctions) {
     if (!row || typeof row.name !== 'string' || typeof row.arguments !== 'string' || !ROLES.has(row.role)
       || typeof row.execute !== 'boolean' || typeof row.searchPathConfigured !== 'boolean') invalid()
@@ -54,7 +64,7 @@ export function auditDatabasePrivileges(snapshot) {
     if (seen.has(key)) invalid()
     seen.add(key)
     const object = `${row.owner}/${row.scope}/${row.objectType}`
-    if (row.objectType === 'r' && ['TRUNCATE','REFERENCES','TRIGGER'].includes(row.privilege)) {
+    if (row.objectType === 'r' && ['TRUNCATE','REFERENCES','TRIGGER','MAINTAIN'].includes(row.privilege)) {
       add('dangerous-default-relation-grant', 'high', object, row.grantee, `${row.privilege} default can apply to newly created relations. Existing-object cleanup does not change this ACL.`)
     } else {
       add('default-grant-review', 'review', object, row.grantee, `${row.privilege} explicit default: verify intended future-object access for this owner.`)
@@ -62,15 +72,15 @@ export function auditDatabasePrivileges(snapshot) {
   }
   findings.sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b), 'en'))
   return {
-    formatVersion: 1,
+    formatVersion: 2,
     scope: 'public schema catalog metadata; not an authorization test or proof of API exposure',
     limitations: [
-      'No policy bodies, user sessions, column grants, sequence privileges, or exposed-schema settings are evaluated.',
+      'No policy bodies, user sessions, non-REFERENCES column grants, sequence privileges, or exposed-schema settings are evaluated.',
       'Default ACL rows show explicit grants, not every effective future privilege. Built-in PUBLIC function EXECUTE, inherited memberships and global/schema ACL composition require separate review.',
       'A configured search_path is not proof that its schemas are trusted.',
       'No findings does not establish safety; empty or partial snapshots must be reconciled with a full administrative inventory.',
     ],
-    summary: { relationRoleRows: snapshot.relations.length, functionRoleRows: snapshot.definerFunctions.length,
+    summary: { relationRoleRows: snapshot.relations.length, columnReferenceRows: snapshot.columnReferences.length, functionRoleRows: snapshot.definerFunctions.length,
       defaultGrantRows: snapshot.defaultGrants.length, high: findings.filter(x => x.level === 'high').length,
       review: findings.filter(x => x.level === 'review').length, info: findings.filter(x => x.level === 'info').length },
     findings,
