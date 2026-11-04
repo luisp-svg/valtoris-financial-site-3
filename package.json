@@ -16,6 +16,7 @@
     "audit:privileges": "node scripts/audit-database-privileges.mjs",
     "test:privilege-audit": "node --test scripts/audit-database-privileges.test.mjs",
     "test:academy-hardening": "node --test scripts/test-academy-hardening-db.mjs",
+    "test:academy-recovery": "node --test scripts/test-academy-recovery-db.mjs",
     "check:server-esm-imports": "node scripts/check-server-esm-imports.mjs",
     "check:browser-activity-inserts": "node scripts/check-browser-activity-inserts.mjs",
     "check:vercel-runtime": "node scripts/check-vercel-runtime.mjs",

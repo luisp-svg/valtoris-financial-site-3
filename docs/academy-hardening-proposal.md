@@ -45,8 +45,9 @@ verify other column/sequence privileges, Data API settings and function-default
 EXECUTE separately; run full CRM regressions with actual advisor sessions. This
 proposal intentionally does not claim to complete every privilege-hardening item.
 
-Recovery must restore reviewed captured ACLs rather than GRANT ALL. No automatic
-rollback script is supplied because the original intended grants vary by object.
+Recovery must restore reviewed captured ACLs rather than GRANT ALL. The scoped
+capture query and offline review planner are documented in academy-acl-recovery.md.
+No automatic rollback is supplied because intended grants and current drift vary.
 Any hosted execution or promotion into automatic migrations requires a separate
 explicit request. References:
 
