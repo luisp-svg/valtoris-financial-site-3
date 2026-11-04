@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 type Reservation={state:string;startTime:string;timezone?:string}
-export default function TacConsultationBooking({assessmentId,locale,onBooked,consultationOnly=false}:{consultationOnly?:boolean;assessmentId:string;locale:'en'|'es';onBooked:()=>void}){
+export default function TacConsultationBooking({assessmentId,locale,onBooked,onReservationPending,consultationOnly=false}:{consultationOnly?:boolean;assessmentId:string;locale:'en'|'es';onBooked:()=>void;onReservationPending?:()=>void}){
  const es=locale==='es'
  const t=useCallback((en:string,spanish:string)=>es?spanish:en,[es])
  const initialZone=Intl.DateTimeFormat().resolvedOptions().timeZone||'America/Chicago'
@@ -11,6 +11,8 @@ export default function TacConsultationBooking({assessmentId,locale,onBooked,con
  const [refresh,setRefresh]=useState(0)
  const [loading,setLoading]=useState(false),[submitting,setSubmitting]=useState(false),[message,setMessage]=useState('')
  const sending=useRef(false)
+ const callbacks=useRef({onBooked,onReservationPending})
+ useEffect(()=>{callbacks.current={onBooked,onReservationPending}},[onBooked,onReservationPending])
  const endpoint='/api/ingest-family-report-card?flow=premium'
  useEffect(()=>{
   let disposed=false
@@ -19,7 +21,10 @@ export default function TacConsultationBooking({assessmentId,locale,onBooked,con
   setLoading(true);setMessage('');setSlots([]);setChosen('')
   void fetch(`${endpoint}&action=slots&${new URLSearchParams({assessment:assessmentId,day,timezone})}`,{credentials:'same-origin',cache:'no-store',signal:controller.signal})
    .then(async response=>{const data=await response.json();if(!response.ok||!data.ok)throw new Error('unavailable');if(controller.signal.aborted)return
+    if(disposed)return
     setSlots(Array.isArray(data.slots)?data.slots:[]);setBooking(data.booking??null)
+    if(data.booking?.state==='confirmed')callbacks.current.onBooked()
+    else if(data.booking?.state==='pending')callbacks.current.onReservationPending?.()
     if(data.booking?.startTime){setChosen(data.booking.startTime);if(data.booking.timezone)setTimezone(data.booking.timezone)}
    }).catch(()=>{if(!disposed)setMessage(t('Scheduling is temporarily unavailable. Your assessment is saved. Please try again shortly.','La agenda no está disponible por el momento. Tu evaluación está guardada. Intenta de nuevo en breve.'))})
    .finally(()=>{clearTimeout(timeout);if(!disposed)setLoading(false)})
@@ -38,8 +43,8 @@ export default function TacConsultationBooking({assessmentId,locale,onBooked,con
     return
    }
    setBooking({state:data.state,startTime:data.startTime})
-   if(data.state==='confirmed')onBooked()
-   else setMessage(t('Your reservation is saved and awaiting confirmation. Check this reservation again; you do not need to submit your assessment again.','Tu reserva está guardada y espera confirmación. Verifica esta reserva otra vez; no necesitas enviar tu evaluación de nuevo.'))
+   if(data.state==='confirmed')callbacks.current.onBooked()
+   else {callbacks.current.onReservationPending?.();setMessage(t('Your reservation is saved and awaiting confirmation. Your results will open automatically once it is verified.','Tu reserva está guardada y espera confirmación. Los resultados se abrirán automáticamente al verificarla.'))}
   }catch{setRefresh(value=>value+1);setMessage(t('Confirmation is taking longer than expected. Check this reservation again to avoid making a second booking.','La confirmación está tardando más de lo esperado. Verifica esta reserva para evitar crear otra cita.'))}
   finally{sending.current=false;setSubmitting(false)}
  }

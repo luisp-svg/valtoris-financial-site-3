@@ -7,6 +7,7 @@ import { usePublicDocumentLang } from "../components/publicSite/usePublicDocumen
 import { useHomeDocumentMeta } from "../components/publicSite/home/useHomeDocumentMeta";
 import { ShortResultBody } from "../components/reportCard/shortForm/ShortResults";
 import TacConsultationBooking from "../components/premium/TacConsultationBooking";
+import { requestAssessmentReport } from "../components/premium/requestAssessmentReport";
 import {
   isPriority,
   PRIORITIES,
@@ -38,6 +39,8 @@ export default function FinancialAssessmentResultsPage() {
       ? location.state.selected.filter(isPriority)
       : [],
   );
+  const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
+  const [confirmationPaused, setConfirmationPaused] = useState(false);
   const [consultationOnly,setConsultationOnly] = useState(false);
   const [preliminary,setPreliminary] = useState<{type:string;verificationLabel:string;coverageStatus:string;actions:{id:string;text:string}[];urgent:{id:string;text:string}[]}[]>([]);
   const [answerRows, setAnswerRows] = useState<
@@ -57,10 +60,8 @@ export default function FinancialAssessmentResultsPage() {
     setPreliminary([]);
     setAnswerRows([]);
     try {
-      const response = await fetch(
+      const response = await requestAssessmentReport(
         `/api/ingest-family-report-card?flow=premium&action=report&lang=${locale}&assessment=${encodeURIComponent(assessmentId)}`,
-        { credentials: "same-origin",
-          signal: AbortSignal.timeout(20000), cache: "no-store" },
       );
       const data = await response.json();
       if (sequence === requestSequence.current) setConsultationOnly(data.consultationOnly === true);
@@ -73,6 +74,8 @@ export default function FinancialAssessmentResultsPage() {
         setReportCard(data.financialReportCard??null);
         setAnswerRows(Array.isArray(data.answerRows) ? data.answerRows : []);
         setCode("ready");
+        setAwaitingConfirmation(false);
+        setConfirmationPaused(false);
       } else {
         setReports(null);
         setCode(
@@ -98,6 +101,21 @@ export default function FinancialAssessmentResultsPage() {
     "assessment_session_required",
     "assessment_not_found",
   ].includes(code);
+  useEffect(() => {
+    if (!awaitingConfirmation || reports || needsSession) return;
+    let disposed = false;
+    let attempts = 0;
+    let timer: ReturnType<typeof setTimeout>;
+    const poll = async () => {
+      await check();
+      if (disposed) return;
+      attempts += 1;
+      if (attempts < 20) timer = setTimeout(() => void poll(), 3000);
+      else { setAwaitingConfirmation(false); setConfirmationPaused(true); }
+    };
+    timer = setTimeout(() => void poll(), 1000);
+    return () => { disposed = true; clearTimeout(timer); };
+  }, [awaitingConfirmation, reports, needsSession, check]);
   return (
     <main className="premium-results">
       <header className="premium-assessment-header">
@@ -341,24 +359,13 @@ export default function FinancialAssessmentResultsPage() {
                     "Tu evaluación está guardada. Reserva una consulta para abrir tus informes detallados y revisar tus prioridades juntos.",
                   )}
                 </p>
-                <TacConsultationBooking consultationOnly={consultationOnly} assessmentId={assessmentId} locale={locale} onBooked={() => void check()} />
-                <div className="premium-saved-actions">
-                  <button
-                    className="premium-secondary"
-                    disabled={busy}
-                    onClick={() => void check()}
-                  >
-                    {busy
-                      ? t("Checking…", "Verificando…")
-                      : t(
-                          consultationOnly ? "Check My Consultation" : "I’ve Booked — Open My Results",
-                          "Ya reservé — abrir mis resultados",
-                        )}
-                  </button>
-                </div>
+                <TacConsultationBooking consultationOnly={consultationOnly} assessmentId={assessmentId} locale={locale} onBooked={() => void check()} onReservationPending={() => { setConfirmationPaused(false); setAwaitingConfirmation(true); }} />
+
               </>
             )}
             <div role="status" aria-live="polite">
+              {confirmationPaused && <p>{t("Confirmation is taking longer than expected. Try again below to check your existing reservation; no second booking is needed.", "La confirmación está tardando más de lo esperado. Intenta de nuevo abajo para verificar tu reserva existente; no necesitas otra cita.")}</p>}
+              {awaitingConfirmation && <p>{t("Your reservation is being confirmed. Your results will open automatically once it is verified.", "Tu reserva se está confirmando. Tus resultados se abrirán automáticamente cuando se verifique.")}</p>}
               <p>
                 {busy
                   ? t(
@@ -367,17 +374,31 @@ export default function FinancialAssessmentResultsPage() {
                     )
                   : code === "booking_required"
                     ? t(
-                        consultationOnly ? "Your contact details are saved. Choose a time above and confirm your consultation." : "Your assessment is saved. Choose a consultation time above. Your detailed results open after your reservation is confirmed.",
-                        "Tu evaluación está guardada. Elige un horario arriba. Tus resultados detallados se abren después de confirmar tu reserva.",
+                        consultationOnly ? "Your contact details are saved. Choose a time above and confirm your consultation." : "Your assessment is saved. Choose a consultation time above. Your detailed results open automatically after your reservation is confirmed.",
+                        "Tu evaluación está guardada. Elige un horario arriba. Tus resultados detallados se abren automáticamente después de confirmar tu reserva.",
                       )
                     : needsSession
                       ? ""
                       : t(
-                          "We cannot verify your appointment right now. Your detailed results remain protected. Please try again shortly.",
-                          "No podemos verificar tu cita ahora. Tus resultados detallados permanecen protegidos. Intenta de nuevo en breve.",
+                          "We could not check your saved assessment and appointment right now. Try again below; you do not need to repeat your Report Card. Your detailed results remain protected.",
+                          "No pudimos verificar tu evaluación guardada y cita ahora. Intenta de nuevo abajo; no necesitas repetir tu Report Card. Tus resultados detallados permanecen protegidos.",
                         )}
               </p>
             </div>
+            {!needsSession && (code !== "booking_required" || confirmationPaused) && (
+              <button
+                className="premium-secondary"
+                disabled={busy}
+                onClick={() => {
+                  if (confirmationPaused) { setConfirmationPaused(false); setAwaitingConfirmation(true); }
+                  void check();
+                }}
+              >
+                {busy
+                  ? t("Checking…", "Verificando…")
+                  : t("Try Again — Check My Saved Assessment", "Intentar de nuevo — verificar mi evaluación guardada")}
+              </button>
+            )}
             {needsSession && (
               <Link
                 className="premium-button"
