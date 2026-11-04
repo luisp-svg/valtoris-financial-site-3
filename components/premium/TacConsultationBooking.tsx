@@ -18,11 +18,13 @@ export default function TacConsultationBooking({assessmentId,locale,onBooked,onR
   let disposed=false
   const controller=new AbortController()
   const timeout=setTimeout(()=>controller.abort(),20000)
-  setLoading(true);setMessage('');setSlots([]);setChosen('')
+  setLoading(true);setSlots([])
   void fetch(`${endpoint}&action=slots&${new URLSearchParams({assessment:assessmentId,day,timezone})}`,{credentials:'same-origin',cache:'no-store',signal:controller.signal})
    .then(async response=>{const data=await response.json();if(!response.ok||!data.ok)throw new Error('unavailable');if(controller.signal.aborted)return
     if(disposed)return
-    setSlots(Array.isArray(data.slots)?data.slots:[]);setBooking(data.booking??null)
+    const available:string[]=Array.isArray(data.slots)?data.slots:[]
+    setSlots(available);setBooking(data.booking??null)
+    if(!data.booking?.startTime)setChosen(current=>available.includes(current)?current:'')
     if(data.booking?.state==='confirmed')callbacks.current.onBooked()
     else if(data.booking?.state==='pending')callbacks.current.onReservationPending?.()
     if(data.booking?.startTime){setChosen(data.booking.startTime);if(data.booking.timezone)setTimezone(data.booking.timezone)}
@@ -38,7 +40,8 @@ export default function TacConsultationBooking({assessmentId,locale,onBooked,onR
    const response=await fetch(`${endpoint}&action=book`,{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({submissionId:assessmentId,startTime:chosen,timezone}),cache:'no-store',signal:AbortSignal.timeout(20000)})
    const data=await response.json()
    if(!response.ok||!data.ok){
-    if(data.code==='booking_slot_unavailable')setMessage(t('That time is no longer available. Choose another date or time.','Ese horario ya no está disponible. Elige otra fecha u hora.'))
+    if(data.code==='booking_identity_review_required')setMessage(t('We need to confirm your contact details before booking. Please contact your Valtoris advisor to complete this review. Your assessment is saved.','Necesitamos confirmar tus datos de contacto antes de reservar. Contacta a tu asesor de Valtoris para completar esta revisión. Tu evaluación está guardada.'))
+    else if(data.code==='booking_slot_unavailable')setMessage(t('That time is no longer available. Choose another date or time.','Ese horario ya no está disponible. Elige otra fecha u hora.'))
     else {setRefresh(value=>value+1);setMessage(t('We could not confirm your reservation yet. Your assessment remains saved. Check this reservation again before choosing another time.','Aún no pudimos confirmar tu reserva. Tu evaluación sigue guardada. Verifica esta reserva antes de elegir otro horario.'))}
     return
    }
@@ -53,8 +56,8 @@ export default function TacConsultationBooking({assessmentId,locale,onBooked,onR
   <h2 id="consultation-booking-heading">{t('Reserve Your Consultation','Reserva tu consulta')}</h2>
   <p>{t(consultationOnly ? 'Choose an available time and confirm your consultation. We’ll complete your financial intake together during the meeting.' : 'Choose a time to complete your Report Card experience. We’ll complete your deeper intake together during the consultation.',consultationOnly ? 'Elige un horario disponible y confirma tu consulta. Completaremos la información financiera juntos durante la reunión.' : 'Elige un horario para completar tu experiencia Report Card. Completaremos la información adicional juntos durante la consulta.')}</p>
   <div className="tac-booking-fields">
-   <label>{t('Date','Fecha')}<input type="date" min={new Intl.DateTimeFormat('en-CA',{timeZone:timezone,year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())} value={day} disabled={submitting||!!booking} onChange={event=>setDay(event.target.value)} /></label>
-   <label>{t('Time zone','Zona horaria')}<select value={timezone} disabled={submitting||!!booking} onChange={event=>setTimezone(event.target.value)}>{zones.map(zone=><option key={zone} value={zone}>{zone.replace(/_/g,' ')}</option>)}</select></label>
+   <label>{t('Date','Fecha')}<input type="date" min={new Intl.DateTimeFormat('en-CA',{timeZone:timezone,year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())} value={day} disabled={submitting||!!booking} onChange={event=>{setMessage('');setChosen('');setDay(event.target.value)}} /></label>
+   <label>{t('Time zone','Zona horaria')}<select value={timezone} disabled={submitting||!!booking} onChange={event=>{setMessage('');setChosen('');setTimezone(event.target.value)}}>{zones.map(zone=><option key={zone} value={zone}>{zone.replace(/_/g,' ')}</option>)}</select></label>
   </div>
   <button type="button" className="premium-secondary" disabled={submitting||!!booking||!day} onClick={()=>setDay(new Date(Date.parse(day+'T12:00:00Z')+86400000).toISOString().slice(0,10))}>{t('Next Day →','Día siguiente →')}</button>
   {loading?<p role="status">{t('Finding available times…','Buscando horarios disponibles…')}</p>:booking?<p>{t('Your reservation','Tu reserva')}: {new Intl.DateTimeFormat(es?'es-US':'en-US',{timeZone:timezone,dateStyle:'medium',timeStyle:'short'}).format(new Date(booking.startTime))}</p>:slots.length>0?<fieldset className="tac-booking-slots"><legend>{t('Available times · 30 minutes','Horarios disponibles · 30 minutos')}</legend>{slots.map(slot=><label key={slot}><input type="radio" name="consultation-time" value={slot} checked={chosen===slot} onChange={()=>setChosen(slot)} disabled={submitting}/><span>{display(slot)}</span></label>)}</fieldset>:!message?<p>{t('No times are available on this date. Please choose another date.','No hay horarios disponibles en esta fecha. Elige otra fecha.')}</p>:null}

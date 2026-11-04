@@ -15,7 +15,10 @@ export class SupabaseTacBookingStore implements TacBookingStore {
  constructor(private readonly admin:Pick<SupabaseClient,'rpc'>){}
  private async rpc(name:string,args:Record<string,unknown>){
   const result=await this.admin.rpc(name,args)
-  if(result.error)throw new Error('tac_booking_database_unavailable')
+  if(result.error){
+   if(name==='tac_reserve_booking'&&result.error.code==='P0001'&&result.error.message==='identity_review_required')throw new Error('booking_identity_review_required')
+   throw new Error('tac_booking_database_unavailable')
+  }
   return result.data
  }
  async load(submission:string){return await this.rpc('tac_booking_state',{p_submission:submission}) as TacBookingRecord|null}
