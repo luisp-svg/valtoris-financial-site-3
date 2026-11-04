@@ -1,3 +1,4 @@
+import { EXPECTED_MIGRATION_FILES } from '../../tests/helpers/migrationInventory'
 import { createHash } from 'node:crypto'
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -89,7 +90,7 @@ function assertNoFixedQuestionCount(text: string) {
 
 describe('visual review corrections', () => {
   it('adds Home to desktop and mobile primary navigation without restoring Contact', () => {
-    expect(VISIBLE_TOP_LEVEL_NAV_IDS).toEqual(['home', 'services', 'tools', 'quotes'])
+    expect(VISIBLE_TOP_LEVEL_NAV_IDS).toEqual(['home', 'personalFamily', 'privateClient', 'businessOwners', 'priorities'])
     expect(HOME_NAV.to).toBe(ROUTES.home)
     expect(HOME_NAV.labelKey).toBe('navHome')
     expect(CONTACT_NAV.to).toBe(ROUTES.schedule)
@@ -98,7 +99,8 @@ describe('visual review corrections', () => {
     const header = source('components/SiteHeader.tsx')
     const mobile = source('components/publicSite/SiteMobileNav.tsx')
     expect(header).toContain('HOME_NAV')
-    expect(header).toContain('copy.navHome')
+    expect(header).toContain('to={HOME_NAV.to}')
+    expect(header).not.toContain('#who-we-serve')
     expect(header).not.toContain('copy.navContact')
     expect(mobile).toContain('HOME_NAV')
     expect(mobile).toContain('copy.navHome')
@@ -110,6 +112,7 @@ describe('visual review corrections', () => {
     const primary = navHtml(html, 'site-nav-primary')
     const drawer = navHtml(html, 'site-mobile-nav')
     expect(primary).toContain('Home')
+    expect(primary).not.toContain('Who We Serve')
     expect(primary).toContain(`href="${ROUTES.home}"`)
     expect(primary).not.toContain('Contact')
     expect(drawer).toContain('Home')
@@ -133,15 +136,17 @@ describe('visual review corrections', () => {
     expect(en).not.toContain('lang=en')
   })
 
-  it('renders eleven Report Card links and preserves the separate six-tool catalog', () => {
+  it('introduces the unified assessment and retains eleven focused links in the resource guide', () => {
     const html = renderAt('/', createElement(HomePage))
     const diagnostics = html.match(/id="home-diagnostics"[\s\S]*?<\/section>/)?.[0] ?? ''
-    expect(diagnostics).toContain('home-ask-cards')
-    expect(diagnostics.match(/class="home-ask-card-copy"/g)?.length).toBe(11)
-    expect(diagnostics).toContain('Protect my family')
-    expect(diagnostics).toContain('Strengthen my business')
-    expect(diagnostics).toContain('Review student loans')
-    expect(diagnostics).toContain('Understand my credit')
+    expect(diagnostics).toContain('href="/financial-assessment"')
+    expect(diagnostics).toContain('href="/report-cards"')
+    expect(html).toContain('home-ask-cards')
+    expect(html.match(/class="home-ask-card-copy"/g)?.length).toBe(11)
+    expect(html).toContain('Protect my family')
+    expect(html).toContain('Strengthen my business')
+    expect(html).toContain('Review student loans')
+    expect(html).toContain('Understand my credit')
     expect(diagnostics).not.toContain('Also available')
     expect(diagnostics).not.toContain('site-home-more-tools')
     expect(HOME_FEATURED_DIAGNOSTICS.map((item) => item.id)).toEqual([
@@ -260,7 +265,7 @@ describe('visual review corrections', () => {
       .filter((name) => name.endsWith('.sql'))
       .sort()
     // Existing main includes the household-member migration; phase 1 adds none.
-    expect(files).toHaveLength(87)
+    expect(files).toEqual(EXPECTED_MIGRATION_FILES)
     expect(files.some((name) => name.startsWith('053_'))).toBe(true)
     expect(files.some((name) => name.startsWith('054_'))).toBe(true)
     expect(existsSync(join(ROOT, 'supabase/migrations/053_visual_review.sql'))).toBe(false)

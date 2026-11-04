@@ -23,6 +23,7 @@ export const ROUTES = {
   credit: '/credit',
   insurance: '/insurance',
   healthDisability: '/health-disability',
+  amazeHealth: '/amaze-health',
   businessFormation: '/business-formation',
   estateLegacy: '/estate-legacy',
   taxStrategy: '/tax-strategy',
@@ -76,7 +77,7 @@ export function crmHouseholdPath(householdId: string): string {
   return `${ROUTES.crmHouseholds}/${householdId}`
 }
 
-/** Household workspace Policies tab. Not /crm/policies (deferred placeholder). */
+/** Household workspace Policies tab; /crm/policies is the full authorized policy book. */
 export function crmHouseholdPoliciesPath(householdId: string): string {
   return `${crmHouseholdPath(householdId)}?tab=policies`
 }

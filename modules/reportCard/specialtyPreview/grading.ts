@@ -25,11 +25,11 @@ export function gradeReport(type:Specialty,answers:Answers):ReportGrade{
    add('supplement_budget','Additional premium reviewed','Prima adicional revisada',{yes:100,difficult:0,no:50},'Reviewed and manageable = 100; not checked = 50; difficult = 0. This is a comparison-preparation grade, not policy approval.','Revisada y manejable = 100; sin revisar = 50; difícil = 0. Califica preparación para comparar, no aprobación.')
   }else{
    add('coverage','Major medical coverage continuity','Continuidad de cobertura médica mayor',{all:100,some:0,none:0},'Everyone covered = 100; any reported uninsured person = 0 for this check. Any gap is also flagged separately. Unknown is unscored.','Todos cubiertos = 100; alguna persona sin seguro = 0 en esta medida. Una brecha también se señala por separado. Desconocido sin puntuar.')
-   if(answers.afford!=='no_premium')add('afford','Premium affordability','Asequibilidad de primas',{comfortable:100,difficult:50,unmanageable:0},'Comfortable = 100; difficult = 50; cannot maintain = 0. No premium is excluded.','Cómoda = 100; difícil = 50; no puede mantenerse = 0. Sin prima se excluye.')
    add('cost_understanding','Cost-sharing understanding','Comprensión de costos compartidos',{yes:100,partial:50,no:0},'Reviewed = 100; partly understood = 50; not understood = 0.','Revisado = 100; parcialmente comprendido = 50; sin comprender = 0.')
    if(answers.access!=='na')add('access','Relevant provider access','Acceso a proveedores relevantes',{yes:100,problem:0,no:50},'Confirmed = 100; not checked = 50; known access problem = 0. No particular provider is excluded.','Confirmado = 100; sin revisar = 50; problema conocido = 0. Sin proveedor particular se excluye.')
    if(answers.prescriptions!=='na')add('prescriptions','Regular prescription coverage','Cobertura de medicamentos regulares',{yes:100,problem:0,no:50},'Confirmed = 100; not checked = 50; known problem = 0. No regular prescriptions is excluded.','Confirmada = 100; sin revisar = 50; problema conocido = 0. Sin medicamentos regulares se excluye.')
-   const weights:Record<string,number>={coverage:30,afford:15,cost_understanding:15,access:20,prescriptions:20}
+   yes('exposure_review','Annual cost scenario reviewed','Escenario anual de costos revisado')
+   const weights:Record<string,number>={coverage:30,exposure_review:15,cost_understanding:15,access:20,prescriptions:20}
    for(const measure of measures)measure.weight=weights[measure.id]
   }
  }
@@ -42,6 +42,9 @@ export function gradeReport(type:Specialty,answers:Answers):ReportGrade{
   yes('options','Comparison of available options','Comparación de opciones disponibles')
  }
  if(type==='benefits'){
+  yes('participation_review','Participation and dependent needs reviewed','Participación y dependientes revisados')
+  yes('budget_review','Contribution and annual budget reviewed','Aportaciones y presupuesto anual revisados')
+  yes('service_owner','Service and renewal responsibility assigned','Responsable de servicio y renovación asignado')
   review('review','Benefits cost and payroll review','Revisión de costos de beneficios y nómina')
   add('records_ready','Supporting records readiness','Preparación de registros',{yes:100,partial:50,no:0},'Available = 100; partial = 50; not gathered = 0. No employee documents are collected here.','Disponibles = 100; parciales = 50; sin reunir = 0. No se recopilan documentos de empleados aquí.')
   for(const id of ['fulltime','covered','contribution','renewal','payroll_provider','payroll_frequency','decision_role']){

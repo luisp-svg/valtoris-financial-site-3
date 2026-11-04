@@ -1,3 +1,5 @@
+import { readStoredCombined, combinedAnswerRows } from '../../../modules/reportCard/combined/engine'
+import { combinedResults } from '../../../modules/reportCard/combined/results'
 import { isShortForm } from '../../../modules/reportCard/shortForm/contract'
 import { shortAnswerRows, readShortResult } from '../../../modules/reportCard/shortForm/results'
 import { homeBuyerCopy } from '../../../components/assessment/homeBuyer/copy'
@@ -399,7 +401,7 @@ export function mapPublicFamilyDiagnosticListItem(
   return {
     assessmentId: row.id,
     householdId: options.householdId,
-    productLabel: crmProductLabelForAssessment(row.assessment_type),
+    productLabel: readStoredCombined(row.answers) ? 'Valtoris Financial Assessment' : crmProductLabelForAssessment(row.assessment_type),
     assessmentType: row.assessment_type,
     overallScore: scoreNumber(row.overall_score),
     overallGrade: asTrimmedString(row.overall_grade),
@@ -441,9 +443,12 @@ export function mapPublicFamilyDiagnosticDetail(
     priorities: extractDiagnosticPriorities(row.priorities, row.answers),
     flags: extractDiagnosticFlags(row.derived_metrics),
     submittedSnapshot: extractSubmittedDiagnosticSnapshot(row.answers),
+    combinedReports: readStoredCombined(row.answers) ? combinedResults(readStoredCombined(row.answers)!) : undefined,
+    bookingVerifiedAt: asTrimmedString(asRecord(derived.bookingVerification).verifiedAt),
     shortFormResult: list.scoringVersion === 3 ? readShortResult(derived.shortFormResult) : undefined,
     affordability: row.assessment_type === 'home_buyer' ? readAffordabilitySnapshot(derived.affordability) : undefined,
     submittedAnswers:
+      readStoredCombined(row.answers) ? combinedAnswerRows(row.answers) :
       list.scoringVersion === 4 && Array.isArray(asRecord(derived.guidedReportResult).answerRows)
         ? (asRecord(derived.guidedReportResult).answerRows as unknown[]).flatMap(entry=>{const r=asRecord(entry);const id=asTrimmedString(r.id),label=asTrimmedString(r.label),value=asTrimmedString(r.value);return id&&label&&value?[{id,label,value}]:[]})
         :       isShortForm(row.answers) && row.answers.diagnostic && isPublicReportCardAssessmentType(row.assessment_type)

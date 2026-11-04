@@ -21,8 +21,8 @@ export type ServiceOfferPlan = {
 
 export type ServicePackage = {
   readonly name: string
-  readonly price: string
-  readonly paymentNote: string
+  readonly price?: string
+  readonly paymentNote?: string
   readonly description: string
   readonly features: readonly string[]
   readonly cta: string
@@ -137,16 +137,14 @@ export const studentLoanServiceCopy: Record<PublicLocale, ServiceCopy> = {
         body: 'Identify priorities and prepare for a more informed strategy conversation with Valtoris.',
       },
     ],
-    packagesHeading: 'Student Loan Services and Pricing',
+    packagesHeading: 'Student Loan Services',
     packagesLead:
       'Start with the Report Card so we can understand your loan picture before the consultation confirms the appropriate service.',
     packagesNote:
-      'Package fit is confirmed during intake. Pricing does not include payments owed to a loan servicer or government agency, and no outcome is guaranteed.',
+      'The appropriate service and scope are confirmed during consultation. No outcome is guaranteed.',
     packages: [
       {
         name: 'Income-Driven Repayment (IDR)',
-        price: '$299',
-        paymentNote: 'one-time',
         description: 'Support for borrowers reviewing an income-driven repayment path.',
         features: [
           'Student-loan situation review',
@@ -157,8 +155,6 @@ export const studentLoanServiceCopy: Record<PublicLocale, ServiceCopy> = {
       },
       {
         name: 'Default + IDR',
-        price: '$1,200',
-        paymentNote: 'service-specific support',
         description: 'Guided support for borrowers addressing default before moving toward an IDR path.',
         features: [
           'Default-status situation review',
@@ -171,8 +167,6 @@ export const studentLoanServiceCopy: Record<PublicLocale, ServiceCopy> = {
       },
       {
         name: 'Public Service Loan Forgiveness (PSLF)',
-        price: 'Starting at $799',
-        paymentNote: 'final scope confirmed after consultation',
         description: 'Support for borrowers reviewing public-service employment and PSLF requirements.',
         features: [
           'Employment and loan-picture review',
@@ -183,13 +177,11 @@ export const studentLoanServiceCopy: Record<PublicLocale, ServiceCopy> = {
       },
       {
         name: 'Special Cases',
-        price: 'Custom pricing',
-        paymentNote: 'based on complexity and scope',
         description: 'A consultation-led path for situations that do not fit the standard service categories.',
         features: [
           'Situation and document review',
           'Defined support scope',
-          'Pricing explained before engagement',
+          'Scope confirmed before engagement',
         ],
         cta: 'Start with the Report Card',
       },
@@ -199,26 +191,11 @@ export const studentLoanServiceCopy: Record<PublicLocale, ServiceCopy> = {
     processNote:
       'The Student Loan Report Card™ is an educational diagnostic. It is not an approval, a federal determination, or a finding of eligibility.',
     processSteps: [
-      {
-        title: 'Take the Report Card',
-        body: 'Complete the Student Loan Report Card™ to organize your current situation.',
-      },
-      {
-        title: 'Review the Situation',
-        body: 'Use the results to see what looks stable and which areas may deserve a closer look.',
-      },
-      {
-        title: 'Identify Priorities',
-        body: 'Focus on the issues that matter most for cash flow, timing, and your broader goals.',
-      },
-      {
-        title: 'Discuss Available Paths',
-        body: 'Walk through educational options in a strategy conversation if you want a closer review.',
-      },
-      {
-        title: 'Build the Next-Step Strategy',
-        body: 'Decide what to review, what to leave alone, and what to revisit as circumstances change.',
-      },
+      { title: 'Take the Report Card', body: 'Complete the Student Loan Report Card™ to organize your current situation.' },
+      { title: 'Reserve Your Consultation', body: 'Book your complimentary consultation before your detailed results unlock.' },
+      { title: 'Review Preliminary Findings', body: 'Review your loan-picture observations and questions after your booking is verified.' },
+      { title: 'Complete Your Consultation Intake', body: 'Discuss your findings and supporting details with your Valtoris specialist during the consultation.' },
+      { title: 'Clarify Your Next Steps', body: 'Discuss priorities and the appropriate scope of any follow-up support.' },
     ],
     bridgeKicker: 'Educational diagnostic',
     bridgeTitle: 'Student Loan Report Card™',
@@ -289,16 +266,14 @@ export const studentLoanServiceCopy: Record<PublicLocale, ServiceCopy> = {
         body: 'Identificar prioridades y prepararse para una conversación de estrategia más informada con Valtoris.',
       },
     ],
-    packagesHeading: 'Servicios y precios de préstamos estudiantiles',
+    packagesHeading: 'Servicios de préstamos estudiantiles',
     packagesLead:
       'Empiece con el Reporte para que podamos entender sus préstamos antes de que la consulta confirme el servicio adecuado.',
     packagesNote:
-      'La opción adecuada se confirma durante la admisión. Los precios no incluyen pagos adeudados a un administrador de préstamos o agencia gubernamental, y no se garantiza ningún resultado.',
+      'El servicio y alcance adecuados se confirman durante la consulta. No se garantiza ningún resultado.',
     packages: [
       {
         name: 'Pago basado en los ingresos (IDR)',
-        price: '$299',
-        paymentNote: 'pago único',
         description: 'Apoyo para quienes están revisando una opción de pago basada en los ingresos.',
         features: [
           'Revisión de la situación de préstamos estudiantiles',
@@ -309,8 +284,6 @@ export const studentLoanServiceCopy: Record<PublicLocale, ServiceCopy> = {
       },
       {
         name: 'Incumplimiento + IDR',
-        price: '$1,200',
-        paymentNote: 'apoyo específico para el servicio',
         description: 'Apoyo guiado para abordar el incumplimiento antes de avanzar hacia una opción IDR.',
         features: [
           'Revisión de la situación de incumplimiento',
@@ -323,8 +296,6 @@ export const studentLoanServiceCopy: Record<PublicLocale, ServiceCopy> = {
       },
       {
         name: 'Condonación de Préstamos por Servicio Público (PSLF)',
-        price: 'Desde $799',
-        paymentNote: 'el alcance final se confirma después de la consulta',
         description: 'Apoyo para revisar el empleo de servicio público y los requisitos de PSLF.',
         features: [
           'Revisión del empleo y los préstamos',
@@ -335,13 +306,11 @@ export const studentLoanServiceCopy: Record<PublicLocale, ServiceCopy> = {
       },
       {
         name: 'Casos especiales',
-        price: 'Precio personalizado',
-        paymentNote: 'según la complejidad y el alcance',
         description: 'Un camino guiado por consulta para situaciones fuera de las categorías estándar.',
         features: [
           'Revisión de la situación y documentos',
           'Alcance de apoyo definido',
-          'Precio explicado antes de contratar',
+          'Alcance confirmado antes de contratar',
         ],
         cta: 'Empezar con el Reporte',
       },
@@ -351,26 +320,11 @@ export const studentLoanServiceCopy: Record<PublicLocale, ServiceCopy> = {
     processNote:
       'El Reporte de Préstamos Estudiantiles™ es un diagnóstico educativo. No es una aprobación, una determinación federal ni un hallazgo de elegibilidad.',
     processSteps: [
-      {
-        title: 'Haga el Reporte',
-        body: 'Complete el Reporte de Préstamos Estudiantiles™ para organizar su situación actual.',
-      },
-      {
-        title: 'Revise la situación',
-        body: 'Use los resultados para ver qué se ve estable y qué áreas pueden merecer una mirada más de cerca.',
-      },
-      {
-        title: 'Identifique prioridades',
-        body: 'Enfóquese en lo que más importa para el flujo de efectivo, los plazos y sus metas más amplias.',
-      },
-      {
-        title: 'Converse sobre caminos disponibles',
-        body: 'Repase opciones educativas en una conversación de estrategia si quiere una revisión más cercana.',
-      },
-      {
-        title: 'Arme la estrategia del siguiente paso',
-        body: 'Decida qué revisar, qué dejar como está y qué volver a ver cuando cambien las circunstancias.',
-      },
+      { title: 'Haga el Reporte', body: 'Complete el Reporte de Préstamos Estudiantiles™ para organizar su situación actual.' },
+      { title: 'Reserve su consulta', body: 'Reserve su consulta sin costo antes de desbloquear los resultados detallados.' },
+      { title: 'Revise los hallazgos preliminares', body: 'Revise las observaciones y preguntas sobre sus préstamos al verificar su reserva.' },
+      { title: 'Complete la información durante su consulta', body: 'Converse sobre los hallazgos y la información adicional con su especialista durante la consulta.' },
+      { title: 'Aclare los siguientes pasos', body: 'Revise sus prioridades y el alcance adecuado de cualquier apoyo posterior.' },
     ],
     bridgeKicker: 'Diagnóstico educativo',
     bridgeTitle: 'Student Loan Report Card™',
@@ -453,26 +407,11 @@ export const creditServiceCopy: Record<PublicLocale, ServiceCopy> = {
     processNote:
       'The Credit Report Card™ is an educational diagnostic. It is not a bureau score, a lending decision, or a credit-repair case.',
     processSteps: [
-      {
-        title: 'Take the Credit Report Card',
-        body: 'Complete the Credit Report Card™ to organize self-reported credit-readiness factors.',
-      },
-      {
-        title: 'Understand the Current Picture',
-        body: 'Review the score, grade, and flags as educational context—not as a FICO®, VantageScore®, or bureau result.',
-      },
-      {
-        title: 'Identify Priority Areas',
-        body: 'Focus on the factors that appear most relevant to your goals and timeline.',
-      },
-      {
-        title: 'Review Available Actions',
-        body: 'Discuss educational next steps. Accurate negative information may remain, and no outcome is guaranteed.',
-      },
-      {
-        title: 'Build a Next-Step Strategy',
-        body: 'Decide what to monitor, what to verify, and whether a later strategy conversation would help.',
-      },
+      { title: 'Take the Credit Report Card', body: 'Complete the Credit Report Card™ to organize self-reported credit-readiness factors.' },
+      { title: 'Reserve Your Consultation', body: 'Book your complimentary consultation before your detailed results unlock.' },
+      { title: 'Review Preliminary Findings', body: 'Review your self-reported credit observations and priorities after your booking is verified. These are not bureau scores.' },
+      { title: 'Complete Your Consultation Intake', body: 'Discuss your findings and supporting details with your Valtoris specialist during the consultation.' },
+      { title: 'Clarify Your Next Steps', body: 'Discuss what to verify, what to monitor, and the appropriate scope of any follow-up support.' },
     ],
     offerKicker: 'Credit improvement service',
     offerTitle: 'Choose the Level of Support That Fits You',
@@ -602,26 +541,11 @@ export const creditServiceCopy: Record<PublicLocale, ServiceCopy> = {
     processNote:
       'El Reporte de Crédito™ es un diagnóstico educativo. No es un puntaje de agencia, una decisión de préstamo ni un caso de reparación de crédito.',
     processSteps: [
-      {
-        title: 'Haga el Reporte de Crédito',
-        body: 'Complete el Reporte de Crédito™ para organizar factores de preparación crediticia que usted informa.',
-      },
-      {
-        title: 'Entienda el panorama actual',
-        body: 'Revise el puntaje, la calificación y las señales como contexto educativo, no como un resultado FICO®, VantageScore® o de agencia.',
-      },
-      {
-        title: 'Identifique áreas prioritarias',
-        body: 'Enfóquese en los factores que parecen más relevantes para sus metas y su plazo.',
-      },
-      {
-        title: 'Revise acciones disponibles',
-        body: 'Converse siguientes pasos educativos. La información negativa precisa puede permanecer y ningún resultado está garantizado.',
-      },
-      {
-        title: 'Arme una estrategia para el siguiente paso',
-        body: 'Decida qué vigilar, qué verificar y si una conversación de estrategia posterior le ayudaría.',
-      },
+      { title: 'Haga el Reporte de Crédito', body: 'Complete el Reporte de Crédito™ para organizar factores de preparación crediticia que usted informa.' },
+      { title: 'Reserve su consulta', body: 'Reserve su consulta sin costo antes de desbloquear los resultados detallados.' },
+      { title: 'Revise los hallazgos preliminares', body: 'Revise sus observaciones y prioridades de crédito al verificar su reserva. No son puntajes de una agencia de crédito.' },
+      { title: 'Complete la información durante su consulta', body: 'Converse sobre los hallazgos y la información adicional con su especialista durante la consulta.' },
+      { title: 'Aclare los siguientes pasos', body: 'Converse sobre qué verificar, qué vigilar y el alcance adecuado de cualquier apoyo posterior.' },
     ],
     offerKicker: 'Servicio de mejoramiento de crédito',
     offerTitle: 'Elija el nivel de apoyo adecuado para usted',

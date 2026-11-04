@@ -14,6 +14,7 @@ export function visibleQuestions(type:Specialty,answers:Answers){
 }
 export function valid(q:Question,value:unknown):boolean{
  if(value==='unknown')return true
+ if(q.kind==='date')return typeof value==='string'&&/^20\d{2}-\d{2}-\d{2}$/.test(value)&&Number.isFinite(Date.parse(value))&&new Date(value).toISOString().slice(0,10)===value
  if(q.kind==='multi')return Array.isArray(value)&&value.length>0&&new Set(value).size===value.length&&value.every(v=>q.options?.some(o=>o[0]===v))&&!(value.length>1&&value.includes('none'))
  if(typeof value!=='string'||!value.trim())return false
  if(q.kind==='choice')return !!q.options?.some(o=>o[0]===value)
@@ -80,7 +81,7 @@ export function pathways(type:Specialty,answers:Answers):Pathway[]{
 }
 export function report(type:Specialty,answers:Answers){const active=visibleQuestions(type,answers);const missing=active.filter(q=>!valid(q,answers[q.id])||unknown(answers[q.id]));return {
  confirmations:missing.map(q=>q.next),
- critical:type==='health'?active.filter(q=>q.id==='coverage'&&['some','none'].includes(String(answers.coverage))||q.id==='afford'&&answers.afford==='unmanageable'||q.id==='access'&&answers.access==='problem'||q.id==='prescriptions'&&answers.prescriptions==='problem'||q.id==='timing'&&['past','soon'].includes(String(answers.timing))):[],
+ critical:type==='benefits'?active.filter(q=>q.id==='renewal'&&answers.renewal==='soon') :type==='health'?active.filter(q=>q.id==='coverage'&&['some','none'].includes(String(answers.coverage))||q.id==='afford'&&answers.afford==='unmanageable'||q.id==='access'&&answers.access==='problem'||q.id==='prescriptions'&&answers.prescriptions==='problem'||q.id==='timing'&&['past','soon'].includes(String(answers.timing))):[],
  unknown:active.filter(q=>!valid(q,answers[q.id])||unknown(answers[q.id])),
  review:active.filter(q=>q.reviewValues?.some(v=>Array.isArray(answers[q.id])?(answers[q.id] as string[]).includes(v):answers[q.id]===v)),
  answered:active.filter(q=>valid(q,answers[q.id])&&!unknown(answers[q.id])),

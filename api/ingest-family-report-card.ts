@@ -1,3 +1,5 @@
+import { premiumAssessmentHttp } from '../server/premium/http.js'
+import { isCombined } from '../modules/reportCard/combined/engine.js'
 import type { VercelRequest, VercelResponse } from '@vercel/node'
 import { checkRateLimit } from '../server/ingest/familyReportCard/abuse.js'
 import { ingestPublicReportCard } from '../server/ingest/familyReportCard/ingestFamilyReportCard.js'
@@ -100,6 +102,8 @@ function applyCorsHeaders(req: VercelRequest, res: VercelResponse): void {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  if (req.query?.flow === 'premium') return premiumAssessmentHttp(req, res)
+  if (isCombined(req.body?.answers)) return res.status(403).json({ok:false,code:'assessment_session_required'})
   applyCorsHeaders(req, res)
 
   if (req.method === 'OPTIONS') {

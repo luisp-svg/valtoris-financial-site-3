@@ -65,7 +65,7 @@ describe('Phase B production board contracts', () => {
     expect(queuePage).toContain('items={caseItems}')
     expect(queuePage).toContain('stageFilter={filters.stages}')
     expect(queuePage).toContain('ProductionQueueCards')
-    expect(queuePage).toContain('productionListCapWarning')
+    expect(queuePage).not.toContain('productionListCapWarning')
     expect(board).toContain('Intake / Application Drafts')
     expect(board).toContain('Exceptions')
     expect(board).toContain('is-stacked')

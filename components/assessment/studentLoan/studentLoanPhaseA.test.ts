@@ -1,3 +1,4 @@
+import { EXPECTED_MIGRATION_FILES } from '../../../tests/helpers/migrationInventory'
 import { createHash } from 'node:crypto'
 import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
@@ -138,8 +139,8 @@ describe('Student Loan Phase A foundation', () => {
     expect(ROUTES.studentLoanReportCardResults).toBe('/student-loan-results')
     expect(STUDENT_LOAN_CTA).toContain('Student Loan')
     const app = source('src/App.tsx')
-    expect(app).toContain('<ShortLanding assessmentType="student_loan" />')
-    expect(app).toContain('<ShortAssessment key="student_loan" assessmentType="student_loan" />')
+    expect(app).toContain('<PremiumFunnelLanding priority="student_loan" />')
+    expect(app).toContain('<FinancialAssessmentPage key="student_loan" initialPriority="student_loan" />')
     expect(app).toContain('StudentLoanReportCardResults')
     expect(app).not.toContain('/es/student-loan')
   })
@@ -187,7 +188,7 @@ describe('Student Loan Phase A foundation', () => {
 
   it('leaves 047–049 byte-identical and does not add Migration 051', () => {
     const files = readdirSync(MIGRATIONS_DIR).filter((name) => name.endsWith('.sql')).sort()
-    expect(files).toHaveLength(87)
+    expect(files).toEqual(EXPECTED_MIGRATION_FILES)
     expect(files[46]).toBe('047_credit_repair_student_loan_sales_catalog.sql')
     expect(files[47]).toBe('048_student_loan_report_card_ingest.sql')
     expect(files[48]).toBe('049_specialize_public_report_card_follow_up_copy.sql')

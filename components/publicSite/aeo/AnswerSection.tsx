@@ -11,8 +11,8 @@ export default function AnswerSection({ page, locale }: { page: AnswerPage; loca
   const copy = answerContent[locale][page]
   const names: Record<AnswerPage, string> = {
     home: homeCopy[locale].heroTitle,
-    reportCards: locale === 'es' ? 'Elige tu Report Card' : 'Choose Your Report Card',
-    education: locale === 'es' ? 'Entiende tus opciones. Decide tu próximo paso.' : 'Understand Your Options. Choose Your Next Step.',
+    reportCards: locale === 'es' ? 'Encuentra tu punto de partida.' : 'Find Your Starting Point.',
+    education: locale === 'es' ? 'Mejores preguntas. Conversaciones más claras.' : 'Better Questions. Clearer Conversations.',
   }
   return (
     <SiteHomeSection id="answers" tone="gray" titleId="answers-heading" title={copy.heading} lead={copy.summary}>

@@ -1,7 +1,7 @@
 import type { LegacyPublicReportCardAssessmentType as PublicReportCardAssessmentType } from '../publicIngestCatalog.js'
 export type Locale = 'en' | 'es'
 export type Copy = Record<Locale, string>
-export type ShortQuestion = { id: string; label: Copy; kind: 'number' | 'select' | 'multi' | 'state'; options?: readonly { value: string; label: Copy }[]; unit?: Copy; helper?: Copy; allowUnknown?: boolean; max?: number; when?: { field: string; not: string } }
+export type ShortQuestion = { id: string; label: Copy; kind: 'date' | 'number' | 'select' | 'multi' | 'state'; options?: readonly { value: string; label: Copy }[]; unit?: Copy; helper?: Copy; allowUnknown?: boolean; max?: number; when?: { field: string; not: string } }
 export type ShortCard = { title: Copy; assessmentPath: string; storageKey: string; questions: readonly ShortQuestion[] }
 /** Version 3 avoids the deployed Home Buyer v2 contract. Legacy versions remain immutable. */
 export const SHORT_FORM_VERSION = 3
@@ -1238,6 +1238,7 @@ const ORIGINAL_SHORT_CARDS: Record<PublicReportCardAssessmentType, ShortCard> = 
         },
         "kind": "select",
         "options": [
+          {"value":"immediately","label":{"en":"Immediately","es":"Inmediatamente"}},
           {
             "value": "soon",
             "label": {
@@ -1968,6 +1969,7 @@ const ORIGINAL_SHORT_CARDS: Record<PublicReportCardAssessmentType, ShortCard> = 
         },
         "kind": "select",
         "options": [
+          {"value":"improve_score","label":{"en":"Improve my credit score","es":"Mejorar mi puntaje de crédito"}},
           {
             "value": "home",
             "label": {

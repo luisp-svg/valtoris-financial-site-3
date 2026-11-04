@@ -10,11 +10,9 @@ import SiteMobileNav from './publicSite/SiteMobileNav'
 import SiteNavDropdown from './publicSite/SiteNavDropdown'
 import { usePublicDocumentLang } from './publicSite/usePublicDocumentLang'
 import {
-  ABOUT_NAV_LINKS,
+  AUDIENCE_NAV_LINKS,
   BOOK_NAV,
   HOME_NAV,
-  QUOTE_NAV,
-  SERVICES_NAV_GROUPS,
   TOOLS_NAV_LINKS,
 } from './publicSite/navConfig'
 
@@ -24,11 +22,9 @@ export default function SiteHeader() {
   const copy = chromeCopy[locale]
   usePublicDocumentLang(locale)
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [openMenu, setOpenMenu] = useState<'services' | 'tools' | 'about' | null>(null)
+  const [openMenu, setOpenMenu] = useState<'tools' | null>(null)
   const closeMobile = useCallback(() => setMobileOpen(false), [])
-  const setServicesOpen = useCallback((open: boolean) => setOpenMenu(open ? 'services' : null), [])
   const setToolsOpen = useCallback((open: boolean) => setOpenMenu(open ? 'tools' : null), [])
-  const setAboutOpen = useCallback((open: boolean) => setOpenMenu(open ? 'about' : null), [])
 
   useEffect(() => {
     const existing = document.querySelector<HTMLLinkElement>('link[rel="canonical"]')
@@ -49,14 +45,6 @@ export default function SiteHeader() {
     setOpenMenu(null)
   }, [location.pathname])
 
-  const serviceGroups = SERVICES_NAV_GROUPS.map((group) => ({
-    id: group.id,
-    heading: copy[group.headingKey],
-    items: group.links.map((item) => ({
-      to: item.to,
-      label: copy[item.labelKey],
-    })),
-  }))
   const toolItems = TOOLS_NAV_LINKS.map((item) => ({
     to: item.to,
     label: copy[item.labelKey],
@@ -71,37 +59,15 @@ export default function SiteHeader() {
 
         <div className="site-header-desktop">
           <nav className="site-nav-primary" aria-label={copy.primaryNavLabel}>
-            <PublicLink className="site-nav-text-link" to={HOME_NAV.to}>
-              {copy.navHome}
-            </PublicLink>
+            <PublicLink className="site-nav-text-link" to={HOME_NAV.to}>{copy.navHome}</PublicLink>
+            {AUDIENCE_NAV_LINKS.map(item => <PublicLink key={item.id} className="site-nav-text-link" to={item.to}>{copy[item.labelKey]}</PublicLink>)}
             <SiteNavDropdown
-              label={copy.navServices}
-              groups={serviceGroups}
-              open={openMenu === 'services'}
-              onOpenChange={setServicesOpen}
-            />
-            <PublicLink className="site-nav-text-link" to={ROUTES.reportCards}>{locale === 'es' ? 'Todos los reportes' : 'Report Card Hub'}</PublicLink>
-            <PublicLink className="site-nav-text-link" to={ROUTES.education}>{locale === 'es' ? 'Educación' : 'Learn'}</PublicLink>
-            <SiteNavDropdown
-              label={copy.navTools}
-              items={toolItems}
+              label={locale === 'es' ? 'Soluciones y Report Cards' : 'Solutions & Report Cards'}
+              items={[{ to: ROUTES.solutions, label: locale === 'es' ? 'Explorar todas las prioridades' : 'Explore All Priorities' }, { to: ROUTES.amazeHealth, label: 'Amaze Health' }, ...toolItems]}
               open={openMenu === 'tools'}
               onOpenChange={setToolsOpen}
             />
-            <PublicLink className="site-nav-text-link" to={QUOTE_NAV.to}>
-              {copy.navGetQuote}
-            </PublicLink>
-            {ABOUT_NAV_LINKS.length > 0 ? (
-              <SiteNavDropdown
-                label={copy.navAbout}
-                items={ABOUT_NAV_LINKS.map((item) => ({
-                  to: item.to,
-                  label: copy[item.labelKey],
-                }))}
-                open={openMenu === 'about'}
-                onOpenChange={setAboutOpen}
-              />
-            ) : null}
+
           </nav>
 
           <div className="site-header-utilities">

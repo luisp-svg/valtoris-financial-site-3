@@ -1,9 +1,9 @@
 import { guidedReportCardsEnabled } from '../modules/reportCard/guidedRelease'
-import ShortLanding from '../components/reportCard/shortForm/ShortLanding'
-import ShortAssessment from '../components/reportCard/shortForm/ShortAssessment'
+import PremiumFunnelLanding from '../components/premium/PremiumFunnelLanding'
+import FinancialAssessmentPage from '../pages/FinancialAssessmentPage'
+import FinancialAssessmentResultsPage from '../pages/FinancialAssessmentResultsPage'
 import VersionedReportResults from '../components/reportCard/shortForm/ShortResults'
 import { lazy, ReactNode, Suspense } from 'react'
-const CrmStudentLoansPage = lazy(() => import('../pages/crm/CrmStudentLoansPage'))
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom'
 import ScrollToTop from '../components/ScrollToTop'
 import PublicRouteIndexing from '../components/publicSite/PublicRouteIndexing'
@@ -13,6 +13,7 @@ import { ROUTES } from '../constants/routes'
 import { CrmAuthProvider } from '../crm/auth/CrmAuthContext'
 import { CrmLoginGate, CrmProtectedGate } from '../crm/components/CrmGate'
 import HomePage from '../pages/HomePage'
+import ProtectionAudiencePage from '../pages/ProtectionAudiencePage'
 import ReportCardsPage from '../pages/ReportCardsPage'
 import EducationPage from '../pages/EducationPage'
 import GetQuotePage from '../pages/GetQuotePage'
@@ -25,6 +26,7 @@ import StudentLoanServicePage from '../pages/StudentLoanServicePage'
 import CreditServicePage from '../pages/CreditServicePage'
 import InsuranceServicePage from '../pages/InsuranceServicePage'
 import HealthDisabilityServicePage from '../pages/HealthDisabilityServicePage'
+import AmazeHealthServicePage from '../pages/AmazeHealthServicePage'
 import BusinessFormationServicePage from '../pages/BusinessFormationServicePage'
 import EstateLegacyServicePage from '../pages/EstateLegacyServicePage'
 import TaxStrategyServicePage from '../pages/TaxStrategyServicePage'
@@ -51,6 +53,7 @@ const CrmHouseholdWorkspacePage = lazy(() => import('../pages/crm/CrmHouseholdWo
 const CrmHouseholdOnboardingPage = lazy(() => import('../pages/crm/CrmHouseholdOnboardingPage'))
 const CrmHouseholdAssessmentsPage = lazy(() => import('../pages/crm/CrmHouseholdAssessmentsPage'))
 const CrmOpportunitiesPage = lazy(() => import('../pages/crm/CrmOpportunitiesPage'))
+const CrmPoliciesPage = lazy(() => import('../pages/crm/CrmPoliciesPage'))
 const CrmRecruitingPage = lazy(() => import('../pages/crm/CrmRecruitingPage'))
 const CrmRecruitDetailPage = lazy(() => import('../pages/crm/CrmRecruitDetailPage'))
 const CrmOpportunityWorkspacePage = lazy(() => import('../pages/crm/CrmOpportunityWorkspacePage'))
@@ -65,6 +68,7 @@ const CrmTasksPage = lazy(() => import('../pages/crm/CrmTasksPage'))
 const CrmOperationsPage = lazy(() => import('../pages/crm/CrmOperationsPage'))
 const CrmCampaignsPage = lazy(() => import('../pages/crm/CrmCampaignsPage'))
 const CrmServiceProductionPage = lazy(() => import('../pages/crm/CrmServiceProductionPage'))
+const CrmAppointmentsPage = lazy(() => import('../pages/crm/CrmAppointmentsPage'))
 const CrmProductionPage = lazy(() => import('../pages/crm/CrmProductionPage'))
 const CrmCommissionsPage = lazy(() => import('../pages/crm/CrmCommissionsPage'))
 const CrmCommissionsImportPage = lazy(() => import('../pages/crm/CrmCommissionsImportPage'))
@@ -101,6 +105,15 @@ export default function App() {
       <PublicRouteIndexing />
       <Suspense fallback={<p role="status" aria-live="polite">Loading page…</p>}>
       <Routes>
+      <Route path="/personal-family" element={<SiteLayout><ProtectionAudiencePage audience="personal" /></SiteLayout>} />
+      <Route path="/private-client" element={<SiteLayout><ProtectionAudiencePage audience="private" /></SiteLayout>} />
+      <Route path="/business-owners" element={<SiteLayout><ProtectionAudiencePage audience="business" /></SiteLayout>} />
+      <Route path="/financial-assessment" element={<FinancialAssessmentPage />} />
+      <Route path="/assessment-results" element={<FinancialAssessmentResultsPage />} />
+      <Route path="/commercial-insurance-report-card" element={<SiteLayout><PremiumFunnelLanding priority="commercial" /></SiteLayout>} />
+      <Route path="/commercial-trucking-report-card" element={<SiteLayout><PremiumFunnelLanding priority="trucking" /></SiteLayout>} />
+      <Route path="/personal-insurance-report-card" element={<SiteLayout><PremiumFunnelLanding priority="lifestyle" /></SiteLayout>} />
+      <Route path="/lifestyle-report-card" element={<SiteLayout><PremiumFunnelLanding priority="lifestyle" /></SiteLayout>} />
       {SpecialtyReportCardPreview && <>
        {import.meta.env.DEV && <>
         <Route path="/preview/report-cards/family" element={<SiteLayout><Suspense fallback={<p>Loading…</p>}><SpecialtyReportCardPreview key="family" type="family" /></Suspense></SiteLayout>} />
@@ -111,30 +124,30 @@ export default function App() {
         <Route path="/preview/report-cards/student_loan" element={<SiteLayout><Suspense fallback={<p>Loading…</p>}><SpecialtyReportCardPreview key="student_loan" type="student_loan" /></Suspense></SiteLayout>} />
         <Route path="/preview/report-cards/home_buyer" element={<SiteLayout><Suspense fallback={<p>Loading…</p>}><SpecialtyReportCardPreview key="home_buyer" type="home_buyer" /></Suspense></SiteLayout>} />
        </>}
-        <Route path="/health-insurance-report-card" element={<SiteLayout><Suspense fallback={<p>Loading…</p>}><SpecialtyReportCardPreview key="health" type="health" /></Suspense></SiteLayout>} />
-        <Route path="/tsp-report-card" element={<SiteLayout><Suspense fallback={<p>Loading…</p>}><SpecialtyReportCardPreview key="tsp" type="tsp" /></Suspense></SiteLayout>} />
-        <Route path="/employee-benefits-report-card" element={<SiteLayout><Suspense fallback={<p>Loading…</p>}><SpecialtyReportCardPreview key="benefits" type="benefits" /></Suspense></SiteLayout>} />
-        <Route path="/tax-review-report-card" element={<SiteLayout><Suspense fallback={<p>Loading…</p>}><SpecialtyReportCardPreview key="tax" type="tax" /></Suspense></SiteLayout>} />
-        <Route path="/tax-planning-report-card" element={<SiteLayout><Suspense fallback={<p>Loading…</p>}><SpecialtyReportCardPreview key="tax" type="tax" /></Suspense></SiteLayout>} />
+        <Route path="/health-insurance-report-card" element={<SiteLayout><Suspense fallback={<p>Loading…</p>}><PremiumFunnelLanding priority="health" /></Suspense></SiteLayout>} />
+        <Route path="/tsp-report-card" element={<SiteLayout><Suspense fallback={<p>Loading…</p>}><PremiumFunnelLanding priority="tsp" /></Suspense></SiteLayout>} />
+        <Route path="/employee-benefits-report-card" element={<SiteLayout><Suspense fallback={<p>Loading…</p>}><PremiumFunnelLanding priority="benefits" /></Suspense></SiteLayout>} />
+        <Route path="/tax-review-report-card" element={<SiteLayout><Suspense fallback={<p>Loading…</p>}><PremiumFunnelLanding priority="tax" /></Suspense></SiteLayout>} />
+        <Route path="/tax-planning-report-card" element={<SiteLayout><Suspense fallback={<p>Loading…</p>}><PremiumFunnelLanding priority="tax" /></Suspense></SiteLayout>} />
       </>}
       <Route path={ROUTES.reportCards} element={<SiteLayout><ReportCardsPage /></SiteLayout>} />
       <Route path={ROUTES.education} element={<SiteLayout><EducationPage /></SiteLayout>} />
       <Route path={ROUTES.getQuote} element={<SiteLayout><GetQuotePage /></SiteLayout>} />
       {(['auto', 'home', 'commercial'] as const).map(kind => <Route key={kind} path={`/${kind}-quote`} element={<SiteLayout><InsuranceQuotePage key={kind} kind={kind} /></SiteLayout>} />)}
-      <Route path={ROUTES.familyAssessment} element={<ShortAssessment key="family" assessmentType="family" />} />
+      <Route path={ROUTES.familyAssessment} element={<FinancialAssessmentPage key="family" initialPriority="family" />} />
       <Route path="/assessment" element={<Navigate to={ROUTES.familyAssessment} replace />} />
       <Route path="/report" element={<Navigate to={ROUTES.familyAssessment} replace />} />
 
       <Route path={ROUTES.reportCardResults} element={<VersionedReportResults assessmentType="family" legacy={<FamilyReportCardResults />} />} />
       <Route path={ROUTES.businessReportCardResults} element={<VersionedReportResults assessmentType="business" legacy={<BusinessReportCardResults />} />} />
-      <Route path={ROUTES.businessAssessment} element={<ShortAssessment key="business" assessmentType="business" />} />
+      <Route path={ROUTES.businessAssessment} element={<FinancialAssessmentPage key="business" initialPriority="business" />} />
       <Route path={ROUTES.retirementReportCardResults} element={<VersionedReportResults assessmentType="retirement" legacy={<RetirementReportCardResults />} />} />
-      <Route path={ROUTES.retirementAssessment} element={<ShortAssessment key="retirement" assessmentType="retirement" />} />
-      <Route path={ROUTES.studentLoanAssessment} element={<ShortAssessment key="student_loan" assessmentType="student_loan" />} />
+      <Route path={ROUTES.retirementAssessment} element={<FinancialAssessmentPage key="retirement" initialPriority="retirement" />} />
+      <Route path={ROUTES.studentLoanAssessment} element={<FinancialAssessmentPage key="student_loan" initialPriority="student_loan" />} />
       <Route path={ROUTES.studentLoanReportCardResults} element={<VersionedReportResults assessmentType="student_loan" legacy={<StudentLoanReportCardResults />} />} />
-      <Route path={ROUTES.creditAssessment} element={<ShortAssessment key="credit" assessmentType="credit" />} />
+      <Route path={ROUTES.creditAssessment} element={<FinancialAssessmentPage key="credit" initialPriority="credit" />} />
       <Route path={ROUTES.creditReportCardResults} element={<VersionedReportResults assessmentType="credit" legacy={<CreditReportCardResults />} />} />
-      <Route path={ROUTES.homeBuyerAssessment} element={<ShortAssessment key="home_buyer" assessmentType="home_buyer" />} />
+      <Route path={ROUTES.homeBuyerAssessment} element={<FinancialAssessmentPage key="home_buyer" initialPriority="home_buyer" />} />
       <Route path={ROUTES.homeBuyerReportCardResults} element={<VersionedReportResults assessmentType="home_buyer" legacy={<HomeBuyerReportCardResults />} />} />
       <Route path={ROUTES.schedule} element={<ScheduleReportCardPage />} />
 
@@ -155,7 +168,7 @@ export default function App() {
         }
       />
 
-      <Route path={ROUTES.protectionGap} element={<ShortAssessment key="protection" assessmentType="protection" />} />
+      <Route path={ROUTES.protectionGap} element={<FinancialAssessmentPage key="protection" initialPriority="protection" />} />
       <Route path="/protectioncalc" element={<Navigate to={ROUTES.protectionGap} replace />} />
       <Route path="/calculator" element={<Navigate to={ROUTES.protectionGap} replace />} />
 
@@ -165,7 +178,7 @@ export default function App() {
         path={ROUTES.reportCard}
         element={
           <SiteLayout>
-            <ShortLanding assessmentType="family" />
+            <PremiumFunnelLanding priority="family" />
           </SiteLayout>
         }
       />
@@ -173,7 +186,7 @@ export default function App() {
         path={ROUTES.businessReportCard}
         element={
           <SiteLayout>
-            <ShortLanding assessmentType="business" />
+            <PremiumFunnelLanding priority="business" />
           </SiteLayout>
         }
       />
@@ -181,7 +194,7 @@ export default function App() {
         path={ROUTES.retirementReportCard}
         element={
           <SiteLayout>
-            <ShortLanding assessmentType="retirement" />
+            <PremiumFunnelLanding priority="retirement" />
           </SiteLayout>
         }
       />
@@ -197,7 +210,7 @@ export default function App() {
         path={ROUTES.studentLoanReportCard}
         element={
           <SiteLayout>
-            <ShortLanding assessmentType="student_loan" />
+            <PremiumFunnelLanding priority="student_loan" />
           </SiteLayout>
         }
       />
@@ -216,6 +229,10 @@ export default function App() {
             <InsuranceServicePage />
           </SiteLayout>
         }
+      />
+      <Route
+        path={ROUTES.amazeHealth}
+        element={<SiteLayout><AmazeHealthServicePage /></SiteLayout>}
       />
       <Route
         path={ROUTES.healthDisability}
@@ -253,7 +270,7 @@ export default function App() {
         path={ROUTES.creditReportCard}
         element={
           <SiteLayout>
-            <ShortLanding assessmentType="credit" />
+            <PremiumFunnelLanding priority="credit" />
           </SiteLayout>
         }
       />
@@ -261,7 +278,7 @@ export default function App() {
         path={ROUTES.homeBuyerReportCard}
         element={
           <SiteLayout>
-            <ShortLanding assessmentType="home_buyer" />
+            <PremiumFunnelLanding priority="home_buyer" />
           </SiteLayout>
         }
       />
@@ -269,7 +286,7 @@ export default function App() {
         path={ROUTES.protectionAnalysis}
         element={
           <SiteLayout>
-            <ShortLanding assessmentType="protection" />
+            <PremiumFunnelLanding priority="protection" />
           </SiteLayout>
         }
       />
@@ -332,10 +349,10 @@ export default function App() {
           <Route path="recruiting" element={<CrmRecruitingPage />} />
           <Route path="recruiting/:recruitId" element={<CrmRecruitDetailPage />} />
           <Route path="opportunities/:opportunityId" element={<CrmOpportunityWorkspacePage />} />
-          <Route path="student-loans" element={<CrmStudentLoansPage />} />
+          <Route path="student-loans" element={<Navigate to="/crm/pipeline" replace />} />
           <Route path="tasks" element={<CrmTasksPage />} />
           <Route path="operations" element={<CrmOperationsPage />} />
-          <Route path="appointments" element={<CrmPlaceholderPage />} />
+          <Route path="appointments" element={<CrmAppointmentsPage />} />
           <Route path="production/services" element={<CrmServiceProductionPage />} />
           <Route path="production/services/:serviceId" element={<CrmServiceProductionPage />} />
           <Route path="production/new" element={<CrmProductionNewPage />} />
@@ -346,7 +363,7 @@ export default function App() {
           <Route path="commissions/import" element={<CrmCommissionsImportPage />} />
           <Route path="commissions/pending-import" element={<CrmCommissionsPendingImportPage />} />
           <Route path="commissions" element={<CrmCommissionsPage />} />
-          <Route path="policies" element={<CrmPlaceholderPage />} />
+          <Route path="policies" element={<CrmPoliciesPage />} />
           <Route path="annual-reviews" element={<CrmPlaceholderPage />} />
           <Route path="documents" element={<CrmPlaceholderPage />} />
           <Route path="settings" element={<CrmPlaceholderPage />} />

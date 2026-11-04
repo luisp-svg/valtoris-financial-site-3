@@ -1,3 +1,4 @@
+import { EXPECTED_MIGRATION_FILES } from '../../tests/helpers/migrationInventory'
 import { createHash } from 'node:crypto'
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
@@ -110,7 +111,7 @@ describe('Phase D2 Policy Handoff & Household Policy Cleanup contracts', () => {
     expect(routes).toContain('?tab=policies')
     expect(crmHouseholdPoliciesPath('hh-1')).toBe('/crm/households/hh-1?tab=policies')
     expect(crmProductionPath('app-9')).toBe('/crm/production/app-9')
-    expect(appRoutes).toContain('path="policies" element={<CrmPlaceholderPage />}')
+    expect(appRoutes).toContain('path="policies" element={<CrmPoliciesPage />}')
     expect(appRoutes).not.toContain('policies/:')
     expect(routes).not.toContain('/crm/policies/:')
     expect(routes).toContain("crmPolicies: '/crm/policies'")
@@ -140,7 +141,7 @@ describe('Phase D2 Policy Handoff & Household Policy Cleanup contracts', () => {
 
   it('does not broaden RLS, add Migration 053, or enable credit_repair', () => {
     const files = readdirSync(migrationsDir).filter((name) => name.endsWith('.sql')).sort()
-    expect(files).toHaveLength(87)
+    expect(files).toEqual(EXPECTED_MIGRATION_FILES)
     expect(files.filter((name) => name.startsWith('053_'))).toEqual(['053_bulk_lead_import_writer.sql'])
     expect(files.filter((name) => name.startsWith('054_'))).toEqual(['054_home_buyer_report_card_ingest.sql'])
     expect(files.filter((name) => name.startsWith('055_'))).toEqual(['055_integration_contact_links.sql'])

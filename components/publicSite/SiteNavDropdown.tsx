@@ -70,7 +70,7 @@ export default function SiteNavDropdown({
         </span>
       </button>
       <div
-        className={`site-nav-menu${grouped ? ' site-nav-menu--grouped' : ''}`}
+        className={`site-nav-menu${grouped ? ' site-nav-menu--grouped' : items && items.length > 9 ? ' site-nav-menu--catalog' : ''}`}
         id={menuId}
         hidden={!open}
         role="menu"

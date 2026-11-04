@@ -1,3 +1,4 @@
+import { publicCoverageReview } from './coverageReview.js'
 import { SPECIALTY_CARDS, type Answers, type Specialty } from './catalog.js'
 import { visibleQuestions, valid, error, report } from './engine.js'
 import { gradeReport } from './grading.js'
@@ -18,5 +19,5 @@ export function validateGuidedReport(type:string,raw:unknown):GuidedReportAnswer
 export function guidedResult(type:Specialty,diagnostic:Answers,locale:'en'|'es'='en'){
  const result=report(type,diagnostic),grade=gradeReport(type,diagnostic)
  const display=(id:string)=>{const q=SPECIALTY_CARDS[type].questions.find(q=>q.id===id)!;const value=diagnostic[id];return value==='unknown'?(locale==='es'?'No sé':'Not sure'):Array.isArray(value)?value.map(v=>q.options?.find(o=>o[0]===v)?.[locale==='es'?2:1]??v).join(', '):q.options?.find(o=>o[0]===value)?.[locale==='es'?2:1]??value}
- return {version:GUIDED_REPORT_VERSION,kind:'guided-report-review' as const,grade,overallScore:grade.provisional?null:grade.score,overallGrade:grade.provisional?null:grade.letter,priorities:result.review.map(q=>({level:'review',title:q.label[locale],why:q.next[locale],timeline:'Advisor review'})),critical:result.critical.map(q=>({id:q.id,title:q.label[locale],detail:q.next[locale]})),unknown:result.unknown.map(q=>({id:q.id,label:q.label[locale],next:q.next[locale]})),pathways:result.pathways,answerRows:visibleQuestions(type,diagnostic).map(q=>({id:q.id,label:q.label[locale],value:display(q.id)}))}
+ return {coverageReview:publicCoverageReview(type,diagnostic,locale),version:GUIDED_REPORT_VERSION,kind:'guided-report-review' as const,grade,overallScore:grade.provisional?null:grade.score,overallGrade:grade.provisional?null:grade.letter,priorities:result.review.map(q=>({level:'review',title:q.label[locale],why:q.next[locale],timeline:'Advisor review'})),critical:result.critical.map(q=>({id:q.id,title:q.label[locale],detail:q.next[locale]})),unknown:result.unknown.map(q=>({id:q.id,label:q.label[locale],next:q.next[locale]})),pathways:result.pathways,answerRows:visibleQuestions(type,diagnostic).map(q=>({id:q.id,label:q.label[locale],value:display(q.id)}))}
 }

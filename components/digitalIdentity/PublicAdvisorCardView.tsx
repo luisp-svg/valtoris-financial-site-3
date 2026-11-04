@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import BrandWordmark from '../BrandWordmark'
 import HomeCardIcon, { type HomeCardIconVariant } from '../home/HomeCardIcon'
@@ -266,6 +266,7 @@ function ReadyCard({ card }: { card: IdentitySurfacePublicDto }) {
   const [shareStatus, setShareStatus] = useState<'idle' | 'working' | 'copied' | 'error'>('idle')
   const [shareMessage, setShareMessage] = useState<string | null>(null)
   const [connectOpen, setConnectOpen] = useState(false)
+  const closeConnect = useCallback(() => setConnectOpen(false), [])
 
   async function handleSaveContact() {
     if (vcardStatus === 'loading') return
@@ -566,7 +567,8 @@ function ReadyCard({ card }: { card: IdentitySurfacePublicDto }) {
             ? `${window.location.pathname}${window.location.search || ''}`
             : card.cardUrl
         }
-        onClose={() => setConnectOpen(false)}
+        onClose={closeConnect}
+        bookingUrl={heroActions.find((action) => action.key === 'book_appointment')?.href}
       />
     </>
   )

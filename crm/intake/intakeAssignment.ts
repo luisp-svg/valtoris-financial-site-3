@@ -97,3 +97,11 @@ export async function assignIntakeHousehold(
 
   return { ok: true, householdId, assignedAdvisorId }
 }
+
+/** Owner-only assignment of this submission; preserves household ownership and other work. */
+export async function assignIntakeSubmission(supabase:SupabaseClient,input:{leadId:string;advisorId:string;expectedUpdatedAt:string}):Promise<IntakeAssignResponse>{
+ const {data,error}=await supabase.rpc('assign_intake_submission',{p_lead_id:input.leadId,p_advisor_id:input.advisorId,p_expected_updated_at:input.expectedUpdatedAt});
+ if(error){const message=rpcText(error);if(message.includes('assignment_changed_reload'))return {ok:false,code:'unknown',message:'This submission changed. Refresh the queue before assigning it.'};return mapAssignHouseholdRpcError(error)}
+ if(!data||typeof data!=='object'||Array.isArray(data))return {ok:false,code:'unknown',message:'Unable to confirm assignment. Refresh the queue before retrying.'};
+ return {ok:true,householdId:input.leadId,assignedAdvisorId:input.advisorId};
+}

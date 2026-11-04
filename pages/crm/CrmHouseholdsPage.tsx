@@ -1,17 +1,18 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
-  fetchVisibleHouseholds,
+  fetchHouseholdDirectory,
+  HOUSEHOLD_DIRECTORY_PAGE_SIZE,
   formatSupabaseError,
   getAdvisorLabel,
   getPrimaryContactLabel,
-  getPrimaryContactName,
   getStageLabel,
 } from '../../crm/households/householdsApi'
 import type {
   CrmHouseholdListItem,
   HouseholdAssignmentFilter,
 } from '../../crm/households/types'
+import type { HouseholdDirectoryOption } from '../../crm/households/householdsApi'
 import { crmHouseholdPath } from '../../constants/routes'
 import { createSupabaseBrowserClient } from '../../lib/supabase/client'
 
@@ -22,21 +23,6 @@ function formatUpdatedAt(value: string): string {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
-  })
-}
-
-function matchesSearch(household: CrmHouseholdListItem, query: string): boolean {
-  const normalized = query.trim().toLowerCase()
-  if (!normalized) return true
-
-  if (household.display_name.toLowerCase().includes(normalized)) return true
-
-  const primaryName = getPrimaryContactName(household)
-  if (primaryName?.toLowerCase().includes(normalized)) return true
-
-  return household.members.some((member) => {
-    const fullName = `${member.first_name} ${member.last_name}`.trim().toLowerCase()
-    return fullName.includes(normalized)
   })
 }
 
@@ -55,77 +41,50 @@ export default function CrmHouseholdsPage() {
     navigate(crmHouseholdPath(householdId))
   }
 
+  const [stageOptions, setStageOptions] = useState<HouseholdDirectoryOption[]>([])
+  const [advisorOptions, setAdvisorOptions] = useState<HouseholdDirectoryOption[]>([])
+  const [requestedPage, setRequestedPage] = useState(1)
+  const [page, setPage] = useState(1)
+  const [total, setTotal] = useState<number | null>(null)
+  const [retry, setRetry] = useState(0)
+
   useEffect(() => {
     let cancelled = false
-    ;(async () => {
-      setLoading(true)
-      setError(null)
-      try {
-        const supabase = createSupabaseBrowserClient()
-        const rows = await fetchVisibleHouseholds(supabase)
-        if (!cancelled) setHouseholds(rows)
-      } catch (err) {
-        if (!cancelled) {
-          setError('Unable to load households. Please try again.')
-          if (import.meta.env.DEV) {
-            console.error('[crm/households]', formatSupabaseError('households', err))
+    setLoading(true)
+    setError(null)
+    setTotal(null)
+    // Keep typing responsive; discard results from superseded requests.
+    const timer = setTimeout(() => {
+      void (async () => {
+        try {
+          const result = await fetchHouseholdDirectory(createSupabaseBrowserClient(), {
+            search, stageId: stageFilter, advisorId: advisorFilter,
+            assignment: assignmentFilter, page: requestedPage,
+          })
+          if (cancelled) return
+          setHouseholds(result.rows)
+          setTotal(result.total)
+          setPage(result.page)
+          setStageOptions(result.stages)
+          setAdvisorOptions(result.advisors)
+        } catch (err) {
+          if (!cancelled) {
+            setHouseholds([])
+            setError('Unable to load households. Please try again.')
+            if (import.meta.env.DEV) {
+              console.error('[crm/households]', formatSupabaseError('households', err))
+            }
           }
+        } finally {
+          if (!cancelled) setLoading(false)
         }
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    })()
+      })()
+    }, search.trim() ? 250 : 0)
     return () => {
       cancelled = true
+      clearTimeout(timer)
     }
-  }, [])
-
-  const stageOptions = useMemo(() => {
-    const map = new Map<string, string>()
-    for (const household of households) {
-      if (household.relationship_stage) {
-        map.set(household.relationship_stage.id, household.relationship_stage.name)
-      }
-    }
-    return Array.from(map.entries())
-      .map(([id, name]) => ({ id, name }))
-      .sort((a, b) => a.name.localeCompare(b.name))
-  }, [households])
-
-  const advisorOptions = useMemo(() => {
-    const map = new Map<string, string>()
-    for (const household of households) {
-      if (household.assigned_advisor) {
-        map.set(household.assigned_advisor.id, household.assigned_advisor.display_name)
-      }
-    }
-    return Array.from(map.entries())
-      .map(([id, name]) => ({ id, name }))
-      .sort((a, b) => a.name.localeCompare(b.name))
-  }, [households])
-
-  const filteredHouseholds = useMemo(() => {
-    return households.filter((household) => {
-      if (!matchesSearch(household, search)) return false
-
-      if (stageFilter !== 'all' && household.relationship_stage_id !== stageFilter) {
-        return false
-      }
-
-      if (advisorFilter !== 'all' && household.assigned_advisor_id !== advisorFilter) {
-        return false
-      }
-
-      if (assignmentFilter === 'assigned' && !household.assigned_advisor_id) {
-        return false
-      }
-      if (assignmentFilter === 'unassigned' && household.assigned_advisor_id) {
-        return false
-      }
-
-      return true
-    })
-  }, [households, search, stageFilter, advisorFilter, assignmentFilter])
+  }, [search, stageFilter, advisorFilter, assignmentFilter, requestedPage, retry])
 
   const hasActiveFilters =
     search.trim() !== '' ||
@@ -134,6 +93,7 @@ export default function CrmHouseholdsPage() {
     assignmentFilter !== 'all'
 
   function resetFilters() {
+    setRequestedPage(1)
     setSearch('')
     setStageFilter('all')
     setAdvisorFilter('all')
@@ -153,7 +113,10 @@ export default function CrmHouseholdsPage() {
       <Link to="/crm/archived" className="crm-secondary-btn">Archived records</Link>
       </header>
 
-      {error ? <p className="crm-banner crm-banner-error">{error}</p> : null}
+      {error ? <div className="crm-banner crm-banner-error" role="alert">
+        <p>{error}</p>
+        <button type="button" className="crm-text-btn" onClick={() => setRetry((value) => value + 1)}>Retry</button>
+      </div> : null}
 
       <section className="crm-panel crm-households-filters" aria-label="Household filters">
         <div className="crm-households-filters-grid">
@@ -186,17 +149,18 @@ export default function CrmHouseholdsPage() {
               </svg>
               <input
                 type="search"
+                aria-label="Search households"
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => { setSearch(e.target.value); setRequestedPage(1) }}
                 placeholder="Household or contact name"
-                disabled={loading}
+                maxLength={256}
                 autoComplete="off"
               />
               {search ? (
                 <button
                   type="button"
                   className="crm-search-clear"
-                  onClick={() => setSearch('')}
+                  onClick={() => { setSearch(''); setRequestedPage(1) }}
                   aria-label="Clear search"
                 >
                   <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" focusable="false">
@@ -217,7 +181,7 @@ export default function CrmHouseholdsPage() {
             Relationship stage
             <select
               value={stageFilter}
-              onChange={(e) => setStageFilter(e.target.value)}
+              onChange={(e) => { setStageFilter(e.target.value); setRequestedPage(1) }}
               disabled={loading}
             >
               <option value="all">All stages</option>
@@ -233,7 +197,7 @@ export default function CrmHouseholdsPage() {
             Assigned advisor
             <select
               value={advisorFilter}
-              onChange={(e) => setAdvisorFilter(e.target.value)}
+              onChange={(e) => { setAdvisorFilter(e.target.value); setRequestedPage(1) }}
               disabled={loading}
             >
               <option value="all">All advisors</option>
@@ -249,9 +213,10 @@ export default function CrmHouseholdsPage() {
             Assignment
             <select
               value={assignmentFilter}
-              onChange={(e) =>
+              onChange={(e) => {
                 setAssignmentFilter(e.target.value as HouseholdAssignmentFilter)
-              }
+                setRequestedPage(1)
+              }}
               disabled={loading}
             >
               <option value="all">Assigned and unassigned</option>
@@ -270,16 +235,31 @@ export default function CrmHouseholdsPage() {
         ) : null}
       </section>
 
-      <section className="crm-panel" aria-labelledby="crm-households-list-heading">
+      <section className="crm-panel" aria-labelledby="crm-households-list-heading" aria-busy={loading}>
         <div className="crm-panel-head">
           <h2 id="crm-households-list-heading">
-            Households ({loading ? '…' : filteredHouseholds.length})
+            Households ({total ?? '…'})
           </h2>
         </div>
 
-        {loading ? <p className="crm-muted">Loading households…</p> : null}
+        {loading ? <p className="crm-muted" role="status">Loading households…</p> : null}
+        {!loading && !error && total !== null && total > 0 ? (
+          <nav className="crm-households-pagination" aria-label="Household pages">
+            <p className="crm-muted" role="status">
+              Showing {(page - 1) * HOUSEHOLD_DIRECTORY_PAGE_SIZE + 1}–{Math.min(page * HOUSEHOLD_DIRECTORY_PAGE_SIZE, total)} of {total} households
+              {' · '}Page {page} of {Math.ceil(total / HOUSEHOLD_DIRECTORY_PAGE_SIZE)}
+            </p>
+            <div className="crm-households-pagination-buttons">
+            <button type="button" className="crm-text-btn" disabled={page === 1}
+              onClick={() => setRequestedPage(page - 1)}>Previous</button>
+            <button type="button" className="crm-text-btn" disabled={page * HOUSEHOLD_DIRECTORY_PAGE_SIZE >= total}
+              onClick={() => setRequestedPage(page + 1)}>Next</button>
+            </div>
+          </nav>
+        ) : null}
 
-        {!loading && !error && households.length === 0 ? (
+
+        {!loading && !error && total === 0 && !hasActiveFilters ? (
           <div className="crm-empty-state">
             <p className="crm-empty-state-title">No households available</p>
             <p>
@@ -289,7 +269,7 @@ export default function CrmHouseholdsPage() {
           </div>
         ) : null}
 
-        {!loading && !error && households.length > 0 && filteredHouseholds.length === 0 ? (
+        {!loading && !error && total === 0 && hasActiveFilters ? (
           <div className="crm-empty-state">
             <p className="crm-empty-state-title">No matching households</p>
             <p>
@@ -303,7 +283,7 @@ export default function CrmHouseholdsPage() {
           </div>
         ) : null}
 
-        {!loading && filteredHouseholds.length > 0 ? (
+        {!loading && !error && households.length > 0 ? (
           <>
             <div className="crm-households-table-wrap" role="region" aria-label="Households table">
               <table className="crm-households-table">
@@ -317,7 +297,7 @@ export default function CrmHouseholdsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredHouseholds.map((household) => (
+                  {households.map((household) => (
                     <tr
                       key={household.id}
                       className="crm-households-row"
@@ -353,7 +333,7 @@ export default function CrmHouseholdsPage() {
             </div>
 
             <ul className="crm-households-card-list">
-              {filteredHouseholds.map((household) => (
+              {households.map((household) => (
                 <li key={household.id}>
                   <Link
                     to={crmHouseholdPath(household.id)}

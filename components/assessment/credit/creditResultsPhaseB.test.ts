@@ -4,7 +4,7 @@ import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
-import { CALENDLY_REPORT_CARD_URL } from '../../../constants/urls'
+import { assessmentPathForBooking, schedulePathForAssessment } from '../../../constants/booking'
 import CreditReportCardResults from '../../../pages/CreditReportCardResults'
 import { PUBLIC_REPORT_CARD_ASSESSMENT_TYPES } from '../../../modules/reportCard/publicIngestCatalog'
 import { canSubmitCreditToCrm, CREDIT_CRM_INGEST_ENABLED } from './ingestBoundary'
@@ -53,7 +53,7 @@ describe('Credit Report Card Phase B results', () => {
     expect(model.grade).toBe('A')
     expect(model.categoryScores).toHaveLength(8)
     expect(model.primaryGoal).toBe('general_health')
-    expect(model.recommendedNextStep?.href).toBe(CALENDLY_REPORT_CARD_URL)
+    expect(model.recommendedNextStep?.href).toBe(assessmentPathForBooking())
     expect(CREDIT_SCORING_VERSION).toBe(1)
 
     const html = renderResults({ answers: resultsSessionFrom() })
@@ -68,7 +68,7 @@ describe('Credit Report Card Phase B results', () => {
     expect(html).not.toContain('ada@example.com')
     expect(html).not.toContain('555-0100')
     expect(html).toContain('Review My Results With Valtoris')
-    expect(html).toContain(CALENDLY_REPORT_CARD_URL)
+    expect(html).toContain(schedulePathForAssessment('credit'))
     expect(html).not.toContain('Your Credit Report Card results are not available yet.')
     expect(html.toLowerCase()).not.toMatch(
       /guaranteed deletion|guaranteed score increase|you qualify|100-point/,

@@ -3,6 +3,7 @@
  * No I/O — browser adapter is submitLetsConnect.
  */
 
+import { ROUTES } from '../../constants/routes'
 import {
   INITIAL_DIGITAL_IDENTITY_CONSENT_STATE,
   applyPhoneChangeToDigitalIdentityConsent,
@@ -128,6 +129,15 @@ export function validateLetsConnectFormClient(
   if (!values.email.trim() && !values.phone.trim()) {
     errors.contact = 'Please provide an email or phone number.'
   }
+  if (values.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email.trim())) {
+    errors.contact = 'Please enter a valid email address.'
+  }
+  if (values.phone.trim() && !/^[+()\d\s.-]+$/.test(values.phone.trim())) {
+    errors.contact = 'Please enter a valid phone number.'
+  }
+  if (values.phone.trim() && (values.phone.replace(/\D/g, '').length < 7 || values.phone.replace(/\D/g, '').length > 15)) {
+    errors.contact = 'Please enter a valid phone number.'
+  }
   if (!hasRequiredDigitalIdentityConsent(values.consent)) {
     errors.privacy = 'Please acknowledge the privacy notice to continue.'
   }
@@ -203,15 +213,31 @@ export function buildLetsConnectSubmitBody(input: {
 
 export function letsConnectModalCopy() {
   return {
-    title: "Let's Connect",
+    title: 'Exchange Contact Info',
     subtitle: "Great meeting you. Let's stay connected.",
     supporting:
       "I'll save your information so we can easily reconnect and continue the conversation.",
     reasonLabel: 'What would you like to stay connected about?',
     successTitle: "We're connected.",
-    successSaveContact: 'Save Contact',
+    successSaveContact: 'Save My Contact',
     successFamilyAssessment: 'Start Family Financial Report Card',
     successAddPhoto: 'Add a photo from where we met',
     successDone: 'Done',
   } as const
+}
+
+/** Offer an assessment only when it matches the conversation. */
+export function letsConnectNextStep(reason: LetsConnectFormValues['reasonForConnecting']) {
+  switch (reason) {
+    case 'Family financial planning':
+      return { href: ROUTES.familyAssessment, label: 'Start Family Financial Report Card' }
+    case 'Business planning':
+      return { href: ROUTES.businessAssessment, label: 'Start Business Financial Report Card' }
+    case 'Credit improvement':
+      return { href: ROUTES.creditAssessment, label: 'Start Credit Report Card' }
+    case 'Insurance':
+      return { href: ROUTES.insurance, label: 'Explore Insurance Options' }
+    default:
+      return null
+  }
 }

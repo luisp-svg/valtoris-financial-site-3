@@ -6,7 +6,7 @@ import { GUIDED_REPORT_FORMAT, validateGuidedReport } from './submission'
 
 function completed(): Answers {
  const answers: Answers = {purpose:'costs',employees:'20',fulltime:'15',covered:'12'}
- for(const q of visibleQuestions('benefits',answers))if(answers[q.id]===undefined)answers[q.id]=q.kind==='number'?'100':q.kind==='multi'?[q.options![0][0]]:q.options![0][0]
+ for(const q of visibleQuestions('benefits',answers))if(answers[q.id]===undefined)answers[q.id]=q.kind==='date'?'2027-01-01':q.kind==='number'?'100':q.kind==='multi'?[q.options![0][0]]:q.options![0][0]
  return answers
 }
 describe('employer benefits review',()=>{

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { ROUTES } from '../../constants/routes'
 import type { ChromeCopyCatalog } from './chromeCopy'
@@ -6,11 +6,10 @@ import PublicLink from './PublicLink'
 import PublicLocaleSwitcher from './PublicLocaleSwitcher'
 import type { PublicLocale } from './locale'
 import {
+  AUDIENCE_NAV_LINKS,
   BOOK_NAV,
   COMPANY_FOOTER_LINKS,
   HOME_NAV,
-  QUOTE_NAV,
-  SERVICES_NAV_GROUPS,
   TOOLS_NAV_LINKS,
   type PublicNavGroup,
   type PublicNavLink,
@@ -30,6 +29,7 @@ function MobileAccordion({
   groups,
   copy,
   onNavigate,
+  children,
 }: {
   id: string
   label: string
@@ -37,11 +37,13 @@ function MobileAccordion({
   groups?: readonly PublicNavGroup[]
   copy: ChromeCopyCatalog
   onNavigate: () => void
+  children?: ReactNode
 }) {
   return (
     <details className="site-mobile-accordion">
       <summary className="site-mobile-accordion-trigger">{label}</summary>
       <div className="site-mobile-accordion-panel" id={id}>
+        {children}
         {groups
           ? groups.map((group) => (
               <div key={group.id} className="site-mobile-nav-group">
@@ -110,7 +112,7 @@ export default function SiteMobileNav({ open, onClose, locale, copy }: SiteMobil
     }
 
     function onResize() {
-      if (window.innerWidth >= 1440) onClose()
+      if (window.innerWidth >= 1200) onClose()
     }
 
     window.addEventListener('keydown', onKey)
@@ -143,7 +145,6 @@ export default function SiteMobileNav({ open, onClose, locale, copy }: SiteMobil
         aria-label={copy.mobileMenuLabel}
       >
         <div className="site-mobile-drawer-header">
-          <p className="site-mobile-drawer-title">{copy.mobileMenuLabel}</p>
           <button
             ref={closeRef}
             type="button"
@@ -163,28 +164,19 @@ export default function SiteMobileNav({ open, onClose, locale, copy }: SiteMobil
         </PublicLink>
 
         <nav className="site-mobile-nav" aria-label={copy.primaryNavLabel}>
-          <PublicLink className="site-mobile-link site-mobile-top-link" to={HOME_NAV.to} onClick={onClose}>
-            {copy.navHome}
-          </PublicLink>
-          <MobileAccordion
-            id="site-mobile-services"
-            label={copy.navServices}
-            groups={SERVICES_NAV_GROUPS}
-            copy={copy}
-            onNavigate={onClose}
-          />
-          <PublicLink className="site-mobile-link" to={ROUTES.reportCards} onClick={onClose}>{locale === 'es' ? 'Todos los reportes' : 'Report Card Hub'}</PublicLink>
-          <PublicLink className="site-mobile-link" to={ROUTES.education} onClick={onClose}>{locale === 'es' ? 'Educación' : 'Learn'}</PublicLink>
+          <PublicLink className="site-mobile-link site-mobile-top-link" to={HOME_NAV.to} onClick={onClose}>{copy.navHome}</PublicLink>
+          {AUDIENCE_NAV_LINKS.map(item => <PublicLink key={item.id} className="site-mobile-link site-mobile-top-link" to={item.to} onClick={onClose}>{copy[item.labelKey]}</PublicLink>)}
           <MobileAccordion
             id="site-mobile-tools"
-            label={copy.navTools}
+            label={locale === 'es' ? 'Soluciones y Report Cards' : 'Solutions & Report Cards'}
             items={TOOLS_NAV_LINKS}
             copy={copy}
             onNavigate={onClose}
-          />
-          <PublicLink className="site-mobile-link site-mobile-top-link" to={QUOTE_NAV.to} onClick={onClose}>
-            {copy.navGetQuote}
-          </PublicLink>
+          >
+            <PublicLink className="site-mobile-link" to={ROUTES.solutions} onClick={onClose}>{locale === 'es' ? 'Explorar todas las prioridades' : 'Explore All Priorities'}</PublicLink>
+            <PublicLink className="site-mobile-link" to={ROUTES.amazeHealth} onClick={onClose}>Amaze Health</PublicLink>
+          </MobileAccordion>
+
         </nav>
 
         <div className="site-mobile-utilities">

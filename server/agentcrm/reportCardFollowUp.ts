@@ -34,6 +34,8 @@ export async function deliverReportCardFollowUp(input: {
   delivery: FollowUpDelivery
   target: FollowUpTarget
   assessmentType: string
+  reviewPriorities?: readonly string[]
+  reviewOperations?: readonly {type:string;priority:string;renewalDates:{id:string;date:string}[]}[]
   contactName: string
   dueDate: string
   transport: FollowUpTransport
@@ -55,7 +57,8 @@ export async function deliverReportCardFollowUp(input: {
   const dueDate = new Date(dueTime).toISOString()
   const reference = `Valtoris submission ${d.lead_id}`
   const title = `Review ${card.source} — ${reference}`
-  const body = `Review this consented ${card.source} submission in Valtoris CRM. ${reference}`
+  const operationalSummary = input.reviewOperations?.length ? ` Coverage review routing: ${input.reviewOperations.map(r=>`${r.type}: ${r.priority}; dates ${r.renewalDates.map(d=>d.date).join(", ")||"to confirm"}`).join(" | ")}. Verify documents in TAC; no policy terms verified.` : ""
+  const body = `Review this consented ${card.source} submission in Valtoris CRM. ${reference}${input.reviewPriorities?.length ? ` Selected priorities: ${input.reviewPriorities.join('; ')}. Coordinate one consultation; supporting intake remains in TAC (Tactical Agency Command Center).` : ''}${operationalSummary}`
   const get = async (path: string, query?: Record<string, string | number>) => {
     await checkpoint({})
     return api.get(path, query)

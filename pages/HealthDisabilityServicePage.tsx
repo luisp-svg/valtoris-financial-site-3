@@ -1,4 +1,5 @@
 import { useLocation } from 'react-router-dom'
+import AmazeHealthOffer from '../components/publicSite/services/AmazeHealthOffer'
 import { readPublicLocale } from '../components/publicSite/locale'
 import ServicePage from '../components/publicSite/services/ServicePage'
 import { healthServiceCopy } from '../components/publicSite/services/healthCopy'
@@ -17,5 +18,5 @@ export default function HealthDisabilityServicePage() {
   const location = useLocation()
   const locale = readPublicLocale(location.search)
 
-  return <ServicePage copy={healthServiceCopy[locale]} links={HEALTH_LINKS} />
+  return <><ServicePage copy={healthServiceCopy[locale]} links={HEALTH_LINKS} /><AmazeHealthOffer /></>
 }

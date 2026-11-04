@@ -40,7 +40,7 @@ import { orchestratePostDuplicateResolutionTask } from '../tasks/followUp/postDu
 import { reconcileLeadFollowUpTaskState } from '../tasks/followUp/reconcileLeadFollowUp'
 import { workflowForMatchStatus } from '../tasks/followUp/workflowTypes'
 
-export const INTAKE_QUEUE_LIMIT = 150
+export const INTAKE_QUEUE_BATCH_SIZE = 100
 
 const LEAD_SELECT = `
   id,
@@ -63,6 +63,8 @@ const LEAD_SELECT = `
   original_advisor_slug,
   original_source_metadata,
   assigned_advisor_id,
+  updated_at,
+  review_assignments:intake_review_assignments!lead_id (review_type,advisor_id,advisor:advisor_profiles!advisor_id(id,display_name)),
   follow_up_task_automation_status,
   follow_up_task_id,
   deleted_at,
@@ -191,15 +193,38 @@ export async function fetchIntakeQueue(
   supabase: SupabaseClient,
   options?: { limit?: number },
 ): Promise<IntakeQueueItem[]> {
-  const limit = options?.limit ?? INTAKE_QUEUE_LIMIT
+  const limit = options?.limit ?? Number.MAX_SAFE_INTEGER
+  if (!Number.isSafeInteger(limit) || limit < 0) throw new Error('Invalid intake queue limit.')
+  const items: IntakeQueueItem[] = []
+  const seen = new Set<string>()
+  while (items.length < limit) {
+    const pageSize = Math.min(INTAKE_QUEUE_BATCH_SIZE, limit - items.length)
+    const batch = await fetchIntakeQueueBatch(supabase, items.length, pageSize)
+    for (const item of batch) {
+      // An offset boundary moved while reading. Never present partial/duplicate totals as complete.
+      if (seen.has(item.leadId)) throw new Error('Incoming leads changed while loading. Please retry.')
+      seen.add(item.leadId)
+      items.push(item)
+    }
+    if (batch.length < pageSize) break
+  }
+  return items
+}
+
+async function fetchIntakeQueueBatch(
+  supabase: SupabaseClient,
+  offset: number,
+  pageSize: number,
+): Promise<IntakeQueueItem[]> {
 
   const { data: leadRows, error: leadError } = await supabase
     .from('leads')
     .select(LEAD_SELECT)
     .is('deleted_at', null)
     .in('lead_type', [...PUBLIC_REPORT_CARD_LEAD_TYPES, DIGITAL_IDENTITY_LEAD_TYPE, BULK_LEAD_IMPORT_LEAD_TYPE, ...QUOTE_LEAD_TYPES])
-    .order('submitted_at', { ascending: false })
-    .limit(limit)
+    .order('submitted_at', { ascending: false, nullsFirst: false })
+    .order('id', { ascending: true })
+    .range(offset, offset + pageSize - 1)
 
   if (leadError) throw leadError
 
@@ -458,6 +483,8 @@ export async function fetchIntakeQueue(
     })
 
     return {
+      assignmentUpdatedAt: typeof row.updated_at === 'string' ? row.updated_at : undefined,
+      reviewAssignments: Array.isArray(row.review_assignments) ? row.review_assignments.flatMap((value: Record<string,unknown>)=>{const advisor=mapAdvisor(value.advisor);return advisor && typeof value.review_type==='string'?[{reviewType:value.review_type,advisorId:advisor.id,displayName:advisor.displayName}]:[]}) : [],
       leadId,
       householdId: typeof row.household_id === 'string' ? row.household_id : '',
       leadType,

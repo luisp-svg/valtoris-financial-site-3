@@ -129,7 +129,7 @@ export function readCardAttributionFromSearch(search: string): FamilyCardAttribu
     cardSlug: clipQueryValue(params.get('card_slug')),
     campaignCode: clipQueryValue(params.get('c')),
     eventCode: clipQueryValue(params.get('e')),
-    sourceChannel: clipQueryValue(params.get('src')),
+    sourceChannel: clipQueryValue(params.get('src')) ?? ({personal:'valtoris_personal_family',private:'valtoris_private_client',business:'valtoris_business_owner',renewal:'valtoris_renewal_review'} as Record<string,string>)[params.get('review_path') ?? ''] ?? null,
   }
 }
 

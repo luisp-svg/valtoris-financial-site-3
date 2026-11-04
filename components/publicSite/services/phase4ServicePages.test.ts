@@ -1,3 +1,4 @@
+import { EXPECTED_MIGRATION_FILES } from '../../../tests/helpers/migrationInventory'
 import { createHash } from 'node:crypto'
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -40,7 +41,6 @@ const SHA_052 = '00ef6c3023e47c192f09a7f4e8e6c1a92791388135577fd362dd704a0a3b2ca
 const SPECIALIZED_REPORT_CARD_PATHS = [
   '/insurance-report-card',
   '/health-disability-report-card',
-  '/commercial-insurance-report-card',
   '/trucking-report-card',
   '/pc-report-card',
 ]
@@ -116,6 +116,7 @@ describe('Phase 4 insurance, health, and business formation service pages', () =
       'retirement',
       'insurance',
       'health',
+      'amazeHealth',
       'credit',
       'studentLoans',
       'estate',
@@ -137,6 +138,12 @@ describe('Phase 4 insurance, health, and business formation service pages', () =
       ROUTES.protectionAnalysis,
       ROUTES.studentLoanReportCard,
       ROUTES.creditReportCard,
+      ROUTES.homeBuyerReportCard,
+      '/tsp-report-card',
+      '/health-insurance-report-card',
+      '/employee-benefits-report-card',
+      '/tax-review-report-card',
+      '/lifestyle-report-card',
     ])
     const html = renderChrome('/')
     expect(html).toContain(`href="${ROUTES.insurance}"`)
@@ -200,7 +207,7 @@ describe('Phase 4 insurance, health, and business formation service pages', () =
     const health = renderAt('/health-disability', createElement(HealthDisabilityServicePage))
     const formation = renderAt('/business-formation', createElement(BusinessFormationServicePage))
     expect(insurance).toContain('Request a Coverage Review')
-    expect(insurance).toContain(`href="${ROUTES.schedule}"`)
+    expect(insurance).toContain('href="/personal-insurance-report-card"')
     expect(insurance).toContain('Explore All Solutions')
     expect(insurance).toContain(`href="${ROUTES.solutions}"`)
     expect(insurance).toContain('Clearview Insurance Agency')
@@ -242,7 +249,7 @@ describe('Phase 4 insurance, health, and business formation service pages', () =
     }
   })
 
-  it('does not create specialized Report Cards or unbuilt service paths', () => {
+  it('keeps unbuilt service paths unavailable', () => {
     const app = source('src/App.tsx')
     const routes = source('constants/routes.ts')
     for (const path of SPECIALIZED_REPORT_CARD_PATHS) {
@@ -265,7 +272,7 @@ describe('Phase 4 insurance, health, and business formation service pages', () =
     const insurance = renderAt(`/insurance${query}`, createElement(InsuranceServicePage))
     const health = renderAt(`/health-disability${query}`, createElement(HealthDisabilityServicePage))
     const formation = renderAt(`/business-formation${query}`, createElement(BusinessFormationServicePage))
-    expect(insurance).toContain(`href="${ROUTES.schedule}?${suffix}"`)
+    expect(insurance).toContain(`href="/personal-insurance-report-card?${suffix}"`)
     expect(insurance).toContain(`href="${ROUTES.solutions}?${suffix}"`)
     expect(health).toContain(`href="/health-insurance-report-card?${suffix}"`)
     expect(health).toContain(`href="/employee-benefits-report-card?${suffix}"`)
@@ -295,7 +302,7 @@ describe('Phase 4 insurance, health, and business formation service pages', () =
       .filter((name) => name.endsWith('.sql'))
       .sort()
     // Existing main includes the household-member migration; phase 1 adds none.
-    expect(files).toHaveLength(87)
+    expect(files).toEqual(EXPECTED_MIGRATION_FILES)
     expect(files.some((name) => name.startsWith('053_'))).toBe(true)
     expect(files.some((name) => name.startsWith('054_'))).toBe(true)
     expect(existsSync(join(ROOT, 'supabase/migrations/053_phase4_services.sql'))).toBe(false)

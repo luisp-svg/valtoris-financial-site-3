@@ -1,3 +1,6 @@
+import { coverageReview } from '../../modules/reportCard/specialtyPreview/coverageReview.js'
+import { projectDiagnostic } from '../../modules/reportCard/combined/engine.js'
+import { isCombined, isPriority, PRIORITIES } from '../../modules/reportCard/combined/engine.js'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createSupabaseAdminClient } from '../../lib/supabase/admin.js'
 import { normalizeEmail, normalizePhone } from '../../crm/households/normalizeContact.js'
@@ -25,6 +28,9 @@ export function canonicalReportIdentity(lead: Record<string, unknown>, members: 
   if (lead.duplicate_review_status === 'pending' || lead.status === 'duplicate_review') throw new DeliveryHold('identity_review_required')
   if (!lead.raw_payload || typeof lead.raw_payload !== 'object' || Array.isArray(lead.raw_payload)) throw new DeliveryHold('invalid_identity')
   const raw = record(lead.raw_payload)
+  let format: unknown
+  try { format = JSON.parse(String(raw.rawAnswers ?? '{}')).format } catch { /* Invalid snapshots remain subject to identity checks below. */ }
+  if (raw.tacBookingManaged === true || format === 'combined-priorities-v1') throw new DeliveryHold('booking_managed_delivery')
   const firstName = typeof raw.firstName === 'string' ? raw.firstName.trim() : ''
   const lastName = typeof raw.lastName === 'string' ? raw.lastName.trim() : ''
   const email = normalizeEmail(typeof lead.normalized_email === 'string' ? lead.normalized_email : '')
@@ -109,9 +115,17 @@ export async function syncReportCardDelivery(leadId?: string, deps: { admin?: Su
     if (['ALREADY_LINKED','LINKED_EXISTING_CONTACT','CREATED_AND_LINKED_CONTACT'].includes(decision.status)) {
       if (!delivery.contact_id) throw new DeliveryHold('contact_unavailable')
       const contactId = delivery.contact_id
+      let reviewPriorities: string[] | undefined
+      let reviewOperations: {type:string;priority:string;renewalDates:{id:string;date:string}[]}[] | undefined
+      const raw = record(lead.raw_payload)
+      try {
+        const combined = typeof raw.rawAnswers === 'string' ? JSON.parse(raw.rawAnswers) : null
+        if (isCombined(combined) && Array.isArray(combined.selected) && combined.selected.every(isPriority)) {reviewPriorities = combined.selected.map(type => PRIORITIES.find(p => p.id === type)!.en); reviewOperations=combined.selected.filter(type=>type==='health'||type==='benefits').map(type=>({type,...coverageReview(type,projectDiagnostic(type,combined.diagnostic))!.internal}))}
+      } catch { /* Legacy submissions do not contain combined priorities. */ }
+      const routingType = (reviewPriorities?.length ?? 0) > 1 ? 'family' : input.assessmentType
       const transport = new ReportCardFollowUpClient(config.token)
       await assignReportCardSpecialist({
-        assessmentType: input.assessmentType, contactId, checkpoint,
+        assessmentType: routingType, contactId, checkpoint,
         async readVerifiedOwner() {
           const response = await reader.get(`/contacts/${contactId}`)
           verifyReportContact(response, config.locationId, input, getReportCardAgentCrmConfig(input.assessmentType)!.serviceTag, contactId)
@@ -120,8 +134,8 @@ export async function syncReportCardDelivery(leadId?: string, deps: { admin?: Su
         assignOwner: (id, owner) => transport.assignContactOwner(id, owner),
       })
       await deliverReportCardFollowUp({
-        delivery: { ...delivery, contact_id: contactId }, target: reportCardFollowUpTarget(input.assessmentType),
-        assessmentType: input.assessmentType, dueDate, transport, checkpoint,
+        delivery: { ...delivery, contact_id: contactId }, target: reportCardFollowUpTarget(routingType),
+        assessmentType: input.assessmentType, reviewPriorities, reviewOperations, dueDate, transport, checkpoint,
         contactName: `${input.firstName} ${input.lastName}`,
         async verifyContact() {
           verifyReportContact(await reader.get(`/contacts/${contactId}`), config.locationId, input, getReportCardAgentCrmConfig(input.assessmentType)!.serviceTag, contactId)

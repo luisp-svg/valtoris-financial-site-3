@@ -76,4 +76,21 @@ describe('Post-report-card or existing-contact intake', () => {
     await expect(saveStudentLoanIntake({ rpc } as unknown as SupabaseClient, origin, row.answers, normalizeSavedStudentLoanIntake(row, household), false)).rejects.toThrow('Another advisor')
     expect(rpc).toHaveBeenCalledWith('save_student_loan_intake', expect.objectContaining({ p_expected_updated_at: row.updated_at }))
   })
+  it.each([
+    [{ message: 'INTAKE:unavailable' }, 'client assignment and access'],
+    [{ code: '42501', message: 'permission denied' }, 'could not be authorized'],
+    [{ code: 'PGRST301', message: 'JWT expired' }, 'another tab'],
+    [{ code: 'PGRST303', message: 'JWT claims invalid' }, 'another tab'],
+    [{ message: 'INTAKE:preserved_record' }, 'already been completed'],
+    [{ message: 'Unexpected database error with private content' }, 'Unable to save intake'],
+  ])('gives safe recovery guidance for failed draft saves (%j)', async (error, expected) => {
+    const answers = emptyStudentLoanIntake()
+    const snapshot = JSON.stringify(answers)
+    const rpc = vi.fn().mockResolvedValue({ data: null, error })
+    const save = saveStudentLoanIntake({ rpc } as unknown as SupabaseClient, origin, answers, null, false)
+    await expect(save).rejects.toThrow(expected)
+    await expect(save).rejects.not.toThrow('private content')
+    expect(JSON.stringify(answers)).toBe(snapshot)
+    expect(rpc).toHaveBeenCalledTimes(1)
+  })
 })

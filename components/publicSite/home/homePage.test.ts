@@ -1,3 +1,4 @@
+import { EXPECTED_MIGRATION_FILES } from '../../../tests/helpers/migrationInventory'
 import { createHash } from 'node:crypto'
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -53,80 +54,41 @@ const FORBIDDEN = [
 ]
 
 describe('assessment-first bilingual homepage', () => {
-  it('leads with assessment while preserving the coordinated strategy and existing assets', () => {
+  it('uses an editorial composition while retaining the approved positioning and actual photography', () => {
     const html = renderHome('/')
-    const h1 = html.match(/<h1[^>]*>(.*?)<\/h1>/)?.[1]
-    expect(h1).toBe("Know Your Score. See Your Risks. Build Your Plan.")
-    expect(html).toContain('Valtoris Financial')
-    expect(html).toContain('complete financial picture')
-    expect(html).toContain('Understand Your Situation. Clarify Your Next Steps.')
-    expect(html).toContain('We Diagnose Before We Prescribe.')
-    expect(html).not.toContain('How Financially Prepared Is Your Family?')
-    expect(html).not.toContain('VALTORIS FAMILY FINANCIAL REPORT CARD™')
-    expect(html).toContain('Find My Report Card')
-    expect(html).toContain('sample-results-preview')
+    expect(html.match(/<h1[^>]*>(.*?)<\/h1>/)?.[1]).toBe("Protect What You&#x27;ve Built. Preserve What You&#x27;ll Leave Behind.")
+    expect(html.match(/<h1[ >]/g)).toHaveLength(1)
+    expect(html).toContain('atelier-hero')
     expect(html).toContain('/images/valtoris-home-hero.webp')
+    expect(html).toContain('Protection. Strategy. Legacy.')
     expect(html).toContain('Meet Luis Perez, Financial Strategist and Founder.')
-    expect(html.indexOf("Know Your Score. See Your Risks. Build Your Plan.")).toBeLessThan(
-      html.indexOf('Understand Your Situation. Clarify Your Next Steps.'),
-    )
+    expect(html).toContain('Meet our specialist team')
+    expect(html).not.toContain('Illustrative score')
+    expect(html).not.toContain('sample-results-preview')
   })
 
-  it('offers direct Family and Business hero CTAs while retaining scheduling', () => {
+  it('organizes three audiences and six categories without adding invented service routes', () => {
     const html = renderHome('/')
-    expect(html).toContain('Start My Family Report Card')
-    expect(html).toContain('Start My Business Report Card')
-    expect(html).toContain(`href="${ROUTES.reportCards}"`)
-    expect(html).toContain('Find Out Where I Stand')
-    expect(html).toContain(`href="${HOME_DIAGNOSTICS_HASH}"`)
-    expect(html).toContain('Book a Meeting')
-    expect(html).toContain(`href="${ROUTES.schedule}"`)
-    expect(html).toContain('Explore Solutions')
-    expect(html).toContain(`href="${ROUTES.solutions}"`)
-    const primary = html.indexOf('Find Out Where I Stand')
-    const familyScore = html.indexOf('Get My Family Score')
-    expect(primary).toBeGreaterThan(-1)
-    expect(familyScore).toBe(-1)
+    for (const audience of ['Business Owners', 'Accomplished Professionals', 'Established Families']) expect(html).toContain(audience)
+    for (const category of ['Business Formation &amp; Financial Operations', 'Business Protection &amp; Employee Benefits', 'Personal &amp; Lifestyle Protection', 'Financial Optimization', 'Retirement &amp; Legacy', 'Homeownership &amp; Real Estate']) expect(html).toContain(category)
+    expect(html.match(/class="atelier-solution-content"/g)).toHaveLength(6)
+    expect(html).toContain('professional partnership')
+    expect(html).not.toMatch(/Kenn|Renner|BuyAustin/)
+    expect(html).toContain('href="/education"')
+    expect(html).toContain('href="/report-cards"')
   })
 
-  it('renders clarity paths, process, report preview, services, founder trust, and final CTA', () => {
+  it('explains all five steps and keeps the full priority selector on the assessment screen', () => {
     const html = renderHome('/')
-    expect(html).toContain('What would you like to work on?')
-    expect(html).toContain('Protect my family')
-    expect(html).toContain('Strengthen my business')
-    expect(html).toContain('Review student loans')
-    expect(html).toContain('Understand my credit')
-    expect(html).toContain('Your Strategy Determines the Solution. Not the Other Way Around.')
-    expect(html).toContain('Protect')
-    expect(html).toContain('Retirement readiness')
-    expect(html).toContain('Credit')
-    expect(html).toContain('Student loans')
-    expect(html).toContain('Business formation')
-    expect(html).toContain('Insurance')
-    expect(html).toContain('Estate &amp; legacy')
-    expect(html).toContain('Tax strategy')
-    expect(html).toContain('Diagnose')
-    expect(html).toContain('Prioritize')
-    expect(html).toContain('Build')
+    for (const step of ['Complete Your Financial Report Card', 'Reserve Your Complimentary Review', 'Access Your Personalized Report Card', 'Attend Your Financial Strategy Review', 'Discuss Your Recommended Action Plan']) expect(html).toContain(step)
+    expect(html).toContain('before accessing your detailed report')
+    expect(html).toContain('preliminary educational diagnostic')
+    expect(html).toContain('deeper consultation intake')
     expect(html).toContain('id="home-diagnostics"')
-    expect(source('src/styles.css')).toContain('.site-home #home-diagnostics {\n  scroll-margin-top: 96px;\n}')
-    expect(html).toContain('Protect my family')
-    expect(html).toContain('Strengthen my business')
-    expect(html).toContain('Review student loans')
-    expect(html).toContain('Understand my credit')
-    expect(html).toContain('A Clearer Starting Point for Your Next Steps.')
-    expect(html).toContain('Example only · Not a client result')
-    expect(html).toContain('Illustrative score')
-    expect(html).toContain('80<span>/100</span>')
-    expect(html).toContain('Choose Your Next Step')
-    expect(html).not.toContain('Explore Solutions for You')
-    expect(html).not.toContain('Choose a broader path')
-    expect(html).not.toContain('Also available')
-    expect(html).not.toContain('id="home-journeys-heading"')
-    expect(html).toContain('Why Valtoris')
-    expect(html).toContain('Founder · Financial Strategist')
-    expect(html).toContain("You Can&#x27;t Improve What You Haven&#x27;t Measured.")
-    expect(html).toContain('Financial Strategist')
+    expect(html).toContain('Choose Your Priorities')
+    expect(html).not.toContain('class="premium-priorities"')
+    expect(html).toContain('href="/financial-assessment"')
+    expect(html).toContain('href="/schedule"')
   })
 
   it('maps CTAs to existing routes and never invents /services/* or /tools', () => {
@@ -165,7 +127,7 @@ describe('assessment-first bilingual homepage', () => {
       `href="${ROUTES.taxStrategy}?utm_source=qa&amp;utm_campaign=home&amp;card=test-card"`,
     )
     expect(html).toContain(
-      `href="/?utm_source=qa&amp;utm_campaign=home&amp;card=test-card#home-diagnostics"`,
+      `href="/financial-assessment?utm_source=qa&amp;utm_campaign=home&amp;card=test-card"`,
     )
     for (const path of FUTURE_UNBUILT_PUBLIC_PATHS) {
       expect(html).not.toContain(`href="${path}"`)
@@ -194,14 +156,14 @@ describe('assessment-first bilingual homepage', () => {
     const html = renderHome(
       '/?lang=es&utm_source=qa&utm_medium=site&utm_campaign=home&utm_content=hero&utm_term=family&card=test-card',
     )
-    expect(html).toContain('Reporte para mi familia')
-    expect(html).toContain('Agendar una reunión')
+    expect(html).toContain('Comenzar tu Report Card financiero')
+    expect(html).toContain('Reservar una consulta')
     expect(html).toContain('Explorar soluciones')
     expect(html).toContain(
       `href="${ROUTES.solutions}?lang=es&amp;utm_source=qa&amp;utm_medium=site&amp;utm_campaign=home&amp;utm_content=hero&amp;utm_term=family&amp;card=test-card"`,
     )
     expect(html).toContain(
-      `href="/?lang=es&amp;utm_source=qa&amp;utm_medium=site&amp;utm_campaign=home&amp;utm_content=hero&amp;utm_term=family&amp;card=test-card#home-diagnostics"`,
+      `href="/financial-assessment?lang=es&amp;utm_source=qa&amp;utm_medium=site&amp;utm_campaign=home&amp;utm_content=hero&amp;utm_term=family&amp;card=test-card"`,
     )
   })
 
@@ -211,9 +173,9 @@ describe('assessment-first bilingual homepage', () => {
     for (const phrase of FORBIDDEN) {
       expect(blob).not.toContain(phrase)
     }
-    expect(homeCopy.es.heroTitle).toBe('Conoce tu puntuación. Identifica tus riesgos. Construye tu plan.')
-    expect(homeCopy.en.heroBrand).toBe('Understand Your Situation. Clarify Your Next Steps.')
-    expect(homeCopy.es.heroBrand).toBe('Comprenda su situación. Aclare sus próximos pasos.')
+    expect(homeCopy.es.heroTitle).toBe('Protege lo que has construido. Preserva lo que dejarás como legado.')
+    expect(homeCopy.en.heroBrand).toBe('Protection. Strategy. Legacy.')
+    expect(homeCopy.es.heroBrand).toBe('Protección. Estrategia. Legado.')
     expect(homeCopy.es.diagnosticsFamilyTitle).toBe('Family Report Card™')
     expect(homeCopy.es.diagnosticsStudentTitle).toBe('Student Loan Report Card™')
   })
@@ -223,7 +185,7 @@ describe('assessment-first bilingual homepage', () => {
       .filter((name) => name.endsWith('.sql'))
       .sort()
     // Existing main includes the household-member migration; phase 1 adds none.
-    expect(files).toHaveLength(87)
+    expect(files).toEqual(EXPECTED_MIGRATION_FILES)
     expect(files.some((name) => name.startsWith('053_'))).toBe(true)
     expect(files.some((name) => name.startsWith('054_'))).toBe(true)
     expect(existsSync(join(ROOT, 'supabase/migrations/053_homepage.sql'))).toBe(false)

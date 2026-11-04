@@ -13,6 +13,7 @@ import {
   LETS_CONNECT_FOLLOW_UP_OPTIONS,
   LETS_CONNECT_REASON_OPTIONS,
   letsConnectModalCopy,
+  letsConnectNextStep,
   validateLetsConnectFormClient,
   type LetsConnectFormValues,
 } from './letsConnectForm'
@@ -33,6 +34,7 @@ export type LetsConnectModalProps = {
   onClose: () => void
   sourcePage?: string | null
   campaignCode?: string | null
+  bookingUrl?: string | null
   eventCode?: string | null
 }
 
@@ -46,9 +48,11 @@ export default function LetsConnectModal({
   sourcePage = null,
   campaignCode = null,
   eventCode = null,
+  bookingUrl = null,
 }: LetsConnectModalProps) {
   const titleId = useId()
   const subtitleId = useId()
+  const pendingSubmission = useRef<Record<string, unknown> | null>(null)
   const panelRef = useRef<HTMLDivElement>(null)
   const firstFieldRef = useRef<HTMLInputElement>(null)
   const previouslyFocused = useRef<HTMLElement | null>(null)
@@ -74,6 +78,7 @@ export default function LetsConnectModal({
 
   const copy = letsConnectModalCopy()
   const photoCopy = relationshipPhotoCopy()
+  const nextStep = letsConnectNextStep(values.reasonForConnecting)
   const smsDisabled = !values.phone.trim()
 
   const phaseRef = useRef<Phase>(phase)
@@ -84,6 +89,7 @@ export default function LetsConnectModal({
 
     previouslyFocused.current =
       document.activeElement instanceof HTMLElement ? document.activeElement : null
+    pendingSubmission.current = null
     setPhase('form')
     setValues(createEmptyLetsConnectFormValues())
     setFormStartedAt(new Date().toISOString())
@@ -116,9 +122,9 @@ export default function LetsConnectModal({
       }
 
       if (event.key !== 'Tab' || !panelRef.current) return
-      const focusable = panelRef.current.querySelectorAll<HTMLElement>(
-        'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
-      )
+      const focusable = Array.from(panelRef.current.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"]), summary',
+      )).filter((element) => element.getClientRects().length > 0)
       if (focusable.length === 0) return
       const first = focusable[0]!
       const last = focusable[focusable.length - 1]!
@@ -146,6 +152,7 @@ export default function LetsConnectModal({
     key: K,
     value: LetsConnectFormValues[K],
   ) {
+    pendingSubmission.current = null
     setValues((prev) => {
       const next = { ...prev, [key]: value }
       if (key === 'phone' && typeof value === 'string') {
@@ -161,7 +168,11 @@ export default function LetsConnectModal({
 
     const validation = validateLetsConnectFormClient(values)
     setClientErrors(validation.errors)
-    if (!validation.ok) return
+    if (!validation.ok) {
+      const field = validation.errors.firstName ? 'firstName' : validation.errors.lastName ? 'lastName' : validation.errors.contact ? (values.email.trim() ? 'email' : 'phone') : 'privacyAcknowledged'
+      panelRef.current?.querySelector<HTMLInputElement>(`[name="${field}"]`)?.focus()
+      return
+    }
 
     const startedAt = formStartedAt ?? new Date().toISOString()
     const submittedAt = new Date().toISOString()
@@ -193,7 +204,9 @@ export default function LetsConnectModal({
       referrer: typeof document !== 'undefined' ? document.referrer || null : null,
     })
 
-    const result = await submitLetsConnect(body)
+    // Retry the exact same request after an uncertain network result.
+    pendingSubmission.current ??= body
+    const result = await submitLetsConnect(pendingSubmission.current)
     if (!result.ok) {
       setPhase('form')
       setSubmitError(result.error)
@@ -267,10 +280,10 @@ export default function LetsConnectModal({
       <button
         type="button"
         className="public-card-connect-scrim"
-        aria-label="Close Let's Connect"
-        disabled={phase === 'submitting'}
+        aria-label="Close contact exchange"
+        disabled={phase === 'submitting' || phase === 'photo_saving'}
         onClick={() => {
-          if (phase !== 'submitting') onClose()
+          if (phase !== 'submitting' && phase !== 'photo_saving') onClose()
         }}
       />
       <div
@@ -304,12 +317,16 @@ export default function LetsConnectModal({
                 >
                   {vcardStatus === 'loading' ? 'Preparing…' : copy.successSaveContact}
                 </button>
-                <Link
-                  className="platform-btn platform-btn-secondary public-card-btn"
-                  to={ROUTES.familyAssessment}
-                >
-                  {copy.successFamilyAssessment}
-                </Link>
+                {bookingUrl ? (
+                  <a className="platform-btn platform-btn-secondary public-card-btn" href={bookingUrl} target="_blank" rel="noopener noreferrer">
+                    Book a Meeting
+                  </a>
+                ) : null}
+                {nextStep ? (
+                  <Link className="platform-btn platform-btn-secondary public-card-btn" to={nextStep.href}>
+                    {nextStep.label}
+                  </Link>
+                ) : null}
                 {phase === 'success' && photoGrant.available ? (
                   <button
                     type="button"
@@ -549,91 +566,96 @@ export default function LetsConnectModal({
                 <p className="public-card-connect-hint">Email or phone — at least one is required.</p>
               )}
 
-              <div className="public-card-connect-field-row">
-                <label className="public-card-connect-field">
-                  <span>Company (optional)</span>
-                  <input
-                    type="text"
-                    name="company"
-                    autoComplete="organization"
-                    value={values.company}
-                    onChange={(event) => updateField('company', event.target.value)}
-                    disabled={phase === 'submitting'}
-                  />
-                </label>
-                <label className="public-card-connect-field">
-                  <span>Job title (optional)</span>
-                  <input
-                    type="text"
-                    name="title"
-                    autoComplete="organization-title"
-                    value={values.title}
-                    onChange={(event) => updateField('title', event.target.value)}
-                    disabled={phase === 'submitting'}
-                  />
-                </label>
-              </div>
-
-              <fieldset className="public-card-connect-fieldset">
-                <legend>{copy.reasonLabel}</legend>
-                <div className="public-card-connect-reasons" role="radiogroup" aria-label={copy.reasonLabel}>
-                  {LETS_CONNECT_REASON_OPTIONS.map((reason) => (
-                    <label key={reason} className="public-card-connect-reason">
-                      <input
-                        type="radio"
-                        name="reasonForConnecting"
-                        value={reason}
-                        checked={values.reasonForConnecting === reason}
-                        onChange={() => updateField('reasonForConnecting', reason)}
-                        disabled={phase === 'submitting'}
-                      />
-                      <span>{reason}</span>
-                    </label>
-                  ))}
+              <details className="public-card-connect-details">
+                <summary>Add details (optional)</summary>
+                <div className="public-card-connect-field-row">
+                  <label className="public-card-connect-field">
+                    <span>Company (optional)</span>
+                    <input
+                      type="text"
+                      name="company"
+                      autoComplete="organization"
+                      value={values.company}
+                      onChange={(event) => updateField('company', event.target.value)}
+                      disabled={phase === 'submitting'}
+                    />
+                  </label>
+                  <label className="public-card-connect-field">
+                    <span>Job title (optional)</span>
+                    <input
+                      type="text"
+                      name="title"
+                      autoComplete="organization-title"
+                      value={values.title}
+                      onChange={(event) => updateField('title', event.target.value)}
+                      disabled={phase === 'submitting'}
+                    />
+                  </label>
                 </div>
-              </fieldset>
 
-              <label className="public-card-connect-field">
-                <span>Note (optional)</span>
-                <textarea
-                  name="note"
-                  rows={3}
-                  value={values.note}
-                  onChange={(event) => updateField('note', event.target.value)}
-                  disabled={phase === 'submitting'}
-                />
-              </label>
+                <fieldset className="public-card-connect-fieldset">
+                  <legend>{copy.reasonLabel}</legend>
+                  <div className="public-card-connect-reasons" role="radiogroup" aria-label={copy.reasonLabel}>
+                    {LETS_CONNECT_REASON_OPTIONS.map((reason) => (
+                      <label key={reason} className="public-card-connect-reason">
+                        <input
+                          type="radio"
+                          name="reasonForConnecting"
+                          value={reason}
+                          checked={values.reasonForConnecting === reason}
+                          onChange={() => updateField('reasonForConnecting', reason)}
+                          disabled={phase === 'submitting'}
+                        />
+                        <span>{reason}</span>
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
 
-              <label className="public-card-connect-field">
-                <span>Preferred follow-up method (optional)</span>
-                <select
-                  name="preferredFollowUpMethod"
-                  value={values.preferredFollowUpMethod}
-                  onChange={(event) =>
-                    updateField(
-                      'preferredFollowUpMethod',
-                      event.target.value as LetsConnectFormValues['preferredFollowUpMethod'],
-                    )
-                  }
-                  disabled={phase === 'submitting'}
-                >
-                  <option value="">No selection</option>
-                  {LETS_CONNECT_FOLLOW_UP_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-                <span className="public-card-connect-hint">
-                  This is a preference only — it is not consent to be contacted.
-                </span>
-              </label>
+                <label className="public-card-connect-field">
+                  <span>Note (optional)</span>
+                  <textarea
+                    name="note"
+                    rows={3}
+                    value={values.note}
+                    onChange={(event) => updateField('note', event.target.value)}
+                    disabled={phase === 'submitting'}
+                  />
+                </label>
+
+                <label className="public-card-connect-field">
+                  <span>Preferred follow-up method (optional)</span>
+                  <select
+                    name="preferredFollowUpMethod"
+                    value={values.preferredFollowUpMethod}
+                    onChange={(event) =>
+                      updateField(
+                        'preferredFollowUpMethod',
+                        event.target.value as LetsConnectFormValues['preferredFollowUpMethod'],
+                      )
+                    }
+                    disabled={phase === 'submitting'}
+                  >
+                    <option value="">No selection</option>
+                    {LETS_CONNECT_FOLLOW_UP_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="public-card-connect-hint">
+                    This is a preference only — it is not consent to be contacted.
+                  </span>
+                </label>
+
+              </details>
 
               <fieldset className="public-card-connect-fieldset public-card-connect-consent">
                 <legend>Consent</legend>
                 <label className="public-card-connect-check">
                   <input
                     type="checkbox"
+                    name="privacyAcknowledged"
                     checked={values.consent.privacyAcknowledged}
                     onChange={(event) =>
                       updateField('consent', {

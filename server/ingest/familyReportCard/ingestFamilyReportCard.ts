@@ -1,3 +1,7 @@
+import { coverageReview } from '../../../modules/reportCard/specialtyPreview/coverageReview.js'
+import { projectDiagnostic as reviewDiagnostic } from '../../../modules/reportCard/combined/engine.js'
+import { isCombined, COMBINED_VERSION } from '../../../modules/reportCard/combined/engine.js'
+import { adaptiveReportCard, combinedResults } from '../../../modules/reportCard/combined/results.js'
 import { isGuidedReport, guidedResult, GUIDED_REPORT_VERSION } from '../../../modules/reportCard/specialtyPreview/submission.js'
 import { isShortForm } from '../../../modules/reportCard/shortForm/contract.js'
 import { SHORT_FORM_VERSION } from '../../../modules/reportCard/shortForm/catalog.js'
@@ -90,11 +94,13 @@ function persistableAssessmentAnswers(
   answers: PublicReportCardAnswers,
 ):
   | PublicReportCardAnswers
+  | Omit<import('../../../modules/reportCard/combined/engine.js').CombinedAnswers, 'contact'>
   | Omit<import('../../../modules/reportCard/specialtyPreview/submission.js').GuidedReportAnswers, 'contact'>
   | Omit<import('../../../modules/reportCard/shortForm/contract.js').ShortAnswers, 'contact'>
   | { diagnostic: StudentLoanAssessmentAnswers['diagnostic'] }
   | { diagnostic: CreditAssessmentAnswers['diagnostic'] }
   | { diagnostic: HomeBuyerAssessmentAnswers['diagnostic'] } {
+  if (isCombined(answers)) return {format:answers.format,selected:answers.selected,diagnostic:answers.diagnostic,locale:answers.locale,...(answers.insuranceRoutingVersion?{insuranceRoutingVersion:answers.insuranceRoutingVersion}:{}),...(answers.consultationOnly?{consultationOnly:true as const}:{})}
   if (isGuidedReport(answers)) return {format:answers.format,assessmentType:answers.assessmentType,diagnostic:answers.diagnostic,locale:answers.locale}
   if (isShortForm(answers)) return { format: answers.format, assessmentType: answers.assessmentType, diagnostic: answers.diagnostic }
   if (assessmentType === 'student_loan') {
@@ -126,6 +132,18 @@ function buildCanonicalResult(
   clientReportedScore: number | null,
   clientReportedGrade: string | null,
 ): CanonicalResult {
+  if (isCombined(answers)) {
+    const results = combinedResults(answers)
+    const reportCard = adaptiveReportCard(answers)
+    const names = splitFullName(answers.contact.fullName)
+    const priorities = results.map(r => ({level:'review',title:r.title,why:'Selected financial priority',timeline:'Consultation'}))
+    return {overallScore:reportCard?.overall.score??null,overallGrade:reportCard?.overall.grade??null,scoringVersion:COMBINED_VERSION,priorities,
+      derivedMetrics:{financialReportCard:reportCard,consultationOnly:answers.consultationOnly===true,coverageOperations:(answers.consultationOnly?[]:answers.selected).filter(type=>type==='health'||type==='benefits').map(type=>({type,...coverageReview(type,reviewDiagnostic(type,answers.diagnostic))?.internal})),combinedReportResults:results,combinedReportResultsByLocale:{en:combinedResults({...answers,locale:'en'}),es:combinedResults({...answers,locale:'es'})},selectedPriorities:answers.selected,currentLevel:'Preliminary financial planning readiness — self-reported, needs verification'},
+      sheetsPayload:buildMasterLeadPayload({...names,fullName:answers.contact.fullName,email:answers.contact.email,phone:answers.contact.phone,
+        notes:`${answers.consultationOnly ? "Consultation request only; no assessment completed" : "Valtoris Financial Assessment"}; selected priorities: ${answers.selected.join(', ')}. One parent assessment; detailed intake during consultation.`,
+        topPriority1:priorities[0]?.title,topPriority2:priorities[1]?.title,topPriority3:priorities[2]?.title,
+        sourcePage:sourcePage??'',submittedAt,rawAnswers:JSON.stringify({format:answers.format,selected:answers.selected,diagnostic:answers.diagnostic,locale:answers.locale,...(answers.insuranceRoutingVersion?{insuranceRoutingVersion:answers.insuranceRoutingVersion}:{})})})}
+  }
   if (isGuidedReport(answers)) {
     const result=guidedResult(answers.assessmentType,answers.diagnostic,answers.locale)
     const priorities=result.priorities.slice(0,3),names=splitFullName(answers.contact.fullName)
@@ -518,12 +536,12 @@ export async function ingestPublicReportCard(
     submitted_at: submittedAt,
     age: parseAge(contact.submitted.age),
     source_page: request.sourcePage,
-    report_path: REPORT_PATH_BY_ASSESSMENT[request.assessmentType],
+    report_path: isCombined(request.answers) ? '/assessment-results' : REPORT_PATH_BY_ASSESSMENT[request.assessmentType],
     original_source_metadata: originalSourceMetadata,
     overall_score: canonical.overallScore,
     overall_grade: canonical.overallGrade,
     top_priorities: canonical.priorities,
-    raw_payload: canonical.sheetsPayload,
+    raw_payload: { ...canonical.sheetsPayload, ...(isCombined(request.answers) ? { tacBookingManaged: true } : {}) },
     consent_snapshot: consentSnapshot,
     match_reason: classification.matchReason,
     match_confidence: classification.matchConfidence,
@@ -574,7 +592,7 @@ export async function ingestPublicReportCard(
   // server-side work. It is intentionally omitted from the public result.
   const runDryRun = deps.runStudentLoanDryRun ?? (async () => { await syncReportCardDelivery(persistResult.leadId, { admin }); return null })
   try {
-    await runDryRun(
+    if (!isCombined(request.answers)) await runDryRun(
       {
         assessmentType: request.assessmentType,
         contactPermission: consentSnapshot.contactPermission,

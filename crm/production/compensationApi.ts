@@ -1,3 +1,4 @@
+import { readRowsForIds } from '../../lib/readAllPages'
 /**
  * Production compensation reads.
  * Expected: SELECT on policy_application_expected_compensations (034 RLS).
@@ -136,13 +137,12 @@ export async function fetchLiveExpectedCompensations(
   const ids = applicationIds.filter((id) => id.trim().length > 0)
   if (ids.length === 0) return byApp
 
-  const { data, error } = await supabase
+  const data = await readRowsForIds<RawExpectedRow>(ids, (batch, start, end) => supabase
     .from('policy_application_expected_compensations')
     .select(EXPECTED_SELECT)
-    .in('application_id', ids)
+    .in('application_id', batch)
     .is('superseded_at', null)
-
-  if (error) throw error
+    .order('id', { ascending: true }).range(start, end))
 
   for (const raw of asArray(data as EmbedOne<RawExpectedRow>)) {
     const mapped = mapLiveExpectedRow(raw)
@@ -187,13 +187,12 @@ export async function fetchPaidCommissionEvents(
   const ids = applicationIds.filter((id) => id.trim().length > 0)
   if (ids.length === 0) return []
 
-  const { data, error } = await supabase
+  const data = await readRowsForIds<Record<string, unknown>>(ids, (batch, start, end) => supabase
     .from('policy_writing_commission_events')
     .select(PAID_EVENT_SELECT)
     .eq('payment_leg', 'carrier_to_imo')
-    .in('application_id', ids)
-
-  if (error) throw error
+    .in('application_id', batch)
+    .order('id', { ascending: true }).range(start, end))
 
   return asArray(data as EmbedOne<Record<string, unknown>>)
     .map(mapPaidCommissionListEvent)

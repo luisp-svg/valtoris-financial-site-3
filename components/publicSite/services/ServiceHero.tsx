@@ -1,3 +1,6 @@
+import EditorialVisual from '../../premium/EditorialVisual'
+import { useLocation } from 'react-router-dom'
+import { EDITORIAL_IMAGES } from '../../premium/editorialImages'
 import PublicLink from '../PublicLink'
 import type { ServiceCopy } from './copy'
 
@@ -8,7 +11,8 @@ type ServiceHeroProps = {
 }
 
 export default function ServiceHero({ copy, primaryTo, secondaryTo }: ServiceHeroProps) {
-  const hasVisual = Boolean(copy.heroImage)
+  const { pathname } = useLocation()
+  const hasVisual = Boolean(copy.heroImage || EDITORIAL_IMAGES[pathname])
 
   return (
     <section
@@ -35,7 +39,7 @@ export default function ServiceHero({ copy, primaryTo, secondaryTo }: ServiceHer
           <div className="site-service-hero-visual">
             <img src={copy.heroImage} alt={copy.heroImageAlt ?? ''} loading="eager" />
           </div>
-        ) : null}
+        ) : hasVisual ? <EditorialVisual compact /> : null}
       </div>
     </section>
   )

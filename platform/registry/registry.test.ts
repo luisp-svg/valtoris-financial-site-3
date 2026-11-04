@@ -19,15 +19,14 @@ import {
 const CANONICAL_CRM_NAV = [
   { label: 'Home', path: '/crm' },
   { label: 'Intake', path: '/crm/intake' },
-  { label: 'Student Loans', path: '/crm/student-loans' },
   { label: 'Contacts', path: '/crm/contacts' },
   { label: 'Campaigns', path: '/crm/campaigns' },
   { label: 'Households', path: '/crm/households' },
   { label: 'Pipeline', path: '/crm/pipeline' },
-  { label: 'Recruiting', path: '/crm/recruiting' },
+  { label: 'Licensing & Appointments', path: '/crm/recruiting' },
   { label: 'Tasks', path: '/crm/tasks' },
   { label: 'Operations', path: '/crm/operations' },
-  { label: 'Appointments', path: '/crm/appointments', placeholder: true },
+  { label: 'Appointments', path: '/crm/appointments' },
   { label: 'Production', path: '/crm/production' },
   { label: 'Commissions', path: '/crm/commissions' },
   { label: 'Annual Reviews', path: '/crm/annual-reviews', placeholder: true },
@@ -143,7 +142,7 @@ describe('Module Registry semantics: registered vs enabled vs visible vs declare
   it('excludes disabled modules from enabled-module helpers', () => {
     const enabledKeys = new Set(listEnabledModules().map((module) => module.key))
     expect(enabledKeys.has('intake')).toBe(true)
-    expect(enabledKeys.has('appointments')).toBe(true) // placeholder but feature-enabled for nav
+    expect(enabledKeys.has('appointments')).toBe(true) // enabled consultation workspace
     expect(enabledKeys.has('credit_repair')).toBe(false)
     expect(enabledKeys.has('ai')).toBe(false)
     // Platform engine foundations are enabled as services (no sidebar nav).

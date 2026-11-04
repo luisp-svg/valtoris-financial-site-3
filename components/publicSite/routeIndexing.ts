@@ -11,13 +11,13 @@ const RESULT_PATHS = new Set<string>([
   ROUTES.reportCardResults, ROUTES.businessReportCardResults,
   ROUTES.retirementReportCardResults, ROUTES.studentLoanReportCardResults,
   ROUTES.creditReportCardResults, ROUTES.homeBuyerReportCardResults,
-  ROUTES.protectionResults,
+  ROUTES.protectionResults, '/assessment-results', '/financial-assessment',
 ])
 
 /** Standalone pages do not mount SiteHeader, which owns other public canonicals. */
 export function standaloneCanonical(pathname: string, locale: 'en' | 'es'): string | null {
   const paths: readonly string[] = [
-    ROUTES.schedule, ROUTES.familyAssessment, ROUTES.businessAssessment,
+    '/financial-assessment', '/assessment-results', ROUTES.schedule, ROUTES.familyAssessment, ROUTES.businessAssessment,
     ROUTES.retirementAssessment, ROUTES.studentLoanAssessment,
     ROUTES.creditAssessment, ROUTES.homeBuyerAssessment, ROUTES.protectionGap,
   ]

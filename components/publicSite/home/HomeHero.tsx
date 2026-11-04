@@ -18,10 +18,10 @@ export default function HomeHero({ copy }: HomeHeroProps) {
           <p className="site-home-hero-support">{copy.heroSupport}</p>
           <p className="site-home-hero-brand">{copy.heroBrand}</p>
           <div className="site-home-hero-actions">
-            <PublicLink className="platform-btn platform-btn-primary" to={ROUTES.reportCard}>
+            <PublicLink className="platform-btn platform-btn-primary" to="/financial-assessment">
               {copy.heroPrimaryCta}
             </PublicLink>
-            <PublicLink className="platform-btn platform-btn-secondary" to={ROUTES.businessReportCard}>
+            <PublicLink className="platform-btn platform-btn-secondary" to={ROUTES.schedule}>
               {copy.heroSecondaryCta}
             </PublicLink>
           </div>
@@ -36,7 +36,7 @@ export default function HomeHero({ copy }: HomeHeroProps) {
             alt={copy.heroImageAlt}
             width="1600"
             height="800"
-            fetchPriority="high"
+            {...{ fetchpriority: 'high' }}
           />
           <figcaption className="site-home-hero-caption">
             <strong>{copy.heroPanelLabel}</strong>

@@ -1,3 +1,4 @@
+import { readAllPages } from '../../lib/readAllPages'
 /**
  * P1B-1 Production read API — SELECT only.
  * Mutations (insert/update/upsert/delete/rpc writes) are intentionally absent.
@@ -445,11 +446,10 @@ export async function fetchProductionApplications(
   supabase: SupabaseClient,
   options?: { limit?: number; includeDeleted?: boolean; followUpThrough?: string },
 ): Promise<ProductionApplicationListItem[]> {
-  const limit = options?.limit ?? PRODUCTION_LIST_DEFAULT_LIMIT
+  const data = await readAllPages<RawListRow>((start, end) => {
   let query = supabase
     .from('policy_applications')
     .select(APPLICATION_LIST_SELECT)
-    .limit(limit)
 
   if (!options?.includeDeleted) {
     query = query.is('deleted_at', null)
@@ -462,10 +462,10 @@ export async function fetchProductionApplications(
   } else {
     query = query.order('updated_at', { ascending: false })
   }
-  const { data, error } = await query
-  if (error) throw error
+  return query.order('id', { ascending: true }).range(start, end)
+  }, options?.limit)
 
-  return (data as unknown as RawListRow[])
+  return data
     .map(mapListItem)
     .filter((row): row is ProductionApplicationListItem => row != null)
 }

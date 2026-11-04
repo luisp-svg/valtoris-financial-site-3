@@ -24,3 +24,14 @@ export function schedulePathForAssessment(assessmentType: string, search = ''): 
   if (assessmentType === 'health' || assessmentType === 'tsp' || assessmentType === 'student_loan') params.set('service', assessmentType)
   return `/schedule${params.size ? `?${params.toString()}` : ''}`
 }
+
+/** One local intake path; old scheduling links cannot bypass TAC. */
+export function assessmentPathForBooking(service?: string, search = ''): string {
+  const source = new URLSearchParams(search)
+  const params = new URLSearchParams()
+  source.forEach((value, key) => {
+    if (key === 'lang' || key === 'locale' || key.startsWith('utm_') || key === 'campaign' || key === 'card') params.set(key, value)
+  })
+  if (service === 'health' || service === 'tsp' || service === 'student_loan') params.set('priorities', service)
+  return `/financial-assessment${params.size ? `?${params.toString()}` : ''}`
+}

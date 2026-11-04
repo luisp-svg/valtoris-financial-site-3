@@ -3,7 +3,7 @@
  * No I/O, no admin client, no analytics/CRM side effects.
  */
 
-import { LETS_CONNECT_CTA_LABEL, normalizePublicHref } from '../../modules/digital-identity'
+import { normalizePublicHref } from '../../modules/digital-identity'
 import type {
   IdentityCtaConfigItem,
   IdentityCtaKey,
@@ -206,7 +206,7 @@ export function buildHeroActions(card: IdentitySurfacePublicDto): PublicCardHero
   actions.push(
     {
       key: 'save_contact',
-      label: 'Save Contact',
+      label: 'Save My Contact',
       mode: 'vcard_download',
       href: null,
       comingSoonBadge: false,
@@ -220,7 +220,7 @@ export function buildHeroActions(card: IdentitySurfacePublicDto): PublicCardHero
     },
     {
       key: 'lets_connect',
-      label: card.primaryConnectLabel || LETS_CONNECT_CTA_LABEL,
+      label: 'Exchange Contact Info',
       mode: 'opens_connect_form',
       href: null,
       comingSoonBadge: false,
@@ -240,7 +240,8 @@ export function buildHeroActions(card: IdentitySurfacePublicDto): PublicCardHero
     })
   }
 
-  return actions
+  const priority = ['lets_connect', 'save_contact', 'book_appointment', 'call', 'text', 'email', 'share']
+  return actions.sort((a, b) => priority.indexOf(a.key) - priority.indexOf(b.key))
 }
 
 /**

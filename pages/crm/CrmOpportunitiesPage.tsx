@@ -1,3 +1,4 @@
+import PipelineBoard from '../../crm/opportunities/PipelineBoard'
 import { EMPTY_PIPELINE_FILTERS, filterPipelineScope, pipelineFilterOptions, pipelineStageSummary } from '../../crm/opportunities/pipelineFilters'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
@@ -8,6 +9,7 @@ import CaseCreatedBadge from '../../crm/opportunities/CaseCreatedBadge'
 import OpportunityAttentionFlagList from '../../crm/opportunities/OpportunityAttentionFlagList'
 import {
   fetchCurrentAdvisorProfileId,
+  fetchOpportunityStageOptionsForPipelines,
   fetchPipelineOpportunities,
   opportunityMatchesSearch,
   formatSupabaseError,
@@ -27,7 +29,7 @@ import {
   writePipelineViewSearchParams,
   type PipelineView,
 } from '../../crm/opportunities/pipelineView'
-import type { OpportunityDetail, OpportunityListItem } from '../../crm/opportunities/types'
+import type { OpportunityDetail, OpportunityListItem, OpportunityStageOption } from '../../crm/opportunities/types'
 import { crmOpportunityPath } from '../../constants/routes'
 import { createSupabaseBrowserClient } from '../../lib/supabase/client'
 
@@ -39,6 +41,8 @@ export default function CrmOpportunitiesPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
+  const [layout, setLayout] = useState<'board' | 'list'>('board')
+  const [boardStages, setBoardStages] = useState<OpportunityStageOption[]>([])
   const [filters, setFilters] = useState(EMPTY_PIPELINE_FILTERS)
   const [view, setView] = useState<PipelineView>(() => pipelineViewFromSearchParams(searchParams))
   const [reloadKey, setReloadKey] = useState(0)
@@ -73,7 +77,9 @@ export default function CrmOpportunitiesPage() {
           fetchPipelineOpportunities(supabase),
           user?.id ? fetchCurrentAdvisorProfileId(supabase, user.id) : Promise.resolve(null),
         ])
+        const stages = await fetchOpportunityStageOptionsForPipelines(supabase, rows.map(row=>row.pipeline_id))
         if (!cancelled) {
+          setBoardStages(stages)
           setOpportunities(rows)
           setAssignedAdvisorId(advisorId)
         }
@@ -325,7 +331,12 @@ export default function CrmOpportunitiesPage() {
           </div>
         ) : null}
 
-        {viewState.kind === 'ready' ? (
+        <div className="crm-pipeline-layout" role="group" aria-label="Pipeline layout">
+          <button type="button" className="crm-secondary-btn" aria-pressed={layout==='board'} onClick={()=>setLayout('board')}>Board</button>
+          <button type="button" className="crm-secondary-btn" aria-pressed={layout==='list'} onClick={()=>setLayout('list')}>List</button>
+        </div>
+        {viewState.kind === 'ready' && layout === 'board' ? <PipelineBoard items={filteredOpportunities} allItems={opportunities} stages={boardStages}/> : null}
+        {viewState.kind === 'ready' && layout === 'list' ? (
           <>
             <div
               className="crm-opportunities-table-wrap"

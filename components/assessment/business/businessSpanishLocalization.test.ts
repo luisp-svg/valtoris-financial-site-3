@@ -1,3 +1,4 @@
+import { EXPECTED_MIGRATION_FILES } from '../../../tests/helpers/migrationInventory'
 import { createHash } from 'node:crypto'
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -204,7 +205,7 @@ describe('Business Report Card Spanish localization', () => {
     const files = readdirSync(join(ROOT, 'supabase/migrations'))
       .filter((name) => name.endsWith('.sql'))
       .sort()
-    expect(files).toHaveLength(87)
+    expect(files).toEqual(EXPECTED_MIGRATION_FILES)
     expect(files.some((name) => name.startsWith('053_'))).toBe(true)
     expect(files.some((name) => name.startsWith('054_'))).toBe(true)
     expect(existsSync(join(ROOT, 'supabase/migrations/053_spanish.sql'))).toBe(false)

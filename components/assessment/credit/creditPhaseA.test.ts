@@ -1,3 +1,4 @@
+import { EXPECTED_MIGRATION_FILES } from '../../../tests/helpers/migrationInventory'
 import { createHash } from 'node:crypto'
 import { readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
@@ -230,8 +231,8 @@ describe('Credit Report Card Phase A foundation', () => {
     expect(ROUTES.creditAssessment).toBe('/credit-assessment')
     expect(ROUTES.creditReportCardResults).toBe('/credit-results')
     const app = source('src/App.tsx')
-    expect(app).toContain('<ShortLanding assessmentType="credit" />')
-    expect(app).toContain('<ShortAssessment key="credit" assessmentType="credit" />')
+    expect(app).toContain('<PremiumFunnelLanding priority="credit" />')
+    expect(app).toContain('<FinancialAssessmentPage key="credit" initialPriority="credit" />')
     expect(app).toContain('CreditReportCardResults')
     expect(app).not.toContain('/es/credit')
     expect(isSpecializedAssessmentProduct('credit')).toBe(true)
@@ -331,7 +332,7 @@ describe('Credit Report Card Phase A foundation', () => {
     expect(source('pages/CreditAssessment.tsx')).not.toContain('credit_repair')
     expect(source('components/assessment/credit/questions.ts')).not.toContain('credit_repair')
     const files = readdirSync(MIGRATIONS_DIR).filter((name) => name.endsWith('.sql')).sort()
-    expect(files).toHaveLength(87)
+    expect(files).toEqual(EXPECTED_MIGRATION_FILES)
     expect(files[49]).toBe('050_credit_report_card_ingest.sql')
     expect(files.some((name) => name.startsWith('051_'))).toBe(true)
     expect(files.some((name) => name.startsWith('052_'))).toBe(true)
