@@ -13,6 +13,8 @@
     "check:vercel-functions": "node scripts/check-vercel-function-count.mjs",
     "audit:migrations": "node scripts/audit-migration-history.mjs",
     "test:migration-audit": "node --test scripts/audit-migration-history.test.mjs",
+    "audit:privileges": "node scripts/audit-database-privileges.mjs",
+    "test:privilege-audit": "node --test scripts/audit-database-privileges.test.mjs",
     "check:server-esm-imports": "node scripts/check-server-esm-imports.mjs",
     "check:browser-activity-inserts": "node scripts/check-browser-activity-inserts.mjs",
     "check:vercel-runtime": "node scripts/check-vercel-runtime.mjs",
