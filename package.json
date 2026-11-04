@@ -11,6 +11,8 @@
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit",
     "check:vercel-functions": "node scripts/check-vercel-function-count.mjs",
+    "audit:migrations": "node scripts/audit-migration-history.mjs",
+    "test:migration-audit": "node --test scripts/audit-migration-history.test.mjs",
     "check:server-esm-imports": "node scripts/check-server-esm-imports.mjs",
     "check:browser-activity-inserts": "node scripts/check-browser-activity-inserts.mjs",
     "check:vercel-runtime": "node scripts/check-vercel-runtime.mjs",
