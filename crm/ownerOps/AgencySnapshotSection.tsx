@@ -34,7 +34,7 @@ const HEADLINE_CARDS = [
   { key: 'openOpportunities', label: 'Open opportunities', href: `${ROUTES.crmPipeline}?statusGroup=open` },
   { key: 'overdueTasks', label: 'Overdue tasks', href: `${ROUTES.crmTasks}?due=overdue` },
   { key: 'wonThisMonth', label: 'Won this month', href: `${ROUTES.crmPipeline}?status=won` },
-  { key: 'unassignedHouseholds', label: 'Unassigned households', href: ROUTES.crmHouseholds },
+  { key: 'unassignedHouseholds', label: 'Unassigned households', href: `${ROUTES.crmHouseholds}?assignment=unassigned` },
 ] satisfies Array<{ key: keyof AgencySnapshot; label: string; href: string }>
 
 export default function AgencySnapshotSection({ snapshot, loading, error, onRetry }: Props) {
@@ -54,7 +54,7 @@ export default function AgencySnapshotSection({ snapshot, loading, error, onRetr
           return (
             <Link
               key={card.key}
-              to={card.href}
+              to={card.key === 'wonThisMonth' ? `${card.href}&closedMonth=${snapshot.monthKey}` : card.href}
               className="crm-dashboard-metric"
               aria-label={`${value} ${card.label}`}
             >
@@ -71,7 +71,7 @@ export default function AgencySnapshotSection({ snapshot, loading, error, onRetr
       <details className="tac-dashboard-details">
         <summary>View agency details</summary>
         <div className="crm-owner-ops-metric-grid">
-          {DETAIL_CARDS.map(card => <Link key={card.key} to={card.href} className="crm-dashboard-metric" aria-label={`${snapshot[card.key]} ${card.label}`}>
+          {DETAIL_CARDS.map(card => <Link key={card.key} to={card.key === 'wonThisMonth' || card.key === 'lostThisMonth' ? `${card.href}&closedMonth=${snapshot.monthKey}` : card.href} className="crm-dashboard-metric" aria-label={`${snapshot[card.key]} ${card.label}`}>
             <span className="crm-dashboard-metric-value" aria-hidden="true">{snapshot[card.key]}</span>
             <span className="crm-dashboard-metric-label" aria-hidden="true">{card.label}</span>
           </Link>)}

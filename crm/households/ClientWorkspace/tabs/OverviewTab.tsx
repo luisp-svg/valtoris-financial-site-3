@@ -2,6 +2,7 @@ import ClientIntakesWidget from '../../../serviceIntakes/ClientIntakesWidget'
 import HouseholdRecordsWidget from '../../../archive/HouseholdRecordsWidget'
 import InsuranceQuotesWidget from '../widgets/InsuranceQuotesWidget'
 import OpportunityFormDialog from '../../../opportunities/OpportunityFormDialog'
+import DeferredSection from '../components/DeferredSection'
 import WidgetGrid from '../../../components/ui/WidgetGrid'
 import OnboardingEntryWidget from '../../onboarding/OnboardingEntryWidget'
 import CurrentOpportunitiesWidget from '../widgets/CurrentOpportunitiesWidget'
@@ -51,26 +52,26 @@ export default function OverviewTab({
         <CurrentOpportunitiesWidget workspace={workspace} onCreateOpportunity={onOpenCreateOpportunity} />
         {workspace.openCasesCount > 0 && <OpenCasesWidget workspace={workspace} onNavigateTab={onNavigateTab} />}
       </WidgetGrid>
-      <details className="tac-household-section"><summary>Reports & client intake</summary><WidgetGrid>
+      <DeferredSection key={householdId + ":Reports & client intake"} title="Reports & client intake"><WidgetGrid>
         <ClientIntakesWidget key={householdId} householdId={householdId} />
         <InitialFinancialDiagnosticWidget workspace={workspace} householdId={householdId} />
         <FinancialProgressSummaryWidget workspace={workspace} onNavigateTab={onNavigateTab} />
         <OnboardingEntryWidget householdId={householdId} />
-      </WidgetGrid></details>
-      <details className="tac-household-section"><summary>Quotes & recent documents</summary><WidgetGrid>
+      </WidgetGrid></DeferredSection>
+      <DeferredSection key={householdId + ":Quotes & recent documents"} title="Quotes & recent documents"><WidgetGrid>
         <InsuranceQuotesWidget key={householdId} householdId={householdId} />
         <RecentDocumentsWidget workspace={workspace} onNavigateTab={onNavigateTab} />
-      </WidgetGrid></details>
-      <details className="tac-household-section"><summary>Household background</summary><WidgetGrid>
+      </WidgetGrid></DeferredSection>
+      <DeferredSection key={householdId + ":Household background"} title="Household background"><WidgetGrid>
         <HouseholdSummaryWidget workspace={workspace} onNavigateTab={onNavigateTab} />
         <HowWeMetWidget workspace={workspace} onNavigateTab={onNavigateTab} />
-      </WidgetGrid></details>
-      <details className="tac-household-section"><summary>Recent activity</summary>
+      </WidgetGrid></DeferredSection>
+      <DeferredSection key={householdId + ":Recent activity"} title="Recent activity">
         <RecentTimelineWidget workspace={workspace} onNavigateTab={onNavigateTab} />
-      </details>
-      <details className="tac-household-section"><summary>Linked contacts & record history</summary>
+      </DeferredSection>
+      <DeferredSection key={householdId + ":Linked contacts & record history"} title="Linked contacts & record history">
         <HouseholdRecordsWidget key={householdId} householdId={householdId} />
-      </details>
+      </DeferredSection>
 
     </div>
   )

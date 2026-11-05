@@ -20,6 +20,7 @@ export default function TasksTab({ workspace, householdId }: ClientWorkspaceTabP
           title="Tasks"
           titleId="crm-tasks-heading"
           meta={<span className="crm-count-pill">{tasks.length}</span>}
+          actions={<Link className="crm-text-btn" to={`/crm/tasks?action=new&household=${encodeURIComponent(householdId)}`}>Add Task</Link>}
         />
         {tasks.length === 0 ? (
           <EmptyState

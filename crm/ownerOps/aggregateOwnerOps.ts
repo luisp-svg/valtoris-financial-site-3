@@ -237,7 +237,7 @@ export function buildOwnerAlerts(input: {
       title: 'Households without an advisor',
       detail: `${input.snapshot.unassignedHouseholds} household${input.snapshot.unassignedHouseholds === 1 ? '' : 's'} unassigned`,
       count: input.snapshot.unassignedHouseholds,
-      href: ROUTES.crmHouseholds,
+      href: `${ROUTES.crmHouseholds}?assignment=unassigned`,
     })
   }
 

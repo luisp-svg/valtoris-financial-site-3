@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import {
   fetchHouseholdDirectory,
   HOUSEHOLD_DIRECTORY_PAGE_SIZE,
@@ -34,8 +34,17 @@ export default function CrmHouseholdsPage() {
   const [search, setSearch] = useState('')
   const [stageFilter, setStageFilter] = useState('all')
   const [advisorFilter, setAdvisorFilter] = useState('all')
-  const [assignmentFilter, setAssignmentFilter] =
-    useState<HouseholdAssignmentFilter>('all')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const requestedAssignment = searchParams.get('assignment')
+  const assignmentFilter: HouseholdAssignmentFilter = requestedAssignment === 'assigned' || requestedAssignment === 'unassigned' ? requestedAssignment : 'all'
+  function setAssignmentFilter(value: HouseholdAssignmentFilter) {
+    const next = new URLSearchParams(searchParams)
+    if (value === 'all') next.delete('assignment')
+    else next.set('assignment', value)
+    setRequestedPage(1)
+    setSearchParams(next)
+  }
+  useEffect(() => { setRequestedPage(1) }, [assignmentFilter])
 
   function openHousehold(householdId: string) {
     navigate(crmHouseholdPath(householdId))
