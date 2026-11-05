@@ -46,7 +46,10 @@ export class AgentCrmBookingProvider implements TacBookingProvider {
   try{
    const response=await this.fetchImpl('https://services.leadconnectorhq.com'+path,{method,redirect:'error',signal:controller.signal,
     headers:{Authorization:`Bearer ${this.token}`,Version:version,Accept:'application/json',...(body?{'Content-Type':'application/json'}:{})},...(body?{body:JSON.stringify(body)}:{})})
-   if(!response.ok)throw new Error(`booking_provider_http_${response.status}`)
+   if(!response.ok){
+    if(method==='POST'&&path==='/calendars/events/appointments'&&response.status===400)throw new Error('booking_event_rejected')
+    throw new Error(`booking_provider_http_${response.status}`)
+   }
    return await response.json()
   }catch(error){if(error instanceof Error&&/^booking_/.test(error.message))throw error;throw new Error('booking_provider_unavailable')}finally{clearTimeout(timer)}
  }

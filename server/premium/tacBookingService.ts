@@ -15,7 +15,7 @@ export interface TacBookingProvider {
  createEvent(booking:TacBookingRecord,contact:string):Promise<string>
 }
 export interface TacBookingActions {
- slots(submission:string,answers:CombinedAnswers,day:string,timezone:string):Promise<{slots:string[];booking:{state:string;startTime:string;timezone:string}|null}>
+ slots(submission:string,answers:CombinedAnswers,day:string,timezone:string):Promise<{slots:string[];booking:{state:string;startTime:string;timezone:string;canReschedule?:boolean}|null}>
  book(submission:string,answers:CombinedAnswers,start:string,timezone:string):Promise<{state:'confirmed'|'pending';startTime:string}>
  verify(submission:string):Promise<BookingProof|null>
 }
@@ -29,7 +29,10 @@ export class TacBookingService implements TacBookingActions {
   const calendar=this.provider.calendar(answers)
   this.provider.assertAllowed(submission,answers.contact.email,calendar)
   const existing=await this.store.load(submission)
-  if(existing)return {slots:[],booking:{state:existing.state,startTime:existing.starts_at,timezone:existing.timezone}}
+  if(existing){
+   const canReschedule=existing.state==='pending'&&!existing.create_started&&!existing.external_event_id
+   return {slots:canReschedule?await this.provider.slots(calendar,day,timezone):[],booking:{state:existing.state,startTime:existing.starts_at,timezone:existing.timezone,canReschedule}}
+  }
   const slots=await this.provider.slots(calendar,day,timezone)
   return {slots,booking:null}
  }
@@ -39,7 +42,16 @@ export class TacBookingService implements TacBookingActions {
   this.provider.assertAllowed(submission,answers.contact.email,calendar)
   let booking=await this.store.load(submission)
   if(booking){
-   if(Date.parse(booking.starts_at)!==Date.parse(start)||booking.calendar_id!==calendar||booking.timezone!==timezone)throw new Error('booking_already_reserved')
+   if(booking.calendar_id!==calendar)throw new Error('booking_already_reserved')
+   if(Date.parse(booking.starts_at)!==Date.parse(start)||booking.timezone!==timezone){
+    if(booking.state!=='pending'||booking.create_started||booking.external_event_id)throw new Error('booking_already_reserved')
+    if(Date.parse(start)<=Date.now())throw new Error('booking_slot_unavailable')
+    const slots=await this.provider.slots(calendar,dateInZone(start,timezone),timezone)
+    if(!slots.some(slot=>Date.parse(slot)===Date.parse(start)))throw new Error('booking_slot_unavailable')
+    if(!await this.store.checkpoint(submission,'reschedule',start,timezone))throw new Error('booking_already_reserved')
+    booking=(await this.store.load(submission))!
+   }
+   if(!booking.external_event_id&&!booking.create_started&&Date.parse(booking.starts_at)<=Date.now())throw new Error('booking_slot_unavailable')
   }else{
    if(Date.parse(start)<=Date.now())throw new Error('invalid_booking_time')
    // Read availability first. This does not write a provider event or contact.
@@ -78,7 +90,14 @@ export class TacBookingService implements TacBookingActions {
    else{
     if(booking.create_started||!await this.store.checkpoint(submission,'claim_event'))return {state:'pending' as const,startTime:booking.starts_at}
     await this.provider.assertSilent(booking.calendar_id)
-    event=await this.provider.createEvent(booking,contact)
+    try{event=await this.provider.createEvent(booking,contact)}
+    catch(error){
+     if(error instanceof Error&&error.message==='booking_event_rejected'){
+      if(!await this.store.checkpoint(submission,'reject_event'))throw new Error('booking_rejection_sync_failed')
+      throw new Error('booking_slot_unavailable')
+     }
+     throw error
+    }
    }
    if(await this.provider.verifyEvent(booking,contact,event)!=='confirmed')throw new Error('booking_confirmation_unavailable')
    if(!await this.store.checkpoint(submission,'link_event',event))throw new Error('booking_event_link_failed')
@@ -87,13 +106,22 @@ export class TacBookingService implements TacBookingActions {
   return {state:proof?'confirmed' as const:'pending' as const,startTime:booking.starts_at}
  }
  async verify(submission:string):Promise<BookingProof|null>{
-  const booking=await this.store.load(submission)
-  if(!booking||!booking.external_contact_id||!booking.external_event_id)return null
+  let booking=await this.store.load(submission)
+  if(!booking||!booking.external_contact_id)return null
   this.provider.assertAllowed(submission,booking.email,booking.calendar_id)
   await this.provider.verifyContact(booking,booking.external_contact_id)
-  const state=await this.provider.verifyEvent(booking,booking.external_contact_id,booking.external_event_id)
+  if(!booking.external_event_id){
+   // Reconcile an accepted-but-timed-out event with reads only; never create on a report read.
+   if(!booking.create_started)return null
+   const events=await this.provider.findEvents(booking,booking.external_contact_id)
+   if(events.length>1)throw new Error('booking_duplicate_events_review')
+   if(!events.length||await this.provider.verifyEvent(booking,booking.external_contact_id,events[0])!=='confirmed')return null
+   if(!await this.store.checkpoint(submission,'link_event',events[0]))throw new Error('booking_event_link_failed')
+   booking=(await this.store.load(submission))!
+  }
+  const state=await this.provider.verifyEvent(booking,booking.external_contact_id!,booking.external_event_id!)
   if(!await this.store.checkpoint(submission,'provider_status',undefined,state))throw new Error('booking_status_sync_failed')
   if(state!=='confirmed')return null
-  return {eventId:booking.external_event_id,contactId:booking.external_contact_id,calendarId:booking.calendar_id,startTime:booking.starts_at,verifiedAt:new Date().toISOString()}
+  return {eventId:booking.external_event_id!,contactId:booking.external_contact_id!,calendarId:booking.calendar_id,startTime:booking.starts_at,verifiedAt:new Date().toISOString()}
  }
 }
