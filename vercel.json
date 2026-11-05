@@ -1,4 +1,9 @@
 {
+  "git": {
+    "deploymentEnabled": {
+      "codex/academy-migration-audit": false
+    }
+  },
   "rewrites": [
     {
       "source": "/personal-insurance-report-card",
