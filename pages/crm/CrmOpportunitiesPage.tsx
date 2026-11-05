@@ -1,3 +1,4 @@
+import { closedMonthFromParams, filterClosedMonth } from '../../crm/dashboard/shortcutFilters'
 import PipelineBoard from '../../crm/opportunities/PipelineBoard'
 import { EMPTY_PIPELINE_FILTERS, filterPipelineScope, pipelineFilterOptions, pipelineStageSummary } from '../../crm/opportunities/pipelineFilters'
 import { useEffect, useMemo, useState } from 'react'
@@ -101,8 +102,10 @@ export default function CrmOpportunitiesPage() {
     }
   }, [reloadKey])
 
+  const closedMonth = view === 'won' || view === 'lost' ? closedMonthFromParams(searchParams) : null
+  const monthOpportunities = useMemo(() => filterClosedMonth(opportunities, closedMonth), [opportunities, closedMonth])
   const filterOptions = useMemo(() => pipelineFilterOptions(opportunities), [opportunities])
-  const scopedOpportunities = useMemo(() => filterPipelineScope(opportunities, filters).filter(item => opportunityMatchesSearch(item, search)), [opportunities, filters, search])
+  const scopedOpportunities = useMemo(() => filterPipelineScope(monthOpportunities, filters).filter(item => opportunityMatchesSearch(item, search)), [monthOpportunities, filters, search])
 
   const viewCounts = useMemo(
     () => countPipelineViews(scopedOpportunities, assignedAdvisorId),
@@ -110,8 +113,8 @@ export default function CrmOpportunitiesPage() {
   )
 
   const viewItems = useMemo(
-    () => applyPipelineView(opportunities, { view, assignedAdvisorId }),
-    [opportunities, view, assignedAdvisorId],
+    () => applyPipelineView(monthOpportunities, { view, assignedAdvisorId }),
+    [monthOpportunities, view, assignedAdvisorId],
   )
 
   const filteredOpportunities = useMemo(
@@ -127,7 +130,7 @@ export default function CrmOpportunitiesPage() {
   })
 
   const stageSummary = useMemo(() => pipelineStageSummary(filteredOpportunities), [filteredOpportunities])
-  const hasActiveFilters = search.trim() !== '' || view !== 'active' || Object.values(filters).some(Boolean)
+  const hasActiveFilters = Boolean(closedMonth) || search.trim() !== '' || view !== 'active' || Object.values(filters).some(Boolean)
   const emptyCopy = pipelineEmptyCopy(view)
 
   function applyView(next: PipelineView) {
@@ -194,6 +197,15 @@ export default function CrmOpportunitiesPage() {
           disabled={loading}
         />
 
+        {(view === 'won' || view === 'lost') && <label className="crm-field">Closed month (agency time)
+          <input type="month" value={closedMonth ?? ''} onChange={event => {
+            const next = new URLSearchParams(searchParams)
+            if (event.target.value) next.set('closedMonth', event.target.value)
+            else next.delete('closedMonth')
+            setSearchParams(next)
+          }} />
+          <span className="crm-muted">{closedMonth ? `Showing ${closedMonth} closures in America/Chicago.` : 'Showing all months.'}</span>
+        </label>}
         <p className="crm-muted">Counts reflect the selected filters. Refresh to include recent changes.</p>
         <button type="button" className="crm-text-btn" disabled={loading} onClick={() => setReloadKey(key => key + 1)}>Refresh pipeline</button>
         <div className="crm-opportunities-filters-grid">

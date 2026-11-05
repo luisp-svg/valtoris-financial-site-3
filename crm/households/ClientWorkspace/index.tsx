@@ -124,7 +124,7 @@ export default function ClientWorkspace({ householdId }: ClientWorkspaceProps) {
         navigateTab('notes')
         return
       case 'add_task':
-        navigateTab('tasks')
+        navigate(`${ROUTES.crmTasks}?action=new&household=${encodeURIComponent(workspace?.household.id ?? householdId ?? '')}`)
         return
       case 'upload_document':
         navigateTab('documents')

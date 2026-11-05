@@ -83,6 +83,7 @@ export function writePipelineViewSearchParams(
   next.delete('status')
   next.delete('statusGroup')
   next.delete('view')
+  if (view !== 'won' && view !== 'lost') next.delete('closedMonth')
   if (view === 'active') {
     next.set('statusGroup', 'open')
   } else if (view === 'won' || view === 'lost') {

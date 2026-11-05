@@ -192,7 +192,8 @@
       "codex/tac-household-usability": false,
       "codex/tac-dashboard-navigation": false,
       "codex/tac-dashboard-focus": false,
-      "codex/tac-household-focus": false
+      "codex/tac-household-focus": false,
+      "codex/tac-dashboard-shortcuts": false
     }
   }
 }
