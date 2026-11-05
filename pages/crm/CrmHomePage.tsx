@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import MyDay from '../../crm/dashboard/MyDay'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import '../../crm/dashboard/dashboardHome.css'
 import { useCrmAuth } from '../../crm/auth/CrmAuthContext'
 import MetricStrip from '../../crm/dashboard/MetricStrip'
 import NeedsAttentionSection from '../../crm/dashboard/NeedsAttentionSection'
@@ -17,7 +18,7 @@ import type { OpportunityDetail } from '../../crm/opportunities/types'
 import { crmOpportunityPath } from '../../constants/routes'
 
 function AdvisorCommandCenter() {
-  const { email, role, profile } = useCrmAuth()
+
   const navigate = useNavigate()
   const {
     loading,
@@ -38,20 +39,7 @@ function AdvisorCommandCenter() {
 
   return (
     <div className="crm-home">
-      <header className="crm-page-header crm-dashboard-header">
-        <div>
-          <p className="crm-page-eyebrow">CRM Home</p>
-          <h1 className="crm-page-title">
-            Welcome{profile?.full_name ? `, ${profile.full_name}` : ''}
-          </h1>
-          <p className="crm-page-subtitle">
-            Signed in as {email}
-            {role ? ` · ${role}` : ''}
-            {' · '}
-            What needs attention today
-          </p>
-        </div>
-      </header>
+      <p className="crm-page-subtitle">Your pipeline and client activity</p>
 
       <div className="crm-dashboard-layout">
         <QuickActions onNewOpportunity={() => setShowCreateOpportunity(true)} />
@@ -64,7 +52,6 @@ function AdvisorCommandCenter() {
           onRetry={reload}
         />
 
-        <ClientWorkflowGuide />
 
         <MetricStrip
           counts={data.statusCounts.value}
@@ -104,6 +91,7 @@ function AdvisorCommandCenter() {
             onRetry={reload}
           />
         </div>
+        <details className="tac-workflow-help"><summary>Client workflow guide</summary><ClientWorkflowGuide /></details>
       </div>
 
       {showCreateOpportunity ? (
@@ -118,11 +106,33 @@ function AdvisorCommandCenter() {
 }
 
 export default function CrmHomePage() {
-  const { role } = useCrmAuth()
-
-  if (role === 'owner') {
-    return <><MyDay /><OwnerOpsHome /></>
-  }
-
-  return <><MyDay /><AdvisorCommandCenter /></>
+  const { role, profile } = useCrmAuth()
+  const [params] = useSearchParams()
+  const navigate = useNavigate()
+  const [showCreateOpportunity, setShowCreateOpportunity] = useState(false)
+  const requestedView = params.get('view')
+  const overview = requestedView === 'overview' || (requestedView !== 'day' && role === 'owner')
+  return <div className="tac-dashboard-home">
+    <header className="crm-page-header">
+      <div><p className="crm-page-eyebrow">Your agency workspace</p>
+        <h1 className="crm-page-title">Welcome{profile?.full_name ? `, ${profile.full_name}` : ''}</h1>
+        <p className="crm-page-subtitle">{role === 'owner' ? 'A clear view of your agency and your next steps.' : 'Your priorities, clients, and next steps in one place.'}</p>
+      </div>
+    </header>
+    <nav className="tac-dashboard-views" aria-label="Dashboard views">
+      {role === 'owner' ? <>
+        <Link to="?view=overview" aria-current={overview ? 'page' : undefined}>Agency overview</Link>
+        <Link to="?view=day" aria-current={!overview ? 'page' : undefined}>My Day</Link>
+      </> : <>
+        <Link to="?view=day" aria-current={!overview ? 'page' : undefined}>My Day</Link>
+        <Link to="?view=overview" aria-current={overview ? 'page' : undefined}>Business overview</Link>
+      </>}
+    </nav>
+    {overview ? (role === 'owner' ? <OwnerOpsHome /> : <AdvisorCommandCenter />) : <>
+      <QuickActions onNewOpportunity={() => setShowCreateOpportunity(true)} />
+      <MyDay />
+      <details className="tac-workflow-help"><summary>Client workflow guide</summary><ClientWorkflowGuide /></details>
+    </>}
+    {showCreateOpportunity && <OpportunityFormDialog mode="create" onCancel={() => setShowCreateOpportunity(false)} onSaved={opportunity => {setShowCreateOpportunity(false);navigate(crmOpportunityPath(opportunity.id))}} />}
+  </div>
 }

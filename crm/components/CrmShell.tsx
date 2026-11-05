@@ -6,37 +6,47 @@ import { getCrmSidebarNavItems } from '../../platform/registry'
 import { useCrmAuth } from '../auth/CrmAuthContext'
 import { CrmNavigationGuardProvider } from '../navigation/CrmNavigationGuardContext'
 import CrmUserMenu from './CrmUserMenu'
+import './crmNavigation.css'
 
 /** Registry-driven sidebar; evaluated once per module load (static catalog). */
 const CRM_SIDEBAR_NAV = getCrmSidebarNavItems()
+const NAV_GROUPS = [
+  { label: 'Your day', paths: ['/crm', '/crm/tasks', '/crm/appointments'] },
+  { label: 'Clients & leads', paths: ['/crm/contacts', '/crm/households', '/crm/intake', '/crm/campaigns'] },
+  { label: 'Business', paths: ['/crm/pipeline', '/crm/production', '/crm/commissions'] },
+  { label: 'Team & operations', paths: ['/crm/recruiting', '/crm/operations'] },
+]
+const groupedPaths = new Set(NAV_GROUPS.flatMap(group => group.paths))
+const upcomingItems = CRM_SIDEBAR_NAV.filter(item => item.placeholder)
+const otherItems = CRM_SIDEBAR_NAV.filter(item => !item.placeholder && !groupedPaths.has(item.path))
 
 type CrmShellProps = {
   children: ReactNode
 }
 
 export default function CrmShell({ children }: CrmShellProps) {
-  const { pathname } = useLocation()
+  const { pathname, search } = useLocation()
   const { role } = useCrmAuth()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [logoFailed, setLogoFailed] = useState(false)
+  const menuToggleRef = useRef<HTMLButtonElement>(null)
   const shellRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     setMobileOpen(false)
-  }, [pathname])
+  }, [pathname, search])
 
   useEffect(() => {
     if (!mobileOpen) return
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setMobileOpen(false)
+      if (event.key === 'Escape') {setMobileOpen(false);menuToggleRef.current?.focus()}
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [mobileOpen])
 
-  const nav = (
-    <nav className="crm-nav" aria-label="CRM">
-      {CRM_SIDEBAR_NAV.map((item) => (
+  function renderLink(item: (typeof CRM_SIDEBAR_NAV)[number]) {
+    return (
         <NavLink
           key={item.path}
           to={item.path}
@@ -62,9 +72,20 @@ export default function CrmShell({ children }: CrmShellProps) {
             }`
           }}
         >
-          <span>{item.path === '/crm/intake' ? 'Incoming Leads' : item.label}{item.placeholder ? ' · Coming soon' : ''}</span>
+          <span>{item.path === '/crm' ? 'Dashboard' : item.path === '/crm/intake' ? 'Incoming Leads' : item.label}{item.placeholder ? ' · Coming soon' : ''}</span>
         </NavLink>
-      ))}
+    )
+  }
+  const nav = (
+    <nav className="crm-nav" aria-label="TAC navigation">
+      {NAV_GROUPS.map(group => <section className="tac-nav-group" key={group.label} aria-label={group.label}>
+        <h2>{group.label}</h2>
+        {group.paths.flatMap(path => CRM_SIDEBAR_NAV.filter(item => item.path === path && !item.placeholder)).map(renderLink)}
+      </section>)}
+      {otherItems.length > 0 && <section className="tac-nav-group" aria-label="More"><h2>More</h2>{otherItems.map(renderLink)}</section>}
+      {upcomingItems.length > 0 && <details className="tac-nav-upcoming" open={upcomingItems.some(item => pathname.startsWith(item.path)) || undefined}>
+        <summary>Coming soon</summary>{upcomingItems.map(renderLink)}
+      </details>}
     </nav>
   )
 
@@ -78,7 +99,7 @@ export default function CrmShell({ children }: CrmShellProps) {
             ) : (
               <BrandWordmark variant="header" />
             )}
-            <p className="crm-brand-tag">Valtoris CRM</p>
+            <p className="crm-brand-tag">TAC · Agency workspace</p>
           </div>
           {nav}
           {role ? <p className="crm-sidebar-role">Role: {role}</p> : null}
@@ -89,6 +110,7 @@ export default function CrmShell({ children }: CrmShellProps) {
             <button
               type="button"
               className="crm-menu-toggle"
+              ref={menuToggleRef}
               aria-expanded={mobileOpen}
               aria-controls="crm-mobile-nav"
               onClick={() => setMobileOpen((open) => !open)}

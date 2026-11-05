@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useCrmAuth } from '../auth/CrmAuthContext'
 import ClientWorkflowGuide from '../dashboard/ClientWorkflowGuide'
 import QuickActions from '../dashboard/QuickActions'
 import RecentActivitySection from '../dashboard/RecentActivitySection'
@@ -14,7 +13,7 @@ import PipelineHealthSection from './PipelineHealthSection'
 import { useOwnerOpsDashboard } from './useOwnerOpsDashboard'
 
 export default function OwnerOpsHome() {
-  const { email, role, profile } = useCrmAuth()
+
   const navigate = useNavigate()
   const { loading, data, reload } = useOwnerOpsDashboard(true)
   const [showCreateOpportunity, setShowCreateOpportunity] = useState(false)
@@ -26,23 +25,17 @@ export default function OwnerOpsHome() {
 
   return (
     <div className="crm-home crm-owner-ops">
-      <header className="crm-page-header crm-dashboard-header">
-        <div>
-          <p className="crm-page-eyebrow">Agency Operations</p>
-          <h1 className="crm-page-title">
-            Welcome{profile?.full_name ? `, ${profile.full_name}` : ''}
-          </h1>
-          <p className="crm-page-subtitle">
-            Signed in as {email}
-            {role ? ` · ${role}` : ''}
-            {' · '}
-            Agency-wide pipeline and workload
-          </p>
-        </div>
-      </header>
+      <p className="crm-page-subtitle">Agency-wide pipeline and workload</p>
 
       <div className="crm-dashboard-layout">
         <QuickActions onNewOpportunity={() => setShowCreateOpportunity(true)} />
+
+        <AgencySnapshotSection
+          snapshot={data.snapshot.value}
+          loading={loading}
+          error={data.snapshot.ok ? null : 'Unable to load agency snapshot.'}
+          onRetry={reload}
+        />
 
         <OperationalAlertsSection
           alerts={data.alerts.value}
@@ -51,14 +44,8 @@ export default function OwnerOpsHome() {
           onRetry={reload}
         />
 
-        <ClientWorkflowGuide />
 
-        <AgencySnapshotSection
-          snapshot={data.snapshot.value}
-          loading={loading}
-          error={data.snapshot.ok ? null : 'Unable to load agency snapshot.'}
-          onRetry={reload}
-        />
+
 
         <div className="crm-home-grid">
           <PipelineHealthSection
@@ -85,6 +72,7 @@ export default function OwnerOpsHome() {
             onRetry={reload}
           />
         </div>
+        <details className="tac-workflow-help"><summary>Client workflow guide</summary><ClientWorkflowGuide /></details>
       </div>
 
       {showCreateOpportunity ? (
