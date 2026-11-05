@@ -1,0 +1,11 @@
+.crm-nav .tac-nav-group { display: grid; gap: 2px; margin: 0 0 12px; }
+.crm-nav .tac-nav-group h2 { margin: 8px 12px 4px; color: #bac7e6; font-family: inherit; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+.crm-nav .crm-nav-link { min-height: 44px; }
+.tac-nav-upcoming { border-top: 1px solid #ffffff26; padding-top: 10px; }
+.tac-nav-upcoming summary { min-height: 44px; padding: 10px 12px; cursor: pointer; color: #bac7e6; font-size: 0.85rem; }
+.crm-nav a:focus-visible,.tac-nav-upcoming summary:focus-visible { outline: 2px solid #c8a760; outline-offset: 2px; }
+@media (max-width: 960px) {
+  .crm-mobile-nav-wrap { max-height: calc(100dvh - 80px); overflow-y: auto; }
+  .crm-mobile-nav .crm-nav .tac-nav-group h2,.crm-mobile-nav .tac-nav-upcoming summary { color: #53617e; }
+  .crm-mobile-nav .tac-nav-upcoming { border-color: #d5deee; }
+}
