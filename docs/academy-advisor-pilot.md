@@ -1,6 +1,6 @@
 # Valtoris Academy advisor pilot
 
-The pilot is an original, internal workflow lesson for active Valtoris advisors and owners. It walks through a first student loan conversation, verification of account facts, and a documented handoff. Three fictional scenarios give immediate practice feedback. The [CSLA Institute](https://cslainstitute.org/home) is an external program; this pilot uses no licensed lessons or exams and awards no designation or CE credit.
+The pilot opens with Valtoris Core for active Valtoris advisors and owners. Four original practice lessons cover how Valtoris works, cross-selling and referrals, marketing, and networking. Completing all four checks unlocks Student Loan Client Review for the current visit. That specialty uses three fictional scenarios to practice a first conversation, verification of account facts, and a documented handoff. The [CSLA Institute](https://cslainstitute.org/home) is an external program. The pilot uses original materials and issues no designation or CE credit.
 
 To view the pilot, run `VITE_TAC_ACADEMY_PILOT=true npm run dev` locally with an authorized development login, then open Academy pilot in TAC. The development build flag is also required by the route, so setting the variable in a production build cannot enable it. Progress lives in memory for the current visit; the pilot reads no client records and writes no data.
 
