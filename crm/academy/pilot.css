@@ -29,3 +29,12 @@
 .tac-academy-lesson form { margin: 0; padding: 0; width: 100%; max-width: none; border: 0; box-shadow: none; background: transparent; }
 .tac-academy-choice input[type="radio"] { width: 16px; min-width: 16px; height: 16px; padding: 0; }
 .tac-academy-choice span { min-width: 0; overflow-wrap: anywhere; }
+
+.tac-academy-progress-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.tac-academy-progress-scroll .crm-opportunities-table {
+  min-width: 560px;
+}

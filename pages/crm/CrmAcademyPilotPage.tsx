@@ -5,6 +5,7 @@ import { useCrmAuth } from '../../crm/auth/CrmAuthContext'
 import { CORE_LESSONS } from '../../crm/academy/coreLessons'
 import { PILOT_LESSONS } from '../../crm/academy/pilotLessons'
 import { fetchAcademyProgress, type AcademyProgress } from '../../crm/academy/progressApi'
+import AcademyOwnerOverview from '../../crm/academy/AcademyOwnerOverview'
 import '../../crm/academy/pilot.css'
 
 export default function CrmAcademyPilotPage() {
@@ -12,7 +13,19 @@ export default function CrmAcademyPilotPage() {
   if (status !== 'authenticated' || !profile?.is_active || (role !== 'owner' && role !== 'advisor')) {
     return <section className="crm-panel"><h1>Academy access unavailable</h1><p>This pilot is available to active Valtoris advisors and owners.</p><Link to={ROUTES.crm}>Back to TAC</Link></section>
   }
-  return <AcademyLessonPlayer key={profile.id} />
+  return <AcademyWorkspace key={profile.id} owner={role === 'owner'} />
+}
+
+function AcademyWorkspace({ owner }: { owner: boolean }) {
+  const [showOverview, setShowOverview] = useState(false)
+
+  return <div className="tac-academy-pilot">
+    {owner && <nav className="tac-academy-actions" aria-label="Academy views">
+      <button type="button" className="crm-secondary-btn" aria-pressed={!showOverview} onClick={() => setShowOverview(false)}>My learning</button>
+      <button type="button" className="crm-secondary-btn" aria-pressed={showOverview} onClick={() => setShowOverview(true)}>Advisor progress</button>
+    </nav>}
+    {owner && showOverview ? <AcademyOwnerOverview /> : <AcademyLessonPlayer />}
+  </div>
 }
 
 function AcademyLessonPlayer() {

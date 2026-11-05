@@ -13,3 +13,5 @@ To view the pilot, run `VITE_TAC_ACADEMY_PILOT=true npm run dev` locally with an
 5. **Internal completion record and rollout.** Record course version, completion date, and the internal training title. Do not present it as CSLP certification or CE. Run advisor/owner walkthroughs against development with synthetic records, then seek separate production approval.
 
 This draft implements pilot progress and practice checks. Hosted rollout verification, formal exams, instructor access, and versioned courses remain separate work.
+
+The proposed Advisor progress view requires `scripts/sql/academy/pilot-owner-overview.sql` after the progress setup. The read-only function returns practice completion and last lesson for active advisors. It checks the caller’s active owner profile before returning any rows.
