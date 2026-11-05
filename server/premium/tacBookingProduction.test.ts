@@ -133,3 +133,25 @@ it('still blocks conflicting identities and inactive households even when duplic
  await sandbox.db.query("UPDATE households SET deleted_at=now() WHERE id=(SELECT household_id FROM leads WHERE public_ingest_idempotency_key=$1)",[third.journey.id])
  await expect(store.reserve(third.journey.id,'qaLocation','qaCalendar',third.start,'UTC')).rejects.toThrow('booking_identity_review_required')
 })
+
+it.each(PRIORITIES)('$id books with verified duplicate provider contacts without creating another contact',async({id})=>{
+ const f=await setup(id),exact='bExact'+randomUUID().replace(/-/g,'')
+ vi.mocked(f.provider.findContacts).mockResolvedValue(['zExact','aMismatch',exact,exact])
+ vi.mocked(f.provider.verifyContact).mockImplementation(async(_booking,contact)=>{if(contact==='aMismatch')throw new Error('booking_identity_review_required')})
+ const body={submissionId:f.journey.id,startTime:f.start,timezone:'UTC'}
+ expect((await call(f,'book',body)).status).toBe(200)
+ expect((await store.load(f.journey.id))?.external_contact_id).toBe(exact)
+ expect((await call(f,'report')).status).toBe(200)
+ expect((await call(f,'book',body)).status).toBe(200)
+ expect(f.provider.createContact).not.toHaveBeenCalled();expect(f.provider.createEvent).toHaveBeenCalledTimes(1)
+})
+it('does not attach mismatched contacts or turn provider read errors into new contacts',async()=>{
+ for(const error of ['booking_identity_review_required','booking_provider_unavailable']){
+  const f=await setup()
+  vi.mocked(f.provider.findContacts).mockResolvedValue(['candidate'])
+  vi.mocked(f.provider.verifyContact).mockRejectedValue(new Error(error))
+  await expect(f.service.book(f.journey.id,f.saved.answers,f.start,'UTC')).rejects.toThrow(error)
+  expect(f.provider.createContact).not.toHaveBeenCalled();expect(f.provider.createEvent).not.toHaveBeenCalled()
+  expect((await call(f,'report')).status).toBe(423)
+ }
+})

@@ -102,7 +102,9 @@ function applyCorsHeaders(req: VercelRequest, res: VercelResponse): void {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (req.query?.flow === 'premium') return premiumAssessmentHttp(req, res)
+  if (req.query?.flow === 'premium') return premiumAssessmentHttp(req, res, {
+    onBookingError: category => console.warn('[premium-booking]', category),
+  })
   if (isCombined(req.body?.answers)) return res.status(403).json({ok:false,code:'assessment_session_required'})
   applyCorsHeaders(req, res)
 
