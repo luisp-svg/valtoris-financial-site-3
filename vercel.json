@@ -193,7 +193,8 @@
       "codex/tac-dashboard-navigation": false,
       "codex/tac-dashboard-focus": false,
       "codex/tac-household-focus": false,
-      "codex/tac-dashboard-shortcuts": false
+      "codex/tac-dashboard-shortcuts": false,
+      "codex/academy-advisor-pilot": false
     }
   }
 }

@@ -3,6 +3,8 @@ import { NavLink, useLocation } from 'react-router-dom'
 import BrandLogo from '../../components/BrandLogo'
 import BrandWordmark from '../../components/BrandWordmark'
 import { getCrmSidebarNavItems } from '../../platform/registry'
+import { ROUTES } from '../../constants/routes'
+import { academyPilotEnabled } from '../academy/pilotFlag'
 import { useCrmAuth } from '../auth/CrmAuthContext'
 import { CrmNavigationGuardProvider } from '../navigation/CrmNavigationGuardContext'
 import CrmUserMenu from './CrmUserMenu'
@@ -26,7 +28,7 @@ type CrmShellProps = {
 
 export default function CrmShell({ children }: CrmShellProps) {
   const { pathname, search } = useLocation()
-  const { role } = useCrmAuth()
+  const { role, profile } = useCrmAuth()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [logoFailed, setLogoFailed] = useState(false)
   const menuToggleRef = useRef<HTMLButtonElement>(null)
@@ -83,6 +85,10 @@ export default function CrmShell({ children }: CrmShellProps) {
         {group.paths.flatMap(path => CRM_SIDEBAR_NAV.filter(item => item.path === path && !item.placeholder)).map(renderLink)}
       </section>)}
       {otherItems.length > 0 && <section className="tac-nav-group" aria-label="More"><h2>More</h2>{otherItems.map(renderLink)}</section>}
+      {academyPilotEnabled && profile?.is_active && (role === 'owner' || role === 'advisor') &&
+        <section className="tac-nav-group" aria-label="Learning"><h2>Learning</h2>
+          {renderLink({ path: ROUTES.crmAcademy, label: 'Academy pilot' })}
+        </section>}
       {upcomingItems.length > 0 && <details className="tac-nav-upcoming" open={upcomingItems.some(item => pathname.startsWith(item.path)) || undefined}>
         <summary>Coming soon</summary>{upcomingItems.map(renderLink)}
       </details>}

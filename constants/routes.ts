@@ -71,6 +71,7 @@ export const ROUTES = {
   crmDocuments: '/crm/documents',
   crmCampaigns: '/crm/campaigns',
   crmSettings: '/crm/settings',
+  crmAcademy: '/crm/academy',
 } as const
 
 export function crmHouseholdPath(householdId: string): string {
