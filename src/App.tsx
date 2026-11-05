@@ -11,6 +11,7 @@ import PublicRouteIndexing from '../components/publicSite/PublicRouteIndexing'
 import SiteHeader from '../components/SiteHeader'
 import SiteFooter from '../components/SiteFooter'
 import { ROUTES } from '../constants/routes'
+import { academyPilotEnabled } from '../crm/academy/pilotFlag'
 import { CrmAuthProvider } from '../crm/auth/CrmAuthContext'
 import { CrmLoginGate, CrmProtectedGate } from '../crm/components/CrmGate'
 import HomePage from '../pages/HomePage'
@@ -49,6 +50,9 @@ const CrmArchivedRecordsPage = lazy(() => import('../pages/crm/CrmArchivedRecord
 const CrmLoginPage = lazy(() => import('../pages/crm/CrmLoginPage'))
 const CrmPasswordRecoveryPage = lazy(() => import('../pages/crm/CrmPasswordRecoveryPage'))
 const CrmHomePage = lazy(() => import('../pages/crm/CrmHomePage'))
+const CrmAcademyPilotPage = import.meta.env.DEV && academyPilotEnabled
+  ? lazy(() => import('../pages/crm/CrmAcademyPilotPage'))
+  : null
 const CrmHouseholdsPage = lazy(() => import('../pages/crm/CrmHouseholdsPage'))
 const CrmHouseholdWorkspacePage = lazy(() => import('../pages/crm/CrmHouseholdWorkspacePage'))
 const CrmHouseholdOnboardingPage = lazy(() => import('../pages/crm/CrmHouseholdOnboardingPage'))
@@ -323,6 +327,7 @@ export default function App() {
         <Route path="auth/recovery" element={<CrmPasswordRecoveryPage />} />
         <Route element={<CrmProtectedGate />}>
           <Route index element={<CrmHomePage />} />
+          {CrmAcademyPilotPage && <Route path="academy" element={<CrmAcademyPilotPage />} />}
           <Route path="intake" element={<CrmIntakePage />} />
           <Route path="contacts/new" element={<CrmContactNewPage />} />
           <Route path="contacts/:leadId" element={<CrmContactDetailPage />} />
