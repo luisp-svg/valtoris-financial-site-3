@@ -186,7 +186,8 @@
       "codex/booking-review-feedback": false,
       "codex/allow-duplicate-booking": false,
       "codex/booking-incomplete-contact": false,
-      "codex/booking-slot-recovery": false
+      "codex/booking-slot-recovery": false,
+      "codex/report-results-action-plan": false
     }
   }
 }
