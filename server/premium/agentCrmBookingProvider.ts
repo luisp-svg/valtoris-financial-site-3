@@ -93,7 +93,13 @@ export class AgentCrmBookingProvider implements TacBookingProvider {
   this.assertAllowed(b.submission_id,b.email,b.calendar_id)
   if(this.silent){await this.silent.verifyContact(qa(b),contact);return}
   const c=record(record(await this.request('GET',`/contacts/${id(contact)}`)).contact)
-  if(c.id!==contact||c.locationId!==this.locationId||normalizeEmail(String(c.email||''))!==b.email||normalizePhone(String(c.phone||''))!==b.phone||String(c.firstName||'').trim().toLowerCase()!==b.first_name.trim().toLowerCase()||String(c.lastName||'').trim().toLowerCase()!==b.last_name.trim().toLowerCase())throw new Error('booking_identity_review_required')
+  // An older contact may have only an email. Missing optional details are not conflicts.
+  // Never overwrite that contact or accept a different email, location, or populated identity.
+  const email=normalizeEmail(String(c.email||'')),phone=normalizePhone(String(c.phone||''))
+  const first=String(c.firstName||'').trim().toLowerCase(),last=String(c.lastName||'').trim().toLowerCase()
+  if(c.id!==contact||c.locationId!==this.locationId||email!==b.email
+   ||(phone!==null&&phone!==b.phone)||(first!==''&&first!==b.first_name.trim().toLowerCase())
+   ||(last!==''&&last!==b.last_name.trim().toLowerCase()))throw new Error('booking_identity_review_required')
  }
  async createContact(b:TacBookingRecord){
   this.assertAllowed(b.submission_id,b.email,b.calendar_id)

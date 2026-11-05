@@ -54,9 +54,14 @@ export class TacBookingService implements TacBookingActions {
   let contact=booking.external_contact_id
   if(!contact){
    const candidates=await this.provider.findContacts(booking)
-   if(candidates.length>1)throw new Error('booking_identity_review_required')
-   if(candidates.length===1)contact=candidates[0]
-   else{
+   // Duplicate provider contacts do not block booking when one verifies against this submission.
+   // Stable ordering makes concurrent attempts choose the same verified contact.
+   for(const candidate of [...new Set(candidates)].sort()){
+    try{await this.provider.verifyContact(booking,candidate);contact=candidate;break}
+    catch(error){if(!(error instanceof Error)||error.message!=='booking_identity_review_required')throw error}
+   }
+   if(candidates.length&&!contact)throw new Error('booking_identity_review_required')
+   if(!contact){
     if(booking.contact_create_started||!await this.store.checkpoint(submission,'claim_contact'))return {state:'pending' as const,startTime:booking.starts_at}
     contact=await this.provider.createContact(booking)
    }

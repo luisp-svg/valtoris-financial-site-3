@@ -79,3 +79,14 @@ it('routes the specialized Health & Disability card to health without rerouting 
  expect(qa.calendar(health)).toBe('isolatedQaCalendar');
  expect(f.fetchImpl).not.toHaveBeenCalled();
 });
+
+it('accepts an existing email-only contact without changing it',async()=>{
+ const f=fixture();delete f.c.phone;delete f.c.firstName;delete f.c.lastName
+ await expect(f.provider.verifyContact(f.booking,'contact1')).resolves.toBeUndefined()
+ expect(f.fetchImpl.mock.calls.every(([,init])=>init?.method==='GET')).toBe(true)
+})
+it.each([{email:''},{email:'other@example.invalid'},{phone:'+12025559999'},{firstName:'Other'},{lastName:'Other'},{locationId:'otherLocation'}])('rejects populated conflicting identity %j',async patch=>{
+ const f=fixture();Object.assign(f.c,patch)
+ await expect(f.provider.verifyContact(f.booking,'contact1')).rejects.toThrow('booking_identity_review_required')
+ expect(f.fetchImpl.mock.calls.every(([,init])=>init?.method==='GET')).toBe(true)
+})
