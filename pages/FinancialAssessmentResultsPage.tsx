@@ -142,18 +142,18 @@ export default function FinancialAssessmentResultsPage() {
             </p>
             <h1 ref={heading} tabIndex={-1}>
               {t(
-                consultationOnly ? "Your Consultation Is Confirmed." : "A Clearer View of What Comes Next.",
-                consultationOnly ? "Tu consulta está confirmada." : "Una visión más clara de lo que sigue.",
+                consultationOnly ? "Your Consultation Is Confirmed." : "Your Financial Report Card",
+                consultationOnly ? "Tu consulta está confirmada." : "Tu Report Card Financiero",
               )}
             </h1>
             <p className="premium-lead">
               {t(
-                consultationOnly ? "Your consultation is booked. We’ll discuss your priorities and complete your financial intake together. No Report Card has been completed." : "Use these educational results to organize your questions. Book your complimentary consultation below; further discovery is optional.",
-                consultationOnly ? "Tu consulta está reservada. Conversaremos sobre tus prioridades y completaremos la información financiera juntos. No se ha completado un Report Card." : "Usa estos resultados educativos para organizar tus preguntas. Reserva tu consulta sin costo abajo; la revisión adicional es opcional.",
+                consultationOnly ? "Your consultation is booked. We’ll discuss your priorities and complete your financial intake together. No Report Card has been completed." : "Your priorities. Your perspective. A considered plan for what comes next.",
+                consultationOnly ? "Tu consulta está reservada. Conversaremos sobre tus prioridades y completaremos la información financiera juntos. No se ha completado un Report Card." : "Tus prioridades. Tu perspectiva. Un plan para lo que sigue.",
               )}
             </p>
             {!consultationOnly && <ReportResultsOverview card={reportCard} selected={selected} locale={locale} strategyVersion={strategyVersion}/> }
-            {strategyVersion===1 && <section className="premium-report"><h2>{t('Book Your Complimentary Consultation','Reserva tu consulta sin costo')}</h2><TacConsultationBooking assessmentId={assessmentId} locale={locale} onBooked={()=>void check()} /><h2>{t('Optional: Discover Your Bigger Financial Picture','Opcional: descubre tu panorama financiero')}</h2><p>{t('Your results and booking are available now. Continue with Family or Business Owner discovery if you wish. Prior answers carry forward; no duplicate questions.','Tus resultados y reserva están disponibles. Continúa con la revisión familiar o empresarial si deseas. Conservamos tus respuestas sin repetir preguntas.')}</p><Link className="premium-secondary" to={`/comprehensive-discovery?assessment=${assessmentId}&scope=family&lang=${locale}`}>{t('Family Financial Report Card','Report Card Financiero Familiar')}</Link>{' '}<Link className="premium-secondary" to={`/comprehensive-discovery?assessment=${assessmentId}&scope=business&lang=${locale}`}>{t('Business Owner Financial Report Card','Report Card Financiero Empresarial')}</Link></section>}
+            {strategyVersion===1 && <section className="premium-report premium-follow-up"><h2>{t('Book Your Complimentary Consultation','Reserva tu consulta sin costo')}</h2><TacConsultationBooking assessmentId={assessmentId} locale={locale} onBooked={()=>void check()} /><h2>{t('Optional: Discover Your Bigger Financial Picture','Opcional: descubre tu panorama financiero')}</h2><p>{t('Your results and booking are available now. Continue with Family or Business Owner discovery if you wish. Prior answers carry forward; no duplicate questions.','Tus resultados y reserva están disponibles. Continúa con la revisión familiar o empresarial si deseas. Conservamos tus respuestas sin repetir preguntas.')}</p><Link className="premium-secondary" to={`/comprehensive-discovery?assessment=${assessmentId}&scope=family&lang=${locale}`}>{t('Family Financial Report Card','Report Card Financiero Familiar')}</Link>{' '}<Link className="premium-secondary" to={`/comprehensive-discovery?assessment=${assessmentId}&scope=business&lang=${locale}`}>{t('Business Owner Financial Report Card','Report Card Financiero Empresarial')}</Link></section>}
 
             {nextSteps.length>0&&<section className="premium-report"><h2>{t("Your Next Steps","Tus próximos pasos")}</h2>{nextSteps.map(item=><p key={item.service}><strong>{item.title}</strong>: {item.text}</p>)}</section>}
             {reports.map((review) => (
