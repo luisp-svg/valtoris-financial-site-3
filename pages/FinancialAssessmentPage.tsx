@@ -1,6 +1,7 @@
+import {specializedFunnels} from "../modules/reportCard/funnelStrategy";
 import { premiumSpanishConsent } from "../components/premium/consentLabels";
 import { useEffect, useRef, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import AssessmentBrandHeader from "../components/AssessmentBrandHeader";
 import PublicLocaleSwitcher from "../components/publicSite/PublicLocaleSwitcher";
 import PrioritySelector from "../components/premium/PrioritySelector";
@@ -36,7 +37,11 @@ import "../components/premium/premium.css";
 import "../components/premium/atelier.css";
 const ENDPOINT = "/api/ingest-family-report-card?flow=premium";
 
-export default function FinancialAssessmentPage({
+export default function FinancialAssessmentPage(props:{initialPriority?:Priority;consultationOnly?:boolean}){
+ const {pathname,search}=useLocation();const query=new URLSearchParams(search);
+ return <FinancialAssessmentForm key={pathname+":"+(query.get("focus")??query.get("priorities")??props.initialPriority??"")} {...props}/>;
+}
+function FinancialAssessmentForm({
   initialPriority,
   consultationOnly = false,
 }: {
@@ -59,7 +64,10 @@ export default function FinancialAssessmentPage({
   const errorHeading = useRef<HTMLParagraphElement>(null);
   const formOpenedAt = useRef(new Date().toISOString());
   const t = (en: string, spanish: string) => (es ? spanish : en);
+  const requestedFocus = new URLSearchParams(location.search).get("focus") ?? new URLSearchParams(location.search).get("priorities") ?? initialPriority;
+  const funnel = specializedFunnels.find(f=>f.id===requestedFocus||f.id===(requestedFocus==="tsp"?"retirement":requestedFocus==="protection"?"life":""));
   const [selected, setSelected] = useState<Priority[]>(() => {
+    if(funnel && !consultationOnly)return funnel.selected;
     const values = (
       new URLSearchParams(location.search).get("priorities") ?? ""
     )
@@ -89,7 +97,7 @@ export default function FinancialAssessmentPage({
   const submissionId = useRef<string | null>(null),
     inFlight = useRef(false),
     heading = useRef<HTMLHeadingElement>(null);
-  const questions = consultationOnly ? [] : combinedQuestions(selected, diagnostic, 1),
+  const questions = consultationOnly ? [] : combinedQuestions(selected, diagnostic, 1, 1),
     atContact = step >= questions.length,
     q = questions[step];
   useEffect(() => {
@@ -99,7 +107,7 @@ export default function FinancialAssessmentPage({
   useEffect(()=>{if(error){errorHeading.current?.focus();errorHeading.current?.scrollIntoView({block:"center",behavior:"smooth"})}},[error]);
   function changePriorities(next: Priority[]) {
     setSelected(next);
-    setDiagnostic((current) => pruneCombined(next, current, 1));
+    setDiagnostic((current) => pruneCombined(next, current, 1, 1));
     setError("");
   }
   async function begin() {
@@ -168,6 +176,7 @@ export default function FinancialAssessmentPage({
     const answers = {
       format: COMBINED_FORMAT,
         insuranceRoutingVersion: 1,
+        ...(consultationOnly?{}:{strategyVersion:1 as const}),
       ...(consultationOnly ? {consultationOnly:true as const} : {}),
       selected,
       diagnostic,
@@ -269,23 +278,24 @@ export default function FinancialAssessmentPage({
             </p>
             <h1 ref={heading} tabIndex={-1}>
               {t(
-                consultationOnly ? "Reserve a Conversation" : "What Would You Like to Strengthen?",
-                consultationOnly ? "Reserva una conversación" : "¿Qué te gustaría fortalecer?",
+                consultationOnly ? "Reserve a Conversation" : funnel ? funnel.title[0] : "What Would You Like to Strengthen?",
+                consultationOnly ? "Reserva una conversación" : funnel ? funnel.title[1] : "¿Qué te gustaría fortalecer?",
               )}
             </h1>
             <p className="premium-lead">
               {t(
-                consultationOnly ? "Choose a conversation topic, share your contact details, then select a consultation time. No Report Card is required." : "Choose one or several priorities. We’ll ask relevant questions once, then invite you to reserve your complimentary consultation before opening your detailed results.",
-                consultationOnly ? "Elige un tema, comparte tus datos y selecciona una hora para tu consulta. No se requiere un Report Card." : "Elige una o varias prioridades. Haremos las preguntas relevantes una sola vez y te invitaremos a reservar una consulta sin costo antes de abrir tus resultados detallados.",
+                consultationOnly ? "Choose a conversation topic, share your contact details, then select a consultation time. No Report Card is required." : "Start with a focused review. See your preliminary results and book a complimentary consultation immediately. Family or Business Owner discovery is optional afterward.",
+                consultationOnly ? "Elige un tema, comparte tus datos y selecciona una hora para tu consulta. No se requiere un Report Card." : "Comienza con una revisión enfocada. Mira tus resultados preliminares y reserva una consulta sin costo. La revisión familiar o empresarial es opcional después.",
               )}
             </p>
-            <PrioritySelector
+            {!funnel && !consultationOnly && <div className="priority-directory-grid">{specializedFunnels.map(item=><Link className="premium-secondary" key={item.id} to={`/financial-assessment?focus=${item.id}&lang=${locale}`}>{item.title[es?1:0]}</Link>)}</div>}
+            {!funnel && consultationOnly && <PrioritySelector
               selected={selected}
               onChange={changePriorities}
               locale={locale}
               disabled={busy}
-            />
-            <div className="premium-selection-footer">
+            />}
+            {(funnel||consultationOnly)&&<div className="premium-selection-footer">
               <p aria-live="polite">
                 {selected.length} {t("selected", "seleccionadas")} · {consultationOnly ? t("Contact details, then choose a time.","Tus datos y después el horario.") : t(`About ${Math.max(3, Math.ceil((questions.length * 20 + 60) / 60))} minutes to start; never more than 25 questions including contact details.`, `Unos ${Math.max(3, Math.ceil((questions.length * 20 + 60) / 60))} minutos para comenzar; pueden aparecer preguntas según tus respuestas.`)}
               </p>
@@ -299,10 +309,10 @@ export default function FinancialAssessmentPage({
                   : t(consultationOnly ? "Continue to Contact Details" : "Begin My Review", consultationOnly ? "Continuar a mis datos" : "Comenzar mi revisión")}{" "}
                 ↗
               </button>
-            </div>
+            </div>}
             <p className="premium-fineprint">
               {t(
-                consultationOnly ? "We’ll save your request before showing available appointment times. We’ll complete your financial intake during your consultation." : "Questions adapt to your priorities and answers: up to 22 review questions and 3 contact fields. Consent is separate. You can choose “Not sure.” Detailed documents and follow-up information belong in your consultation intake.",
+                consultationOnly ? "We’ll save your request before showing available appointment times. We’ll complete your financial intake during your consultation." : "This focused review asks 5–10 questions, followed by your contact details. Consent is separate. You can choose “Not sure.” Your Family or Business Owner review is optional afterward.",
                 "El número de preguntas se adapta a tus prioridades y respuestas. Puedes elegir “No sé”. Los documentos y detalles adicionales se completan durante tu consulta.",
               )}
             </p>
@@ -324,8 +334,8 @@ export default function FinancialAssessmentPage({
                 </h1>
                 <p>
                   {t(
-                    consultationOnly ? "Share your contact details, then choose your complimentary consultation time. No Report Card is required. We’ll complete your financial intake together during the consultation." : "Save your assessment, then reserve a complimentary consultation to unlock your detailed results. Your saved details carry into booking.",
-                    consultationOnly ? "Guarda tus datos y elige una hora para tu consulta sin costo. Completaremos la información financiera juntos durante la consulta." : "Guarda tu evaluación y reserva una consulta sin costo para desbloquear tus resultados detallados. Tus datos guardados se usarán en la reserva.",
+                    consultationOnly ? "Share your contact details, then choose your complimentary consultation time. No Report Card is required. We’ll complete your financial intake together during the consultation." : "Save your assessment to see your preliminary results and choose a complimentary consultation time. Further discovery is optional.",
+                    consultationOnly ? "Guarda tus datos y elige una hora para tu consulta sin costo. Completaremos la información financiera juntos durante la consulta." : "Guarda tu evaluación para ver tus resultados preliminares y elegir una consulta sin costo. La revisión adicional es opcional.",
                   )}
                 </p>
                 {consultationOnly && <label className="premium-field">{t('Conversation topic','Tema de conversación')}<select value={selected[0]} onChange={event=>{if(isPriority(event.target.value))setSelected([event.target.value])}} disabled={busy||locked}>{PRIORITIES.map(priority=><option key={priority.id} value={priority.id}>{priority[locale]}</option>)}</select></label>}
@@ -447,7 +457,7 @@ export default function FinancialAssessmentPage({
                         }
                         onChange={(e) => {
                           setDiagnostic((d) =>
-                            updateCombined(selected, d, q.id, e.target.value, 1),
+                            updateCombined(selected, d, q.id, e.target.value, 1, 1),
                           );
                           setError("");
                         }}
@@ -465,6 +475,7 @@ export default function FinancialAssessmentPage({
                                 d,
                                 q.id,
                                 e.target.checked ? "unknown" : "",
+                                1,
                                 1,
                               ),
                             );
@@ -485,7 +496,7 @@ export default function FinancialAssessmentPage({
                       value={String(diagnostic[q.id] ?? "")}
                       onChange={(e) => {
                         setDiagnostic((d) =>
-                          updateCombined(selected, d, q.id, e.target.value, 1),
+                          updateCombined(selected, d, q.id, e.target.value, 1, 1),
                         );
                         setError("");
                       }}
@@ -540,7 +551,7 @@ export default function FinancialAssessmentPage({
                                       ]
                                 : option.value;
                               setDiagnostic((d) =>
-                                updateCombined(selected, d, q.id, next, 1),
+                                updateCombined(selected, d, q.id, next, 1, 1),
                               );
                               setError("");
                             }}
@@ -576,10 +587,10 @@ export default function FinancialAssessmentPage({
                     ? t(
                         locked
                           ? "Retry Save"
-                          : consultationOnly ? "Save Details & Choose a Time" : "Save & Reserve My Consultation",
+                          : consultationOnly ? "Save Details & Choose a Time" : "Save & View My Results",
                         locked
                           ? "Reintentar guardado"
-                          : "Guardar y reservar mi consulta",
+                          : "Guardar y ver mis resultados",
                       )
                     : t("Continue", "Continuar")}{" "}
                 ↗

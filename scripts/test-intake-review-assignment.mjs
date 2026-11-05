@@ -27,6 +27,14 @@ await db.exec(await readFile('supabase/drafts/20261023222500_intake_review_assig
 await db.exec(await readFile('supabase/drafts/20261023223000_intake_assignment_audit_relationship.sql','utf8'));
 await db.exec(await readFile('supabase/drafts/20261023223500_intake_assigned_visibility_only.sql','utf8'));
 await db.exec(await readFile('supabase/drafts/20261023224000_assigned_student_review_workspace.sql','utf8'));
+const priorRouting=(await db.query("SELECT proname,pg_get_functiondef(oid) AS definition,proacl::text AS acl FROM pg_proc WHERE proname IN ('route_public_intake_reviews','assign_intake_submission')")).rows;
+await db.exec(await readFile('supabase/drafts/20261029221458_two_stage_review_routing.sql','utf8'));
+for(const prior of priorRouting){
+ const current=(await db.query('SELECT pg_get_functiondef(oid) AS definition,proacl::text AS acl FROM pg_proc WHERE proname=$1',[prior.proname])).rows[0];
+ const normalized=current.definition.replaceAll("->>'format' IN ('combined-priorities-v1','combined-priorities-v2')","->>'format'='combined-priorities-v1'").replaceAll("'tax','commercial','trucking'","'tax'");
+ assert.equal(normalized,prior.definition);assert.equal(current.acl,prior.acl);
+}
+
 for(const[n,role]of [[1,'owner'],[2,'advisor'],[3,'advisor'],[4,'advisor'],[5,'advisor']])await db.query('INSERT INTO profiles(id,role,is_active) VALUES($1,$2,$3)',[id(n),role,n!==5]);
 for(const[n,user,slug]of [[11,2,'lizbeth-350d9c03'],[12,3,'jazmin-perez'],[13,4,'other'],[14,5,'inactive'],[16,1,'owner']])await db.query('INSERT INTO advisor_profiles(id,user_id,slug) VALUES($1,$2,$3)',[id(n),id(user),slug]);
 for(const n of [101,102,103,104])await db.query('INSERT INTO households(id,assigned_advisor_id) VALUES($1,$2)',[id(n),id(16)]);
@@ -60,4 +68,29 @@ assert.equal((await db.query('SELECT count(*)::int AS n FROM activities')).rows[
 await assert.rejects(()=>as(1,'SELECT assign_intake_submission($1,$2,$3)',[id(201),id(12),prior]),/assignment_changed_reload/);
 await assert.rejects(()=>db.transaction(async tx=>{await tx.exec('SET LOCAL ROLE anon');return tx.query('SELECT assign_intake_submission($1,$2,$3)',[id(201),id(12),prior])}),/permission denied/);
 await assert.rejects(()=>as(3,'UPDATE intake_review_assignments SET advisor_id=$1',[id(12)]),/permission denied/);
+// Current specialized formats must preserve every selected review, including insurance.
+for(const [index,[selected,expected]] of [
+ [['health','protection'],[12,13]],
+ [['student_loan'],[11]],
+ [['commercial'],[13]],
+ [['trucking'],[13]],
+ [['family','protection'],[13,13]],
+ [['retirement','tsp'],[13,13]],
+].entries()){
+ const h=id(501+index),l=id(601+index),a=id(701+index);
+ await db.query('INSERT INTO households(id,assigned_advisor_id) VALUES($1,$2)',[h,id(16)]);
+ await db.query('INSERT INTO leads(id,household_id,public_ingest_idempotency_key,assigned_advisor_id,assessment_type) VALUES($1,$2,$1,$3,$4)',[l,h,id(13),selected.includes('health')?'health':selected.includes('student_loan')?'student_loan':'family']);
+ await db.query('INSERT INTO assessments(id,lead_id,household_id,assessment_type,answers) VALUES($1,$2,$3,$4,$5)',[a,l,h,selected.includes('health')?'health':selected.includes('student_loan')?'student_loan':'family',JSON.stringify({format:'combined-priorities-v2',strategyVersion:1,selected})]);
+ const assigned=(await db.query('SELECT review_type,advisor_id FROM intake_review_assignments WHERE lead_id=$1',[l])).rows;
+ assert.equal(assigned.length,selected.length);
+ for(const [i,type]of selected.entries())assert.equal(assigned.find(r=>r.review_type===type)?.advisor_id,id(expected[i]));
+ const before=(await db.query('SELECT updated_at FROM leads WHERE id=$1',[l])).rows[0].updated_at;
+ await as(1,'SELECT assign_intake_submission($1,$2,$3)',[l,id(11),before]);
+ assert.equal((await db.query('SELECT count(*)::int AS n FROM intake_review_assignments WHERE lead_id=$1 AND advisor_id=$2',[l,id(11)])).rows[0].n,selected.length);
+ assert.equal((await db.query('SELECT assigned_advisor_id FROM households WHERE id=$1',[h])).rows[0].assigned_advisor_id,id(16));
+}
+// Reapplying only this additive update is harmless; unknown review types remain rejected.
+await db.exec(await readFile('supabase/drafts/20261029221458_two_stage_review_routing.sql','utf8'));
+await assert.rejects(()=>db.query("INSERT INTO intake_review_assignments(lead_id,review_type,advisor_id,reason) VALUES($1,'unsupported',$2,'manual')",[id(601),id(11)]),/check constraint/);
+console.log('PASS: v2 health/protection, student loans, commercial, trucking, life and retirement/TSP route and reassign all selected reviews; v1 access controls retained; migration replay safe.');
 console.log('PASS: owner sees all; Liz/Jaz see assigned reviews and appointments; unrelated and inactive users denied; assignment is owner-only, concurrency-protected, audited and retains household ownership; no outbound operations.');await db.close();

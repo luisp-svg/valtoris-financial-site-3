@@ -1,3 +1,4 @@
+import type {readDiscoverySummary} from "../../../modules/reportCard/funnelStrategy";
 import type { combinedResults } from '../../../modules/reportCard/combined/results'
 import type { ShortResult } from '../../../modules/reportCard/shortForm/results'
 import type { AffordabilityResult } from '../../../components/assessment/homeBuyer/affordability'
@@ -131,6 +132,7 @@ export type PublicFamilyDiagnosticDetail = {
   flags: DiagnosticFlagItem[]
   submittedSnapshot: SubmittedDiagnosticSnapshot
   combinedReports?: ReturnType<typeof combinedResults>
+  discovery?:ReturnType<typeof readDiscoverySummary>
   bookingVerifiedAt?: string | null
   shortFormResult?: ShortResult
   affordability?: AffordabilityResult

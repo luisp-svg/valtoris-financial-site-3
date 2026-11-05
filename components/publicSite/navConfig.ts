@@ -50,18 +50,20 @@ export const SERVICES_NAV_LINKS: readonly PublicNavLink[] = SERVICES_NAV_GROUPS.
 )
 
 export const TOOLS_NAV_LINKS: readonly PublicNavLink[] = [
-  { id: 'family', to: ROUTES.reportCard, labelKey: 'toolsFamily' },
-  { id: 'business', to: ROUTES.businessReportCard, labelKey: 'toolsBusiness' },
+  { id: 'studentLoan', to: ROUTES.studentLoanReportCard, labelKey: 'toolsStudentLoan' },
+  { id: 'health', to: '/health-insurance-report-card', labelKey: 'toolsHealth' },
+  { id: 'lifestyle', to: '/personal-insurance-report-card', labelKey: 'toolsLifestyle' },
+  { id: 'commercial', to: '/commercial-insurance-report-card', labelKey: 'toolsCommercial' },
+  { id: 'trucking', to: '/commercial-trucking-report-card', labelKey: 'toolsTrucking' },
+  { id: 'homeBuyer', to: ROUTES.homeBuyerReportCard, labelKey: 'toolsHomeBuyer' },
+  { id: 'benefits', to: '/employee-benefits-report-card', labelKey: 'toolsBenefits' },
   { id: 'retirement', to: ROUTES.retirementReportCard, labelKey: 'toolsRetirement' },
   { id: 'protection', to: ROUTES.protectionAnalysis, labelKey: 'toolsProtection' },
-  { id: 'studentLoan', to: ROUTES.studentLoanReportCard, labelKey: 'toolsStudentLoan' },
+  { id: 'family', to: ROUTES.reportCard, labelKey: 'toolsFamily' },
+  { id: 'business', to: ROUTES.businessReportCard, labelKey: 'toolsBusiness' },
   { id: 'credit', to: ROUTES.creditReportCard, labelKey: 'toolsCredit' },
-  { id: 'homeBuyer', to: ROUTES.homeBuyerReportCard, labelKey: 'toolsHomeBuyer' },
   { id: 'tsp', to: '/tsp-report-card', labelKey: 'toolsTsp' },
-  { id: 'health', to: '/health-insurance-report-card', labelKey: 'toolsHealth' },
-  { id: 'benefits', to: '/employee-benefits-report-card', labelKey: 'toolsBenefits' },
   { id: 'taxReview', to: '/tax-review-report-card', labelKey: 'toolsTax' },
-  { id: 'lifestyle', to: '/lifestyle-report-card', labelKey: 'toolsLifestyle' },
 ]
 
 export const QUOTE_NAV: PublicNavLink = { id: 'quotes', to: ROUTES.getQuote, labelKey: 'navGetQuote' }

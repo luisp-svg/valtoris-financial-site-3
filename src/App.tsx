@@ -1,3 +1,4 @@
+import ComprehensiveDiscoveryPage from "../pages/ComprehensiveDiscoveryPage";
 import { guidedReportCardsEnabled } from '../modules/reportCard/guidedRelease'
 import PremiumFunnelLanding from '../components/premium/PremiumFunnelLanding'
 import FinancialAssessmentPage from '../pages/FinancialAssessmentPage'
@@ -110,6 +111,8 @@ export default function App() {
       <Route path="/business-owners" element={<SiteLayout><ProtectionAudiencePage audience="business" /></SiteLayout>} />
       <Route path="/financial-assessment" element={<FinancialAssessmentPage />} />
       <Route path="/assessment-results" element={<FinancialAssessmentResultsPage />} />
+      <Route path="/comprehensive-discovery" element={<ComprehensiveDiscoveryPage />} />
+      <Route path="/life-insurance-report-card" element={<SiteLayout><PremiumFunnelLanding priority="protection" /></SiteLayout>} />
       <Route path="/commercial-insurance-report-card" element={<SiteLayout><PremiumFunnelLanding priority="commercial" /></SiteLayout>} />
       <Route path="/commercial-trucking-report-card" element={<SiteLayout><PremiumFunnelLanding priority="trucking" /></SiteLayout>} />
       <Route path="/personal-insurance-report-card" element={<SiteLayout><PremiumFunnelLanding priority="lifestyle" /></SiteLayout>} />

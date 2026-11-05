@@ -35,6 +35,8 @@ export type ChromeCopyKey =
   | 'servicesGroupBusiness'
   | 'servicesViewSolutions'
   | 'exploreAllSolutions'
+  | 'toolsCommercial'
+  | 'toolsTrucking'
   | 'toolsFamily'
   | 'toolsBusiness'
   | 'toolsRetirement'
@@ -94,18 +96,20 @@ export const chromeCopy: Record<PublicLocale, ChromeCopyCatalog> = {
     servicesGroupBusiness: 'Business',
     servicesViewSolutions: 'View Solutions',
     exploreAllSolutions: 'Explore All Solutions',
-    toolsFamily: 'Family Report Card™',
-    toolsBusiness: 'Business Report Card™',
-    toolsRetirement: 'Retirement Report Card™',
-    toolsProtection: 'Protection Gap',
+    toolsCommercial: 'Commercial Insurance Report Card',
+    toolsTrucking: 'Commercial Trucking Report Card',
+    toolsFamily: 'Family Financial Discovery (Optional)',
+    toolsBusiness: 'Business Owner Discovery (Optional)',
+    toolsRetirement: 'Retirement & TSP Rollovers',
+    toolsProtection: 'Life Insurance / Protection Gap',
     toolsStudentLoan: 'Student Loan Report Card™',
     toolsCredit: 'Credit Report Card™',
     toolsHomeBuyer: 'Homebuyer Readiness Report Card',
     toolsTsp: 'TSP & Federal Retirement Report Card',
-    toolsHealth: 'Health Coverage Report Card',
+    toolsHealth: 'Health & Disability Report Card',
     toolsBenefits: 'Employee Benefits Report Card',
     toolsTax: 'Tax Planning Report Card',
-    toolsLifestyle: 'Lifestyle & Asset Protection Report Card',
+    toolsLifestyle: 'Personal Home & Auto Report Card',
     footerCompany: 'Company',
     footerFamilies: 'Families',
     footerBusiness: 'Business',
@@ -151,10 +155,12 @@ export const chromeCopy: Record<PublicLocale, ChromeCopyCatalog> = {
     servicesGroupBusiness: 'Negocios',
     servicesViewSolutions: 'Ver soluciones',
     exploreAllSolutions: 'Explorar todas las soluciones',
-    toolsFamily: 'Family Report Card™',
-    toolsBusiness: 'Business Report Card™',
-    toolsRetirement: 'Retirement Report Card™',
-    toolsProtection: 'Protection Gap',
+    toolsCommercial: 'Reporte de seguro comercial',
+    toolsTrucking: 'Reporte de transporte comercial',
+    toolsFamily: 'Revisión financiera familiar (opcional)',
+    toolsBusiness: 'Revisión empresarial (opcional)',
+    toolsRetirement: 'Retirement & TSP Rollovers',
+    toolsProtection: 'Life Insurance / Protection Gap',
     toolsStudentLoan: 'Student Loan Report Card™',
     toolsCredit: 'Credit Report Card™',
     toolsHomeBuyer: 'Reporte de preparación para comprar vivienda',

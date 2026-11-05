@@ -211,8 +211,8 @@ export default function HomePage() {
           </PublicLink>
           <p className="atelier-hero-note">
             {t(
-              "Complete your assessment. Book your consultation. Unlock preliminary results.",
-              "Completa tu evaluación. Reserva tu consulta. Desbloquea resultados preliminares.",
+              "Complete your assessment. View your preliminary grade. Book your complimentary consultation.",
+              "Completa tu evaluación. Consulta tu calificación preliminar. Reserva tu consulta sin costo.",
             )}
           </p>
         </div>
@@ -356,8 +356,8 @@ export default function HomePage() {
           </p>
           <p>
             {t(
-              "Select one or several priorities. We will tailor a coordinated questionnaire, ask compatible shared questions once, and organize your preliminary Report Card by the areas you select.",
-              "Selecciona una o varias prioridades. Adaptaremos las preguntas, solicitaremos una sola vez la información compartida compatible y organizaremos tu Report Card por las áreas elegidas.",
+              "Start with a short, specialized Report Card: student loans and health first, followed by home and auto, commercial insurance and trucking. Broader Family or Business Owner discovery is optional, with your prior answers carried forward.",
+              "Comienza con un Report Card especializado: préstamos y salud primero, después hogar y auto, seguro comercial y transporte. La revisión familiar o empresarial es opcional y conserva tus respuestas.",
             )}
           </p>
           <PublicLink className="atelier-cta" to="/financial-assessment">
@@ -366,8 +366,8 @@ export default function HomePage() {
           </PublicLink>
           <p className="atelier-disclosure">
             {t(
-              "Complete your assessment, reserve your complimentary consultation, and unlock your preliminary results before meeting with a Valtoris specialist.",
-              "Completa tu evaluación, reserva tu consulta sin costo y desbloquea tus resultados preliminares antes de reunirte con un especialista de Valtoris.",
+              "Complete 5–10 focused questions, see your preliminary results, and book a complimentary consultation immediately. Comprehensive discovery never blocks booking.",
+              "Responde 5–10 preguntas, mira tus resultados preliminares y reserva una consulta sin costo de inmediato. La revisión integral nunca bloquea la reserva.",
             )}
           </p>
           <PublicLink className="atelier-text-link" to="/report-cards">

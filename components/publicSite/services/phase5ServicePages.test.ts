@@ -103,7 +103,7 @@ describe('Phase 5 estate and tax strategy service pages', () => {
     expect(app).not.toContain('Navigate to={ROUTES.taxStrategy}')
   })
 
-  it('points Services at the new pages in grouped nav and leaves Tools unchanged', () => {
+  it('points Services at the new pages in grouped nav and puts specialized Report Cards first', () => {
     expect(SERVICES_NAV_GROUPS.map((group) => group.id)).toEqual(['individuals', 'business'])
     expect(SERVICES_NAV_LINKS.find((item) => item.id === 'estate')?.to).toBe(ROUTES.estateLegacy)
     expect(SERVICES_NAV_LINKS.find((item) => item.id === 'tax')?.to).toBe(ROUTES.taxStrategy)
@@ -112,18 +112,10 @@ describe('Phase 5 estate and tax strategy service pages', () => {
       ROUTES.businessFormation,
     )
     expect(TOOLS_NAV_LINKS.map((item) => item.to)).toEqual([
-      ROUTES.reportCard,
-      ROUTES.businessReportCard,
-      ROUTES.retirementReportCard,
-      ROUTES.protectionAnalysis,
-      ROUTES.studentLoanReportCard,
-      ROUTES.creditReportCard,
-      ROUTES.homeBuyerReportCard,
-      '/tsp-report-card',
-      '/health-insurance-report-card',
-      '/employee-benefits-report-card',
-      '/tax-review-report-card',
-      '/lifestyle-report-card',
+      ROUTES.studentLoanReportCard, '/health-insurance-report-card', '/personal-insurance-report-card',
+      '/commercial-insurance-report-card', '/commercial-trucking-report-card', ROUTES.homeBuyerReportCard,
+      '/employee-benefits-report-card', ROUTES.retirementReportCard, ROUTES.protectionAnalysis,
+      ROUTES.reportCard, ROUTES.businessReportCard, ROUTES.creditReportCard, '/tsp-report-card', '/tax-review-report-card',
     ])
     const html = renderChrome('/')
     expect(html).toContain(`href="${ROUTES.estateLegacy}"`)

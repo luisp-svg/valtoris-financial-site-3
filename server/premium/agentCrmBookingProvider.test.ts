@@ -69,3 +69,13 @@ it('coalesces repeated availability reads across request-scoped provider instanc
  expect(values[0]).toEqual(['2026-11-02T15:00:00Z']);expect(values[1]).toEqual(values[0])
  expect(f.fetchImpl).toHaveBeenCalledTimes(1)
 })
+
+it('routes the specialized Health & Disability card to health without rerouting broader or legacy reviews',()=>{
+ const f=fixture();const health={...combinedFixture(['health','protection']),strategyVersion:1 as const};
+ expect(f.provider.calendar(health)).toBe(PREMIUM_CALENDARS[1]);
+ expect(f.provider.calendar({...health,selected:['health','protection','family']})).toBe(PREMIUM_CALENDARS[0]);
+ expect(f.provider.calendar(combinedFixture(['health','protection']))).toBe(PREMIUM_CALENDARS[0]);
+ const qa=new AgentCrmBookingProvider({...f.env,AGENTCRM_BOOKING_TEST_ONLY:'true',AGENTCRM_LOCATION_ID:'I2Y36c45rBLFZhCQwkDC',AGENTCRM_SILENT_TEST_CALENDAR_ID:'isolatedQaCalendar'},f.fetchImpl);
+ expect(qa.calendar(health)).toBe('isolatedQaCalendar');
+ expect(f.fetchImpl).not.toHaveBeenCalled();
+});
