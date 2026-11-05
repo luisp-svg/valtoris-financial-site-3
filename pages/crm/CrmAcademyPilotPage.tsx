@@ -5,6 +5,7 @@ import { useCrmAuth } from '../../crm/auth/CrmAuthContext'
 import { CORE_LESSONS } from '../../crm/academy/coreLessons'
 import { PILOT_LESSONS } from '../../crm/academy/pilotLessons'
 import { fetchAcademyProgress, type AcademyProgress } from '../../crm/academy/progressApi'
+import AcademyCoreExam from '../../crm/academy/AcademyCoreExam'
 import AcademyOwnerOverview from '../../crm/academy/AcademyOwnerOverview'
 import '../../crm/academy/pilot.css'
 
@@ -29,6 +30,7 @@ function AcademyWorkspace({ owner }: { owner: boolean }) {
 }
 
 function AcademyLessonPlayer() {
+  const [showExam, setShowExam] = useState(false)
   const [progress, setProgress] = useState<AcademyProgress | null>(null)
   const [choice, setChoice] = useState<number | null>(null)
   const [busy, setBusy] = useState(false)
@@ -90,6 +92,8 @@ function AcademyLessonPlayer() {
     if (choice !== null) void save(lesson.id, choice)
   }
 
+  if (showExam && coreComplete) return <AcademyCoreExam onBack={() => setShowExam(false)} />
+
   return <div className="tac-academy-pilot">
     <header className="tac-academy-hero">
       <p className="tac-academy-kicker">Valtoris Academy · Advisor pilot</p>
@@ -102,6 +106,7 @@ function AcademyLessonPlayer() {
       <div className="tac-academy-actions">
         <button type="button" className="crm-secondary-btn" aria-pressed={isCore} disabled={busy} onClick={() => void save(CORE_LESSONS[0].id)}>Valtoris Core</button>
         <button type="button" className="crm-secondary-btn" aria-pressed={!isCore} disabled={busy || !coreComplete} onClick={() => void save(PILOT_LESSONS[0].id)}>Student Loan Client Review</button>
+        <button type="button" className="crm-secondary-btn" disabled={busy || !coreComplete} onClick={() => setShowExam(true)}>Core exam</button>
       </div>
       {!coreComplete && <p>Complete the four Core practice checks to open the student loan specialty.</p>}
     </section>

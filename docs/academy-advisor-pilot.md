@@ -15,3 +15,5 @@ To view the pilot, run `VITE_TAC_ACADEMY_PILOT=true npm run dev` locally with an
 This draft implements pilot progress and practice checks. Hosted rollout verification, formal exams, instructor access, and versioned courses remain separate work.
 
 The proposed Advisor progress view requires `scripts/sql/academy/pilot-owner-overview.sql` after the progress setup. The read-only function returns practice completion and last lesson for active advisors. It checks the caller’s active owner profile before returning any rows.
+
+The proposed graded Core exam requires `scripts/sql/academy/pilot-core-exam.sql` after both earlier development setup scripts. Advisors open it after passing the four Core practice checks. The database grades seven original questions, keeps the best result across retries, and reports that result to active owners. Six correct answers meet the proposed 85% threshold. The student loan course remains tied to Core practice completion during this pilot.
