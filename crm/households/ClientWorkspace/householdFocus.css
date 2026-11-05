@@ -1,0 +1,31 @@
+.tac-household-section { min-width: 0; border: 1px solid var(--crm-border); border-radius: 12px; background: #fff; padding: 0 16px; margin: 12px 0; }
+.tac-household-section > summary { min-height: 48px; padding: 12px 0; cursor: pointer; color: var(--crm-navy); font-weight: 650; }
+.tac-household-section > summary:focus-visible { outline: 2px solid var(--crm-blue); outline-offset: 3px; }
+.tac-household-section[open] { padding-bottom: 16px; }
+.tac-household-summary { margin: 0; }
+.tac-household-summary .crm-client-workspace-kpi-strip { padding-top: 8px; }
+.tac-household-review-link { justify-self: start; min-height: 44px; }
+.tac-household-management { margin: 0 0 16px; }
+.tac-household-management .tac-household-actions { margin: 4px 0; }
+.tac-household-overview-intro { margin: 4px 0 16px; color: var(--crm-muted); line-height: 1.6; }
+.crm-client-workspace-sidebar > .tac-household-section { margin: 0; }
+.crm-client-workspace-sidebar > .tac-household-section .crm-panel { padding: 0; border: 0; box-shadow: none; }
+@media (max-width: 960px) {
+  .crm-client-workspace-page .crm-client-workspace-sidebar { grid-template-columns: minmax(0, 1fr); }
+  .tac-household-section { padding-left: 12px; padding-right: 12px; }
+}
+
+.crm-client-workspace-header .crm-client-workspace-meta { display: flex; flex-wrap: wrap; gap: 16px; }
+.tac-household-section-select { display: none; }
+@media (max-width: 960px) {
+  .tac-household-section-select { display: grid; gap: 6px; font-weight: 650; color: var(--crm-navy); }
+  .tac-household-section-select select { min-height: 44px; max-width: 100%; padding: 10px 12px; background: #fff; border: 1px solid var(--crm-border); border-radius: 8px; font: inherit; }
+  .crm-client-workspace-main .crm-household-workspace-tabs { display: none; }
+}
+
+@media (max-width: 960px) {
+  .crm-client-workspace-page .crm-client-workspace-sidebar { display: contents; }
+  .crm-client-workspace-layout > .crm-client-workspace-main { grid-row: 2; }
+  .crm-client-workspace-sidebar > .crm-panel { grid-row: 1; }
+  .crm-client-workspace-sidebar .crm-client-workspace-info-list { gap: 8px; }
+}

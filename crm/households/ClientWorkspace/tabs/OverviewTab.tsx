@@ -45,24 +45,33 @@ export default function OverviewTab({
         />
       ) : null}
 
+      <p className="tac-household-overview-intro">Start with the next task or an active opportunity. Open a section below for reports, intake, and supporting records.</p>
       <WidgetGrid>
+        <UpcomingTasksWidget workspace={workspace} onNavigateTab={onNavigateTab} />
+        <CurrentOpportunitiesWidget workspace={workspace} onCreateOpportunity={onOpenCreateOpportunity} />
+        {workspace.openCasesCount > 0 && <OpenCasesWidget workspace={workspace} onNavigateTab={onNavigateTab} />}
+      </WidgetGrid>
+      <details className="tac-household-section"><summary>Reports & client intake</summary><WidgetGrid>
         <ClientIntakesWidget key={householdId} householdId={householdId} />
-        <HouseholdSummaryWidget workspace={workspace} onNavigateTab={onNavigateTab} />
-        <InsuranceQuotesWidget key={householdId} householdId={householdId} />
-        <HowWeMetWidget workspace={workspace} onNavigateTab={onNavigateTab} />
-        <OnboardingEntryWidget householdId={householdId} />
         <InitialFinancialDiagnosticWidget workspace={workspace} householdId={householdId} />
         <FinancialProgressSummaryWidget workspace={workspace} onNavigateTab={onNavigateTab} />
-        <CurrentOpportunitiesWidget
-          workspace={workspace}
-          onCreateOpportunity={onOpenCreateOpportunity}
-        />
-        <OpenCasesWidget workspace={workspace} onNavigateTab={onNavigateTab} />
-        <UpcomingTasksWidget workspace={workspace} onNavigateTab={onNavigateTab} />
+        <OnboardingEntryWidget householdId={householdId} />
+      </WidgetGrid></details>
+      <details className="tac-household-section"><summary>Quotes & recent documents</summary><WidgetGrid>
+        <InsuranceQuotesWidget key={householdId} householdId={householdId} />
         <RecentDocumentsWidget workspace={workspace} onNavigateTab={onNavigateTab} />
-        <HouseholdRecordsWidget key={householdId} householdId={householdId} />
+      </WidgetGrid></details>
+      <details className="tac-household-section"><summary>Household background</summary><WidgetGrid>
+        <HouseholdSummaryWidget workspace={workspace} onNavigateTab={onNavigateTab} />
+        <HowWeMetWidget workspace={workspace} onNavigateTab={onNavigateTab} />
+      </WidgetGrid></details>
+      <details className="tac-household-section"><summary>Recent activity</summary>
         <RecentTimelineWidget workspace={workspace} onNavigateTab={onNavigateTab} />
-      </WidgetGrid>
+      </details>
+      <details className="tac-household-section"><summary>Linked contacts & record history</summary>
+        <HouseholdRecordsWidget key={householdId} householdId={householdId} />
+      </details>
+
     </div>
   )
 }

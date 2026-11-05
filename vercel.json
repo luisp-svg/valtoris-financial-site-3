@@ -191,7 +191,8 @@
       "codex/tac-cleanup-boards": false,
       "codex/tac-household-usability": false,
       "codex/tac-dashboard-navigation": false,
-      "codex/tac-dashboard-focus": false
+      "codex/tac-dashboard-focus": false,
+      "codex/tac-household-focus": false
     }
   }
 }

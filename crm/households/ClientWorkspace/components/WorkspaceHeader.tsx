@@ -7,9 +7,7 @@ import {
 import type { ClientWorkspaceModel } from '../financialProgress/attachFinancialProgress'
 import FinancialProgressKpiCard from '../financialProgress/FinancialProgressKpiCard'
 import {
-  formatWorkspaceDate,
   getNextReviewLabel,
-  getReviewDueLabel,
 } from '../format'
 
 type WorkspaceHeaderProps = {
@@ -19,7 +17,6 @@ type WorkspaceHeaderProps = {
 
 export default function WorkspaceHeader({ workspace, onViewProgress }: WorkspaceHeaderProps) {
   const { household, financialProgress, openTasks, activePolicies, annualReview } = workspace
-  const reviewDue = getReviewDueLabel(annualReview)
   const nextReview = getNextReviewLabel(annualReview)
 
   return (
@@ -30,26 +27,21 @@ export default function WorkspaceHeader({ workspace, onViewProgress }: Workspace
           <span className="crm-status-chip" title="Pipeline stage">
             {getStageLabel(household)}
           </span>
-          <span className="crm-status-chip crm-status-chip-soft" title="Household status">
+          {getStageLabel(household) !== getStatusLabel(household.status) && <span className="crm-status-chip crm-status-chip-soft" title="Household status">
             {getStatusLabel(household.status)}
-          </span>
+          </span>}
         </div>
         <dl className="crm-client-workspace-meta">
           <div>
             <dt>Assigned Advisor</dt>
             <dd>{getAdvisorLabel(household)}</dd>
           </div>
-          <div>
-            <dt>Record created</dt>
-            <dd>{formatWorkspaceDate(household.created_at)}</dd>
-          </div>
-          <div>
-            <dt>Review Due</dt>
-            <dd>{reviewDue}</dd>
-          </div>
+
         </dl>
       </div>
 
+      {onViewProgress && <button type="button" className="crm-text-btn tac-household-review-link" onClick={onViewProgress}>Open financial review →</button>}
+      <details className="tac-household-section tac-household-summary"><summary>Scores, policies & review summary</summary>
       <div className="crm-client-workspace-kpi-strip" aria-label="Workspace KPIs">
         <FinancialProgressKpiCard progress={financialProgress} onViewProgress={onViewProgress} />
         <StatCard
@@ -77,6 +69,7 @@ export default function WorkspaceHeader({ workspace, onViewProgress }: Workspace
           empty={nextReview === '—'}
         />
       </div>
+      </details>
     </header>
   )
 }

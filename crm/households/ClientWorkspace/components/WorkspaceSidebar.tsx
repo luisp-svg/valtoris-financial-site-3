@@ -2,7 +2,6 @@ import Panel from '../../../components/ui/Panel'
 import SectionHeader from '../../../components/ui/SectionHeader'
 import {
   formatHouseholdAddress,
-  getAdvisorLabel,
   getMemberDisplayName,
 } from '../../householdsApi'
 import type { CrmHouseholdWorkspace } from '../../types'
@@ -37,10 +36,10 @@ export default function WorkspaceSidebar({
       <Panel labelledBy="crm-client-info-heading">
         <SectionHeader title="Client Information" titleId="crm-client-info-heading" />
         <dl className="crm-client-workspace-info-list">
-          <div>
-            <dt>Name</dt>
+          {contactName !== household.display_name && <div>
+            <dt>Primary contact</dt>
             <dd>{displayOptional(contactName)}</dd>
-          </div>
+          </div>}
           <div>
             <dt>Email</dt>
             <dd>{displayOptional(email)}</dd>
@@ -49,22 +48,17 @@ export default function WorkspaceSidebar({
             <dt>Phone</dt>
             <dd>{displayOptional(phone)}</dd>
           </div>
-          <div>
-            <dt>Address</dt>
-            <dd>{displayOptional(address)}</dd>
-          </div>
+
         </dl>
       </Panel>
 
+      <details className="tac-household-section"><summary>Address & record details</summary>
       <Panel labelledBy="crm-advisor-info-heading">
-        <SectionHeader title="Advisor Information" titleId="crm-advisor-info-heading" />
+        <SectionHeader title="Record details" titleId="crm-advisor-info-heading" />
         <dl className="crm-client-workspace-info-list">
+          <div><dt>Address</dt><dd>{displayOptional(address)}</dd></div>
           <div>
-            <dt>Assigned Advisor</dt>
-            <dd>{getAdvisorLabel(household)}</dd>
-          </div>
-          <div>
-            <dt>Client Since</dt>
+            <dt>Record created</dt>
             <dd>{formatWorkspaceDate(household.created_at)}</dd>
           </div>
           <div>
@@ -78,10 +72,14 @@ export default function WorkspaceSidebar({
         </dl>
       </Panel>
 
+      </details>
+
+      <details className="tac-household-section"><summary>Add a task, note or opportunity</summary>
       <Panel labelledBy="crm-quick-actions-heading">
         <SectionHeader title="Quick Actions" titleId="crm-quick-actions-heading" />
         <QuickActions onAction={onQuickAction} />
       </Panel>
+      </details>
     </aside>
   )
 }
