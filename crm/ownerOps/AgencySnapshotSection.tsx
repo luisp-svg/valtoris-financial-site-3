@@ -10,40 +10,32 @@ type Props = {
   onRetry: () => void
 }
 
-const CARDS: Array<{
+const DETAIL_CARDS: Array<{
   key: keyof AgencySnapshot
   label: string
   href: string
 }> = [
   { key: 'activeHouseholds', label: 'Active households', href: ROUTES.crmHouseholds },
   {
-    key: 'openOpportunities',
-    label: 'Open opportunities',
-    href: `${ROUTES.crmPipeline}?statusGroup=open`,
-  },
-  {
-    key: 'wonThisMonth',
-    label: 'Won this month',
-    href: `${ROUTES.crmPipeline}?status=won`,
-  },
-  {
     key: 'lostThisMonth',
     label: 'Lost this month',
     href: `${ROUTES.crmPipeline}?status=lost`,
   },
   { key: 'tasksDueToday', label: 'Tasks due today', href: ROUTES.crmTasks },
-  { key: 'overdueTasks', label: 'Overdue tasks', href: `${ROUTES.crmTasks}?due=overdue` },
   {
     key: 'staleOpportunities',
     label: 'Stale opportunities',
     href: `${ROUTES.crmPipeline}?statusGroup=open`,
   },
-  {
-    key: 'unassignedHouseholds',
-    label: 'Unassigned households',
-    href: ROUTES.crmHouseholds,
-  },
+
 ]
+
+const HEADLINE_CARDS = [
+  { key: 'openOpportunities', label: 'Open opportunities', href: `${ROUTES.crmPipeline}?statusGroup=open` },
+  { key: 'overdueTasks', label: 'Overdue tasks', href: `${ROUTES.crmTasks}?due=overdue` },
+  { key: 'wonThisMonth', label: 'Won this month', href: `${ROUTES.crmPipeline}?status=won` },
+  { key: 'unassignedHouseholds', label: 'Unassigned households', href: ROUTES.crmHouseholds },
+] satisfies Array<{ key: keyof AgencySnapshot; label: string; href: string }>
 
 export default function AgencySnapshotSection({ snapshot, loading, error, onRetry }: Props) {
   return (
@@ -55,12 +47,8 @@ export default function AgencySnapshotSection({ snapshot, loading, error, onRetr
       onRetry={onRetry}
       className="crm-owner-ops-snapshot"
     >
-      <p className="crm-dashboard-footnote">
-        Won/lost this month use {snapshot.monthTimeZone} ({snapshot.monthKey}). Due dates use your
-        local calendar day. Open opportunities include those on hold. Reopened opportunities are no longer counted as closed.
-      </p>
       <div className="crm-owner-ops-metric-grid">
-        {CARDS.map((card) => {
+        {HEADLINE_CARDS.map((card) => {
           const value = snapshot[card.key]
           if (typeof value !== 'number') return null
           return (
@@ -80,6 +68,20 @@ export default function AgencySnapshotSection({ snapshot, loading, error, onRetr
           )
         })}
       </div>
+      <details className="tac-dashboard-details">
+        <summary>View agency details</summary>
+        <div className="crm-owner-ops-metric-grid">
+          {DETAIL_CARDS.map(card => <Link key={card.key} to={card.href} className="crm-dashboard-metric" aria-label={`${snapshot[card.key]} ${card.label}`}>
+            <span className="crm-dashboard-metric-value" aria-hidden="true">{snapshot[card.key]}</span>
+            <span className="crm-dashboard-metric-label" aria-hidden="true">{card.label}</span>
+          </Link>)}
+        </div>
+      <p className="crm-dashboard-footnote">
+        Won/lost this month use {snapshot.monthTimeZone} ({snapshot.monthKey}). Due dates use your
+        local calendar day. Open opportunities include those on hold. Reopened opportunities are no longer counted as closed.
+      </p>
+        <p className="crm-dashboard-footnote">Unassigned households counts client records without an advisor; it is not a count of incoming leads.</p>
+      </details>
     </DashboardSection>
   )
 }
