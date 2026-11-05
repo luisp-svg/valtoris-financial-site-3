@@ -1,3 +1,4 @@
+import HorizontalScroll from '../components/ui/HorizontalScroll'
 import { Link } from 'react-router-dom'
 import { ROUTES } from '../../constants/routes'
 import DashboardSection from '../dashboard/DashboardSection'
@@ -26,7 +27,7 @@ export default function AdvisorWorkloadSection({ rows, loading, error, onRetry }
         Sorted by needs attention. Unassigned is included when work has no advisor. Tasks roll up
         by household assignment; opportunities by opportunity assignment.
       </p>
-      <div className="crm-owner-ops-table-wrap">
+      <HorizontalScroll className="crm-owner-ops-table-wrap" label="Advisor workload table">
         <table className="crm-owner-ops-table">
           <thead>
             <tr>
@@ -57,7 +58,7 @@ export default function AdvisorWorkloadSection({ rows, loading, error, onRetry }
             ))}
           </tbody>
         </table>
-      </div>
+      </HorizontalScroll>
     </DashboardSection>
   )
 }

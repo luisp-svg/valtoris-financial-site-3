@@ -1,3 +1,4 @@
+import HorizontalScroll from '../components/ui/HorizontalScroll'
 import { formatCents, formatProductionDate } from '../production/productionApi'
 import { formatSignedCents } from '../production/compensationView'
 import type { CommissionWorkItem } from './commissionWorkView'
@@ -31,7 +32,7 @@ export default function CommissionQueueTable({
   onRecordPayment,
 }: CommissionQueueTableProps) {
   return (
-    <div className="crm-opportunities-table-wrap" role="region" aria-label="Commission work queue">
+    <HorizontalScroll className="crm-opportunities-table-wrap" label="Commission work queue">
       <table className="crm-opportunities-table crm-commissions-queue-table">
         <thead>
           <tr>
@@ -141,6 +142,6 @@ export default function CommissionQueueTable({
           })}
         </tbody>
       </table>
-    </div>
+    </HorizontalScroll>
   )
 }
