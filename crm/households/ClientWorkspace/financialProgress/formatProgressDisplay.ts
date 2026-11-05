@@ -75,10 +75,10 @@ export function formatCategoriesCalculatedCaption(
 
 /** Advisor-facing copy when overall score/grade are withheld for partial results. */
 export const PARTIAL_PROGRESS_MESSAGE =
-  'Additional household information is needed before an overall Financial Progress Score can be published.'
+  'More household information is needed to calculate the overall Financial Progress Score. Open the financial review to see which areas need attention.'
 
 export const PLACEHOLDER_PROGRESS_MESSAGE =
-  'Household assessment details are not available yet for Financial Progress.'
+  'Add household assessment details to begin the financial review.'
 
 /**
  * True when engine evidence includes incomplete criteria.
