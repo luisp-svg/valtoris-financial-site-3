@@ -27,7 +27,8 @@ export class AgentCrmBookingProvider implements TacBookingProvider {
  }
  calendar(answers:CombinedAnswers){
   if(this.testOnly)return this.qaCalendar
-  return answers.selected.length===1&&answers.selected[0]==='health'?PREMIUM_CALENDARS[1]:answers.selected.length===1&&answers.selected[0]==='student_loan'?PREMIUM_CALENDARS[2]:PREMIUM_CALENDARS[0]
+  const focusedHealth=answers.selected.includes('health')&&answers.selected.every(type=>type==='health'||(answers.strategyVersion===1&&type==='protection'))
+  return focusedHealth?PREMIUM_CALENDARS[1]:answers.selected.length===1&&answers.selected[0]==='student_loan'?PREMIUM_CALENDARS[2]:PREMIUM_CALENDARS[0]
  }
  assertAllowed(submission:string,email:string,calendar:string){
   if(this.env.VALTORIS_TAC_BOOKING_ENABLED!=='true')throw new Error('tac_booking_disabled')

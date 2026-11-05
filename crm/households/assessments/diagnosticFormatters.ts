@@ -1,3 +1,4 @@
+import {readDiscoverySummary} from "../../../modules/reportCard/funnelStrategy";
 import { readStoredCombined, combinedAnswerRows } from '../../../modules/reportCard/combined/engine'
 import { combinedResults } from '../../../modules/reportCard/combined/results'
 import { isShortForm } from '../../../modules/reportCard/shortForm/contract'
@@ -444,6 +445,7 @@ export function mapPublicFamilyDiagnosticDetail(
     flags: extractDiagnosticFlags(row.derived_metrics),
     submittedSnapshot: extractSubmittedDiagnosticSnapshot(row.answers),
     combinedReports: readStoredCombined(row.answers) ? combinedResults(readStoredCombined(row.answers)!) : undefined,
+    discovery:readDiscoverySummary(derived.comprehensiveDiscovery),
     bookingVerifiedAt: asTrimmedString(asRecord(derived.bookingVerification).verifiedAt),
     shortFormResult: list.scoringVersion === 3 ? readShortResult(derived.shortFormResult) : undefined,
     affordability: row.assessment_type === 'home_buyer' ? readAffordabilitySnapshot(derived.affordability) : undefined,

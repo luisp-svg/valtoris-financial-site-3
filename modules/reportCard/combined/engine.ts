@@ -16,7 +16,7 @@ export const PRIORITIES = [
  {id:'trucking',en:'Commercial trucking insurance',es:'Seguro de transporte comercial'},
 ] as const;
 export type Priority = typeof PRIORITIES[number]['id'];
-export type CombinedAnswers = {format:typeof COMBINED_FORMAT | typeof legacy.COMBINED_FORMAT;insuranceRoutingVersion?:1;consultationOnly?:true;selected:Priority[];diagnostic:ShortDiagnostic;contact:{fullName:string;email:string;phone:string};locale:Locale};
+export type CombinedAnswers = {format:typeof COMBINED_FORMAT | typeof legacy.COMBINED_FORMAT;strategyVersion?:1;insuranceRoutingVersion?:1;consultationOnly?:true;selected:Priority[];diagnostic:ShortDiagnostic;contact:{fullName:string;email:string;phone:string};locale:Locale};
 export type CombinedQuestion = {id:string;question:ShortQuestion;reviews:Priority[]};
 export const PRIORITY_GROUPS: {en:string;es:string;ids:Priority[]}[] = [
  {en:'Start here: student loans & health',es:'Comienza aquí: préstamos y salud',ids:['student_loan','health']},
@@ -53,7 +53,7 @@ export function primaryAssessment(s:readonly Priority[]):PublicReportCardAssessm
  return old.length ? legacy.primaryAssessment(old) : 'business';
 }
 export function isCombined(v:unknown):v is CombinedAnswers{return !!v&&typeof v==='object'&&[COMBINED_FORMAT,legacy.COMBINED_FORMAT].includes((v as CombinedAnswers).format);}
-export function combinedQuestions(selected:readonly Priority[],answers:ShortDiagnostic,insuranceRoutingVersion?:1):CombinedQuestion[]{
+export function combinedQuestions(selected:readonly Priority[],answers:ShortDiagnostic,insuranceRoutingVersion?:1,strategyVersion?:1):CombinedQuestion[]{
  const types=orderedPriorities(selected);if(!types.length)return [];
  const out:CombinedQuestion[]=[];
  const add=(question:ShortQuestion,reviews:Priority[])=>out.push({id:question.id,question,reviews});
@@ -99,18 +99,34 @@ export function combinedQuestions(selected:readonly Priority[],answers:ShortDiag
  if(types.includes('credit')&&out.length<MAX_ASSESSMENT_QUESTIONS)add(choice('credit.goal','What is your main credit goal?','¿Cuál es tu meta principal de crédito?',[option('improve_score','Improve my credit score','Mejorar mi puntaje de crédito'),option('errors','Review errors','Revisar errores'),option('financing','Prepare for financing','Prepararme para financiamiento')]),['credit']);
  const visible=types.includes('student_loan')&&answers['student_loan.loan_type']==='none'?out.filter(q=>!['student_loan.status','student_loan.review'].includes(q.id)):out;
  const rank=(q:CombinedQuestion)=>q.id.startsWith('shared.')?0:['student_loan.loan_type','health.goal','insurance.goal','insurance.renewal','lifestyle.assets','commercial.operation','commercial.people','trucking.operation','trucking.radius','trucking.cargo'].includes(q.id)?1:2;
+ if(strategyVersion===1 && types.length<=2){
+  const focus=types[0];
+  const extra:Partial<Record<Priority,ShortQuestion>>={
+   student_loan:choice('student_loan.goal','What would you most like to clarify?','¿Qué deseas aclarar?',[option('payments','Payment affordability','Pagos asequibles'),option('records','Loan and servicer records','Registros de préstamos'),option('options','Questions about repayment or forgiveness','Preguntas sobre pagos o condonación')]),
+   home_buyer:choice('home_buyer.goal','What is your purchase timeline?','¿Cuándo deseas comprar?',[option('soon','Within 6 months','En 6 meses'),option('year','6–12 months','6–12 meses'),option('later','More than a year','Más de un año')]),
+   benefits:choice('benefits.workforce','How many employees would a benefits review cover?','¿Cuántos empleados incluiría la revisión?',[option('none','No employees','Sin empleados'),option('small','1–9','1–9'),option('medium','10–49','10–49'),option('large','50 or more','50 o más')]),
+   protection:choice('protection.dependents','Who depends on your income?','¿Quién depende de tus ingresos?',[option('self','Only me','Solo yo'),option('household','Household or dependents','Hogar o dependientes'),option('business','Household and business responsibilities','Hogar y negocio')]),
+   retirement:choice('retirement.transition','What transition are you considering?','¿Qué transición consideras?',[option('planning','General retirement planning','Planificación de jubilación'),option('job','Leaving or changing employment','Cambio o salida de empleo'),option('rollover','Reviewing an old plan or possible rollover','Revisar un plan anterior o posible transferencia')]),
+   tsp:choice('tsp.transition','What is your federal retirement situation?','¿Cuál es tu situación de jubilación federal?',[option('working','Still in service','Aún en servicio'),option('separating','Separating or retiring','Salida o jubilación'),option('retired','Already retired','Ya jubilado')]),
+   family:choice('family.dependents','Who relies on your financial support?','¿Quién depende de tu apoyo financiero?',[option('self','Only me','Solo yo'),option('partner','Partner or spouse','Pareja'),option('children','Children or other dependents','Hijos u otros dependientes')]),
+  };
+  if(extra[focus])visible.push({id:extra[focus]!.id,question:extra[focus]!,reviews:[focus]});
+  // No-loan answers bypass repayment checks but still collect useful consultation context.
+  if(focus==='student_loan' && answers['student_loan.loan_type']==='none')visible.push({id:'student_loan.context',question:choice('student_loan.context','Who is the review for?','¿Para quién es la revisión?',[option('family','A family member','Un familiar'),option('future','Future education borrowing','Préstamos educativos futuros')]),reviews:[focus]});
+ }
  return visible.sort((a,b)=>rank(a)-rank(b));
 }
 export function validCombinedQuestion(q:CombinedQuestion,value:unknown):boolean{if(q.question.kind==='date')return value==='unknown'||typeof value==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value)&&Number.isFinite(Date.parse(value+'T12:00:00Z'))&&new Date(value+'T12:00:00Z').toISOString().slice(0,10)===value;return validQuestion(q.question,value);}
-export function pruneCombined(s:readonly Priority[],d:ShortDiagnostic,insuranceRoutingVersion?:1):ShortDiagnostic{const keys=new Set(combinedQuestions(s,d,insuranceRoutingVersion).map(q=>q.id));return Object.fromEntries(Object.entries(d).filter(([k])=>keys.has(k)));}
-export function updateCombined(s:readonly Priority[],d:ShortDiagnostic,id:string,value:string|string[],insuranceRoutingVersion?:1):ShortDiagnostic{return pruneCombined(s,{...d,[id]:value},insuranceRoutingVersion);}
+export function pruneCombined(s:readonly Priority[],d:ShortDiagnostic,insuranceRoutingVersion?:1,strategyVersion?:1):ShortDiagnostic{const keys=new Set(combinedQuestions(s,d,insuranceRoutingVersion,strategyVersion).map(q=>q.id));return Object.fromEntries(Object.entries(d).filter(([k])=>keys.has(k)));}
+export function updateCombined(s:readonly Priority[],d:ShortDiagnostic,id:string,value:string|string[],insuranceRoutingVersion?:1,strategyVersion?:1):ShortDiagnostic{return pruneCombined(s,{...d,[id]:value},insuranceRoutingVersion,strategyVersion);}
 export function validateCombined(raw:unknown,assessmentType?:PublicReportCardAssessmentType):CombinedAnswers|null{
  if(!isCombined(raw))return null;
  if(raw.format===legacy.COMBINED_FORMAT)return legacy.validateCombined(raw,assessmentType);
- if(Object.keys(raw).some(k=>!['format','selected','diagnostic','contact','locale','consultationOnly','insuranceRoutingVersion'].includes(k))||!Array.isArray(raw.selected)||!raw.selected.length||!raw.selected.every(isPriority)||new Set(raw.selected).size!==raw.selected.length||!['en','es'].includes(raw.locale)||!raw.diagnostic||typeof raw.diagnostic!=='object'||Array.isArray(raw.diagnostic)||raw.consultationOnly!==undefined&&raw.consultationOnly!==true)return null;
+ if(Object.keys(raw).some(k=>!['format','selected','diagnostic','contact','locale','consultationOnly','insuranceRoutingVersion','strategyVersion'].includes(k))||!Array.isArray(raw.selected)||!raw.selected.length||!raw.selected.every(isPriority)||new Set(raw.selected).size!==raw.selected.length||!['en','es'].includes(raw.locale)||!raw.diagnostic||typeof raw.diagnostic!=='object'||Array.isArray(raw.diagnostic)||raw.consultationOnly!==undefined&&raw.consultationOnly!==true)return null;
+ if(raw.strategyVersion!==undefined&&raw.strategyVersion!==1)return null;
  if(raw.insuranceRoutingVersion!==undefined&&raw.insuranceRoutingVersion!==1)return null;
  if(assessmentType&&primaryAssessment(raw.selected)!==assessmentType)return null;
- const active=raw.consultationOnly?[]:combinedQuestions(raw.selected,raw.diagnostic,raw.insuranceRoutingVersion);
+ const active=raw.consultationOnly?[]:combinedQuestions(raw.selected,raw.diagnostic,raw.insuranceRoutingVersion,raw.strategyVersion);
  if(Object.keys(raw.diagnostic).some(k=>!active.some(q=>q.id===k))||active.some(q=>!validCombinedQuestion(q,raw.diagnostic[q.id])))return null;
  if(!raw.contact||typeof raw.contact!=='object'||Array.isArray(raw.contact)||Object.keys(raw.contact).some(k=>!['fullName','email','phone'].includes(k))||!(['fullName','email','phone'] as const).every(k=>typeof raw.contact[k]==='string')||!validShortContact(raw.contact)||!normalizePhone(raw.contact.phone))return null;
  return {...raw,selected:orderedPriorities(raw.selected),contact:{fullName:raw.contact.fullName.trim(),email:raw.contact.email.trim(),phone:raw.contact.phone.trim()}};
@@ -122,5 +138,5 @@ export function readStoredCombined(raw:unknown){if(!isCombined(raw))return null;
 export function combinedAnswerRows(raw:unknown,locale:Locale='en'){
  if(isCombined(raw)&&raw.format===legacy.COMBINED_FORMAT)return legacy.combinedAnswerRows(raw,locale);
  const saved=readStoredCombined(raw);if(!saved)return [];
- return combinedQuestions(saved.selected,saved.diagnostic,(saved as CombinedAnswers).insuranceRoutingVersion).map(({id,question})=>({id,label:question.label[locale],value:(Array.isArray(saved.diagnostic[id])?saved.diagnostic[id] as string[]:[String(saved.diagnostic[id]??'—')]).map(v=>question.options?.find(o=>o.value===v)?.label[locale]??v).join(', ')}));
+ return combinedQuestions(saved.selected,saved.diagnostic,(saved as CombinedAnswers).insuranceRoutingVersion,(saved as CombinedAnswers).strategyVersion).map(({id,question})=>({id,label:question.label[locale],value:(Array.isArray(saved.diagnostic[id])?saved.diagnostic[id] as string[]:[String(saved.diagnostic[id]??'—')]).map(v=>question.options?.find(o=>o.value===v)?.label[locale]??v).join(', ')}));
 }

@@ -12,11 +12,11 @@ export default function AssessmentJourney({
         ],
         [
           "Reserva tu revisión sin costo",
-          "Elige una hora para tu consulta antes de acceder a los resultados detallados.",
+          "Mira tus resultados preliminares y elige una consulta sin costo.",
         ],
         [
-          "Explora tus resultados preliminares",
-          "Revisa tus categorías, observaciones y preguntas para la conversación.",
+          "Revisión familiar o empresarial opcional",
+          "Amplía la revisión sin repetir respuestas. Esta etapa no bloquea la reserva.",
         ],
         [
           "Conversa con un especialista",
@@ -34,11 +34,11 @@ export default function AssessmentJourney({
         ],
         [
           "Reserve Your Complimentary Review",
-          "Choose a consultation time before accessing your detailed report.",
+          "See your preliminary results and choose a complimentary consultation time.",
         ],
         [
-          "Access Your Personalized Report Card",
-          "Explore preliminary findings, priorities, and questions to discuss.",
+          "Optional Family or Business Owner Discovery",
+          "Broaden the review with prior answers carried forward. You can book without completing this stage.",
         ],
         [
           "Attend Your Financial Strategy Review",

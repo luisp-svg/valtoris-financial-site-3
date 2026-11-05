@@ -110,7 +110,7 @@ describe('Phase 4 insurance, health, and business formation service pages', () =
     expect(app).not.toContain('Navigate to={ROUTES.businessFormation}')
   })
 
-  it('points Services at the new pages and leaves Tools on the six diagnostics', () => {
+  it('points Services at the new pages and puts specialized Report Cards first', () => {
     expect(SERVICES_NAV_LINKS.map((item) => item.id)).toEqual([
       'protection',
       'retirement',
@@ -132,18 +132,10 @@ describe('Phase 4 insurance, health, and business formation service pages', () =
     expect(SERVICES_NAV_LINKS.find((item) => item.id === 'credit')?.to).toBe(ROUTES.credit)
     expect(SERVICES_NAV_LINKS.find((item) => item.id === 'studentLoans')?.to).toBe(ROUTES.studentLoans)
     expect(TOOLS_NAV_LINKS.map((item) => item.to)).toEqual([
-      ROUTES.reportCard,
-      ROUTES.businessReportCard,
-      ROUTES.retirementReportCard,
-      ROUTES.protectionAnalysis,
-      ROUTES.studentLoanReportCard,
-      ROUTES.creditReportCard,
-      ROUTES.homeBuyerReportCard,
-      '/tsp-report-card',
-      '/health-insurance-report-card',
-      '/employee-benefits-report-card',
-      '/tax-review-report-card',
-      '/lifestyle-report-card',
+      ROUTES.studentLoanReportCard, '/health-insurance-report-card', '/personal-insurance-report-card',
+      '/commercial-insurance-report-card', '/commercial-trucking-report-card', ROUTES.homeBuyerReportCard,
+      '/employee-benefits-report-card', ROUTES.retirementReportCard, ROUTES.protectionAnalysis,
+      ROUTES.reportCard, ROUTES.businessReportCard, ROUTES.creditReportCard, '/tsp-report-card', '/tax-review-report-card',
     ])
     const html = renderChrome('/')
     expect(html).toContain(`href="${ROUTES.insurance}"`)

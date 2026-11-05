@@ -1,4 +1,6 @@
-import { adaptiveReportCard } from '../../modules/reportCard/combined/results.js';
+import {premiumIngest} from './qaIngest.js';
+import {discoveryPlan,discoverySeed,validateDiscovery,discoverySummary,specializedNextSteps,type DiscoveryScope} from '../../modules/reportCard/funnelStrategy.js';
+import { adaptiveReportCard, combinedResults } from '../../modules/reportCard/combined/results.js';
 import { coverageReview } from '../../modules/reportCard/specialtyPreview/coverageReview.js'
 import { projectDiagnostic } from '../../modules/reportCard/combined/engine.js'
 import type { VercelRequest, VercelResponse } from "@vercel/node";
@@ -52,6 +54,7 @@ export type PremiumDeps = {
     answers: CombinedAnswers,
     notBefore: number,
   ) => Promise<BookingProof | null>;
+  saveDiscovery?: (saved: SavedAssessment, discovery: Record<string, unknown>) => Promise<boolean>;
   saveProof?: (saved: SavedAssessment, proof: BookingProof) => Promise<boolean>;
 };
 function repository(admin: SupabaseClient) {
@@ -98,6 +101,11 @@ function repository(admin: SupabaseClient) {
         answers,
         derived: record(row.derived_metrics),
       };
+    },
+    async saveDiscovery(saved:SavedAssessment, discovery:Record<string,unknown>):Promise<boolean>{
+      const result=await admin.from("assessments").update({derived_metrics:{...saved.derived,comprehensiveDiscovery:discovery,funnelJourney:{...record(saved.derived.funnelJourney),stage:"discovery_completed",discoveryCompletedAt:discovery.completedAt}}}).eq("id",saved.id).eq("updated_at",saved.updatedAt).is("deleted_at",null).select("id");
+      if(result.error)throw new Error("discovery_save_failed");
+      return result.data?.length===1;
     },
     async saveProof(
       saved: SavedAssessment,
@@ -167,9 +175,9 @@ export async function premiumAssessmentHttp(
   if (hostedQa && env.VERCEL_ENV !== "preview" && !stagedQaHost)
     return res.status(503).json({ok:false,code:"qa_preview_required"});
   const action = req.query.action;
-  if (!["start", "save", "report", "slots", "book"].includes(String(action)))
+  if (!["start", "save", "report", "slots", "book", "discovery", "save-discovery"].includes(String(action)))
     return res.status(400).json({ ok: false, code: "invalid_action" });
-  const expectedMethod = action === "report" || action === "slots" ? "GET" : "POST";
+  const expectedMethod = action === "report" || action === "slots" || action === "discovery" ? "GET" : "POST";
   if (req.method !== expectedMethod) {
     res.setHeader("Allow", expectedMethod);
     return res.status(405).json({ ok: false, code: "method_not_allowed" });
@@ -212,7 +220,7 @@ export async function premiumAssessmentHttp(
     return res.status(200).json({ ok: true, submissionId: issued.session.id });
   }
   const requestedId =
-    (action === "save" || action === "book") ? record(req.body).submissionId : req.query.assessment;
+    (action === "save" || action === "book" || action === "save-discovery") ? record(req.body).submissionId : req.query.assessment;
   if (typeof requestedId !== "string" || !/^[0-9a-f-]{36}$/.test(requestedId))
     return res
       .status(401)
@@ -231,7 +239,7 @@ export async function premiumAssessmentHttp(
       .json({ ok: false, code: "assessment_session_required" });
   try {
     const repo =
-      deps.load && deps.saveProof
+      deps.load && deps.saveProof && (action!=="save-discovery" || deps.saveDiscovery)
         ? null
         : repository(createSupabaseAdminClient());
     const load = deps.load ?? repo!.load,
@@ -254,7 +262,7 @@ export async function premiumAssessmentHttp(
           .status(409)
           .json({ ok: false, code: "assessment_already_saved" });
       if (!saved) {
-        const result = await (deps.ingest ?? ingestPublicReportCard)(body);
+        const result = await (deps.ingest ?? premiumIngest(hostedQa))(body);
         if (!result.ok)
           return res.status(400).json({ ok: false, code: result.code });
         saved = await load(session.id);
@@ -272,6 +280,22 @@ export async function premiumAssessmentHttp(
       return res.status(404).json({ ok: false, code: "assessment_not_found" });
     if (hostedQa && !saved.answers.contact.email.endsWith('@example.invalid'))
       return res.status(403).json({ok:false,code:"qa_synthetic_contact_required"});
+    if(action==="discovery" || action==="save-discovery"){
+      if(saved.answers.consultationOnly)return res.status(400).json({ok:false,code:"specialized_assessment_required"});
+      const scope=action==="discovery"?req.query.scope:record(req.body).scope;
+      if(scope!=="family"&&scope!=="business")return res.status(400).json({ok:false,code:"invalid_discovery_scope"});
+      const previous=record(saved.derived.comprehensiveDiscovery);
+      const previousAnswers=discoverySeed(saved.answers,previous.diagnostic);
+      if(action==="discovery")return res.status(200).json({ok:true,...discoveryPlan(scope,saved.answers,previousAnswers),completed:previous.scope===scope,summary:previous.scope===scope?discoverySummary(scope,previousAnswers,saved.answers.locale):null});
+      const validated=validateDiscovery(scope,saved.answers,record(req.body).diagnostic,previousAnswers);
+      const diagnostic=validated?{...previousAnswers,...validated}:null;
+      if(!diagnostic)return res.status(400).json({ok:false,code:"invalid_discovery_answers"});
+      // Retry is a no-op; do not emit another task, contact, appointment, or outbound event.
+      if(previous.rating&&previous.scope===scope&&stable(previousAnswers)===stable(diagnostic))return res.status(200).json({ok:true,saved:true,summary:discoverySummary(scope,diagnostic,saved.answers.locale)});
+      const discovery={version:1,scope:scope as DiscoveryScope,diagnostic,completedAt:new Date(now).toISOString(),sourceSubmissionId:session.id,...discoverySummary(scope,diagnostic,saved.answers.locale)};
+      if(!await (deps.saveDiscovery??repo!.saveDiscovery)(saved,discovery))return res.status(409).json({ok:false,code:"discovery_changed_retry"});
+      return res.status(200).json({ok:true,saved:true,summary:discoverySummary(scope,diagnostic,saved.answers.locale)});
+    }
     const tacEnabled = env.VALTORIS_TAC_BOOKING_ENABLED === "true";
     const tac = () => deps.booking ?? new TacBookingService(
       new SupabaseTacBookingStore(createSupabaseAdminClient()),
@@ -288,17 +312,26 @@ export async function premiumAssessmentHttp(
       const body = record(req.body);
       if (typeof body.startTime !== "string" || typeof body.timezone !== "string")
         return res.status(400).json({ok:false,code:"invalid_booking_time"});
-      const booking = await tac().book(session.id, saved.answers, body.startTime, body.timezone);
+      const service = tac();
+      const booking = await service.book(session.id, saved.answers, body.startTime, body.timezone);
+      // Immediate results no longer poll booking verification. Persist the verified
+      // handoff here so the advisor sees the same booking on the original record.
+      if (saved.answers.strategyVersion === 1 && booking.state === "confirmed") {
+        const proof = await service.verify(session.id);
+        if (!proof) return res.status(202).json({ok:true,state:"pending",startTime:booking.startTime});
+        if (!await saveProof(saved, proof)) return res.status(409).json({ok:false,code:"retry_booking_sync"});
+      }
       return res.status(booking.state === "confirmed" ? 200 : 202).json({ok:true,...booking});
     }
+    const immediateResults=saved.answers.strategyVersion===1&&!saved.answers.consultationOnly;
     // TAC mode only accepts the appointment linked to this saved submission.
     // An unrelated pre-existing provider booking cannot unlock these results.
-    if (!tacEnabled && !deps.verifyBooking) return res.status(503).json({ok:false,code:"tac_booking_unavailable"});
-    const proof = tacEnabled ? await tac().verify(session.id) : await deps.verifyBooking!(
+    if (!immediateResults && !tacEnabled && !deps.verifyBooking) return res.status(503).json({ok:false,code:"tac_booking_unavailable"});
+    const proof = immediateResults ? null : tacEnabled ? await tac().verify(session.id) : await deps.verifyBooking!(
       saved.answers,
       Date.parse(saved.submittedAt),
     );
-    if (!proof)
+    if (!proof && !immediateResults)
       return res
         .status(423)
         .json({
@@ -308,7 +341,7 @@ export async function premiumAssessmentHttp(
           ...(saved.answers.consultationOnly ? {consultationOnly:true} : {}),
           preliminary: (saved.answers.consultationOnly ? [] : saved.answers.selected).filter(type=>type==='health'||type==='benefits').map(type=>{const review=coverageReview(type,projectDiagnostic(type,saved.answers.diagnostic),req.query.lang==='es'?'es':req.query.lang==='en'?'en':saved.answers.locale)!;return {type,verificationLabel:review.verificationLabel,coverageStatus:review.coverageStatus,actions:review.actions,urgent:review.urgent}}),
         });
-    if (!(await saveProof(saved, proof)))
+    if (proof && !(await saveProof(saved, proof)))
       return res.status(409).json({ ok: false, code: "retry_booking_sync" });
     const locale =
       req.query.lang === "es"
@@ -316,7 +349,7 @@ export async function premiumAssessmentHttp(
         : req.query.lang === "en"
           ? "en"
           : saved.answers.locale;
-    const storedResults = record(saved.derived.combinedReportResultsByLocale)[locale] ?? saved.derived.combinedReportResults;
+    const storedResults = saved.answers.strategyVersion===1 ? combinedResults({...saved.answers,locale}) : record(saved.derived.combinedReportResultsByLocale)[locale] ?? saved.derived.combinedReportResults;
     const publicResults = Array.isArray(storedResults) ? storedResults.map(raw => {
       const review = record(raw), result = record(review.result), coverage = record(result.coverageReview);
       if (!('internal' in coverage)) return raw;
@@ -330,6 +363,9 @@ export async function premiumAssessmentHttp(
         selected: saved.answers.selected,
           ...(saved.answers.consultationOnly ? {consultationOnly:true} : {}),
         results: publicResults,
+        strategyVersion:saved.answers.strategyVersion??null,
+        nextSteps:specializedNextSteps(saved.answers),
+        discovery:saved.derived.comprehensiveDiscovery??null,
         financialReportCard: adaptiveReportCard({...saved.answers,locale}),
         answerRows: combinedAnswerRows(saved.answers, locale),
       });

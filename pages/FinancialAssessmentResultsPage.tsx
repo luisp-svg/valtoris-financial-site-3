@@ -1,3 +1,5 @@
+import {readinessRatingLabel} from "../modules/reportCard/readinessRating";
+import ReadinessGrade from "../components/premium/ReadinessGrade";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import AssessmentBrandHeader from "../components/AssessmentBrandHeader";
@@ -39,6 +41,8 @@ export default function FinancialAssessmentResultsPage() {
       ? location.state.selected.filter(isPriority)
       : [],
   );
+  const [nextSteps,setNextSteps]=useState<{service:string;title:string;text:string}[]>([]);
+  const [strategyVersion,setStrategyVersion]=useState<number|null>(null);
   const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
   const [confirmationPaused, setConfirmationPaused] = useState(false);
   const [consultationOnly,setConsultationOnly] = useState(false);
@@ -64,6 +68,7 @@ export default function FinancialAssessmentResultsPage() {
         `/api/ingest-family-report-card?flow=premium&action=report&lang=${locale}&assessment=${encodeURIComponent(assessmentId)}`,
       );
       const data = await response.json();
+      if (sequence === requestSequence.current) setStrategyVersion(data.strategyVersion??null);
       if (sequence === requestSequence.current) setConsultationOnly(data.consultationOnly === true);
       if (sequence === requestSequence.current) setPreliminary(Array.isArray(data.preliminary)?data.preliminary:[]);
       if (sequence !== requestSequence.current) return;
@@ -71,6 +76,7 @@ export default function FinancialAssessmentResultsPage() {
         setSelected(data.selected.filter(isPriority));
       if (response.ok && data.ok && Array.isArray(data.results)) {
         setReports(data.results);
+        setNextSteps(Array.isArray(data.nextSteps)?data.nextSteps:[]);
         setReportCard(data.financialReportCard??null);
         setAnswerRows(Array.isArray(data.answerRows) ? data.answerRows : []);
         setCode("ready");
@@ -141,15 +147,17 @@ export default function FinancialAssessmentResultsPage() {
             </h1>
             <p className="premium-lead">
               {t(
-                consultationOnly ? "Your consultation is booked. We’ll discuss your priorities and complete your financial intake together. No Report Card has been completed." : "Your consultation is booked. Use these educational reviews to organize your questions. We’ll confirm the details and complete your deeper intake together during the consultation.",
-                consultationOnly ? "Tu consulta está reservada. Conversaremos sobre tus prioridades y completaremos la información financiera juntos. No se ha completado un Report Card." : "Tu consulta está reservada. Usa estas revisiones educativas para organizar tus preguntas. Confirmaremos los detalles y completaremos la información adicional durante la consulta.",
+                consultationOnly ? "Your consultation is booked. We’ll discuss your priorities and complete your financial intake together. No Report Card has been completed." : "Use these educational results to organize your questions. Book your complimentary consultation below; further discovery is optional.",
+                consultationOnly ? "Tu consulta está reservada. Conversaremos sobre tus prioridades y completaremos la información financiera juntos. No se ha completado un Report Card." : "Usa estos resultados educativos para organizar tus preguntas. Reserva tu consulta sin costo abajo; la revisión adicional es opcional.",
               )}
             </p>
-            {reportCard && <section className="adaptive-report-card"><h2>{t('Financial Report Card','Report Card Financiero')}</h2><strong>{reportCard.overall.grade??t('Needs review','Requiere revisión')}{reportCard.overall.score!==null?` · ${reportCard.overall.score}/100`:''}</strong><p>{t('Preliminary — self-reported planning readiness.','Preliminar — preparación de planificación autodeclarada.')}</p><p>{reportCard.overall.known}/{reportCard.overall.total} {t('selected categories have evidence. Missing evidence needs review.','categorías seleccionadas tienen información. La información faltante requiere revisión.')}</p><p>{t('Rubric: current/reviewed = 100, partial = 50, not addressed = 0. Unknown is unscored. Categories have equal weight; the overall grade requires evidence in at least 80% of selected categories. These brief checks do not establish coverage adequacy, loan eligibility or financial health.','Rúbrica: actual/revisado = 100, parcial = 50, no atendido = 0. Lo desconocido no se puntúa. Cada categoría tiene igual peso; la nota general requiere información en al menos 80% de las categorías. Estas preguntas no determinan suficiencia de cobertura, elegibilidad ni salud financiera.')}</p></section>}
+            {strategyVersion===1 && <section className="premium-report"><h2>{t('Book Your Complimentary Consultation','Reserva tu consulta sin costo')}</h2><TacConsultationBooking assessmentId={assessmentId} locale={locale} onBooked={()=>void check()} /><h2>{t('Optional: Discover Your Bigger Financial Picture','Opcional: descubre tu panorama financiero')}</h2><p>{t('Your results and booking are available now. Continue with Family or Business Owner discovery if you wish. Prior answers carry forward; no duplicate questions.','Tus resultados y reserva están disponibles. Continúa con la revisión familiar o empresarial si deseas. Conservamos tus respuestas sin repetir preguntas.')}</p><Link className="premium-secondary" to={`/comprehensive-discovery?assessment=${assessmentId}&scope=family&lang=${locale}`}>{t('Family Financial Report Card','Report Card Financiero Familiar')}</Link>{' '}<Link className="premium-secondary" to={`/comprehensive-discovery?assessment=${assessmentId}&scope=business&lang=${locale}`}>{t('Business Owner Financial Report Card','Report Card Financiero Empresarial')}</Link></section>}
+            {reportCard && <section className="adaptive-report-card"><h2>{t('Financial Report Card','Report Card Financiero')}</h2><strong>{strategyVersion===1?readinessRatingLabel(reportCard.rating,locale):reportCard.overall.grade??t('Needs review','Requiere revisión')}{reportCard.overall.score!==null?` · ${reportCard.overall.score}/100`:''}</strong><p>{t('Preliminary — self-reported planning readiness.','Preliminar — preparación de planificación autodeclarada.')}</p><p>{reportCard.overall.known}/{reportCard.overall.total} {t('selected categories have evidence. Missing evidence needs review.','categorías seleccionadas tienen información. La información faltante requiere revisión.')}</p><p>{t('Rubric: current/reviewed = 100, partial = 50, not addressed = 0. Unknown is unscored. The preliminary grade uses known readiness checks only; missing information is flagged separately and can change the grade. These brief checks do not establish coverage adequacy, loan eligibility or financial health.','Rúbrica: actual/revisado = 100, parcial = 50, no atendido = 0. Lo desconocido no se puntúa. La nota preliminar usa solo las verificaciones conocidas; la información faltante se marca aparte y puede cambiar la nota. Estas preguntas no determinan suficiencia de cobertura, elegibilidad ni salud financiera.')}</p></section>}
+            {nextSteps.length>0&&<section className="premium-report"><h2>{t("Your Next Steps","Tus próximos pasos")}</h2>{nextSteps.map(item=><p key={item.service}><strong>{item.title}</strong>: {item.text}</p>)}</section>}
             {reports.map((review) => (
               <section className="premium-report" key={review.type}>
                 <h2>{review.title}</h2>
-                {review.kind === "adaptive" ? <div><strong>{review.result.grade??t('Needs review','Requiere revisión')}{review.result.score!==null?` · ${review.result.score}/100`:''}</strong><p>{review.result.status==='needs-review'?t('Preliminary / needs review — limited or missing evidence.','Preliminar / requiere revisión — información limitada o faltante.'):t('Preliminary — confirm with records and your advisor.','Preliminar — confirmar con registros y tu asesor.')}</p><p>{review.result.known}/{review.result.total} {t('planning checks answered; review current records during your consultation.','verificaciones respondidas; revisa registros actuales durante tu consulta.')}</p></div> : review.kind === "short" ? (
+                {review.kind === "adaptive" ? <div><strong>{strategyVersion===1?readinessRatingLabel(review.result.rating,locale):review.result.grade??t('Needs review','Requiere revisión')}{review.result.score!==null?` · ${review.result.score}/100`:''}</strong><p>{review.result.status==='needs-review'?t('Preliminary / needs review — limited or missing evidence.','Preliminar / requiere revisión — información limitada o faltante.'):t('Preliminary — confirm with records and your advisor.','Preliminar — confirmar con registros y tu asesor.')}</p><p>{review.result.known}/{review.result.total} {t('planning checks answered; review current records during your consultation.','verificaciones respondidas; revisa registros actuales durante tu consulta.')}</p></div> : review.kind === "short" ? (
                   <>
                     <ShortResultBody result={review.result} locale={locale} />
                     {review.type === "home_buyer" && (
@@ -281,6 +289,7 @@ export default function FinancialAssessmentResultsPage() {
                 )}
               </section>
             ))}
+            {reportCard && strategyVersion===1 && <ReadinessGrade rating={reportCard.rating} locale={locale}/>}
             <button className="premium-button" onClick={() => window.print()}>{t(consultationOnly ? "Print Confirmation" : "Print / Save as PDF", consultationOnly ? "Imprimir confirmación" : "Imprimir / Guardar PDF")}</button>
             {answerRows.length > 0 && (
               <details className="premium-report">
@@ -299,8 +308,8 @@ export default function FinancialAssessmentResultsPage() {
             )}
             <p className="premium-fineprint">
               {t(
-                "Each Report Card retains its own educational basis. No aggregate grade is assigned. No quote, enrollment, rollover, loan application or real estate transaction has been submitted.",
-                "Cada Report Card conserva su fundamento educativo. No se asigna una calificación global. No se ha enviado cotización, inscripción, transferencia, solicitud de préstamo ni transacción inmobiliaria.",
+                "Each grade describes self-reported planning preparation using the rubric shown above. No quote, enrollment, rollover, loan application or real estate transaction has been submitted.",
+                "Cada nota describe la preparación autodeclarada según la rúbrica mostrada arriba. No se ha enviado cotización, inscripción, transferencia, solicitud de préstamo ni transacción inmobiliaria.",
               )}
             </p>
           </>

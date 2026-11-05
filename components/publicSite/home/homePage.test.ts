@@ -78,10 +78,10 @@ describe('assessment-first bilingual homepage', () => {
     expect(html).toContain('href="/report-cards"')
   })
 
-  it('explains all five steps and keeps the full priority selector on the assessment screen', () => {
+  it('explains optional comprehensive discovery and immediate results', () => {
     const html = renderHome('/')
-    for (const step of ['Complete Your Financial Report Card', 'Reserve Your Complimentary Review', 'Access Your Personalized Report Card', 'Attend Your Financial Strategy Review', 'Discuss Your Recommended Action Plan']) expect(html).toContain(step)
-    expect(html).toContain('before accessing your detailed report')
+    for (const step of ['Complete Your Financial Report Card', 'Reserve Your Complimentary Review', 'Optional Family or Business Owner Discovery', 'Attend Your Financial Strategy Review', 'Discuss Your Recommended Action Plan']) expect(html).toContain(step)
+    expect(html).toContain('You can book without completing this stage')
     expect(html).toContain('preliminary educational diagnostic')
     expect(html).toContain('deeper consultation intake')
     expect(html).toContain('id="home-diagnostics"')

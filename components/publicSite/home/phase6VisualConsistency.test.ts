@@ -98,7 +98,7 @@ describe('Phase 6 public CTA hierarchy and alignment', () => {
     expect(related).not.toContain('site-home-text-link')
   })
 
-  it('keeps the published Services and Tools destinations', () => {
+  it('preserves service destinations and prioritizes existing specialized routes', () => {
     expect(SERVICES_NAV_LINKS.map((item) => item.to)).toEqual([
       ROUTES.protectionAnalysis,
       ROUTES.retirementReportCard,
@@ -113,18 +113,10 @@ describe('Phase 6 public CTA hierarchy and alignment', () => {
       ROUTES.solutions,
     ])
     expect(TOOLS_NAV_LINKS.map((item) => item.to)).toEqual([
-      ROUTES.reportCard,
-      ROUTES.businessReportCard,
-      ROUTES.retirementReportCard,
-      ROUTES.protectionAnalysis,
-      ROUTES.studentLoanReportCard,
-      ROUTES.creditReportCard,
-      ROUTES.homeBuyerReportCard,
-      '/tsp-report-card',
-      '/health-insurance-report-card',
-      '/employee-benefits-report-card',
-      '/tax-review-report-card',
-      '/lifestyle-report-card',
+      ROUTES.studentLoanReportCard, '/health-insurance-report-card', '/personal-insurance-report-card',
+      '/commercial-insurance-report-card', '/commercial-trucking-report-card', ROUTES.homeBuyerReportCard,
+      '/employee-benefits-report-card', ROUTES.retirementReportCard, ROUTES.protectionAnalysis,
+      ROUTES.reportCard, ROUTES.businessReportCard, ROUTES.creditReportCard, '/tsp-report-card', '/tax-review-report-card',
     ])
     const home = renderAt('/', createElement(HomePage))
     for (const path of FUTURE_UNBUILT_PUBLIC_PATHS) {

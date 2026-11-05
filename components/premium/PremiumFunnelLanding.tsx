@@ -15,11 +15,11 @@ import AssessmentJourney from "./AssessmentJourney";
 const reviewNames: Record<Priority, [string, string]> = {
  commercial:["Commercial Insurance Review","Revisión de seguro comercial"], trucking:["Commercial Trucking Review","Revisión de transporte comercial"],
   family: [
-    "Family Protection & Financial Review",
+    "Family Financial Report Card",
     "Revisión financiera y protección familiar",
   ],
   business: [
-    "Business Owner Strategy Review",
+    "Business Owner Financial Report Card",
     "Revisión estratégica para dueños de negocios",
   ],
   home_buyer: [
@@ -134,8 +134,8 @@ export default function PremiumFunnelLanding({
   useHomeDocumentMeta({
     metaTitle: `${title} | Valtoris Financial`,
     metaDescription: entry?.summary ?? (es
-      ? "Una revisión educativa enfocada en tus prioridades. Reserva una consulta sin costo para desbloquear tus resultados detallados."
-      : "A focused educational review built around your priorities. Book a complimentary consultation to unlock your detailed results."),
+      ? "Una revisión educativa enfocada en tus prioridades. Mira resultados preliminares y reserva una consulta sin costo."
+      : "A focused educational review built around your priorities. See preliminary results and book a complimentary consultation."),
   });
   return (
     <div className="premium-funnel">
@@ -148,20 +148,20 @@ export default function PremiumFunnelLanding({
         <p className="premium-lead">{entry?.summary ?? reviewPromises[priority][es ? 1 : 0]}</p>
         {entry && <p className="premium-fineprint">{entry.audience}</p>}
         <p className="premium-fineprint">
-          {es
-            ? "Completa tu evaluación, reserva tu consulta sin costo y desbloquea tus resultados preliminares."
-            : "Complete your assessment, reserve your complimentary consultation, then unlock your preliminary results."}
+          {priority==="family"||priority==="business" ? (es?"Revisión integral opcional después de un Report Card especializado. Tus respuestas se conservan; no es necesario completarla para reservar.":"Optional comprehensive discovery after a specialized Report Card. Prior answers carry forward; this review is never required to book.") : es
+            ? "Responde 5–10 preguntas, mira tus resultados preliminares y reserva una consulta sin costo. La revisión familiar o empresarial es opcional."
+            : "Answer 5–10 focused questions, see useful preliminary results, and book a complimentary consultation. Optional Family or Business Owner discovery follows."}
         </p>
         <PublicLink
           className="premium-button"
-          to={`/financial-assessment?priorities=${priority}`}
+          to={priority==="family"||priority==="business"?"/solutions":`/financial-assessment?focus=${priority}&priorities=${priority}`}
         >
           {es ? "Comenzar mi evaluación" : "Begin My Assessment"} ↗
         </PublicLink>
         <p className="premium-fineprint">
           {es
-            ? "Puedes añadir otras prioridades antes de comenzar."
-            : "You can add other priorities before you begin."}
+            ? "Tus respuestas se conservan para la revisión integral opcional."
+            : "Your answers carry forward into optional comprehensive discovery."}
         </p>
         </div>
       <EditorialVisual

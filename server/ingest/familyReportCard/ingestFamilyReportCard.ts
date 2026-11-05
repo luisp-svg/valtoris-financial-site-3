@@ -100,7 +100,7 @@ function persistableAssessmentAnswers(
   | { diagnostic: StudentLoanAssessmentAnswers['diagnostic'] }
   | { diagnostic: CreditAssessmentAnswers['diagnostic'] }
   | { diagnostic: HomeBuyerAssessmentAnswers['diagnostic'] } {
-  if (isCombined(answers)) return {format:answers.format,selected:answers.selected,diagnostic:answers.diagnostic,locale:answers.locale,...(answers.insuranceRoutingVersion?{insuranceRoutingVersion:answers.insuranceRoutingVersion}:{}),...(answers.consultationOnly?{consultationOnly:true as const}:{})}
+  if (isCombined(answers)) return {format:answers.format,selected:answers.selected,diagnostic:answers.diagnostic,locale:answers.locale,...(answers.strategyVersion?{strategyVersion:answers.strategyVersion}:{}),...(answers.insuranceRoutingVersion?{insuranceRoutingVersion:answers.insuranceRoutingVersion}:{}),...(answers.consultationOnly?{consultationOnly:true as const}:{})}
   if (isGuidedReport(answers)) return {format:answers.format,assessmentType:answers.assessmentType,diagnostic:answers.diagnostic,locale:answers.locale}
   if (isShortForm(answers)) return { format: answers.format, assessmentType: answers.assessmentType, diagnostic: answers.diagnostic }
   if (assessmentType === 'student_loan') {
@@ -138,11 +138,11 @@ function buildCanonicalResult(
     const names = splitFullName(answers.contact.fullName)
     const priorities = results.map(r => ({level:'review',title:r.title,why:'Selected financial priority',timeline:'Consultation'}))
     return {overallScore:reportCard?.overall.score??null,overallGrade:reportCard?.overall.grade??null,scoringVersion:COMBINED_VERSION,priorities,
-      derivedMetrics:{financialReportCard:reportCard,consultationOnly:answers.consultationOnly===true,coverageOperations:(answers.consultationOnly?[]:answers.selected).filter(type=>type==='health'||type==='benefits').map(type=>({type,...coverageReview(type,reviewDiagnostic(type,answers.diagnostic))?.internal})),combinedReportResults:results,combinedReportResultsByLocale:{en:combinedResults({...answers,locale:'en'}),es:combinedResults({...answers,locale:'es'})},selectedPriorities:answers.selected,currentLevel:'Preliminary financial planning readiness — self-reported, needs verification'},
+      derivedMetrics:{...(answers.strategyVersion?{funnelJourney:{version:1,stage:answers.consultationOnly?"consultation_requested":"specialized_completed",specializedCompletedAt:submittedAt,entryServices:answers.selected}}:{}),financialReportCard:reportCard,consultationOnly:answers.consultationOnly===true,coverageOperations:(answers.consultationOnly?[]:answers.selected).filter(type=>type==='health'||type==='benefits').map(type=>({type,...coverageReview(type,reviewDiagnostic(type,answers.diagnostic))?.internal})),combinedReportResults:results,combinedReportResultsByLocale:{en:combinedResults({...answers,locale:'en'}),es:combinedResults({...answers,locale:'es'})},selectedPriorities:answers.selected,currentLevel:'Preliminary financial planning readiness — self-reported, needs verification'},
       sheetsPayload:buildMasterLeadPayload({...names,fullName:answers.contact.fullName,email:answers.contact.email,phone:answers.contact.phone,
         notes:`${answers.consultationOnly ? "Consultation request only; no assessment completed" : "Valtoris Financial Assessment"}; selected priorities: ${answers.selected.join(', ')}. One parent assessment; detailed intake during consultation.`,
         topPriority1:priorities[0]?.title,topPriority2:priorities[1]?.title,topPriority3:priorities[2]?.title,
-        sourcePage:sourcePage??'',submittedAt,rawAnswers:JSON.stringify({format:answers.format,selected:answers.selected,diagnostic:answers.diagnostic,locale:answers.locale,...(answers.insuranceRoutingVersion?{insuranceRoutingVersion:answers.insuranceRoutingVersion}:{})})})}
+        sourcePage:sourcePage??'',submittedAt,rawAnswers:JSON.stringify({format:answers.format,selected:answers.selected,diagnostic:answers.diagnostic,locale:answers.locale,...(answers.strategyVersion?{strategyVersion:answers.strategyVersion}:{}),...(answers.insuranceRoutingVersion?{insuranceRoutingVersion:answers.insuranceRoutingVersion}:{})})})}
   }
   if (isGuidedReport(answers)) {
     const result=guidedResult(answers.assessmentType,answers.diagnostic,answers.locale)
