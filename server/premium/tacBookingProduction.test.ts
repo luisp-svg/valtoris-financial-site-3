@@ -155,3 +155,57 @@ it('does not attach mismatched contacts or turn provider read errors into new co
   expect((await call(f,'report')).status).toBe(423)
  }
 })
+
+it('recovers a rejected event by changing time on the same TAC appointment',async()=>{
+ const f=await setup()
+ vi.mocked(f.provider.createEvent).mockRejectedValueOnce(new Error('booking_event_rejected'))
+ const body={submissionId:f.journey.id,startTime:f.start,timezone:'UTC'}
+ const rejected=await call(f,'book',body)
+ expect(rejected.status).toBe(409);expect(rejected.body.code).toBe('booking_slot_unavailable')
+ const prior=(await store.load(f.journey.id))!
+ expect(prior.create_started).toBe(false);expect(prior.external_event_id).toBeNull()
+ expect((await call(f,'report')).status).toBe(423)
+ expect((await call(f,'slots')).body.booking).toMatchObject({canReschedule:true})
+ const later=new Date(Date.parse(f.start)+3600000).toISOString()
+ vi.mocked(f.provider.slots).mockResolvedValue([later])
+ expect((await call(f,'book',{...body,startTime:later})).status).toBe(200)
+ const after=(await store.load(f.journey.id))!
+ expect(after.id).toBe(prior.id);expect(after.appointment_id).toBe(prior.appointment_id)
+ expect(Date.parse(after.starts_at)).toBe(Date.parse(later))
+ expect((await call(f,'report')).status).toBe(200)
+ expect(f.provider.createContact).toHaveBeenCalledTimes(1)
+ expect((await call(f,'book',{...body,startTime:later})).status).toBe(200)
+ expect(f.provider.createEvent).toHaveBeenCalledTimes(2)
+ expect(await store.checkpoint(f.journey.id,'reject_event')).toBe(false)
+ expect(await store.checkpoint(f.journey.id,'reschedule',f.start,'UTC')).toBe(false)
+})
+it('does not release uncertain event creation or allow a new time after a timeout',async()=>{
+ const f=await setup()
+ vi.mocked(f.provider.createEvent).mockRejectedValueOnce(new Error('booking_provider_unavailable'))
+ await expect(f.service.book(f.journey.id,f.saved.answers,f.start,'UTC')).rejects.toThrow('booking_provider_unavailable')
+ expect((await store.load(f.journey.id))?.create_started).toBe(true)
+ expect((await call(f,'slots')).body.booking).toMatchObject({canReschedule:false})
+ const later=new Date(Date.parse(f.start)+3600000).toISOString()
+ await expect(f.service.book(f.journey.id,f.saved.answers,later,'UTC')).rejects.toThrow('booking_already_reserved')
+ expect(await store.checkpoint(f.journey.id,'reschedule',later,'UTC')).toBe(false)
+ expect(f.provider.createEvent).toHaveBeenCalledTimes(1)
+})
+it('does not send an expired, unattempted reservation to the calendar',async()=>{
+ const f=await setup()
+ await store.reserve(f.journey.id,'qaLocation','qaCalendar',f.start,'UTC')
+ const spy=vi.spyOn(Date,'now').mockReturnValue(Date.parse(f.start)+60000)
+ try{await expect(f.service.book(f.journey.id,f.saved.answers,f.start,'UTC')).rejects.toThrow('booking_slot_unavailable')}
+ finally{spy.mockRestore()}
+ expect(f.provider.createEvent).not.toHaveBeenCalled()
+})
+
+it('a report read reconciles an accepted event after timeout without another provider POST',async()=>{
+ const f=await setup()
+ vi.mocked(f.provider.createEvent).mockImplementationOnce(async b=>{f.events.set(b.id,'eventAcceptedBeforeTimeout');throw new Error('booking_provider_unavailable')})
+ await expect(f.service.book(f.journey.id,f.saved.answers,f.start,'UTC')).rejects.toThrow('booking_provider_unavailable')
+ expect((await call(f,'report')).status).toBe(200)
+ expect((await store.load(f.journey.id))?.external_event_id).toBe('eventAcceptedBeforeTimeout')
+ expect(f.provider.createEvent).toHaveBeenCalledTimes(1)
+ expect((await call(f,'report')).status).toBe(200)
+ expect(f.provider.createEvent).toHaveBeenCalledTimes(1)
+})

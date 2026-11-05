@@ -9,7 +9,7 @@ export type TacBookingRecord = {
 export interface TacBookingStore {
  load(submission:string):Promise<TacBookingRecord|null>
  reserve(submission:string,location:string,calendar:string,start:string,timezone:string):Promise<void>
- checkpoint(submission:string,op:'claim_contact'|'claim_event'|'link_contact'|'link_event'|'provider_status',external?:string,status?:string):Promise<boolean>
+ checkpoint(submission:string,op:'claim_contact'|'claim_event'|'reject_event'|'reschedule'|'link_contact'|'link_event'|'provider_status',external?:string,status?:string):Promise<boolean>
 }
 export class SupabaseTacBookingStore implements TacBookingStore {
  constructor(private readonly admin:Pick<SupabaseClient,'rpc'>){}

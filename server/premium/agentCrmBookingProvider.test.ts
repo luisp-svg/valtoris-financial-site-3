@@ -90,3 +90,9 @@ it.each([{email:''},{email:'other@example.invalid'},{phone:'+12025559999'},{firs
  await expect(f.provider.verifyContact(f.booking,'contact1')).rejects.toThrow('booking_identity_review_required')
  expect(f.fetchImpl.mock.calls.every(([,init])=>init?.method==='GET')).toBe(true)
 })
+
+it('distinguishes a rejected event POST from an uncertain or read failure',async()=>{
+ const f=fixture(),delegate=f.fetchImpl.getMockImplementation()!
+ f.fetchImpl.mockImplementation(async(url,init)=>new URL(String(url)).pathname==='/calendars/events/appointments'&&init?.method==='POST'?new Response('{}',{status:400}):delegate(url,init))
+ await expect(f.provider.createEvent(f.booking,'contact1')).rejects.toThrow('booking_event_rejected')
+})

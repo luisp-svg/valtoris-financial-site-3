@@ -371,7 +371,7 @@ export async function premiumAssessmentHttp(
       });
   } catch (error) {
     const code = error instanceof Error ? error.message : "";
-    if (action === "book" || action === "slots") deps.onBookingError?.(/^(booking_|tac_|invalid_)[a-z0-9_]{1,80}$/.test(code) ? code : "booking_unclassified_failure");
+    if (action === "book" || action === "slots" || action === "report") deps.onBookingError?.(/^(booking_|tac_|invalid_)[a-z0-9_]{1,80}$/.test(code) ? code : "booking_unclassified_failure");
     if (["invalid_booking_date","invalid_booking_time"].includes(code)) return res.status(400).json({ok:false,code});
     if (["booking_slot_unavailable","booking_already_reserved","booking_identity_review_required","booking_duplicate_events_review"].includes(code))
       return res.status(409).json({ok:false,code});
