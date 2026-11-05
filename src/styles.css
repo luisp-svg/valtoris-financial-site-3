@@ -8971,6 +8971,7 @@ p { color: var(--muted); line-height: 1.7; }
 }
 
 .crm-opportunities-page {
+  grid-template-columns: minmax(0, 1fr);
   overflow-x: clip;
 }
 

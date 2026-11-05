@@ -1,3 +1,4 @@
+import HorizontalScroll from '../components/ui/HorizontalScroll'
 import { useRef, useState, type ReactNode } from 'react'
 import { DndContext, DragOverlay, PointerSensor, TouchSensor, useDraggable, useDroppable, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
 import './stageBoard.css'
@@ -28,7 +29,7 @@ export default function StageBoard({label,items,columns,disabled=false,onMove}:P
  function end(event:DragEndEvent){setActiveId(null);if(event.over)void move(String(event.active.id),String(event.over.id))}
  const active=items.find(i=>i.id===activeId)
  return <DndContext accessibility={{screenReaderInstructions:{draggable:'Use the Move to menu to change stages with a keyboard. Pointer and touch users can drag this handle.'}}} sensors={sensors} onDragStart={event=>setActiveId(String(event.active.id))} onDragCancel={()=>setActiveId(null)} onDragEnd={end}>
-  <div className="tac-stage-board" role="region" aria-label={label} tabIndex={0} aria-busy={moving}>{columns.map(column=><Column key={column.id} column={column} items={items.filter(i=>i.stage===column.id)} columns={columns} disabled={disabled||moving} onMove={move}/>)}</div>
+  <HorizontalScroll className="tac-stage-board" label={label} busy={moving}>{columns.map(column=><Column key={column.id} column={column} items={items.filter(i=>i.stage===column.id)} columns={columns} disabled={disabled||moving} onMove={move}/>)}</HorizontalScroll>
   <DragOverlay>{active?<div className="tac-stage-overlay">{active.label}</div>:null}</DragOverlay>
  </DndContext>
 }

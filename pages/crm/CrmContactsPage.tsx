@@ -1,3 +1,4 @@
+import HorizontalScroll from '../../crm/components/ui/HorizontalScroll'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useCrmAuth } from '../../crm/auth/CrmAuthContext'
@@ -160,7 +161,7 @@ export default function CrmContactsPage() {
       ) : null}
 
       {!loading && items.length > 0 ? (
-        <div className="crm-panel crm-contacts-table-wrap">
+        <HorizontalScroll className="crm-panel crm-contacts-table-wrap" label="Contacts table">
           <table className="crm-table crm-contacts-table">
             <thead>
               <tr>
@@ -220,7 +221,7 @@ export default function CrmContactsPage() {
               Next
             </button>
           </div>
-        </div>
+        </HorizontalScroll>
       ) : null}
     </div>
   )

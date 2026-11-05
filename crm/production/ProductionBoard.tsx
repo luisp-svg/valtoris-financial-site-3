@@ -1,3 +1,4 @@
+import HorizontalScroll from '../components/ui/HorizontalScroll'
 import { useEffect, useMemo, useState, type KeyboardEvent } from 'react'
 import {
   DndContext,
@@ -228,10 +229,10 @@ export default function ProductionBoard({
   const boardBody =
     layout === 'stacked' ? (
       <div className="crm-production-board is-stacked" aria-label="Production board" aria-busy={movementBusy || undefined}>
-        <div
+        <HorizontalScroll
           className="crm-production-board-tabs"
           role="tablist"
-          aria-label="Board stages"
+          label="Board stages"
           onKeyDown={onStackedTabKeyDown}
         >
           {BOARD_PIPELINE_COLUMNS.map((column) => {
@@ -274,7 +275,7 @@ export default function ProductionBoard({
             Exceptions
             <span className="crm-production-board-count">{model.exceptionCount}</span>
           </button>
-        </div>
+        </HorizontalScroll>
         <div
           role="tabpanel"
           aria-labelledby={
@@ -306,12 +307,7 @@ export default function ProductionBoard({
         aria-label="Production board"
         aria-busy={movementBusy || undefined}
       >
-        <div
-          className="crm-production-board-viewport"
-          role="region"
-          aria-label="Primary pipeline"
-          tabIndex={0}
-        >
+        <HorizontalScroll className="crm-production-board-viewport" label="Primary pipeline">
           <div className="crm-production-board-pipeline">
             {model.pipeline.map((column) => (
               <BoardColumn
@@ -327,13 +323,13 @@ export default function ProductionBoard({
               />
             ))}
           </div>
-        </div>
+        </HorizontalScroll>
         <details className="crm-production-board-rail" open={model.intakeCount > 0}>
           <summary>
             Intake / Application Drafts
             <span className="crm-production-board-count">{model.intakeCount}</span>
           </summary>
-          <div className="crm-production-board-viewport">
+          <HorizontalScroll className="crm-production-board-viewport" label="Intake and application drafts">
             <div className="crm-production-board-rail-columns">
               {model.intake.map((column) => (
                 <BoardColumn
@@ -350,14 +346,14 @@ export default function ProductionBoard({
                 />
               ))}
             </div>
-          </div>
+          </HorizontalScroll>
         </details>
         <details className="crm-production-board-rail" open={model.exceptionCount > 0}>
           <summary>
             Exceptions
             <span className="crm-production-board-count">{model.exceptionCount}</span>
           </summary>
-          <div className="crm-production-board-viewport">
+          <HorizontalScroll className="crm-production-board-viewport" label="Production exceptions">
             <div className="crm-production-board-rail-columns">
               {model.exceptions.map((column) => (
                 <BoardColumn
@@ -374,7 +370,7 @@ export default function ProductionBoard({
                 />
               ))}
             </div>
-          </div>
+          </HorizontalScroll>
         </details>
       </div>
     )

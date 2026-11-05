@@ -1,3 +1,4 @@
+import HorizontalScroll from '../components/ui/HorizontalScroll'
 import { Link } from 'react-router-dom'
 import { CaseNextActionLine } from './CaseNextActionPanel'
 import { deriveCaseNextAction } from './caseNextAction'
@@ -55,7 +56,7 @@ export default function ProductionQueueTable({
   const asOf = now ?? new Date()
 
   return (
-    <div className="crm-opportunities-table-wrap" role="region" aria-label="Production queue table">
+    <HorizontalScroll className="crm-opportunities-table-wrap" label="Production queue table">
       <table className="crm-opportunities-table">
         <thead>
           <tr>
@@ -238,6 +239,6 @@ export default function ProductionQueueTable({
           })}
         </tbody>
       </table>
-    </div>
+    </HorizontalScroll>
   )
 }

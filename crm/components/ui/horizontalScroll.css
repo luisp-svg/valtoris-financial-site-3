@@ -1,0 +1,26 @@
+.tac-horizontal-scroll,
+.tac-horizontal-scroll-viewport {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.tac-horizontal-scroll-viewport {
+  overflow-x: auto;
+}
+
+.tac-horizontal-scroll-controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.tac-horizontal-scroll-controls .crm-secondary-btn {
+  min-height: 44px;
+}
+
+.tac-horizontal-scroll-viewport:focus-visible {
+  outline: 2px solid var(--crm-blue, #15357d);
+  outline-offset: -2px;
+}

@@ -1,3 +1,4 @@
+import HorizontalScroll from '../components/ui/HorizontalScroll'
 import {
   getMemberDisplayName,
   getRelationshipLabel,
@@ -30,11 +31,7 @@ export default function HouseholdMembersTable({
 }: HouseholdMembersTableProps) {
   return (
     <>
-      <div
-        className="crm-household-members-table-wrap"
-        role="region"
-        aria-label="Household members table"
-      >
+      <HorizontalScroll className="crm-household-members-table-wrap" label="Household members table">
         <table className={`crm-household-members-table${dense ? ' is-dense' : ''}`}>
           <thead>
             <tr>
@@ -122,7 +119,7 @@ export default function HouseholdMembersTable({
             ))}
           </tbody>
         </table>
-      </div>
+      </HorizontalScroll>
 
       <ul className="crm-household-members-card-list">
         {members.map((member) => (

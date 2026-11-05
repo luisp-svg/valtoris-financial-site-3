@@ -1,3 +1,4 @@
+import HorizontalScroll from '../../crm/components/ui/HorizontalScroll'
 import { closedMonthFromParams, filterClosedMonth } from '../../crm/dashboard/shortcutFilters'
 import PipelineBoard from '../../crm/opportunities/PipelineBoard'
 import { EMPTY_PIPELINE_FILTERS, filterPipelineScope, pipelineFilterOptions, pipelineStageSummary } from '../../crm/opportunities/pipelineFilters'
@@ -350,11 +351,7 @@ export default function CrmOpportunitiesPage() {
         {viewState.kind === 'ready' && layout === 'board' ? <PipelineBoard items={filteredOpportunities} allItems={opportunities} stages={boardStages} onChanged={()=>setReloadKey(key=>key+1)}/> : null}
         {viewState.kind === 'ready' && layout === 'list' ? (
           <>
-            <div
-              className="crm-opportunities-table-wrap"
-              role="region"
-              aria-label="Pipeline table"
-            >
+            <HorizontalScroll className="crm-opportunities-table-wrap" label="Pipeline table">
               <table className="crm-opportunities-table">
                 <thead>
                   <tr>
@@ -431,7 +428,7 @@ export default function CrmOpportunitiesPage() {
                   })}
                 </tbody>
               </table>
-            </div>
+            </HorizontalScroll>
 
             <ul className="crm-opportunities-card-list" aria-label="Pipeline cards">
               {filteredOpportunities.map((opportunity) => (

@@ -1,3 +1,4 @@
+import HorizontalScroll from '../../crm/components/ui/HorizontalScroll'
 import { PUBLIC_REPORT_CARD_LEAD_TYPES } from '../../modules/reportCard/publicIngestCatalog'
 import { isQuoteLead } from '../../modules/insuranceQuote/catalog'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -505,7 +506,7 @@ export default function CrmIntakePage() {
 
       {viewState.kind === 'ready' ? (
         presentation === 'table' ? (
-          <div className="crm-households-table-wrap crm-intake-table-wrap">
+          <HorizontalScroll className="crm-households-table-wrap crm-intake-table-wrap" label="Intake table">
             <table className="crm-households-table crm-intake-table">
               <thead>
                 <tr>
@@ -599,7 +600,7 @@ export default function CrmIntakePage() {
                 ))}
               </tbody>
             </table>
-          </div>
+          </HorizontalScroll>
         ) : (
           <div className="crm-intake-card-list">
             {visibleItems.map((item) => (

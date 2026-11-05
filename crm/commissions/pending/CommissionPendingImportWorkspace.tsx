@@ -1,3 +1,4 @@
+import HorizontalScroll from '../../components/ui/HorizontalScroll'
 import { Link } from 'react-router-dom'
 import { ROUTES } from '../../../constants/routes'
 import { formatCents, formatProductionDate } from '../../production/productionApi'
@@ -423,7 +424,7 @@ function PendingImportPreview({
           {warnings[0].message}
         </p>
       ) : null}
-      <div className="crm-commissions-import-preview-table-wrap">
+      <HorizontalScroll className="crm-commissions-import-preview-table-wrap" label="Pending commission import rows">
         <table className="crm-opportunities-table">
           <thead>
             <tr>
@@ -452,7 +453,7 @@ function PendingImportPreview({
             ))}
           </tbody>
         </table>
-      </div>
+      </HorizontalScroll>
       <div className="crm-form-actions">
         <button type="button" className="crm-secondary-btn" onClick={onCancel} disabled={confirming}>
           Cancel

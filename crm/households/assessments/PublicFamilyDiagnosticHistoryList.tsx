@@ -1,3 +1,4 @@
+import HorizontalScroll from '../../components/ui/HorizontalScroll'
 import { Link } from 'react-router-dom'
 import { crmHouseholdAssessmentDetailPath } from '../../../constants/routes'
 import { mapMatchStatusLabel, mapSheetsSyncLabel } from '../../intake/intakeFormatters'
@@ -21,7 +22,7 @@ export default function PublicFamilyDiagnosticHistoryList({ householdId, items }
 
   return (
     <>
-      <div className="crm-households-table-wrap crm-ifd-history-table-wrap">
+      <HorizontalScroll className="crm-households-table-wrap crm-ifd-history-table-wrap" label="Report card history table">
         <table className="crm-households-table">
           <thead>
             <tr>
@@ -76,7 +77,7 @@ export default function PublicFamilyDiagnosticHistoryList({ householdId, items }
             ))}
           </tbody>
         </table>
-      </div>
+      </HorizontalScroll>
 
       <div className="crm-ifd-history-card-list" aria-label="Diagnostic history cards">
         {items.map((item) => (

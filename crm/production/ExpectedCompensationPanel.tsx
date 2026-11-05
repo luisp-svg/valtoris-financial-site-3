@@ -1,3 +1,4 @@
+import HorizontalScroll from '../components/ui/HorizontalScroll'
 import CompensationStatusBadge from './CompensationStatusBadge'
 import {
   formatCommissionBpsPercent,
@@ -137,7 +138,7 @@ function AdvisorExpectedBody({ row }: { row: LiveExpectedCompensationRow }) {
 
 function OwnerExpectedTable({ rows }: { rows: readonly LiveExpectedCompensationRow[] }) {
   return (
-    <div className="crm-opportunities-table-wrap" role="region" aria-label="Expected compensation by writing advisor">
+    <HorizontalScroll className="crm-opportunities-table-wrap" label="Expected compensation by writing advisor">
       <table className="crm-opportunities-table crm-production-comp-table">
         <thead>
           <tr>
@@ -185,6 +186,6 @@ function OwnerExpectedTable({ rows }: { rows: readonly LiveExpectedCompensationR
           ))}
         </tbody>
       </table>
-    </div>
+    </HorizontalScroll>
   )
 }

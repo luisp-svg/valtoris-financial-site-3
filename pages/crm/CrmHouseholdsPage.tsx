@@ -1,3 +1,4 @@
+import HorizontalScroll from '../../crm/components/ui/HorizontalScroll'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import {
@@ -294,7 +295,7 @@ export default function CrmHouseholdsPage() {
 
         {!loading && !error && households.length > 0 ? (
           <>
-            <div className="crm-households-table-wrap" role="region" aria-label="Households table">
+            <HorizontalScroll className="crm-households-table-wrap" label="Households table">
               <table className="crm-households-table">
                 <thead>
                   <tr>
@@ -339,7 +340,7 @@ export default function CrmHouseholdsPage() {
                   ))}
                 </tbody>
               </table>
-            </div>
+            </HorizontalScroll>
 
             <ul className="crm-households-card-list">
               {households.map((household) => (

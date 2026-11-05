@@ -1,3 +1,4 @@
+import HorizontalScroll from '../../crm/components/ui/HorizontalScroll'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ROUTES } from '../../constants/routes'
@@ -408,7 +409,7 @@ export default function CrmProductionCatalogPage() {
           </div>
         ) : null}
         {viewState.kind === 'ready' ? (
-          <div className="crm-opportunities-table-wrap">
+          <HorizontalScroll className="crm-opportunities-table-wrap" label="Production catalog">
             <table className="crm-opportunities-table crm-catalog-table">
               <thead>
                 <tr>
@@ -475,7 +476,7 @@ export default function CrmProductionCatalogPage() {
                 ))}
               </tbody>
             </table>
-          </div>
+          </HorizontalScroll>
         ) : null}
       </section>
 
@@ -547,7 +548,7 @@ export default function CrmProductionCatalogPage() {
           ? productGroups.map((group) => (
               <div key={group.carrierId} className="crm-catalog-product-group">
                 <h3>{group.carrier?.name ?? 'Carrier'}</h3>
-                <div className="crm-opportunities-table-wrap">
+                <HorizontalScroll className="crm-opportunities-table-wrap" label="Catalog products">
                   <table className="crm-opportunities-table crm-catalog-table">
                     <thead>
                       <tr>
@@ -614,7 +615,7 @@ export default function CrmProductionCatalogPage() {
                       ))}
                     </tbody>
                   </table>
-                </div>
+                </HorizontalScroll>
               </div>
             ))
           : null}
