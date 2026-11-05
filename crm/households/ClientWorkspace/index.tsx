@@ -13,6 +13,7 @@ import {
 import type { HouseholdMemberSummary } from '../types'
 import type { OpportunityDetail } from '../../opportunities/types'
 import WorkspaceHeader from './components/WorkspaceHeader'
+import './householdFocus.css'
 import WorkspaceSidebar from './components/WorkspaceSidebar'
 import WorkspaceTabs from './components/WorkspaceTabs'
 import { useHouseholdWorkspace } from './hooks/useHouseholdWorkspace'
@@ -260,10 +261,12 @@ export default function ClientWorkspace({ householdId }: ClientWorkspaceProps) {
       {!loading && !error && workspace && tabProps ? (
         <>
           <WorkspaceHeader workspace={workspace} onViewProgress={()=>navigateTab('financial_progress')} />
+          <details className="tac-household-section tac-household-management"><summary>Manage household</summary>
           <div className="tac-household-actions">
           {profile?.role === 'owner' && <button type="button" className="crm-secondary-btn" onClick={() => { setAssignError(null); setAssignOpen(true) }}>Assign Advisor</button>}
           <ArchiveButton kind="household" id={workspace.household.id} name={workspace.household.display_name} onArchived={() => navigate("/crm/households")} />
           </div>
+          </details>
           {assignOpen && profile?.role === 'owner' && <IntakeAssignAdvisorDialog
             householdName={workspace.household.display_name}
             currentAdvisorName={workspace.household.assigned_advisor?.display_name ?? null}

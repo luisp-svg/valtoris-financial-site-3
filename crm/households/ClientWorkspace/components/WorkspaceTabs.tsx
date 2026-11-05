@@ -47,6 +47,12 @@ export default function WorkspaceTabs({ activeTab, onChange }: WorkspaceTabsProp
   }
 
   return (
+    <>
+    <label className="tac-household-section-select">Household section
+      <select aria-label="Household section" value={activeTab} onChange={event => onChange(event.target.value as ClientWorkspaceTabId)}>
+        {ENABLED_TABS.map(tab => <option key={tab.id} value={tab.id}>{tab.label}</option>)}
+      </select>
+    </label>
     <div
       className="crm-household-workspace-tabs"
       role="tablist"
@@ -86,5 +92,6 @@ export default function WorkspaceTabs({ activeTab, onChange }: WorkspaceTabsProp
         ),
       )}
     </div>
+    </>
   )
 }
