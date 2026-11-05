@@ -187,7 +187,8 @@
       "codex/allow-duplicate-booking": false,
       "codex/booking-incomplete-contact": false,
       "codex/booking-slot-recovery": false,
-      "codex/report-results-action-plan": false
+      "codex/report-results-action-plan": false,
+      "codex/tac-cleanup-boards": false
     }
   }
 }

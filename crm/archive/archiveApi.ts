@@ -5,7 +5,7 @@ export async function changeArchive(client: SupabaseClient, kind: ArchiveKind, i
   const { data, error } = await client.rpc(archive ? 'archive_crm_record' : 'restore_crm_record', { p_kind: kind, p_id: id })
   if (error) {
     if (error.message.includes('restore_household_first')) throw new Error('Restore the household first, then restore this record.')
-    if (error.message.includes('resolve_duplicate_first')) throw new Error('Resolve the pending duplicate review before archiving this record.')
+    if (error.message.includes('resolve_duplicate_first')) throw new Error('Resolve the pending duplicate review, or ask an owner to remove this record with recovery.')
     throw new Error('Unable to update this record. Refresh and try again.')
   }
   if (data?.ok !== true || data.id !== id || data.kind !== kind || data.archived !== archive) throw new Error('The change could not be confirmed. Refresh before trying again.')

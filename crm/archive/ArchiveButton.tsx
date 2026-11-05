@@ -11,12 +11,13 @@ export default function ArchiveButton({ kind, id, name, onArchived }: { kind: Ar
     catch (e) { setError(e instanceof Error ? e.message : 'Unable to archive this record.'); setBusy(false) }
   }
   return <div>
-    {!confirm ? <button type="button" className="crm-text-btn" onClick={() => setConfirm(true)}>Delete / Archive</button> : <div className="crm-panel" aria-label="Confirm archive">
-      <p>Archive {name}? It will leave active views. Linked history is preserved, and you can restore it from Archived records.</p>
+    {!confirm ? <button type="button" className="crm-text-btn" onClick={() => setConfirm(true)}>Remove from active records</button> : <div className="crm-panel" aria-label="Confirm archive">
+      <p>Remove {name} from active records? It will leave active views. Linked history is preserved, and you can restore it from Archived records.</p>
+      <p>Pending duplicate reviews stay on record. Owners can archive them for cleanup and restore the record later; archiving does not merge or resolve duplicates.</p>
       {kind === 'household' ? <p>Policies and other linked records are preserved. This does not cancel policies or close business.</p> : null}
       {error ? <p role="alert">{error}</p> : null}
       <button type="button" className="crm-secondary-btn" disabled={busy} onClick={() => { setConfirm(false); setError('') }}>Cancel</button>{' '}
-      <button type="button" className="crm-primary-btn" disabled={busy} onClick={() => void archive()}>{busy ? 'Archiving…' : 'Archive with recovery'}</button>
+      <button type="button" className="crm-primary-btn" disabled={busy} onClick={() => void archive()}>{busy ? 'Archiving…' : 'Remove with recovery'}</button>
     </div>}
   </div>
 }
