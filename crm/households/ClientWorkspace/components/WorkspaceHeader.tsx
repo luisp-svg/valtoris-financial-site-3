@@ -14,9 +14,10 @@ import {
 
 type WorkspaceHeaderProps = {
   workspace: ClientWorkspaceModel
+  onViewProgress?: () => void
 }
 
-export default function WorkspaceHeader({ workspace }: WorkspaceHeaderProps) {
+export default function WorkspaceHeader({ workspace, onViewProgress }: WorkspaceHeaderProps) {
   const { household, financialProgress, openTasks, activePolicies, annualReview } = workspace
   const reviewDue = getReviewDueLabel(annualReview)
   const nextReview = getNextReviewLabel(annualReview)
@@ -39,7 +40,7 @@ export default function WorkspaceHeader({ workspace }: WorkspaceHeaderProps) {
             <dd>{getAdvisorLabel(household)}</dd>
           </div>
           <div>
-            <dt>Client Since</dt>
+            <dt>Record created</dt>
             <dd>{formatWorkspaceDate(household.created_at)}</dd>
           </div>
           <div>
@@ -50,7 +51,7 @@ export default function WorkspaceHeader({ workspace }: WorkspaceHeaderProps) {
       </div>
 
       <div className="crm-client-workspace-kpi-strip" aria-label="Workspace KPIs">
-        <FinancialProgressKpiCard progress={financialProgress} />
+        <FinancialProgressKpiCard progress={financialProgress} onViewProgress={onViewProgress} />
         <StatCard
           label="Open Cases"
           value={workspace.openCasesCount}

@@ -259,8 +259,11 @@ export default function ClientWorkspace({ householdId }: ClientWorkspaceProps) {
 
       {!loading && !error && workspace && tabProps ? (
         <>
-          <WorkspaceHeader workspace={workspace} />
+          <WorkspaceHeader workspace={workspace} onViewProgress={()=>navigateTab('financial_progress')} />
+          <div className="tac-household-actions">
           {profile?.role === 'owner' && <button type="button" className="crm-secondary-btn" onClick={() => { setAssignError(null); setAssignOpen(true) }}>Assign Advisor</button>}
+          <ArchiveButton kind="household" id={workspace.household.id} name={workspace.household.display_name} onArchived={() => navigate("/crm/households")} />
+          </div>
           {assignOpen && profile?.role === 'owner' && <IntakeAssignAdvisorDialog
             householdName={workspace.household.display_name}
             currentAdvisorName={workspace.household.assigned_advisor?.display_name ?? null}
@@ -278,7 +281,6 @@ export default function ClientWorkspace({ householdId }: ClientWorkspaceProps) {
               } catch { setAssignError('Unable to confirm the assignment. Refresh the household before trying again.') }
               finally { setAssignBusy(false) }
             }} /> }
-          <ArchiveButton kind="household" id={workspace.household.id} name={workspace.household.display_name} onArchived={() => navigate("/crm/households")} />
 
           <div className="crm-client-workspace-layout">
             <WorkspaceSidebar workspace={workspace} onQuickAction={handleQuickAction} />

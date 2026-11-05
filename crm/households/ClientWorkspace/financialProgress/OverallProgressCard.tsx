@@ -6,7 +6,6 @@ import {
   formatLastCalculated,
   formatProgressScoreValue,
   isOverallProgressAvailable,
-  isProgressPartial,
   isProgressPlaceholder,
   PARTIAL_PROGRESS_MESSAGE,
   PLACEHOLDER_PROGRESS_MESSAGE,
@@ -19,7 +18,6 @@ type OverallProgressCardProps = {
 export default function OverallProgressCard({ progress }: OverallProgressCardProps) {
   const placeholder = isProgressPlaceholder(progress)
   const overallAvailable = isOverallProgressAvailable(progress)
-  const partial = isProgressPartial(progress)
 
   return (
     <Panel labelledBy="crm-fp-overall-heading" className="crm-financial-progress-overall">
@@ -43,14 +41,6 @@ export default function OverallProgressCard({ progress }: OverallProgressCardPro
             <dt>Last Calculated</dt>
             <dd>{formatLastCalculated(progress)}</dd>
           </div>
-          <div>
-            <dt>Methodology Version</dt>
-            <dd>{progress.methodologyVersion}</dd>
-          </div>
-          <div>
-            <dt>Engine Version</dt>
-            <dd>{progress.engineVersion}</dd>
-          </div>
         </dl>
       ) : overallAvailable ? (
         <dl className="crm-client-workspace-info-list">
@@ -72,20 +62,12 @@ export default function OverallProgressCard({ progress }: OverallProgressCardPro
             <dt>Last Calculated</dt>
             <dd>{formatLastCalculated(progress)}</dd>
           </div>
-          <div>
-            <dt>Methodology Version</dt>
-            <dd>{progress.methodologyVersion}</dd>
-          </div>
-          <div>
-            <dt>Engine Version</dt>
-            <dd>{progress.engineVersion}</dd>
-          </div>
         </dl>
       ) : (
         <dl className="crm-client-workspace-info-list">
           <div>
             <dt>Progress Score</dt>
-            <dd>{partial ? 'Overall Score Withheld' : 'Overall Progress Not Yet Available'}</dd>
+            <dd>{'More information needed'}</dd>
           </div>
           <div>
             <dt>Grade</dt>
@@ -103,16 +85,9 @@ export default function OverallProgressCard({ progress }: OverallProgressCardPro
             <dt>Last Calculated</dt>
             <dd>{formatLastCalculated(progress)}</dd>
           </div>
-          <div>
-            <dt>Methodology Version</dt>
-            <dd>{progress.methodologyVersion}</dd>
-          </div>
-          <div>
-            <dt>Engine Version</dt>
-            <dd>{progress.engineVersion}</dd>
-          </div>
         </dl>
       )}
+      <details className="crm-progress-calculation-details"><summary>Calculation details</summary><dl className="crm-client-workspace-info-list"><div><dt>Methodology Version</dt><dd>{progress.methodologyVersion}</dd></div><div><dt>Engine Version</dt><dd>{progress.engineVersion}</dd></div></dl></details>
     </Panel>
   )
 }

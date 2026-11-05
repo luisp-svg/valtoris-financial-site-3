@@ -188,7 +188,8 @@
       "codex/booking-incomplete-contact": false,
       "codex/booking-slot-recovery": false,
       "codex/report-results-action-plan": false,
-      "codex/tac-cleanup-boards": false
+      "codex/tac-cleanup-boards": false,
+      "codex/tac-household-usability": false
     }
   }
 }
