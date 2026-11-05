@@ -11,7 +11,6 @@ export const PILOT_LESSONS = [
     scenario: 'A client says they want a lower payment but also expects a change in employment. They have not shared any loan statements.',
     question: 'What is the best first step?',
     choices: ['Recommend a plan based on their current payment.', 'Clarify their goal and timeline, then request the records needed to review their options.', 'Wait for the client to choose an option before creating a follow-up.'],
-    answer: 1,
     feedback: 'A clear goal and verified records give the advisor a basis for review. A named next action keeps the work moving.',
   },
   {
@@ -26,7 +25,6 @@ export const PILOT_LESSONS = [
     scenario: 'The intake lists one balance, but a newer statement lists another. The client is unsure which accounts are included.',
     question: 'How should you document this?',
     choices: ['Mark the older figure verified because it was entered first.', 'Average the two balances.', 'Record both sources and dates, flag the difference, and ask the client to confirm the accounts.'],
-    answer: 2,
     feedback: 'Documenting the difference preserves the evidence and gives the next reviewer a specific question to resolve.',
   },
   {
@@ -41,7 +39,6 @@ export const PILOT_LESSONS = [
     scenario: 'The intake is complete, but one program detail needs verification before the advisor can discuss options.',
     question: 'What should the handoff contain?',
     choices: ['The verified facts, the unresolved question, and an assigned follow-up with a due date.', 'A note saying the case is complete.', 'A recommendation with no explanation of the remaining question.'],
-    answer: 0,
     feedback: 'A handoff should explain what is known and make the unresolved work visible, assigned, and time bound.',
   },
 ] as const

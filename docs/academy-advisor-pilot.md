@@ -1,8 +1,8 @@
 # Valtoris Academy advisor pilot
 
-The pilot opens with Valtoris Core for active Valtoris advisors and owners. Four original practice lessons cover how Valtoris works, cross-selling and referrals, marketing, and networking. Completing all four checks unlocks Student Loan Client Review for the current visit. That specialty uses three fictional scenarios to practice a first conversation, verification of account facts, and a documented handoff. The [CSLA Institute](https://cslainstitute.org/home) is an external program. The pilot uses original materials and issues no designation or CE credit.
+The pilot opens with Valtoris Core for active Valtoris advisors and owners. Four original practice lessons cover how Valtoris works, cross-selling and referrals, marketing, and networking. Completing all four checks unlocks Student Loan Client Review for the advisor’s account. That specialty uses three fictional scenarios to practice a first conversation, verification of account facts, and a documented handoff. The [CSLA Institute](https://cslainstitute.org/home) is an external program. The pilot uses original materials and issues no designation or CE credit.
 
-To view the pilot, run `VITE_TAC_ACADEMY_PILOT=true npm run dev` locally with an authorized development login, then open Academy pilot in TAC. The development build flag is also required by the route, so setting the variable in a production build cannot enable it. Progress lives in memory for the current visit; the pilot reads no client records and writes no data.
+To view the pilot, run `VITE_TAC_ACADEMY_PILOT=true npm run dev` locally with an authorized development login, then open Academy pilot in TAC. The development build flag is also required by the route, so setting the variable in a production build cannot enable it. Saved progress requires the reviewed development setup in `scripts/sql/academy/pilot-progress.sql`. Apply it to the verified development project before running this draft against it. The database checks the active TAC profile, saves the last lesson and passed practice checks, and enforces the Core prerequisite. Previous in-memory completions cannot be recovered.
 
 ## Remaining implementation, in order
 
@@ -12,4 +12,4 @@ To view the pilot, run `VITE_TAC_ACADEMY_PILOT=true npm run dev` locally with an
 4. **Instructor and owner views.** Confirm who can author, review, publish, and view learner results. Use explicit assignments for instructors; do not infer permission from a menu link. Show status, last activity, and the course version. Review content and fictional scenarios before publishing.
 5. **Internal completion record and rollout.** Record course version, completion date, and the internal training title. Do not present it as CSLP certification or CE. Run advisor/owner walkthroughs against development with synthetic records, then seek separate production approval.
 
-The pilot demonstrates navigation and learning flow only. It does not validate hosted permissions, persistent tracking, formal exams, instructor access, or production readiness.
+This draft implements pilot progress and practice checks. Hosted rollout verification, formal exams, instructor access, and versioned courses remain separate work.

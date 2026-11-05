@@ -11,7 +11,6 @@ export const CORE_LESSONS = [
     scenario: 'A business owner asks for help with several unrelated financial concerns in the same conversation.',
     question: 'What should you do first?',
     choices: ['Clarify their priorities and confirm which team should handle the first need.', 'Send the same request to every team.', 'Book a meeting without recording what they need.'],
-    answer: 0,
     feedback: 'A clear priority and named owner give the client a useful next step.',
   },
   {
@@ -26,7 +25,6 @@ export const CORE_LESSONS = [
     scenario: 'A client discussing protection mentions that student loan payments are making it hard to plan their budget.',
     question: 'How should you handle the additional need?',
     choices: ['Send their file to the student loan team immediately.', 'Ask whether they want an introduction and share the relevant context with permission.', 'Recommend a specific repayment plan on the spot.'],
-    answer: 1,
     feedback: 'A referral starts with the client’s need and a clear, permission-based introduction.',
   },
   {
@@ -41,7 +39,6 @@ export const CORE_LESSONS = [
     scenario: 'You are preparing an event invitation for local business owners.',
     question: 'What should be ready before the invitation goes out?',
     choices: ['A broad message covering every service.', 'A list of recipients and a plan to decide what to do after the event.', 'An approved message, a clear response path, and an owner for follow-up.'],
-    answer: 2,
     feedback: 'The invitation and follow-up should work together so interested people know what happens next.',
   },
   {
@@ -56,7 +53,6 @@ export const CORE_LESSONS = [
     scenario: 'At a networking event, a potential referral partner offers to introduce you to a colleague.',
     question: 'What should you do next?',
     choices: ['Confirm the purpose of the introduction, agree on who will make it, and set a follow-up date.', 'Add both people to a campaign without asking.', 'Wait for the partner to remember the conversation.'],
-    answer: 0,
     feedback: 'A specific commitment and follow-up date make it easier for both people to keep the introduction moving.',
   },
 ] as const
