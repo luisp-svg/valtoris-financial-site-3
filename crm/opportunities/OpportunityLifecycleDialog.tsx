@@ -22,6 +22,7 @@ export type OpportunityLifecycleMode = 'move' | 'close_won' | 'close_lost' | 're
 
 export type OpportunityLifecycleDialogProps = {
   mode: OpportunityLifecycleMode
+  initialStageId?: string
   opportunity: OpportunityDetail
   onCancel: () => void
   onMoved: (opportunity: OpportunityDetail) => void
@@ -73,6 +74,7 @@ export default function OpportunityLifecycleDialog({
   onCancel,
   onMoved,
   onMovedReloadFailed,
+  initialStageId,
   onMoveFailed,
 }: OpportunityLifecycleDialogProps) {
   const headingId = useId()
@@ -112,7 +114,7 @@ export default function OpportunityLifecycleDialog({
           setSelectedStageId(lost?.id ?? '')
           setPendingStageId(lost?.id ?? null)
         } else {
-          setSelectedStageId('')
+          setSelectedStageId(rows.some(s=>s.id===initialStageId&&s.pipeline_id===opportunity.pipeline_id)?initialStageId!:'')
           setPendingStageId(null)
         }
       } catch (err) {
@@ -130,7 +132,7 @@ export default function OpportunityLifecycleDialog({
     return () => {
       cancelled = true
     }
-  }, [mode, opportunity.pipeline_id])
+  }, [mode, opportunity.pipeline_id, initialStageId])
 
   useEffect(() => {
     if (!optionsLoading && !optionsError && (mode === 'move' || mode === 'reopen')) {

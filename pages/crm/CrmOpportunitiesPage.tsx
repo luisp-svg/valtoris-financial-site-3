@@ -335,7 +335,7 @@ export default function CrmOpportunitiesPage() {
           <button type="button" className="crm-secondary-btn" aria-pressed={layout==='board'} onClick={()=>setLayout('board')}>Board</button>
           <button type="button" className="crm-secondary-btn" aria-pressed={layout==='list'} onClick={()=>setLayout('list')}>List</button>
         </div>
-        {viewState.kind === 'ready' && layout === 'board' ? <PipelineBoard items={filteredOpportunities} allItems={opportunities} stages={boardStages}/> : null}
+        {viewState.kind === 'ready' && layout === 'board' ? <PipelineBoard items={filteredOpportunities} allItems={opportunities} stages={boardStages} onChanged={()=>setReloadKey(key=>key+1)}/> : null}
         {viewState.kind === 'ready' && layout === 'list' ? (
           <>
             <div

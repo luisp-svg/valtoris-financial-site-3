@@ -1,3 +1,4 @@
+import LicensingBoard from '../../crm/recruiting/LicensingBoard'
 import { localDateString, formatDateLabel } from '../../crm/dashboard/dates'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
@@ -17,6 +18,7 @@ export default function CrmRecruitingPage() {
   const [carrierOptions, setCarrierOptions] = useState<Option[]>([])
   const [loading, setLoading] = useState(true), [error, setError] = useState(''), [busy, setBusy] = useState(false)
   const [creating, setCreating] = useState(false), [reload, setReload] = useState(0)
+  const [layout,setLayout]=useState<'board'|'list'>('board')
   const [search, setSearch] = useState(''), [stage, setStage] = useState(''), [archived, setArchived] = useState(false)
   const [advisor, setAdvisor] = useState(''), [state, setState] = useState(''), [carrier, setCarrier] = useState('')
   const [licenseType, setLicenseType] = useState(''), [organization, setOrganization] = useState('')
@@ -70,7 +72,9 @@ export default function CrmRecruitingPage() {
       <section className="license-summary" aria-label="Agent attention filters">{ATTENTION_FILTERS.map(([key, label]) => <button key={key} type="button" aria-pressed={attention === key} className="crm-panel license-summary-card" onClick={() => setAttention(key)}><strong>{scoped.filter(({ record, summary }) => matchesAttention(record, summary, key)).length}</strong><span>{label}</span></button>)}</section>
       <p className="crm-muted">{visible.length} agent{visible.length === 1 ? '' : 's'} shown. Counts reflect the filters above. Readiness is reviewed separately for each carrier, state, and license scope.</p>
       {visible.length === 0 ? <section className="crm-panel"><p>{manager ? 'No agents match this view. Add an agent or adjust the filters.' : 'No matching agent record is linked to your account.'}</p>{manager ? <button type="button" className="crm-primary-btn" disabled={creating} onClick={() => setCreating(true)}>Add agent</button> : null}</section> : null}
-      <section aria-label="Agent licensing records" className="recruit-list">{visible.map(({ record: r, summary: s }) => <article className="crm-panel license-agent-card" key={r.id}>
+      <div className="tac-board-layout-toggle" aria-label="Licensing layout"><button type="button" className="crm-secondary-btn" aria-pressed={layout==='board'} onClick={()=>setLayout('board')}>Board</button><button type="button" className="crm-secondary-btn" aria-pressed={layout==='list'} onClick={()=>setLayout('list')}>List</button></div>
+      {layout==='board'&&<LicensingBoard records={visible.map(row=>row.record)} canManage={manager&&!archived} onChanged={()=>setReload(value=>value+1)}/>}
+      {layout==='list'&&<section aria-label="Agent licensing records" className="recruit-list">{visible.map(({ record: r, summary: s }) => <article className="crm-panel license-agent-card" key={r.id}>
         <div><p className="crm-page-eyebrow">{stageLabel(r.stage)}</p><h2><Link to={`/crm/recruiting/${r.id}`}>{r.full_name}</Link></h2><p>{r.email}</p></div>
         <p><strong>License types:</strong> {r.license_types?.map(licenseTypeLabel).join(', ') || 'Not recorded'}</p>
         <p><strong>Appointing under:</strong> {appointingOrganizationLabel(r.appointing_organization)}</p>
@@ -87,7 +91,7 @@ export default function CrmRecruitingPage() {
         {s.renewals.length > 0 ? <p className="license-renewal">{s.renewals.length} renewal{s.renewals.length === 1 ? '' : 's'} within 60 days — next: {s.renewals[0].label}, {formatDateLabel(s.renewals[0].date)}</p> : null}
         <div className="license-next-action"><p><strong>Next action:</strong> {r.next_action || 'Not set'}</p><p>Due: {formatDateLabel(r.next_action_due_on)}{s.followupDue ? <strong> · {r.next_action_due_on! < today ? 'Overdue' : 'Due today'}</strong> : ''}</p>{manager ? <p>Owner: {r.assigned_advisor_id ? advisorNames.get(r.assigned_advisor_id) || 'Assigned advisor' : 'Unassigned'}</p> : null}</div>
         <Link className="crm-secondary-btn" to={`/crm/recruiting/${r.id}`}>Manage agent</Link>
-      </article>)}</section>
+      </article>)}</section>}
     </> : null}
   </div>
 }
