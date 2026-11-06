@@ -113,7 +113,7 @@ describe('Phase 5 estate and tax strategy service pages', () => {
     )
     expect(TOOLS_NAV_LINKS.map((item) => item.to)).toEqual([
       ROUTES.reportCard, ROUTES.businessReportCard, '/health-insurance-report-card',
-      ROUTES.studentLoanReportCard, ROUTES.retirementReportCard, ROUTES.homeBuyerReportCard,
+      ROUTES.studentLoanReportCard, ROUTES.retirementReportCard, ROUTES.homeBuyerReportCard, ROUTES.creditReportCard,
     ])
     const html = renderChrome('/')
     expect(html).toContain(`href="${ROUTES.estateLegacy}"`)

@@ -130,7 +130,7 @@ describe('public site foundation chrome', () => {
     ])
     expect(TOOLS_NAV_LINKS.map((item) => item.to)).toEqual([
       ROUTES.reportCard, ROUTES.businessReportCard, '/health-insurance-report-card',
-      ROUTES.studentLoanReportCard, ROUTES.retirementReportCard, ROUTES.homeBuyerReportCard,
+      ROUTES.studentLoanReportCard, ROUTES.retirementReportCard, ROUTES.homeBuyerReportCard, ROUTES.creditReportCard,
     ])
   })
 
@@ -139,11 +139,11 @@ describe('public site foundation chrome', () => {
     expect(html).toContain(ROUTES.studentLoans)
     expect(html).toContain(ROUTES.credit)
     expect(html).toContain(ROUTES.studentLoanReportCard)
-    expect(html).not.toContain(ROUTES.creditReportCard)
+    expect(html).toContain(ROUTES.creditReportCard)
     expect(FAMILIES_FOOTER_LINKS.some((item) => item.to === ROUTES.studentLoans)).toBe(true)
     expect(FAMILIES_FOOTER_LINKS.some((item) => item.to === ROUTES.credit)).toBe(true)
     expect(TOOLS_NAV_LINKS.some((item) => item.to === ROUTES.studentLoanReportCard)).toBe(true)
-    expect(TOOLS_NAV_LINKS.some((item) => item.to === ROUTES.creditReportCard)).toBe(false)
+    expect(TOOLS_NAV_LINKS.some((item) => item.to === ROUTES.creditReportCard)).toBe(true)
   })
 
   it('does not point navigation at unbuilt service, tools, about, or contact routes', () => {

@@ -10,7 +10,7 @@ function fixture(selected:CombinedAnswers['selected'],overrides={}){
 export {fixture};
 describe('dedicated Report Card strategy',()=>{
  it('routes prior entry links to the appropriate main card and keeps trucking off the directory',()=>{
-  expect(publicReportCards.map(card=>card.id)).toEqual(['family','business','student_loan','health','home_buyer','retirement']);
+  expect(publicReportCards.map(card=>card.id)).toEqual(['family','business','student_loan','health','home_buyer','retirement','credit']);
   expect(reportCardForFocus('lifestyle')?.id).toBe('family');
   expect(reportCardForFocus('commercial')?.id).toBe('business');
   expect(reportCardForFocus('benefits')?.id).toBe('business');
@@ -51,7 +51,7 @@ describe('dedicated Report Card strategy',()=>{
   expect(saved).not.toBeNull();
   const result=adaptiveReportCard(saved)!;
   expect(result.overall.grade).toBe('A');
-  expect(result.categories).toHaveLength(id==='family'?5:4);
+  expect(result.categories).toHaveLength(id==='family'?6:4);
   for (const category of result.categories) expect(category.rating.code).toBe(category.type==='benefits'?'NA':'A');
   const partial = Object.fromEntries(Object.entries(diagnostic).map(([key,value])=>[key,value==='current'?'partial':value]));
   expect(adaptiveReportCard({...saved,diagnostic:partial})?.overall).toMatchObject({score:50,grade:'D'});

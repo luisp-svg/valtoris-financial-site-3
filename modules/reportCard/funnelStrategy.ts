@@ -12,10 +12,10 @@ export const specializedFunnels: {id:string;title:[string,string];selected:Prior
  {id:'home_buyer',title:['Home Buyer Readiness','Preparación para comprar vivienda'],selected:['home_buyer'],path:'/home-buyer-report-card'},
  {id:'retirement',title:['Retirement, TSP & Government Benefits','Jubilación, TSP y beneficios gubernamentales'],selected:['retirement'],path:'/retirement-report-card'},
  {id:'life',title:['Life Insurance / Protection Gap','Seguro de vida / brecha de protección'],selected:['family','protection'],path:'/life-insurance-report-card'},
- {id:'credit',title:['Credit & Financing Readiness','Preparación crediticia y financiera'],selected:['credit'],path:ROUTES.creditReportCard},
+ {id:'credit',title:['Credit Repair & Readiness','Reparación y preparación crediticia'],selected:['credit'],path:ROUTES.creditReportCard},
 ];
 export const mainReportCards = specializedFunnels.slice(0, 2);
-export const supportingReportCards = specializedFunnels.filter(card => ['health', 'student_loan', 'retirement', 'home_buyer'].includes(card.id));
+export const supportingReportCards = specializedFunnels.filter(card => ['health', 'student_loan', 'retirement', 'home_buyer', 'credit'].includes(card.id));
 export const publicReportCards = [...mainReportCards, ...supportingReportCards];
 
 export function reportCardForFocus(focus: string | null | undefined) {

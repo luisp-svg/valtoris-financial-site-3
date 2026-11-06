@@ -38,8 +38,8 @@ const reviewNames: Record<Priority, [string, string]> = {
     "Revisión de préstamos estudiantiles",
   ],
   credit: [
-    "Credit & Financing Readiness Review",
-    "Revisión de crédito y preparación financiera",
+    "Credit Repair & Readiness Report Card",
+    "Report Card de reparación y preparación crediticia",
   ],
   lifestyle: [
     "Lifestyle & Asset Protection Review",
@@ -108,7 +108,7 @@ const reviewPromises: Record<Priority, [string, string]> = {
 };
 const reviewTopics: Record<Priority, [string[], string[]]> = {
  commercial:[["Liability and property","Operations and contracts"],["Responsabilidad y propiedad","Operaciones y contratos"]],trucking:[["Commercial auto liability","Cargo, drivers and filings"],["Responsabilidad de auto comercial","Carga, conductores y registros"]],
-  family: [['Household cash flow, savings and debt', 'Home and auto insurance', 'Life and income protection', 'Investing and retirement', 'Estate basics and tax planning'], ['Flujo de efectivo, ahorros y deudas del hogar', 'Seguros de vivienda y auto', 'Protección de vida e ingresos', 'Inversiones y jubilación', 'Planificación patrimonial y fiscal']],
+  family: [['Household cash flow, savings, debt, and credit', 'Home and auto insurance', 'Life and income protection', 'Investing and retirement', 'Estate basics and tax planning'], ['Flujo de efectivo, ahorros, deudas y crédito del hogar', 'Seguros de vivienda y auto', 'Protección de vida e ingresos', 'Inversiones y jubilación', 'Planificación patrimonial y fiscal']],
   business: [['Owner and key-person responsibilities', 'Business continuity and financial organization', 'Employee benefits', 'Commercial insurance', 'Business tax planning'], ['Responsabilidades del dueño y personas clave', 'Continuidad y organización financiera', 'Beneficios para empleados', 'Seguro comercial', 'Planificación fiscal del negocio']],
   home_buyer: [['Credit and borrowing readiness', 'Savings, down payment and monthly obligations', 'Questions to discuss with a real estate professional'], ['Crédito y preparación financiera', 'Ahorros, pago inicial y obligaciones mensuales', 'Preguntas para un profesional inmobiliario']],
   retirement: [['Your timeline and retirement income plan', 'Private workplace plans and IRAs', 'TSP and federal or military pension benefits'], ['Tu plazo y plan de ingresos para la jubilación', 'Planes privados de trabajo e IRA', 'TSP y pensiones federales o militares']],

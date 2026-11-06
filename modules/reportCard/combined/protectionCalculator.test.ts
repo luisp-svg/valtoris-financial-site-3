@@ -76,7 +76,10 @@ describe('combined protection calculator', () => {
       };
       const questions = combinedQuestions(familyAreas, diagnostic, 1, 1, 1);
       const ids = questions.map(question => question.id);
-      expect(ids).toHaveLength(17);
+      expect(ids).toHaveLength(19);
+      expect(ids.slice(ids.indexOf('family.reserves.review') + 1, ids.indexOf('family.dime_debt')))
+        .toEqual(['credit.status', 'credit.review']);
+      expect(ids).not.toContain('credit.goal');
       expect(ids).not.toContain('protection.monthly_expenses');
       expect(ids.slice(ids.indexOf('family.dime_debt'), ids.indexOf('family.life_coverage') + 1)).toEqual([
         'family.dime_debt', 'family.annual_support', 'family.support_years', 'family.housing',

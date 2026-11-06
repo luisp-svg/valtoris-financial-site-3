@@ -11,12 +11,12 @@ function render(page: typeof SolutionsPage | typeof SiteHeader, path = '/solutio
   return renderToStaticMarkup(createElement(MemoryRouter,{initialEntries:[path]},createElement(page)))
 }
 describe('one solutions and Report Card journey',()=>{
-  it('gives the two main and four supporting cards one distinct direct assessment action',()=>{
+  it('gives the two main and five supporting cards one distinct direct assessment action',()=>{
     const html=render(SolutionsPage)
     expect(html.match(/<h1[ >]/g)).toHaveLength(1)
-    expect(html.match(/<article>/g)).toHaveLength(6)
-    expect(new Set(publicReportCards.map(p=>p.id)).size).toBe(6)
-    expect(new Set(publicReportCards.map(p=>p.path)).size).toBe(6)
+    expect(html.match(/<article>/g)).toHaveLength(7)
+    expect(new Set(publicReportCards.map(p=>p.id)).size).toBe(7)
+    expect(new Set(publicReportCards.map(p=>p.path)).size).toBe(7)
     for(const p of publicReportCards) expect(html).toContain(`href="/financial-assessment?focus=${p.id}"`)
     expect(html).toContain('Main Report Cards')
     expect(html).toContain('Supporting Report Cards')
@@ -41,7 +41,7 @@ describe('one solutions and Report Card journey',()=>{
   })
   it('uses one combined menu and one Home destination, with main cards first',()=>{
     const html=render(SiteHeader,'/')
-    expect(TOOLS_NAV_LINKS).toHaveLength(6)
+    expect(TOOLS_NAV_LINKS).toHaveLength(7)
     for(const item of TOOLS_NAV_LINKS)expect(html).toContain(`href="${item.to}"`)
     expect(html).toContain('Solutions &amp; Report Cards')
     expect(html).not.toContain('Who We Serve')

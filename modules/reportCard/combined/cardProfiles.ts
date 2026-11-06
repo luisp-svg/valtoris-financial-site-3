@@ -1,6 +1,6 @@
 import type { Priority } from './engine.js';
 
-export const familyAreas: Priority[] = ['family', 'lifestyle', 'protection', 'retirement', 'tax'];
+export const familyAreas: Priority[] = ['family', 'credit', 'lifestyle', 'protection', 'retirement', 'tax'];
 export const businessAreas: Priority[] = ['business', 'benefits', 'commercial', 'tax'];
 
 export function mainReportCard(selected: readonly Priority[]): 'family' | 'business' | undefined {

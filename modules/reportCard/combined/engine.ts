@@ -129,6 +129,7 @@ export function combinedQuestions(selected:readonly Priority[],answers:ShortDiag
   return [
    ...shared,
    ...scoped.filter(question => /cashflow|reserves/.test(question.id)),
+   ...other.filter(question => ['credit.status', 'credit.review'].includes(question.id)),
    ...calculator,
    ...scoped.filter(question => question.reviews.includes('protection')),
    ...other.filter(question => question.reviews.includes('lifestyle')),

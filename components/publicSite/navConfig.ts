@@ -56,6 +56,7 @@ export const TOOLS_NAV_LINKS: readonly PublicNavLink[] = [
   { id: 'studentLoan', to: ROUTES.studentLoanReportCard, labelKey: 'toolsStudentLoan' },
   { id: 'retirement', to: ROUTES.retirementReportCard, labelKey: 'toolsRetirement' },
   { id: 'homeBuyer', to: ROUTES.homeBuyerReportCard, labelKey: 'toolsHomeBuyer' },
+  { id: 'credit', to: ROUTES.creditReportCard, labelKey: 'toolsCredit' },
 ]
 
 export const QUOTE_NAV: PublicNavLink = { id: 'quotes', to: ROUTES.getQuote, labelKey: 'navGetQuote' }
