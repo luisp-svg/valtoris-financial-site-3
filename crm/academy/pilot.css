@@ -66,3 +66,17 @@
   .tac-core-certificate { margin: 0; break-inside: avoid; }
   .tac-core-certificate-print { display: none !important; }
 }
+
+.tac-academy-material {
+  line-height: 1.6;
+}
+
+.tac-academy-material section {
+  margin-top: 22px;
+}
+
+.tac-academy-material h3,
+.tac-academy-material h4 {
+  margin-bottom: 8px;
+  color: var(--crm-navy);
+}

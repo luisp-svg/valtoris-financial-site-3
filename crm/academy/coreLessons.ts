@@ -3,6 +3,52 @@ export const CORE_LESSONS = [
     id: 'core-valtoris',
     title: 'How Valtoris works',
     goal: 'Help a client find the right service and leave a clear next step in TAC.',
+    material: {
+      duration: '15–20 minutes',
+      objectives: [
+        'Identify the client’s immediate decision and any deadline.',
+        'Explain the next conversation in plain language and route the need to the appropriate team.',
+        'Leave a TAC record that another advisor can act on without repeating discovery.',
+      ],
+      sections: [
+        {
+          title: 'Start with the decision',
+          paragraphs: [
+            'A first conversation can surface several needs at once. Ask what prompted the call, what decision the client needs to make, and what has a deadline. Repeat the priority in the client’s words and confirm it before discussing a next step.',
+            'Try asking, “If we could make progress on one thing this week, what would help most?” Follow with, “Is there a date or event we need to plan around?” If the client is unsure, capture that as an open question and agree on how to resolve it.',
+          ],
+        },
+        {
+          title: 'Route the need and set expectations',
+          paragraphs: [
+            'Match the immediate need to the right conversation. A commercial coverage question belongs with the property and casualty team. A question about organizing loan records for a review belongs with the student loan team. Confirm the receiving advisor when the assignment is unclear.',
+            'Tell the client what the receiving advisor will review, what information would help, and when they can expect an update. For a second need, agree whether to address it later or make a separate introduction. Ask permission before sharing relevant context.',
+          ],
+        },
+        {
+          title: 'Use TAC to close the loop',
+          paragraphs: [
+            'Start by finding the existing household or contact. Add a concise note with the client’s goal and deadline. Use a task for the action someone must take. Use an opportunity when the team is tracking a specific service discussion through the pipeline.',
+            'An actionable task names the work, the person responsible, and the due date. “Follow up” leaves the next advisor guessing. “Confirm who will review the renewal request and update the client by Thursday” gives the team a clear commitment.',
+          ],
+        },
+      ],
+      example: {
+        situation: 'A fictional business owner wants to review commercial coverage before a renewal in two weeks. They also mention that student loan payments make budgeting harder.',
+        response: '“The renewal is your first priority. I’ll confirm who can review your coverage request and update you by Thursday. Would you like us to set a separate conversation about your student loan questions after that?”',
+        record: 'Review commercial coverage before renewal in two weeks. The referring advisor will confirm who can review the request and update the client by Thursday. Ask whether the client wants a separate student loan introduction.',
+      },
+      exercise: {
+        prompt: 'A fictional client wants to discuss family protection and mentions that their business lease starts next Friday. They ask whether they need to provide proof of coverage before receiving the keys.',
+        instruction: 'In a development practice record, draft a brief household note and a follow-up task. Write the sentence you would use to confirm the priority with the client.',
+        checklist: [
+          'Capture the client’s immediate decision and the lease date.',
+          'Name the team you would contact and what it needs to verify.',
+          'Give the next action an owner and a due date before the lease starts.',
+          'Record the family protection conversation as a separate follow-up.',
+        ],
+      },
+    },
     steps: [
       'Start by asking what the client wants to accomplish and what is time-sensitive.',
       'Check which Valtoris team handles the need. Explain what the next conversation will cover.',

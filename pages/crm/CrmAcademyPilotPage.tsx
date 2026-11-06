@@ -131,6 +131,31 @@ function AcademyLessonPlayer() {
         <p className="crm-page-eyebrow">Lesson {step + 1} of {lessons.length}</p>
         <h2 id="academy-lesson-title">{lesson.title}</h2>
         <p>{lesson.goal}</p>
+        {'material' in lesson && <div className="tac-academy-material">
+          <section aria-labelledby="academy-objectives">
+            <h3 id="academy-objectives">What you’ll learn</h3>
+            <p>Estimated time {lesson.material.duration}</p>
+            <ul>{lesson.material.objectives.map(objective => <li key={objective}>{objective}</li>)}</ul>
+          </section>
+          {lesson.material.sections.map(section => <section key={section.title}>
+            <h3>{section.title}</h3>
+            {section.paragraphs.map(paragraph => <p key={paragraph}>{paragraph}</p>)}
+          </section>)}
+          <section className="tac-academy-scenario">
+            <h3>Worked example</h3>
+            <p>{lesson.material.example.situation}</p>
+            <p><strong>What to say</strong> {lesson.material.example.response}</p>
+            <p><strong>What to record</strong> {lesson.material.example.record}</p>
+          </section>
+          <section>
+            <h3>Practice in TAC</h3>
+            <p>{lesson.material.exercise.prompt}</p>
+            <p>{lesson.material.exercise.instruction}</p>
+            <h4>Check your work</h4>
+            <ul>{lesson.material.exercise.checklist.map(item => <li key={item}>{item}</li>)}</ul>
+          </section>
+          <h3>Workflow recap</h3>
+        </div>}
         <ol className="tac-academy-steps">{lesson.steps.map(item => <li key={item}>{item}</li>)}</ol>
         <section className="tac-academy-scenario" aria-label="Practice scenario"><strong>Practice scenario</strong><p>{lesson.scenario}</p></section>
         <form onSubmit={checkAnswer}>
