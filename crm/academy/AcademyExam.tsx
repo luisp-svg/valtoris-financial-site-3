@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { createSupabaseBrowserClient } from '../../lib/supabase/client'
 import AcademyCoreCertificate, { type CoreCertificate } from './AcademyCoreCertificate'
-import { STUDENT_LOAN_EXAM_QUESTIONS } from './studentLoanExamQuestions'
+import { STUDENT_LOAN_EXAM_CASE, STUDENT_LOAN_EXAM_QUESTIONS } from './studentLoanExamQuestions'
 import { CORE_EXAM_QUESTIONS } from './coreExamQuestions'
 import { CORE_EXAM_PASS, formatCoreExamScore } from './coreExamScore'
 
@@ -56,6 +56,17 @@ export default function AcademyExam({ kind, onBack }: { kind: ExamKind; onBack: 
     {result?.score != null && <p role="status">This attempt: {formatCoreExamScore(result.score)}</p>}
     {error && <p role="alert">{error}</p>}
     {isCore && result?.certificate && <AcademyCoreCertificate certificate={result.certificate} />}
+    {!isCore && <div className="tac-academy-material">
+      <section>
+        <h2>Client case</h2>
+        {STUDENT_LOAN_EXAM_CASE.paragraphs.map(paragraph => <p key={paragraph}>{paragraph}</p>)}
+      </section>
+      <section>
+        <h2>Practice in TAC</h2>
+        <p>Use the case to draft your notes and tasks before answering. Your exam score comes from the seven questions below.</p>
+        <ol>{STUDENT_LOAN_EXAM_CASE.exercise.map(step => <li key={step}>{step}</li>)}</ol>
+      </section>
+    </div>}
     <form onSubmit={submit}>
       {questions.map((question, index) => <fieldset key={question.prompt} disabled={busy}>
         <legend>{index + 1}. {question.prompt}</legend>
