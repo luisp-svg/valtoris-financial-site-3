@@ -28,7 +28,7 @@ export function adaptiveReportCard(answers:Pick<CombinedAnswers,'format'|'select
    ? ['not_applicable']
    : values, Boolean(profile));
   const score=answers.strategyVersion===1?rating.score:points.length?Math.round(points.reduce((a,b)=>a+b,0)/points.length):null;
-  return {rating,type,title:PRIORITIES.find(p=>p.id===type)![answers.locale],score,grade:score===null?null:profile?wellnessLetter(score):letter(score),status:points.length<2?'needs-review' as const:'preliminary' as const,known:points.length,total:indicators.length};
+  return {rating,type,title:profile === 'family' && type === 'family' ? (answers.locale === 'es' ? 'Flujo de efectivo, ahorros y patrimonio' : 'Cash Flow, Savings & Estate Basics') : profile === 'family' && type === 'protection' ? (answers.locale === 'es' ? 'Preparación de seguro de vida' : 'Life Insurance Readiness') : PRIORITIES.find(p=>p.id===type)![answers.locale],score,grade:score===null?null:profile?wellnessLetter(score):letter(score),status:points.length<2?'needs-review' as const:'preliminary' as const,known:points.length,total:indicators.length};
  });
  // Preserve legacy category weighting; the new strategy uses explicitly preliminary known-answer grades.
  const known=categories.filter(c=>c.score!==null);
@@ -42,10 +42,14 @@ export function combinedResults(answers:Pick<CombinedAnswers,'selected'|'diagnos
  if (answers.consultationOnly) return [];
  type AdaptiveReview = { type: CombinedAnswers['selected'][number]; title: string; kind: 'adaptive'; result: NonNullable<ReturnType<typeof adaptiveReportCard>>['categories'][number] };
  type ProtectionReview = { type: 'family' | 'protection'; title: string; kind: 'protection-estimate'; result: ReturnType<typeof protectionEstimate> };
+ const useDime = answers.cardVersion === 1 && mainReportCard(answers.selected) === 'family';
  return answers.selected.flatMap<AdaptiveReview | ProtectionReview>(type => {
-  const title = PRIORITIES.find(priority => priority.id === type)![answers.locale];
+  const title = useDime && isProtectionArea(type)
+   ? answers.locale === 'es' ? 'Protección familiar e ingresos' : 'Family & Income Protection'
+   : PRIORITIES.find(priority => priority.id === type)![answers.locale];
+  if (useDime && type === 'protection') return [];
   if (answers.cardVersion === 1 && isProtectionArea(type)) {
-   return [{ type, title, kind: 'protection-estimate' as const, result: protectionEstimate(type, answers.diagnostic, answers.locale) }];
+   return [{ type, title, kind: 'protection-estimate' as const, result: protectionEstimate(type, answers.diagnostic, answers.locale, useDime) }];
   }
   const category = card?.categories.find(entry => entry.type === type);
   return category ? [{ type, title, kind: 'adaptive' as const, result: category }] : [];

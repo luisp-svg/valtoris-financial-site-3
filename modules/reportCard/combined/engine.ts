@@ -60,7 +60,8 @@ export function combinedQuestions(selected:readonly Priority[],answers:ShortDiag
  if (cardVersion !== 1) return readiness;
  const profile = mainReportCard(selected);
  const protectionAreas = orderedPriorities(selected).filter(isProtectionArea);
- const calculator = protectionAreas.flatMap(area => protectionQuestions(area, answers).map(question => ({ id: question.id, question, reviews: [area] })));
+ const calculatorAreas = profile === 'family' ? ['family'] as const : protectionAreas;
+ const calculator = calculatorAreas.flatMap(area => protectionQuestions(area, answers, profile === 'family').map(question => ({ id: question.id, question, reviews: [area] })));
  const shared = readiness.filter(question => question.id.startsWith('shared.') &&
    (question.id !== 'shared.timing' || protectionAreas.length !== 2 || selected.length !== 2));
  const scoped: CombinedQuestion[] = [];
@@ -73,14 +74,9 @@ export function combinedQuestions(selected:readonly Priority[],answers:ShortDiag
   ]), 'family');
   const reserves = readiness.find(question => question.id === 'family.status')!;
   add({...reserves.question, id:'family.reserves.review'}, 'family');
-  add(choice('family.debt.review','How manageable are your household debt payments?','¿Qué tan manejables son los pagos de deudas de tu hogar?',[
-   option('current','Payments are manageable or we have no debt','Los pagos son manejables o no tenemos deudas'),
-   option('partial','We are current but payments are putting pressure on our budget','Estamos al día pero los pagos presionan nuestro presupuesto'),
-   option('missing','We struggle to keep up with payments','Nos cuesta mantenernos al día'),
-  ]), 'family');
   add(choice('retirement.investments.review','Are you investing toward your longer-term goals with a plan you have reviewed?','¿Inviertes para tus metas a largo plazo con un plan que has revisado?',preparedness), 'retirement');
-  add(choice('family.estate.review','Are your will, decision-making documents and beneficiaries current?','¿Están actualizados tu testamento, documentos para la toma de decisiones y beneficiarios?',preparedness), 'family');
-  add(choice('protection.coverage.review','Have you checked how your life and disability coverage would support your household?','¿Has revisado cómo tus seguros de vida y discapacidad ayudarían a tu hogar?',preparedness), 'protection');
+  add(choice('family.estate.review','Are your will and documents for naming someone to make decisions current?','¿Están actualizados tu testamento y los documentos para designar a quien tome decisiones?',preparedness), 'family');
+  add(choice('protection.coverage.review','Have you reviewed your life insurance beneficiaries and when your coverage ends?','¿Has revisado los beneficiarios y la fecha de vencimiento de tu seguro de vida?',preparedness), 'protection');
  }
  if (profile === 'business') {
   add(choice('business.cashflow.review','How consistently does operating cash flow cover payroll and bills?','¿Con qué regularidad cubre el flujo de efectivo la nómina y las facturas?',[
@@ -102,7 +98,26 @@ export function combinedQuestions(selected:readonly Priority[],answers:ShortDiag
  const other = readiness.filter(question => !question.id.startsWith('shared.') &&
    !question.reviews.some(isProtectionArea) &&
    (profile !== 'family' || !['lifestyle.review', 'retirement.review', 'tax.review', 'insurance.goal'].includes(question.id)) &&
+   (profile !== 'business' || !['business.review', 'commercial.people'].includes(question.id)) &&
    (answers['benefits.workforce'] !== 'none' || profile !== 'business' || !question.reviews.includes('benefits')));
+ if (profile === 'family') {
+  return [
+   ...shared,
+   ...scoped.filter(question => /cashflow|reserves/.test(question.id)),
+   ...calculator,
+   ...scoped.filter(question => question.reviews.includes('protection')),
+   ...other.filter(question => question.reviews.includes('lifestyle')),
+   ...scoped.filter(question => question.reviews.includes('retirement')),
+   ...other.filter(question => question.reviews.includes('retirement')),
+   ...scoped.filter(question => question.id === 'family.estate.review'),
+   ...other.filter(question => question.reviews.includes('tax')),
+  ];
+ }
+ if (profile === 'business') {
+  const questions = [...scoped, ...other];
+  return [...shared, ...(['business', 'commercial', 'benefits', 'tax'] as const)
+   .flatMap(area => questions.filter(question => question.reviews.includes(area)))];
+ }
  // Reserve the possible housing follow-up before budgeting questions for other priorities.
  const reserve = protectionAreas.includes('family') && !calculator.some(q => ['family.mortgage_balance', 'family.monthly_rent'].includes(q.id)) ? 1 : 0;
  return [...shared, ...scoped, ...other.slice(0, MAX_ASSESSMENT_QUESTIONS - shared.length - scoped.length - calculator.length - reserve), ...calculator];

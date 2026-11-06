@@ -401,11 +401,14 @@ function FinancialAssessmentForm({
             ) : (
               <>
                 <p className="premium-kicker">
-                  {q.reviews
-                    .map(
-                      (type) => PRIORITIES.find((p) => p.id === type)![locale],
-                    )
-                    .join(" · ")}
+                  {q.id.startsWith("shared.") && funnel
+                    ? funnel.title[es ? 1 : 0]
+                    : funnel?.id === "family" && (
+                        q.id === "protection.coverage.review" ||
+                        (q.id.startsWith("family.") && !/\.(status|review)$/.test(q.id))
+                      )
+                      ? t("Family & Income Protection · DIME", "Protección familiar e ingresos · DIME")
+                      : q.reviews.map(type => PRIORITIES.find(priority => priority.id === type)![locale]).join(" · ")}
                 </p>
                 <h1 ref={heading} tabIndex={-1} id="combined-question">
                   {q.question.label[locale]}
