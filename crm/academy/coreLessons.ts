@@ -183,6 +183,52 @@ export const CORE_LESSONS = [
     id: 'core-networking',
     title: 'Networking and partnerships',
     goal: 'Turn a useful introduction into a next step you can follow through on.',
+    material: {
+      duration: '15–20 minutes',
+      objectives: [
+        'Recognize when a partner serves clients with a need Valtoris can help address.',
+        'Agree on the purpose, permission, and owner of a warm introduction.',
+        'Record the commitment in TAC and follow up until there is a clear outcome.',
+      ],
+      sections: [
+        {
+          title: 'Find a reason to work together',
+          paragraphs: [
+            'Start with who the potential partner serves and what those clients ask for. Ask which requests fall outside the partner’s work and how they usually help a client find the right person. Explain one way Valtoris might help, using a specific situation.',
+            'A good first conversation can end with a short call to compare how each team handles introductions. Agree on what you want to learn and who will schedule it. Give the relationship time to develop before asking for client introductions.',
+          ],
+        },
+        {
+          title: 'Agree on the introduction',
+          paragraphs: [
+            'Before introducing someone, confirm why the conversation would help and check that they want it. Agree on who will send the introduction, which contact method to use, and what context can be shared. If permission is still pending, make confirming it the next action.',
+            'A short introduction can name the people, explain why you are connecting them, and suggest a next step. Leave sensitive details for the client and receiving advisor to discuss through the appropriate channel.',
+          ],
+        },
+        {
+          title: 'Follow through in TAC',
+          paragraphs: [
+            'Look for the partner’s existing contact record. Add a note with where you met, who they serve, and what you agreed to do next. Create a task with an owner and due date. If a client is involved, keep their referral details on the appropriate client record.',
+            'Record what happens after the introduction. Confirm who will take the next action and update the task. If the partner hasn’t replied, follow up as agreed. If they decline or ask to reconnect later, record that preference and update the task accordingly.',
+          ],
+        },
+      ],
+      example: {
+        situation: 'At a local business event, a fictional bookkeeper says some clients ask about insurance when they sign a new lease. The bookkeeper offers to introduce you to a colleague who works with new business owners.',
+        response: '“I’d like to meet your colleague and learn how they support new business owners. If they’re open to it, would you introduce us by email? You can mention that we’d like to compare how we handle lease-related referrals. I’ll check back Thursday if we haven’t connected.”',
+        record: 'Met at the local business event. The bookkeeper will ask their colleague if they want an email introduction to discuss lease-related referrals. Create a task for the Valtoris advisor to check in Thursday if the introduction is still pending.',
+      },
+      exercise: {
+        prompt: 'A fictional payroll consultant offers to introduce you to a business owner who wants a conversation about employee benefits. The consultant hasn’t asked the owner’s permission yet and plans to check by Tuesday.',
+        instruction: 'In a development practice record, draft a note on the partner’s contact, create a follow-up task, and write a short message confirming what each person agreed to do. Then describe how you would update TAC if the owner accepts or declines the introduction.',
+        checklist: [
+          'The note explains who the partner serves and why the introduction could help.',
+          'Permission is marked pending, with the consultant assigned to confirm it before sharing contact details.',
+          'The TAC task gives the Valtoris advisor a due date to check the outcome after Tuesday.',
+          'An acceptance leads to an agreed introduction and a named next step. A decline closes the referral follow-up.',
+        ],
+      },
+    },
     steps: [
       'Learn who a potential partner serves and where your work overlaps.',
       'Agree on a specific next step. Ask how they prefer to be contacted.',
