@@ -123,6 +123,52 @@ export const PILOT_LESSONS = [
     id: 'handoff-and-follow-up',
     title: 'Document the next step',
     goal: 'Leave a handoff that another advisor can pick up without reconstructing the conversation.',
+    material: {
+      duration: '15–20 minutes',
+      objectives: [
+        'Summarize the client’s goal, verified facts, and the open question in a TAC note.',
+        'Assign the review and client update with separate owners and deadlines when needed.',
+        'Escalate a stalled review and record the outcome of the client follow-up.',
+      ],
+      sections: [
+        {
+          title: 'Write for the advisor taking over',
+          paragraphs: [
+            'Lead with the decision the client is trying to make and any deadline that affects it. Summarize the facts that matter, with the source and date for each. Identify the exact question that remains open and explain what decision is waiting on the answer.',
+            'Point the reviewing advisor to the relevant record in the approved location. Keep the TAC note focused on the handoff and use only the account details needed to distinguish records.',
+          ],
+        },
+        {
+          title: 'Assign the review and the client update',
+          paragraphs: [
+            'Give the reviewer a task with a named owner, a due date, and a clear deliverable. For example, ask them to reconcile a conflicting due date and document which source confirms it. Set the internal deadline early enough to give the client an update at the promised time.',
+            'Name who will contact the client. If the reviewer cannot take the task or the deadline is at risk, have the referring advisor alert the team lead and confirm who will take over. Keep the client update on the calendar even if the review is still open.',
+          ],
+        },
+        {
+          title: 'Close the loop in TAC',
+          paragraphs: [
+            'Tell the client what has been verified, what is still being checked, and when they will hear from you again. If you reach voicemail or the client cannot respond, log the attempt and schedule the next contact.',
+            'Record the review outcome with its source and date, then log what you told the client and any new commitment. Close the review task once its outcome is recorded. Keep any remaining action open with a named owner and due date.',
+          ],
+        },
+      ],
+      example: {
+        situation: 'A fictional client named Casey wants to plan next week’s cash flow. A statement dated October 28 lists a payment due Friday. Casey says the account portal shows Monday, but has not shared a dated record from the portal. Casey expects an update Wednesday afternoon.',
+        response: '“The October 28 statement shows Friday, and you saw Monday in the portal. We’ll check which date applies to this payment. I’ll update you by 3 p.m. Wednesday, even if we’re still waiting for confirmation.”',
+        record: 'Casey needs the current due date for next week’s cash-flow plan. The October 28 statement lists Friday. Monday is client-reported. Assign the reviewing advisor to verify the date for the same account and billing period and record the source by noon Wednesday. The referring advisor owns the 3 p.m. update. If the review is still open at noon, the referring advisor alerts the team lead, gives Casey a status update as promised, and records the next check-in.',
+      },
+      exercise: {
+        prompt: 'A fictional client wants to plan their next payment before leaving town Saturday. The latest statement verifies one loan’s payment amount and due date. The client believes a second payment is due while they are away, but the second account’s statement is missing. You promised an update by 4 p.m. Thursday. By noon Thursday, the reviewing advisor has no new record.',
+        instruction: 'In a development practice household, draft a TAC handoff note and tasks for the review and client update. Then draft the Thursday update and log what you would do next if the second statement is still missing.',
+        checklist: [
+          'State the travel deadline, what the first statement verifies, and what is still unknown about the second account.',
+          'Assign a named reviewer and a deadline before the client update. Specify the record to request and what to verify when it arrives.',
+          'Name who will escalate the delay and who will update the client by 4 p.m. Thursday.',
+          'Draft a status update that explains the open question and sets a next check-in. Keep the unresolved review task open with an owner and due date.',
+        ],
+      },
+    },
     steps: [
       'Summarize the client’s goal, what you verified, and what is still uncertain.',
       'Identify any issue that needs an advisor or specialist review. Verify current guidance before relying on a program rule.',
