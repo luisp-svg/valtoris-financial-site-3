@@ -5,7 +5,7 @@ import { useCrmAuth } from '../../crm/auth/CrmAuthContext'
 import { CORE_LESSONS } from '../../crm/academy/coreLessons'
 import { PILOT_LESSONS } from '../../crm/academy/pilotLessons'
 import { fetchAcademyProgress, type AcademyProgress } from '../../crm/academy/progressApi'
-import AcademyCoreExam from '../../crm/academy/AcademyCoreExam'
+import AcademyExam from '../../crm/academy/AcademyExam'
 import AcademyOwnerOverview from '../../crm/academy/AcademyOwnerOverview'
 import '../../crm/academy/pilot.css'
 
@@ -30,7 +30,7 @@ function AcademyWorkspace({ owner }: { owner: boolean }) {
 }
 
 function AcademyLessonPlayer() {
-  const [showExam, setShowExam] = useState(false)
+  const [exam, setExam] = useState<'core' | 'student-loan' | null>(null)
   const [progress, setProgress] = useState<AcademyProgress | null>(null)
   const [choice, setChoice] = useState<number | null>(null)
   const [busy, setBusy] = useState(false)
@@ -59,6 +59,7 @@ function AcademyLessonPlayer() {
 
   const completed = progress.completed
   const coreComplete = CORE_LESSONS.every(item => completed.includes(item.id))
+  const specialtyComplete = coreComplete && PILOT_LESSONS.every(item => completed.includes(item.id))
   const isCore = !coreComplete || !PILOT_LESSONS.some(item => item.id === progress.lastLesson)
   const lessons = isCore ? CORE_LESSONS : PILOT_LESSONS
   const step = Math.max(0, lessons.findIndex(item => item.id === progress.lastLesson))
@@ -92,7 +93,9 @@ function AcademyLessonPlayer() {
     if (choice !== null) void save(lesson.id, choice)
   }
 
-  if (showExam && coreComplete) return <AcademyCoreExam onBack={() => setShowExam(false)} />
+  if ((exam === 'core' && coreComplete) || (exam === 'student-loan' && specialtyComplete)) {
+    return <AcademyExam key={exam} kind={exam} onBack={() => setExam(null)} />
+  }
 
   return <div className="tac-academy-pilot">
     <header className="tac-academy-hero">
@@ -106,7 +109,8 @@ function AcademyLessonPlayer() {
       <div className="tac-academy-actions">
         <button type="button" className="crm-secondary-btn" aria-pressed={isCore} disabled={busy} onClick={() => void save(CORE_LESSONS[0].id)}>Valtoris Core</button>
         <button type="button" className="crm-secondary-btn" aria-pressed={!isCore} disabled={busy || !coreComplete} onClick={() => void save(PILOT_LESSONS[0].id)}>Student Loan Client Review</button>
-        <button type="button" className="crm-secondary-btn" disabled={busy || !coreComplete} onClick={() => setShowExam(true)}>Core exam</button>
+        <button type="button" className="crm-secondary-btn" disabled={busy || !coreComplete} onClick={() => setExam('core')}>Core exam</button>
+        <button type="button" className="crm-secondary-btn" disabled={busy || !specialtyComplete} onClick={() => setExam('student-loan')}>Student loan exam</button>
       </div>
       {!coreComplete && <p>Complete the four Core practice checks to open the student loan specialty.</p>}
     </section>
@@ -143,7 +147,7 @@ function AcademyLessonPlayer() {
           </div>
           {result && <p role="status" className="tac-academy-feedback">{result === 'correct' ? `Correct. ${lesson.feedback}` : 'Try again. Revisit the workflow steps and choose the answer that makes the next action clear.'}</p>}
         </form>
-        {allComplete && <p className="crm-banner crm-banner-success">{isCore ? 'Core practice complete. The student loan specialty is now available.' : 'Student loan practice complete.'}</p>}
+        {allComplete && <p className="crm-banner crm-banner-success">{isCore ? 'Core practice complete. The student loan specialty is now available.' : 'Student loan practice complete. The student loan exam is now available.'}</p>}
       </article>
     </div>
   </div>
