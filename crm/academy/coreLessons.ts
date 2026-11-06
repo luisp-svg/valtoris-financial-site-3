@@ -63,6 +63,52 @@ export const CORE_LESSONS = [
     id: 'core-referrals',
     title: 'Cross-selling and internal referrals',
     goal: 'Spot a related client need and make a referral the receiving team can act on.',
+    material: {
+      duration: '15–20 minutes',
+      objectives: [
+        'Recognize a related need and connect it to a goal the client has expressed.',
+        'Offer a clear introduction, confirm what the client agrees to share, and keep the handoff focused.',
+        'Record the referral, assign a follow-up, and confirm who owns the next step.',
+      ],
+      sections: [
+        {
+          title: 'Recognize a need worth following up',
+          paragraphs: [
+            'Listen for a change that affects the client’s plan, such as a new job, a business deadline, or a debt payment that is squeezing the household budget. Ask how it affects the goal you are already discussing. Then ask whether the client wants help with it now, later, or at all.',
+            'A useful cross-sell starts with a reason the client can recognize. If the client is concerned about debt payments, a student loan review may help clarify what information they need to gather. The referral is for that review. The receiving advisor evaluates any options after confirming the facts.',
+          ],
+        },
+        {
+          title: 'Ask before making the introduction',
+          paragraphs: [
+            'Tell the client who you propose to introduce them to, why, and what you would share. Give them room to decline or limit the information. Record their decision in TAC so the receiving team knows the scope of the introduction.',
+            'Use the approved channel and share only what the receiving advisor needs to start. A short summary of the goal, relevant deadline, and agreed contact method may be enough. If documents are needed later, direct the client to the approved intake process.',
+          ],
+        },
+        {
+          title: 'Keep ownership clear until the handoff lands',
+          paragraphs: [
+            'In TAC, record the referral on the existing household. Include the client’s goal, the intended recipient or team, what the client agreed to share, and any deadline. Add a task with a named owner and due date for confirming receipt and updating the client.',
+            'Treat the referral as pending until the receiving advisor acknowledges it and agrees to a next step. If the receiving advisor is unavailable or the client changes their mind, update the task and the client. If the client declines, record that decision and continue the original conversation.',
+          ],
+        },
+      ],
+      example: {
+        situation: 'During a family protection review, a fictional client says student loan payments are making it harder to plan their monthly budget. They want help gathering the right information before deciding whether to schedule a review.',
+        response: '“You mentioned the loan payments are affecting your budget. Would you like an introduction to our student loan team? With your permission, I’d share that you want help getting ready for a review and that email is your preferred contact method. I’ll confirm who can help and update you by Thursday.”',
+        record: 'The client agreed to an email introduction to the student loan team and approved sharing only the reason for the referral and their preferred contact method. The referring advisor will confirm the receiving advisor and update the client by Thursday. The protection review remains a separate follow-up.',
+      },
+      exercise: {
+        prompt: 'During a student loan intake, a fictional client says their business is signing a lease next week. The landlord has asked for proof of insurance. The client wants an introduction to the commercial insurance team and agrees to share the lease deadline and their preferred contact method.',
+        instruction: 'In a development practice household, draft the referral note and a follow-up task. Write a one-sentence introduction to the receiving advisor and a one-sentence update for the client.',
+        checklist: [
+          'Explain the client’s need and deadline without guessing at coverage requirements.',
+          'Record the client’s permission and limit the introduction to the agreed information.',
+          'Name the receiving team and assign someone to confirm receipt and update the client before the deadline.',
+          'Keep the student loan intake open with its own next step.',
+        ],
+      },
+    },
     steps: [
       'Connect the referral to a need the client mentioned. Explain why an introduction could help.',
       'Ask permission before sharing information and use the approved channel.',
