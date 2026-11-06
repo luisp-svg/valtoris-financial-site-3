@@ -54,7 +54,6 @@ export const TOOLS_NAV_LINKS: readonly PublicNavLink[] = [
   { id: 'business', to: ROUTES.businessReportCard, labelKey: 'toolsBusiness' },
   { id: 'health', to: '/health-insurance-report-card', labelKey: 'toolsHealth' },
   { id: 'studentLoan', to: ROUTES.studentLoanReportCard, labelKey: 'toolsStudentLoan' },
-  { id: 'tsp', to: '/tsp-report-card', labelKey: 'toolsTsp' },
   { id: 'retirement', to: ROUTES.retirementReportCard, labelKey: 'toolsRetirement' },
   { id: 'homeBuyer', to: ROUTES.homeBuyerReportCard, labelKey: 'toolsHomeBuyer' },
 ]

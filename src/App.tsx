@@ -106,6 +106,7 @@ const retiredReportCards = [
   ['/employee-benefits-report-card', ROUTES.businessReportCard],
   ['/tax-review-report-card', ROUTES.reportCard],
   ['/tax-planning-report-card', ROUTES.reportCard],
+  ['/tsp-report-card', ROUTES.retirementReportCard],
   ['/funnel-entry/lifestyle.html', ROUTES.reportCard],
   ['/funnel-entry/commercial.html', ROUTES.businessReportCard],
 ] as const
@@ -144,7 +145,6 @@ export default function App() {
         <Route path="/preview/report-cards/home_buyer" element={<SiteLayout><Suspense fallback={<p>Loading…</p>}><SpecialtyReportCardPreview key="home_buyer" type="home_buyer" /></Suspense></SiteLayout>} />
        </>}
         <Route path="/health-insurance-report-card" element={<SiteLayout><Suspense fallback={<p>Loading…</p>}><PremiumFunnelLanding priority="health" /></Suspense></SiteLayout>} />
-        <Route path="/tsp-report-card" element={<SiteLayout><Suspense fallback={<p>Loading…</p>}><PremiumFunnelLanding priority="tsp" /></Suspense></SiteLayout>} />
       </>}
       <Route path={ROUTES.reportCards} element={<SiteLayout><ReportCardsPage /></SiteLayout>} />
       <Route path={ROUTES.education} element={<SiteLayout><EducationPage /></SiteLayout>} />

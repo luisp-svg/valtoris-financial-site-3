@@ -44,6 +44,7 @@ describe('public funnel discovery',()=>{
    '/employee-benefits-report-card':'/business-report-card',
    '/tax-review-report-card':'/report-card',
    '/tax-planning-report-card':'/report-card',
+   '/tsp-report-card':'/retirement-report-card',
    '/funnel-entry/lifestyle.html':'/report-card',
    '/funnel-entry/commercial.html':'/business-report-card',
   }

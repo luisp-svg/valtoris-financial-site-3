@@ -27,7 +27,7 @@ const reviewNames: Record<Priority, [string, string]> = {
     "Homebuyer Readiness Review",
     "Revisión de preparación para comprar vivienda",
   ],
-  retirement: ["Retirement & Legacy Review", "Revisión de jubilación y legado"],
+  retirement: ["Retirement, TSP & Government Benefits", "Jubilación, TSP y beneficios gubernamentales"],
   tsp: [
     "TSP & Federal Retirement Review",
     "Revisión de TSP y jubilación federal",
@@ -70,8 +70,8 @@ const reviewPromises: Record<Priority, [string, string]> = {
     "Considera crédito, flujo de efectivo y preparación antes de tu próxima decisión inmobiliaria.",
   ],
   retirement: [
-    "Organize retirement readiness and legacy questions around the next chapter of your life.",
-    "Organiza tu preparación para la jubilación y tus preguntas sobre legado alrededor del próximo capítulo.",
+    "Review private retirement accounts, federal or military benefits, or both. Your answers determine which questions you see.",
+    "Revisa cuentas privadas, beneficios federales o militares, o ambos. Tus respuestas determinan qué preguntas verás.",
   ],
   tsp: [
     "Clarify the TSP and federal retirement details worth reviewing before making a transition.",
@@ -111,7 +111,7 @@ const reviewTopics: Record<Priority, [string[], string[]]> = {
   family: [['Household cash flow, savings and debt', 'Home and auto insurance', 'Life and income protection', 'Investing and retirement', 'Estate basics and tax planning'], ['Flujo de efectivo, ahorros y deudas del hogar', 'Seguros de vivienda y auto', 'Protección de vida e ingresos', 'Inversiones y jubilación', 'Planificación patrimonial y fiscal']],
   business: [['Owner and key-person responsibilities', 'Business continuity and financial organization', 'Employee benefits', 'Commercial insurance', 'Business tax planning'], ['Responsabilidades del dueño y personas clave', 'Continuidad y organización financiera', 'Beneficios para empleados', 'Seguro comercial', 'Planificación fiscal del negocio']],
   home_buyer: [['Credit and borrowing readiness', 'Savings, down payment and monthly obligations', 'Questions to discuss with a real estate professional'], ['Crédito y preparación financiera', 'Ahorros, pago inicial y obligaciones mensuales', 'Preguntas para un profesional inmobiliario']],
-  retirement: [['Your timeline and retirement goals', 'Savings and anticipated income needs', 'Family and legacy considerations'], ['Tu plazo y metas de jubilación', 'Ahorros y necesidades de ingresos', 'Consideraciones familiares y de legado']],
+  retirement: [['Your timeline and retirement income plan', 'Private workplace plans and IRAs', 'TSP and federal or military pension benefits'], ['Tu plazo y plan de ingresos para la jubilación', 'Planes privados de trabajo e IRA', 'TSP y pensiones federales o militares']],
   tsp: [['Federal or military service and transition timing', 'TSP contributions and retirement priorities', 'Questions about future income and beneficiaries'], ['Servicio federal o militar y transición', 'Aportaciones TSP y prioridades de jubilación', 'Preguntas sobre ingresos y beneficiarios']],
   health: [['Current coverage and household needs', 'Coverage gaps and affordability questions', 'Priorities for a licensed coverage review'], ['Cobertura actual y necesidades del hogar', 'Brechas de cobertura y costos', 'Prioridades para revisar con un profesional autorizado']],
   student_loan: [['Loan types and current repayment picture', 'Payment concerns and forgiveness questions', 'Information to organize before your consultation'], ['Tipos de préstamos y pagos actuales', 'Preguntas sobre pagos y condonación', 'Información para organizar antes de tu consulta']],

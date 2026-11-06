@@ -130,7 +130,7 @@ describe('public site foundation chrome', () => {
     ])
     expect(TOOLS_NAV_LINKS.map((item) => item.to)).toEqual([
       ROUTES.reportCard, ROUTES.businessReportCard, '/health-insurance-report-card',
-      ROUTES.studentLoanReportCard, '/tsp-report-card', ROUTES.retirementReportCard, ROUTES.homeBuyerReportCard,
+      ROUTES.studentLoanReportCard, ROUTES.retirementReportCard, ROUTES.homeBuyerReportCard,
     ])
   })
 

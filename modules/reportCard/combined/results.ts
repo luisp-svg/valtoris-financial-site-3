@@ -28,7 +28,7 @@ export function adaptiveReportCard(answers:Pick<CombinedAnswers,'format'|'select
    ? ['not_applicable']
    : values, Boolean(profile));
   const score=answers.strategyVersion===1?rating.score:points.length?Math.round(points.reduce((a,b)=>a+b,0)/points.length):null;
-  return {rating,type,title:profile === 'family' && type === 'family' ? (answers.locale === 'es' ? 'Flujo de efectivo, ahorros y patrimonio' : 'Cash Flow, Savings & Estate Basics') : profile === 'family' && type === 'protection' ? (answers.locale === 'es' ? 'Preparación de seguro de vida' : 'Life Insurance Readiness') : PRIORITIES.find(p=>p.id===type)![answers.locale],score,grade:score===null?null:profile?wellnessLetter(score):letter(score),status:points.length<2?'needs-review' as const:'preliminary' as const,known:points.length,total:indicators.length};
+  return {rating,type,title:profile === 'family' && type === 'family' ? (answers.locale === 'es' ? 'Flujo de efectivo, ahorros y patrimonio' : 'Cash Flow, Savings & Estate Basics') : profile === 'family' && type === 'protection' ? (answers.locale === 'es' ? 'Preparación de seguro de vida' : 'Life Insurance Readiness') : PRIORITIES.find(p=>p.id===type)![answers.locale],score,grade:score===null?null:profile?wellnessLetter(score):letter(score),status:points.length<2?'needs-review' as const:'preliminary' as const,known:points.length,total:answers.strategyVersion===1?rating.applicable:indicators.length};
  });
  // Preserve legacy category weighting; the new strategy uses explicitly preliminary known-answer grades.
  const known=categories.filter(c=>c.score!==null);

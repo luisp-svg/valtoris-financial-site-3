@@ -66,6 +66,31 @@ export function combinedQuestions(selected:readonly Priority[],answers:ShortDiag
    (question.id !== 'shared.timing' || protectionAreas.length !== 2 || selected.length !== 2));
  const scoped: CombinedQuestion[] = [];
  const add = (question: ShortQuestion, review: Priority) => scoped.push({id:question.id, question, reviews:[review]});
+ if (selected.length === 1 && selected[0] === 'retirement') {
+  add(choice('retirement.path','Which retirement plans or benefits should we review?','¿Qué planes o beneficios de jubilación debemos revisar?',[
+   option('private','Private-sector or personal retirement accounts','Cuentas personales o del sector privado'),
+   option('federal','Federal or military benefits, including TSP','Beneficios federales o militares, incluido TSP'),
+   option('both','Both private-sector and federal or military benefits','Beneficios privados y federales o militares'),
+  ]), 'retirement');
+  add(choice('retirement.timeline','How close are you to retirement?','¿Qué tan cerca estás de jubilarte?',[
+   option('soon','Within two years','Dentro de dos años'),
+   option('later','More than two years away','En más de dos años'),
+   option('retired','Already retired','Ya estoy jubilado'),
+  ]), 'retirement');
+  const path = answers['retirement.path'];
+  if (path === 'private' || path === 'both') {
+   add(choice('retirement.private_accounts.status','Have you gathered statements for your employer plans and IRAs?','¿Has reunido los estados de cuenta de tus planes de empleador e IRA?',preparedness), 'retirement');
+   add(choice('retirement.private_options.review','Have you compared fees, investment choices and withdrawal options across those accounts?','¿Has comparado los costos, las inversiones y las opciones de retiro de esas cuentas?',preparedness), 'retirement');
+  }
+  if (path === 'federal' || path === 'both') {
+   add(choice('retirement.tsp.status','Have you reviewed your TSP balance and investment choices?','¿Has revisado tu saldo y tus opciones de inversión del TSP?',preparedness), 'retirement');
+   add(choice('retirement.federal_benefits.review','Have you obtained a federal or military pension estimate, if applicable?','¿Has obtenido una estimación de tu pensión federal o militar, si corresponde?',[
+    ...preparedness, option('not_applicable','I do not expect a federal or military pension','No espero recibir una pensión federal o militar'),
+   ]), 'retirement');
+  }
+  const incomePlan = readiness.find(question => question.id === 'retirement.status')!;
+  return [...shared, ...scoped, incomePlan];
+ }
  if (profile === 'family') {
   add(choice('family.cashflow.status','How does your household cash flow usually look after bills and debt payments?','¿Cómo suele quedar el presupuesto del hogar después de pagar las facturas y deudas?',[
    option('current','We have money left and save regularly','Nos sobra dinero y ahorramos con regularidad'),

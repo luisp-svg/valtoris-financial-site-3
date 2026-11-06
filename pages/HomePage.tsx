@@ -156,14 +156,9 @@ export default function HomePage() {
       ),
       links: [
         [
-          "Retirement readiness",
-          "Preparación para la jubilación",
+          "Retirement, TSP & government benefits",
+          "Jubilación, TSP y beneficios gubernamentales",
           "/retirement-report-card",
-        ],
-        [
-          "TSP & federal retirement",
-          "TSP y jubilación federal",
-          "/tsp-report-card",
         ],
         ["Estate & legacy", "Patrimonio y legado", "/estate-legacy"],
       ],

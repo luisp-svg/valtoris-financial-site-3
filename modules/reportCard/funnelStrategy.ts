@@ -10,18 +10,17 @@ export const specializedFunnels: {id:string;title:[string,string];selected:Prior
  {id:'health',title:['Health & Disability','Salud y discapacidad'],selected:['health','protection'],path:'/health-insurance-report-card'},
  {id:'trucking',title:['Commercial Trucking','Transporte comercial'],selected:['trucking'],directOnly:true,path:'/commercial-trucking-report-card'},
  {id:'home_buyer',title:['Home Buyer Readiness','Preparación para comprar vivienda'],selected:['home_buyer'],path:'/home-buyer-report-card'},
- {id:'retirement',title:['Retirement & TSP Rollovers','Jubilación y transferencias TSP'],selected:['retirement'],path:'/retirement-report-card'},
+ {id:'retirement',title:['Retirement, TSP & Government Benefits','Jubilación, TSP y beneficios gubernamentales'],selected:['retirement'],path:'/retirement-report-card'},
  {id:'life',title:['Life Insurance / Protection Gap','Seguro de vida / brecha de protección'],selected:['family','protection'],path:'/life-insurance-report-card'},
- {id:'tsp',title:['TSP & Federal Retirement','TSP y jubilación federal'],selected:['tsp'],path:'/tsp-report-card'},
  {id:'credit',title:['Credit & Financing Readiness','Preparación crediticia y financiera'],selected:['credit'],path:ROUTES.creditReportCard},
 ];
 export const mainReportCards = specializedFunnels.slice(0, 2);
-export const supportingReportCards = specializedFunnels.filter(card => ['health', 'student_loan', 'tsp', 'retirement', 'home_buyer'].includes(card.id));
+export const supportingReportCards = specializedFunnels.filter(card => ['health', 'student_loan', 'retirement', 'home_buyer'].includes(card.id));
 export const publicReportCards = [...mainReportCards, ...supportingReportCards];
 
 export function reportCardForFocus(focus: string | null | undefined) {
  const aliases: Record<string, string> = {
-  lifestyle: 'family', tax: 'family', commercial: 'business', benefits: 'business', protection: 'life',
+  lifestyle: 'family', tax: 'family', commercial: 'business', benefits: 'business', tsp: 'retirement', protection: 'life',
  };
  return specializedFunnels.find(card => card.id === (focus ? aliases[focus] ?? focus : focus));
 }
@@ -67,6 +66,16 @@ export function readDiscoverySummary(raw:unknown){
  if(discoveryQuestions(value.scope).some(q=>!validCombinedQuestion(q,d[q.id])))return undefined;
  return {scope:value.scope,completedAt:typeof value.completedAt==='string'?value.completedAt:null,...discoverySummary(value.scope,d)};
 }
+const retirementPreparation = {
+ private: ['Bring statements for your workplace plans and IRAs.', 'Trae los estados de cuenta de tus planes de trabajo e IRA.'],
+ federal: ['Bring your latest TSP statement and any federal or military pension estimate.', 'Trae tu estado de cuenta más reciente del TSP y cualquier estimación de pensión federal o militar.'],
+ both: ['Bring statements for your TSP, workplace plans and IRAs, plus any federal or military pension estimate.', 'Trae los estados de cuenta de tu TSP, planes de trabajo e IRA, además de cualquier estimación de pensión federal o militar.'],
+} as const;
+
 export function specializedNextSteps(answers:CombinedAnswers){
- return answers.selected.map(service=>({service,title:PRIORITIES.find(p=>p.id===service)![answers.locale],text:answers.locale==='es'?'Prepara los registros actuales y tus preguntas. Confirma la información faltante con tu asesor durante la consulta sin costo.':service==='student_loan'?'Gather current servicer statements and identify federal versus private loans. Discuss payment concerns and options with your advisor before making changes.':service==='health'?'Prepare your current benefits summary and any coverage-change date. Discuss provider networks and total costs with a licensed professional.':service==='trucking'?'Prepare policy summaries, operating details and renewal dates. Ask a licensed agent to review cargo, drivers and required filings.':'Prepare current records, coverage summaries or planning documents. Confirm reported gaps and missing information during your complimentary consultation.'}));
+ const path = answers.diagnostic['retirement.path'];
+ const retirementStep = path === 'private' || path === 'federal' || path === 'both'
+  ? retirementPreparation[path][answers.locale === 'es' ? 1 : 0]
+  : undefined;
+ return answers.selected.map(service=>({service,title:PRIORITIES.find(p=>p.id===service)![answers.locale],text:service === 'retirement' && retirementStep ? retirementStep : answers.locale==='es'?'Prepara los registros actuales y tus preguntas. Confirma la información faltante con tu asesor durante la consulta sin costo.':service==='student_loan'?'Gather current servicer statements and identify federal versus private loans. Discuss payment concerns and options with your advisor before making changes.':service==='health'?'Prepare your current benefits summary and any coverage-change date. Discuss provider networks and total costs with a licensed professional.':service==='trucking'?'Prepare policy summaries, operating details and renewal dates. Ask a licensed agent to review cargo, drivers and required filings.':'Prepare current records, coverage summaries or planning documents. Confirm reported gaps and missing information during your complimentary consultation.'}));
 }

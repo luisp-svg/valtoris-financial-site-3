@@ -1,5 +1,6 @@
 {
   "redirects": [
+    {"source": "/tsp-report-card", "destination": "/retirement-report-card", "permanent": true},
     {"source": "/personal-insurance-report-card", "destination": "/report-card", "permanent": true},
     {"source": "/lifestyle-report-card", "destination": "/report-card", "permanent": true},
     {"source": "/commercial-insurance-report-card", "destination": "/business-report-card", "permanent": true},
