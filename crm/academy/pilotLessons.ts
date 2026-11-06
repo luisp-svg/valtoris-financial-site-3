@@ -63,6 +63,52 @@ export const PILOT_LESSONS = [
     id: 'verify-the-record',
     title: 'Verify the loan record',
     goal: 'Separate documented facts from information that still needs confirmation.',
+    material: {
+      duration: '15–20 minutes',
+      objectives: [
+        'Match each statement to the borrower, account, and date it covers.',
+        'Distinguish a verified account balance from an unverified household total.',
+        'Document the discrepancy in TAC and assign a specific verification task.',
+      ],
+      sections: [
+        {
+          title: 'Match the records before comparing the numbers',
+          paragraphs: [
+            'Start with the borrower, servicer or lender, account reference, and statement date. Identify whether each figure represents one loan, several loans on a combined statement, or a total the client estimated for the household. Use a partial account reference if you need one to distinguish records.',
+            'A later date tells you when a figure was reported. Check that the later statement covers the same borrower and loans before treating it as an update. If it covers only part of the intake, verify that part and leave the rest open.',
+          ],
+        },
+        {
+          title: 'Record what each source actually supports',
+          paragraphs: [
+            'Keep the intake estimate and the documented figure separate. For a statement, record the balance as of the date shown and identify the loans it includes. If a payment amount or due date matters to the decision, record it as a separate field with its own source.',
+            'When two amounts differ, ask what would reconcile them. You may need to confirm which accounts were included or request another dated statement. Until you have that evidence, leave the explanation open. A difference between two figures does not tell you why they differ.',
+          ],
+        },
+        {
+          title: 'Turn the discrepancy into a follow-up task',
+          paragraphs: [
+            'In TAC, record what is verified, what is client-reported, and the question still open. Make the task specific enough that another advisor knows what evidence to request. For example, ask them to confirm whether the intake total includes a second borrower and obtain that borrower’s statement through the approved intake channel.',
+            'Assign an owner and a due date that supports the client’s review deadline. Once the missing record arrives, update the verified figures with their source and date, resolve the discrepancy if you can explain it, and record what is ready for review.',
+          ],
+        },
+      ],
+      example: {
+        situation: 'A fictional household reports about $31,000 in student loan balances on October 10. An October 28 statement shows $27,800 for Morgan’s loans with one servicer. Morgan thinks the intake may also include Taylor’s loan, but Taylor’s statement is missing.',
+        response: '“I can verify $27,800 for the loans on your October 28 statement. To reconcile that with the intake estimate, can you confirm whether it included Taylor’s loan and send Taylor’s latest statement through our intake channel?”',
+        record: 'The household reported approximately $31,000 on October 10. Morgan’s October 28 statement verifies $27,800 for the accounts listed there. Whether Taylor’s loan was included in the intake remains open. The assigned advisor will confirm the scope of the estimate and review the missing statement before the household review.',
+      },
+      exercise: {
+        prompt: 'A fictional client reports $24,000 in loans. They send a summary dated October 20 showing $22,400 for two loans and a detail page from the same date showing $9,400 for one of those two loans. They mention another lender but provide no statement for it.',
+        instruction: 'In a development practice household, draft a verification note and an assigned follow-up task. Include the verified subtotal, why the detail page should not be added again, and the question you would ask the client about the other lender.',
+        checklist: [
+          'Record $22,400 as the verified subtotal for the two loans shown on October 20.',
+          'Identify the $9,400 detail as part of that subtotal and avoid counting it twice.',
+          'Keep $24,000 as the client-reported estimate and mark the full total unverified.',
+          'Assign someone to confirm the other account and request a dated statement before the review.',
+        ],
+      },
+    },
     steps: [
       'Record the source and date for each statement or account summary. Keep household members and accounts distinct.',
       'Compare the documents with the intake. Flag differences and missing information so the next reviewer can see what remains open.',
