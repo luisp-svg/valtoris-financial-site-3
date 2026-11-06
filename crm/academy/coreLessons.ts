@@ -123,6 +123,52 @@ export const CORE_LESSONS = [
     id: 'core-marketing',
     title: 'Marketing and lead follow-up',
     goal: 'Plan a campaign with a clear audience, message, and follow-up.',
+    material: {
+      duration: '15–20 minutes',
+      objectives: [
+        'Choose an audience, a specific need, and one action for the reader to take.',
+        'Prepare a response path with a named owner before the campaign goes out.',
+        'Record campaign sources and follow-up outcomes in TAC so the team can measure results.',
+      ],
+      sections: [
+        {
+          title: 'Give one audience a clear reason to respond',
+          paragraphs: [
+            'Start with a group you can describe, such as local business owners approaching a lease renewal. Pick a question they are likely to have and write one invitation that addresses it. Give the reader one action to take, such as replying to request a short introductory call.',
+            'Review the wording and distribution list through your approved process. Describe what the conversation will cover and avoid promising an outcome. Read the invitation as a recipient and check that you can tell who it’s for, why it matters, and what to do next.',
+          ],
+        },
+        {
+          title: 'Plan what happens when someone replies',
+          paragraphs: [
+            'Before sending, test the reply path and agree on who will check it. Decide who will respond, when they will do it, and who will cover if the owner is away. Use the reply to determine the next step rather than treating every response as a request for a meeting.',
+            'In TAC, look for an existing contact or household before adding a record. Record the campaign name, the response, and any preference the person expressed. Create an assigned task with a due date when a follow-up is needed. If someone declines further contact, record their preference and stop the campaign follow-up for that person.',
+          ],
+        },
+        {
+          title: 'Measure conversations and follow-through',
+          paragraphs: [
+            'Use one campaign name consistently so the team can connect replies and booked conversations to the right invitation. Keep replies, meetings booked, and open follow-up tasks separate. One person who sends two replies still counts as one respondent when measuring how many people responded.',
+            'At review time, look at both the results and the handoffs. If people replied but few booked, read their responses and check whether the promised next step was clear. If tasks are overdue, fix ownership or coverage before sending another invitation.',
+          ],
+        },
+      ],
+      example: {
+        situation: 'A fictional Valtoris team is planning an invitation for local business owners whose commercial leases are coming up for renewal.',
+        response: '“Renewing your business lease soon? If you want help identifying the insurance questions to bring to your renewal discussion, reply to request a short introductory call.”',
+        record: 'Use the campaign name “Local Business Lease Renewal.” Jordan checks the reply inbox on business days. When a contact asks for a call, Jordan records the source and request in TAC and assigns a task to confirm a time by the next business day. When the contact accepts a time, Jordan records the booking separately from the reply.',
+      },
+      exercise: {
+        prompt: 'A fictional workshop invitation goes to 20 local business owners. Casey replies twice to ask for available times. Riley replies that they are not interested and asks for no further invitations. Sam replies and confirms a meeting time.',
+        instruction: 'Using fictional records in development TAC, draft the invitation and its single call to action. Record the three responses under one campaign name, create the follow-up task Casey needs, and summarize the campaign results in one sentence.',
+        checklist: [
+          'The invitation names the audience, explains the benefit, and asks for one clear response.',
+          'All three records use the same campaign name. Casey has one follow-up task with an owner and due date.',
+          'Riley’s contact preference is recorded and Sam’s meeting is recorded as booked.',
+          'The summary reports three unique respondents, one booked meeting, and one open follow-up.',
+        ],
+      },
+    },
     steps: [
       'Choose an audience and one problem the campaign addresses.',
       'Use approved messaging and a single call to action. Confirm who will handle responses.',
