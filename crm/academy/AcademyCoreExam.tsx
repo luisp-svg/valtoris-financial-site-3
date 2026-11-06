@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { createSupabaseBrowserClient } from '../../lib/supabase/client'
+import AcademyCoreCertificate, { type CoreCertificate } from './AcademyCoreCertificate'
 import { CORE_EXAM_QUESTIONS } from './coreExamQuestions'
 import { CORE_EXAM_PASS, formatCoreExamScore } from './coreExamScore'
 
-type Result = { score: number | null; best: number | null }
+type Result = { score: number | null; best: number | null; certificate: CoreCertificate | null }
 
 async function fetchResult(answers?: number[]): Promise<Result> {
   const { data, error } = await createSupabaseBrowserClient().rpc('academy_pilot_core_exam', { p_answers: answers ?? null })
@@ -49,6 +50,7 @@ export default function AcademyCoreExam({ onBack }: { onBack: () => void }) {
     {result?.best != null && <p>Best score: {formatCoreExamScore(result.best)} · {result.best >= CORE_EXAM_PASS ? 'Passed' : 'Below passing mark'}</p>}
     {result?.score != null && <p role="status">This attempt: {formatCoreExamScore(result.score)}</p>}
     {error && <p role="alert">{error}</p>}
+    {result?.certificate && <AcademyCoreCertificate certificate={result.certificate} />}
     <form onSubmit={submit}>
       {CORE_EXAM_QUESTIONS.map((question, index) => <fieldset key={question.prompt} disabled={busy}>
         <legend>{index + 1}. {question.prompt}</legend>

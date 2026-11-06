@@ -38,3 +38,31 @@
 .tac-academy-progress-scroll .crm-opportunities-table {
   min-width: 560px;
 }
+
+.tac-core-certificate {
+  margin: 20px 0;
+  padding: clamp(20px, 5vw, 44px);
+  border: 2px solid #a6854d;
+  border-radius: 12px;
+  background: #f7f4eb;
+  text-align: center;
+}
+
+.tac-core-certificate-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.tac-core-certificate-id {
+  overflow-wrap: anywhere;
+  font-size: .85rem;
+}
+
+@media print {
+  body:has(.tac-core-certificate) :has(.tac-core-certificate) { display: contents !important; }
+  body:has(.tac-core-certificate) :not(:has(.tac-core-certificate), .tac-core-certificate, .tac-core-certificate *) {
+    display: none !important;
+  }
+  .tac-core-certificate { margin: 0; break-inside: avoid; }
+  .tac-core-certificate-print { display: none !important; }
+}
