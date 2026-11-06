@@ -1,17 +1,31 @@
+import { familyAreas, businessAreas } from './combined/cardProfiles.js';
+import { ROUTES } from '../../constants/routes.js';
 import {readinessRating} from './readinessRating.js';
 import { combinedQuestions, PRIORITIES, validCombinedQuestion, type CombinedAnswers, type Priority } from './combined/engine.js';
 import type { ShortDiagnostic } from './shortForm/contract.js';
-export const specializedFunnels: {id:string;title:[string,string];selected:Priority[];path:string}[] = [
+export const specializedFunnels: {id:string;title:[string,string];selected:Priority[];path:string;directOnly?:true}[] = [
+ {id:'family',title:['Family Financial Report Card','Report Card Financiero Familiar'],selected:familyAreas,path:ROUTES.reportCard},
+ {id:'business',title:['Business Owner Financial Report Card','Report Card para Dueños de Negocios'],selected:businessAreas,path:ROUTES.businessReportCard},
  {id:'student_loan',title:['Student Loans','Préstamos estudiantiles'],selected:['student_loan'],path:'/student-loan-report-card'},
  {id:'health',title:['Health & Disability','Salud y discapacidad'],selected:['health','protection'],path:'/health-insurance-report-card'},
- {id:'lifestyle',title:['Personal Home & Auto','Hogar y auto personal'],selected:['lifestyle'],path:'/personal-insurance-report-card'},
- {id:'commercial',title:['Commercial Insurance','Seguro comercial'],selected:['commercial'],path:'/commercial-insurance-report-card'},
- {id:'trucking',title:['Commercial Trucking','Transporte comercial'],selected:['trucking'],path:'/commercial-trucking-report-card'},
+ {id:'trucking',title:['Commercial Trucking','Transporte comercial'],selected:['trucking'],directOnly:true,path:'/commercial-trucking-report-card'},
  {id:'home_buyer',title:['Home Buyer Readiness','Preparación para comprar vivienda'],selected:['home_buyer'],path:'/home-buyer-report-card'},
- {id:'benefits',title:['Employee Benefits','Beneficios para empleados'],selected:['benefits'],path:'/employee-benefits-report-card'},
- {id:'retirement',title:['Retirement & TSP Rollovers','Jubilación y transferencias TSP'],selected:['retirement','tsp'],path:'/retirement-report-card'},
+ {id:'retirement',title:['Retirement & TSP Rollovers','Jubilación y transferencias TSP'],selected:['retirement'],path:'/retirement-report-card'},
  {id:'life',title:['Life Insurance / Protection Gap','Seguro de vida / brecha de protección'],selected:['family','protection'],path:'/life-insurance-report-card'},
+ {id:'tsp',title:['TSP & Federal Retirement','TSP y jubilación federal'],selected:['tsp'],path:'/tsp-report-card'},
+ {id:'credit',title:['Credit & Financing Readiness','Preparación crediticia y financiera'],selected:['credit'],path:ROUTES.creditReportCard},
 ];
+export const mainReportCards = specializedFunnels.slice(0, 2);
+export const supportingReportCards = specializedFunnels.filter(card => ['health', 'student_loan', 'tsp', 'retirement', 'home_buyer'].includes(card.id));
+export const publicReportCards = [...mainReportCards, ...supportingReportCards];
+
+export function reportCardForFocus(focus: string | null | undefined) {
+ const aliases: Record<string, string> = {
+  lifestyle: 'family', tax: 'family', commercial: 'business', benefits: 'business', protection: 'life',
+ };
+ return specializedFunnels.find(card => card.id === (focus ? aliases[focus] ?? focus : focus));
+}
+
 export type DiscoveryScope='family'|'business';
 export function discoveryQuestions(scope:DiscoveryScope) {
  const types:Priority[]=scope==='family'?['student_loan','health','family','protection','lifestyle','credit','home_buyer','retirement','tsp','tax']:PRIORITIES.map(p=>p.id);

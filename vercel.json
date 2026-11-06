@@ -1,14 +1,6 @@
 {
   "rewrites": [
     {
-      "source": "/personal-insurance-report-card",
-      "destination": "/funnel-entry/lifestyle.html"
-    },
-    {
-      "source": "/commercial-insurance-report-card",
-      "destination": "/funnel-entry/commercial.html"
-    },
-    {
       "source": "/commercial-trucking-report-card",
       "destination": "/funnel-entry/trucking.html"
     },
@@ -56,6 +48,14 @@
     }
   },
   "headers": [
+    {
+      "source": "/commercial-trucking-report-card",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+    },
+    {
+      "source": "/funnel-entry/trucking.html",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+    },
     {
       "source": "/crm/:path*",
       "headers": [

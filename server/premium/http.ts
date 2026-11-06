@@ -364,6 +364,7 @@ export async function premiumAssessmentHttp(
           ...(saved.answers.consultationOnly ? {consultationOnly:true} : {}),
         results: publicResults,
         strategyVersion:saved.answers.strategyVersion??null,
+        cardVersion:saved.answers.cardVersion??null,
         nextSteps:specializedNextSteps(saved.answers),
         discovery:saved.derived.comprehensiveDiscovery??null,
         financialReportCard: adaptiveReportCard({...saved.answers,locale}),

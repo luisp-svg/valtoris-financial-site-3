@@ -11,7 +11,7 @@ const RESULT_PATHS = new Set<string>([
   ROUTES.reportCardResults, ROUTES.businessReportCardResults,
   ROUTES.retirementReportCardResults, ROUTES.studentLoanReportCardResults,
   ROUTES.creditReportCardResults, ROUTES.homeBuyerReportCardResults,
-  ROUTES.protectionResults, '/assessment-results', '/financial-assessment', '/comprehensive-discovery',
+  ROUTES.protectionResults, '/commercial-trucking-report-card', '/assessment-results', '/financial-assessment', '/comprehensive-discovery',
 ])
 
 /** Standalone pages do not mount SiteHeader, which owns other public canonicals. */

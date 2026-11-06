@@ -113,10 +113,8 @@ describe('Phase 6 public CTA hierarchy and alignment', () => {
       ROUTES.solutions,
     ])
     expect(TOOLS_NAV_LINKS.map((item) => item.to)).toEqual([
-      ROUTES.studentLoanReportCard, '/health-insurance-report-card', '/personal-insurance-report-card',
-      '/commercial-insurance-report-card', '/commercial-trucking-report-card', ROUTES.homeBuyerReportCard,
-      '/employee-benefits-report-card', ROUTES.retirementReportCard, ROUTES.protectionAnalysis,
-      ROUTES.reportCard, ROUTES.businessReportCard, ROUTES.creditReportCard, '/tsp-report-card', '/tax-review-report-card',
+      ROUTES.reportCard, ROUTES.businessReportCard, '/health-insurance-report-card',
+      ROUTES.studentLoanReportCard, '/tsp-report-card', ROUTES.retirementReportCard, ROUTES.homeBuyerReportCard,
     ])
     const home = renderAt('/', createElement(HomePage))
     for (const path of FUTURE_UNBUILT_PUBLIC_PATHS) {

@@ -1,3 +1,4 @@
+import { ROUTES } from "../../constants/routes";
 import FunnelAnswers from "../publicSite/aeo/FunnelAnswers";
 import { funnelContent, type DiscoverableFunnel } from "../publicSite/aeo/funnelContent";
 import EditorialVisual from "./EditorialVisual";
@@ -57,12 +58,12 @@ const reviewNames: Record<Priority, [string, string]> = {
 const reviewPromises: Record<Priority, [string, string]> = {
  commercial:["Review coverage for business operations and property.","Revisa cobertura para operaciones y propiedad del negocio."],trucking:["Review commercial trucks, cargo and operating requirements.","Revisa camiones, carga y requisitos de operación."],
   family: [
-    "Bring family protection, household responsibilities, and future priorities into one considered review.",
-    "Coordina protección familiar, responsabilidades del hogar y prioridades futuras en una revisión cuidadosa.",
+    "Review household finances, home and auto coverage, life and income protection, retirement, and tax planning in one assessment.",
+    "Revisa las finanzas del hogar, los seguros de vivienda y auto, la protección de vida e ingresos, la jubilación y la planificación fiscal en una evaluación.",
   ],
   business: [
-    "Review the people, continuity, and financial responsibilities behind the business you have built.",
-    "Revisa las personas, la continuidad y las responsabilidades financieras de la empresa que has construido.",
+    "Review business finances and continuity, employee benefits, commercial insurance, and tax planning in one assessment.",
+    "Revisa las finanzas y la continuidad del negocio, los beneficios para empleados, el seguro comercial y la planificación fiscal en una evaluación.",
   ],
   home_buyer: [
     "Consider credit, cash flow, and purchase readiness before your next property decision.",
@@ -107,8 +108,8 @@ const reviewPromises: Record<Priority, [string, string]> = {
 };
 const reviewTopics: Record<Priority, [string[], string[]]> = {
  commercial:[["Liability and property","Operations and contracts"],["Responsabilidad y propiedad","Operaciones y contratos"]],trucking:[["Commercial auto liability","Cargo, drivers and filings"],["Responsabilidad de auto comercial","Carga, conductores y registros"]],
-  family: [['Household responsibilities and dependents', 'Protection, debt and cash-flow priorities', 'Questions for your family strategy conversation'], ['Responsabilidades del hogar y dependientes', 'Protección, deudas y flujo de efectivo', 'Preguntas para tu estrategia familiar']],
-  business: [['Owner and key-person responsibilities', 'Business continuity and financial organization', 'Employee benefits and business priorities'], ['Responsabilidades del dueño y personas clave', 'Continuidad y organización financiera', 'Beneficios y prioridades del negocio']],
+  family: [['Household cash flow, savings and debt', 'Home and auto insurance', 'Life and income protection', 'Investing and retirement', 'Estate basics and tax planning'], ['Flujo de efectivo, ahorros y deudas del hogar', 'Seguros de vivienda y auto', 'Protección de vida e ingresos', 'Inversiones y jubilación', 'Planificación patrimonial y fiscal']],
+  business: [['Owner and key-person responsibilities', 'Business continuity and financial organization', 'Employee benefits', 'Commercial insurance', 'Business tax planning'], ['Responsabilidades del dueño y personas clave', 'Continuidad y organización financiera', 'Beneficios para empleados', 'Seguro comercial', 'Planificación fiscal del negocio']],
   home_buyer: [['Credit and borrowing readiness', 'Savings, down payment and monthly obligations', 'Questions to discuss with a real estate professional'], ['Crédito y preparación financiera', 'Ahorros, pago inicial y obligaciones mensuales', 'Preguntas para un profesional inmobiliario']],
   retirement: [['Your timeline and retirement goals', 'Savings and anticipated income needs', 'Family and legacy considerations'], ['Tu plazo y metas de jubilación', 'Ahorros y necesidades de ingresos', 'Consideraciones familiares y de legado']],
   tsp: [['Federal or military service and transition timing', 'TSP contributions and retirement priorities', 'Questions about future income and beneficiaries'], ['Servicio federal o militar y transición', 'Aportaciones TSP y prioridades de jubilación', 'Preguntas sobre ingresos y beneficiarios']],
@@ -148,21 +149,17 @@ export default function PremiumFunnelLanding({
         <p className="premium-lead">{entry?.summary ?? reviewPromises[priority][es ? 1 : 0]}</p>
         {entry && <p className="premium-fineprint">{entry.audience}</p>}
         <p className="premium-fineprint">
-          {priority==="family"||priority==="business" ? (es?"Revisión integral opcional después de un Report Card especializado. Tus respuestas se conservan; no es necesario completarla para reservar.":"Optional comprehensive discovery after a specialized Report Card. Prior answers carry forward; this review is never required to book.") : es
-            ? "Responde 5–10 preguntas, mira tus resultados preliminares y reserva una consulta sin costo. La revisión familiar o empresarial es opcional."
-            : "Answer 5–10 focused questions, see useful preliminary results, and book a complimentary consultation. Optional Family or Business Owner discovery follows."}
+          {priority==="family"||priority==="business" ? (es?"Comienza este Report Card directamente y recibe un informe sobre las áreas a continuación.":"Start this Report Card directly and get one set of results covering the areas below.") : es
+            ? "Responde 5–10 preguntas, mira tus resultados preliminares y reserva una consulta sin costo."
+            : "Answer 5–10 focused questions, see useful preliminary results, and book a complimentary consultation."}
         </p>
         <PublicLink
           className="premium-button"
-          to={priority==="family"||priority==="business"?"/solutions":`/financial-assessment?focus=${priority}&priorities=${priority}`}
+          to={priority === "family" ? ROUTES.familyAssessment : priority === "business" ? ROUTES.businessAssessment : `/financial-assessment?focus=${priority}`}
         >
           {es ? "Comenzar mi evaluación" : "Begin My Assessment"} ↗
         </PublicLink>
-        <p className="premium-fineprint">
-          {es
-            ? "Tus respuestas se conservan para la revisión integral opcional."
-            : "Your answers carry forward into optional comprehensive discovery."}
-        </p>
+
         </div>
       <EditorialVisual
         kind={
@@ -196,7 +193,7 @@ export default function PremiumFunnelLanding({
             ? "Un siguiente paso más intencional."
             : "A More Intentional Next Step."}
         </h2>
-        <AssessmentJourney locale={locale} />
+        <AssessmentJourney locale={locale} showDiscovery={false} />
       </section>
       <section className="premium-funnel-note container">
         <h2>{PRIORITIES.find((p) => p.id === priority)![locale]}</h2>

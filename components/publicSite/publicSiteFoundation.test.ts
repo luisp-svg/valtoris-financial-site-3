@@ -129,23 +129,21 @@ describe('public site foundation chrome', () => {
       ROUTES.solutions,
     ])
     expect(TOOLS_NAV_LINKS.map((item) => item.to)).toEqual([
-      ROUTES.studentLoanReportCard, '/health-insurance-report-card', '/personal-insurance-report-card',
-      '/commercial-insurance-report-card', '/commercial-trucking-report-card', ROUTES.homeBuyerReportCard,
-      '/employee-benefits-report-card', ROUTES.retirementReportCard, ROUTES.protectionAnalysis,
-      ROUTES.reportCard, ROUTES.businessReportCard, ROUTES.creditReportCard, '/tsp-report-card', '/tax-review-report-card',
+      ROUTES.reportCard, ROUTES.businessReportCard, '/health-insurance-report-card',
+      ROUTES.studentLoanReportCard, '/tsp-report-card', ROUTES.retirementReportCard, ROUTES.homeBuyerReportCard,
     ])
   })
 
-  it('makes Student Loan and Credit discoverable in nav and footer', () => {
+  it('keeps Credit services and Student Loan cards discoverable', () => {
     const html = renderChrome('/')
     expect(html).toContain(ROUTES.studentLoans)
     expect(html).toContain(ROUTES.credit)
     expect(html).toContain(ROUTES.studentLoanReportCard)
-    expect(html).toContain(ROUTES.creditReportCard)
+    expect(html).not.toContain(ROUTES.creditReportCard)
     expect(FAMILIES_FOOTER_LINKS.some((item) => item.to === ROUTES.studentLoans)).toBe(true)
     expect(FAMILIES_FOOTER_LINKS.some((item) => item.to === ROUTES.credit)).toBe(true)
     expect(TOOLS_NAV_LINKS.some((item) => item.to === ROUTES.studentLoanReportCard)).toBe(true)
-    expect(TOOLS_NAV_LINKS.some((item) => item.to === ROUTES.creditReportCard)).toBe(true)
+    expect(TOOLS_NAV_LINKS.some((item) => item.to === ROUTES.creditReportCard)).toBe(false)
   })
 
   it('does not point navigation at unbuilt service, tools, about, or contact routes', () => {
@@ -219,7 +217,7 @@ describe('public site foundation chrome', () => {
 
   it('preserves UTM and card params on header and footer links', () => {
     const html = renderChrome('/solutions?utm_source=card&utm_campaign=spring&card=abc')
-    expect(html).toContain('/credit-report-card?utm_source=card&amp;utm_campaign=spring&amp;card=abc')
+    expect(html).toContain('/business-report-card?utm_source=card&amp;utm_campaign=spring&amp;card=abc')
     expect(html).toContain(
       '/student-loan-report-card?utm_source=card&amp;utm_campaign=spring&amp;card=abc',
     )
@@ -228,9 +226,9 @@ describe('public site foundation chrome', () => {
 
   it('adds lang=es to public links while keeping attribution, and omits lang in English', () => {
     const es = renderChrome('/report-card?lang=es&utm_medium=qr')
-    expect(es).toContain('/credit-report-card?lang=es&amp;utm_medium=qr')
+    expect(es).toContain('/business-report-card?lang=es&amp;utm_medium=qr')
     const en = renderChrome('/report-card?utm_medium=qr')
-    expect(en).toContain('/credit-report-card?utm_medium=qr')
+    expect(en).toContain('/business-report-card?utm_medium=qr')
     expect(en).not.toContain('lang=en')
   })
 
@@ -256,10 +254,10 @@ describe('public site foundation chrome', () => {
     )
   })
 
-  it('exposes Student Loan and Credit in the footer tools sitemap', () => {
+  it('exposes the Family and Student Loan cards in the footer tools sitemap', () => {
     const html = renderChrome('/')
     expect(html).toContain('Student Loan Report Card™')
-    expect(html).toContain('Credit Report Card™')
+    expect(html).toContain(chromeCopy.en.toolsFamily)
     expect(source('components/SiteFooter.tsx')).toContain('TOOLS_NAV_LINKS')
   })
 

@@ -23,8 +23,19 @@ describe('public funnel discovery',()=>{
    const entry=renderFunnelEntry(priority)
    expect(entry.body).toContain('<h1>');expect(entry.body).toContain('Begin My Assessment')
    expect(JSON.parse(entry.structuredData)['@graph'][0].url).toBe(entry.canonical)
-   expect(config.rewrites).toContainEqual({source:FUNNEL_PATHS[priority],destination:`/funnel-entry/${priority}.html`})
-   expect(sitemap).toContain(`<loc>${entry.canonical}</loc>`)
+   const rewrite={source:FUNNEL_PATHS[priority],destination:`/funnel-entry/${priority}.html`}
+   if (priority==='lifestyle'||priority==='commercial') {
+    expect(config.rewrites).not.toContainEqual(rewrite)
+    expect(sitemap).not.toContain(`<loc>${entry.canonical}</loc>`)
+   } else if (priority==='trucking') {
+    expect(config.rewrites).toContainEqual(rewrite)
+    expect(sitemap).not.toContain(`<loc>${entry.canonical}</loc>`)
+    expect(config.headers).toContainEqual({source:FUNNEL_PATHS.trucking,headers:[{key:'X-Robots-Tag',value:'noindex, nofollow'}]})
+   } else {
+    expect(config.rewrites).toContainEqual(rewrite)
+    expect(sitemap).toContain(`<loc>${entry.canonical}</loc>`)
+   }
+   expect(entry.body).not.toContain(`href="${FUNNEL_PATHS.trucking}"`)
   }
  })
 })

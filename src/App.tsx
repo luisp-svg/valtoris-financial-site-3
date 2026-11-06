@@ -113,10 +113,10 @@ export default function App() {
       <Route path="/assessment-results" element={<FinancialAssessmentResultsPage />} />
       <Route path="/comprehensive-discovery" element={<ComprehensiveDiscoveryPage />} />
       <Route path="/life-insurance-report-card" element={<SiteLayout><PremiumFunnelLanding priority="protection" /></SiteLayout>} />
-      <Route path="/commercial-insurance-report-card" element={<SiteLayout><PremiumFunnelLanding priority="commercial" /></SiteLayout>} />
+      <Route path="/commercial-insurance-report-card" element={<SiteLayout><PremiumFunnelLanding priority="business" /></SiteLayout>} />
       <Route path="/commercial-trucking-report-card" element={<SiteLayout><PremiumFunnelLanding priority="trucking" /></SiteLayout>} />
-      <Route path="/personal-insurance-report-card" element={<SiteLayout><PremiumFunnelLanding priority="lifestyle" /></SiteLayout>} />
-      <Route path="/lifestyle-report-card" element={<SiteLayout><PremiumFunnelLanding priority="lifestyle" /></SiteLayout>} />
+      <Route path="/personal-insurance-report-card" element={<SiteLayout><PremiumFunnelLanding priority="family" /></SiteLayout>} />
+      <Route path="/lifestyle-report-card" element={<SiteLayout><PremiumFunnelLanding priority="family" /></SiteLayout>} />
       {SpecialtyReportCardPreview && <>
        {import.meta.env.DEV && <>
         <Route path="/preview/report-cards/family" element={<SiteLayout><Suspense fallback={<p>Loading…</p>}><SpecialtyReportCardPreview key="family" type="family" /></Suspense></SiteLayout>} />
@@ -129,7 +129,7 @@ export default function App() {
        </>}
         <Route path="/health-insurance-report-card" element={<SiteLayout><Suspense fallback={<p>Loading…</p>}><PremiumFunnelLanding priority="health" /></Suspense></SiteLayout>} />
         <Route path="/tsp-report-card" element={<SiteLayout><Suspense fallback={<p>Loading…</p>}><PremiumFunnelLanding priority="tsp" /></Suspense></SiteLayout>} />
-        <Route path="/employee-benefits-report-card" element={<SiteLayout><Suspense fallback={<p>Loading…</p>}><PremiumFunnelLanding priority="benefits" /></Suspense></SiteLayout>} />
+        <Route path="/employee-benefits-report-card" element={<SiteLayout><Suspense fallback={<p>Loading…</p>}><PremiumFunnelLanding priority="business" /></Suspense></SiteLayout>} />
         <Route path="/tax-review-report-card" element={<SiteLayout><Suspense fallback={<p>Loading…</p>}><PremiumFunnelLanding priority="tax" /></Suspense></SiteLayout>} />
         <Route path="/tax-planning-report-card" element={<SiteLayout><Suspense fallback={<p>Loading…</p>}><PremiumFunnelLanding priority="tax" /></Suspense></SiteLayout>} />
       </>}

@@ -96,12 +96,12 @@ describe('Phase 3 Student Loan and Credit service pages', () => {
     expect(SERVICES_NAV_LINKS.find((item) => item.id === 'studentLoans')?.to).toBe(ROUTES.studentLoans)
     expect(SERVICES_NAV_LINKS.find((item) => item.id === 'credit')?.to).toBe(ROUTES.credit)
     expect(TOOLS_NAV_LINKS.find((item) => item.id === 'studentLoan')?.to).toBe(ROUTES.studentLoanReportCard)
-    expect(TOOLS_NAV_LINKS.find((item) => item.id === 'credit')?.to).toBe(ROUTES.creditReportCard)
+    expect(TOOLS_NAV_LINKS.find((item) => item.id === 'family')?.to).toBe(ROUTES.reportCard)
     const html = renderChrome('/')
     expect(html).toContain(`href="${ROUTES.studentLoans}"`)
     expect(html).toContain(`href="${ROUTES.credit}"`)
     expect(html).toContain(`href="${ROUTES.studentLoanReportCard}"`)
-    expect(html).toContain(`href="${ROUTES.creditReportCard}"`)
+    expect(html).toContain(`href="${ROUTES.reportCard}"`)
   })
 
   it('updates homepage service links and leaves diagnostic cards on Report Cards', () => {
@@ -120,7 +120,7 @@ describe('Phase 3 Student Loan and Credit service pages', () => {
     expect(html).toContain(`href="${ROUTES.credit}"`)
     const diagnostics = html.match(/id="home-diagnostics"[\s\S]*?<\/section>/)?.[0] ?? ''
     expect(html).toContain(`href="${ROUTES.studentLoanReportCard}"`)
-    expect(html).toContain(`href="${ROUTES.creditReportCard}"`)
+    expect(html).toContain(`href="${ROUTES.reportCard}"`)
     expect(diagnostics).not.toContain(`href="${ROUTES.studentLoans}"`)
     expect(diagnostics).not.toContain(`href="${ROUTES.credit}"`)
   })
@@ -129,7 +129,7 @@ describe('Phase 3 Student Loan and Credit service pages', () => {
     expect(FAMILIES_FOOTER_LINKS.find((item) => item.id === 'studentLoans')?.to).toBe(ROUTES.studentLoans)
     expect(FAMILIES_FOOTER_LINKS.find((item) => item.id === 'credit')?.to).toBe(ROUTES.credit)
     expect(TOOLS_NAV_LINKS.find((item) => item.id === 'studentLoan')?.to).toBe(ROUTES.studentLoanReportCard)
-    expect(TOOLS_NAV_LINKS.find((item) => item.id === 'credit')?.to).toBe(ROUTES.creditReportCard)
+    expect(TOOLS_NAV_LINKS.find((item) => item.id === 'family')?.to).toBe(ROUTES.reportCard)
   })
 
   it('renders complete Student Loan EN and ES pages with Report Card and Book CTAs', () => {

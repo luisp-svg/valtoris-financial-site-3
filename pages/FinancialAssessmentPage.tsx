@@ -1,10 +1,9 @@
-import {specializedFunnels} from "../modules/reportCard/funnelStrategy";
+import { publicReportCards, reportCardForFocus } from "../modules/reportCard/funnelStrategy";
 import { premiumSpanishConsent } from "../components/premium/consentLabels";
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import AssessmentBrandHeader from "../components/AssessmentBrandHeader";
 import PublicLocaleSwitcher from "../components/publicSite/PublicLocaleSwitcher";
-import PrioritySelector from "../components/premium/PrioritySelector";
 import { readPublicLocale } from "../components/publicSite/locale";
 import { useHomeDocumentMeta } from "../components/publicSite/home/useHomeDocumentMeta";
 import { usePublicDocumentLang } from "../components/publicSite/usePublicDocumentLang";
@@ -26,7 +25,6 @@ import {
   combinedValidationIssue,
   isPriority,
   primaryAssessment,
-  pruneCombined,
   updateCombined,
   validCombinedQuestion,
   validateCombined,
@@ -64,20 +62,13 @@ function FinancialAssessmentForm({
   const errorHeading = useRef<HTMLParagraphElement>(null);
   const formOpenedAt = useRef(new Date().toISOString());
   const t = (en: string, spanish: string) => (es ? spanish : en);
-  const requestedFocus = new URLSearchParams(location.search).get("focus") ?? new URLSearchParams(location.search).get("priorities") ?? initialPriority;
-  const funnel = specializedFunnels.find(f=>f.id===requestedFocus||f.id===(requestedFocus==="tsp"?"retirement":requestedFocus==="protection"?"life":""));
+  const search = new URLSearchParams(location.search);
+  const requestedFocus = initialPriority ?? search.get("focus") ?? search.get("priorities")?.split(",")[0];
+  const funnel = reportCardForFocus(requestedFocus);
   const [selected, setSelected] = useState<Priority[]>(() => {
     if(funnel && !consultationOnly)return funnel.selected;
-    const values = (
-      new URLSearchParams(location.search).get("priorities") ?? ""
-    )
-      .split(",")
-      .filter(isPriority);
-    return values.length
-      ? [...new Set(values)]
-      : initialPriority
-        ? [initialPriority]
-        : [];
+    if (!consultationOnly) return [];
+    return [isPriority(requestedFocus) && requestedFocus !== "trucking" ? requestedFocus : "family"];
   });
   const [diagnostic, setDiagnostic] = useState<ShortDiagnostic>({});
   const [contact, setContact] = useState({
@@ -97,7 +88,8 @@ function FinancialAssessmentForm({
   const submissionId = useRef<string | null>(null),
     inFlight = useRef(false),
     heading = useRef<HTMLHeadingElement>(null);
-  const questions = consultationOnly ? [] : combinedQuestions(selected, diagnostic, 1, 1),
+  const cardVersion = consultationOnly ? undefined : 1;
+  const questions = consultationOnly ? [] : combinedQuestions(selected, diagnostic, 1, 1, cardVersion),
     atContact = step >= questions.length,
     q = questions[step];
   useEffect(() => {
@@ -105,11 +97,6 @@ function FinancialAssessmentForm({
     window.scrollTo(0, 0);
   }, [step]);
   useEffect(()=>{if(error){errorHeading.current?.focus();errorHeading.current?.scrollIntoView({block:"center",behavior:"smooth"})}},[error]);
-  function changePriorities(next: Priority[]) {
-    setSelected(next);
-    setDiagnostic((current) => pruneCombined(next, current, 1, 1));
-    setError("");
-  }
   async function begin() {
     if (!selected.length || inFlight.current) return;
     inFlight.current = true;
@@ -177,6 +164,7 @@ function FinancialAssessmentForm({
       format: COMBINED_FORMAT,
         insuranceRoutingVersion: 1,
         ...(consultationOnly?{}:{strategyVersion:1 as const}),
+        ...(cardVersion ? { cardVersion } : {}),
       ...(consultationOnly ? {consultationOnly:true as const} : {}),
       selected,
       diagnostic,
@@ -284,20 +272,14 @@ function FinancialAssessmentForm({
             </h1>
             <p className="premium-lead">
               {t(
-                consultationOnly ? "Choose a conversation topic, share your contact details, then select a consultation time. No Report Card is required." : "Start with a focused review. See your preliminary results and book a complimentary consultation immediately. Family or Business Owner discovery is optional afterward.",
-                consultationOnly ? "Elige un tema, comparte tus datos y selecciona una hora para tu consulta. No se requiere un Report Card." : "Comienza con una revisión enfocada. Mira tus resultados preliminares y reserva una consulta sin costo. La revisión familiar o empresarial es opcional después.",
+                consultationOnly ? "Choose a conversation topic, share your contact details, then select a consultation time. No Report Card is required." : "Start with a focused review. See your preliminary results and book a complimentary consultation immediately.",
+                consultationOnly ? "Elige un tema, comparte tus datos y selecciona una hora para tu consulta. No se requiere un Report Card." : "Comienza con una revisión enfocada. Mira tus resultados preliminares y reserva una consulta sin costo.",
               )}
             </p>
-            {!funnel && !consultationOnly && <div className="priority-directory-grid">{specializedFunnels.map(item=><Link className="premium-secondary" key={item.id} to={`/financial-assessment?focus=${item.id}&lang=${locale}`}>{item.title[es?1:0]}</Link>)}</div>}
-            {!funnel && consultationOnly && <PrioritySelector
-              selected={selected}
-              onChange={changePriorities}
-              locale={locale}
-              disabled={busy}
-            />}
+            {!funnel && !consultationOnly && <div className="priority-directory-grid">{publicReportCards.map(item=><Link className="premium-secondary" key={item.id} to={`/financial-assessment?focus=${item.id}&lang=${locale}`}>{item.title[es?1:0]}</Link>)}</div>}
             {(funnel||consultationOnly)&&<div className="premium-selection-footer">
               <p aria-live="polite">
-                {selected.length} {t("selected", "seleccionadas")} · {consultationOnly ? t("Contact details, then choose a time.","Tus datos y después el horario.") : t(`About ${Math.max(3, Math.ceil((questions.length * 20 + 60) / 60))} minutes to start; never more than 25 questions including contact details.`, `Unos ${Math.max(3, Math.ceil((questions.length * 20 + 60) / 60))} minutos para comenzar; pueden aparecer preguntas según tus respuestas.`)}
+                {consultationOnly ? t("Contact details, then choose a time.","Tus datos y después el horario.") : t(`About ${Math.max(3, Math.ceil((questions.length * 20 + 60) / 60))} minutes to start; never more than 25 questions including contact details.`, `Unos ${Math.max(3, Math.ceil((questions.length * 20 + 60) / 60))} minutos para comenzar; pueden aparecer preguntas según tus respuestas.`)}
               </p>
               <button
                 className="premium-button"
@@ -312,7 +294,7 @@ function FinancialAssessmentForm({
             </div>}
             <p className="premium-fineprint">
               {t(
-                consultationOnly ? "We’ll save your request before showing available appointment times. We’ll complete your financial intake during your consultation." : "This focused review asks 5–10 questions, followed by your contact details. Consent is separate. You can choose “Not sure.” Your Family or Business Owner review is optional afterward.",
+                consultationOnly ? "We’ll save your request before showing available appointment times. We’ll complete your financial intake during your consultation." : "This Report Card has its own questions, followed by your contact details. You can choose “Not sure.”",
                 "El número de preguntas se adapta a tus prioridades y respuestas. Puedes elegir “No sé”. Los documentos y detalles adicionales se completan durante tu consulta.",
               )}
             </p>
@@ -338,7 +320,7 @@ function FinancialAssessmentForm({
                     consultationOnly ? "Guarda tus datos y elige una hora para tu consulta sin costo. Completaremos la información financiera juntos durante la consulta." : "Guarda tu evaluación para ver tus resultados preliminares y elegir una consulta sin costo. La revisión adicional es opcional.",
                   )}
                 </p>
-                {consultationOnly && <label className="premium-field">{t('Conversation topic','Tema de conversación')}<select value={selected[0]} onChange={event=>{if(isPriority(event.target.value))setSelected([event.target.value])}} disabled={busy||locked}>{PRIORITIES.map(priority=><option key={priority.id} value={priority.id}>{priority[locale]}</option>)}</select></label>}
+                {consultationOnly && <label className="premium-field">{t('Conversation topic','Tema de conversación')}<select value={selected[0]} onChange={event=>{if(isPriority(event.target.value))setSelected([event.target.value])}} disabled={busy||locked}>{PRIORITIES.filter(priority => priority.id !== "trucking").map(priority=><option key={priority.id} value={priority.id}>{priority[locale]}</option>)}</select></label>}
                 <label className="premium-field">
                   {t(
                     "Full name (first and last)",
@@ -457,7 +439,7 @@ function FinancialAssessmentForm({
                         }
                         onChange={(e) => {
                           setDiagnostic((d) =>
-                            updateCombined(selected, d, q.id, e.target.value, 1, 1),
+                            updateCombined(selected, d, q.id, e.target.value, 1, 1, cardVersion),
                           );
                           setError("");
                         }}
@@ -477,6 +459,7 @@ function FinancialAssessmentForm({
                                 e.target.checked ? "unknown" : "",
                                 1,
                                 1,
+                                cardVersion,
                               ),
                             );
                             setError("");
@@ -496,7 +479,7 @@ function FinancialAssessmentForm({
                       value={String(diagnostic[q.id] ?? "")}
                       onChange={(e) => {
                         setDiagnostic((d) =>
-                          updateCombined(selected, d, q.id, e.target.value, 1, 1),
+                          updateCombined(selected, d, q.id, e.target.value, 1, 1, cardVersion),
                         );
                         setError("");
                       }}
@@ -551,7 +534,7 @@ function FinancialAssessmentForm({
                                       ]
                                 : option.value;
                               setDiagnostic((d) =>
-                                updateCombined(selected, d, q.id, next, 1, 1),
+                                updateCombined(selected, d, q.id, next, 1, 1, cardVersion),
                               );
                               setError("");
                             }}

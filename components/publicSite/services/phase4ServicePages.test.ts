@@ -132,10 +132,8 @@ describe('Phase 4 insurance, health, and business formation service pages', () =
     expect(SERVICES_NAV_LINKS.find((item) => item.id === 'credit')?.to).toBe(ROUTES.credit)
     expect(SERVICES_NAV_LINKS.find((item) => item.id === 'studentLoans')?.to).toBe(ROUTES.studentLoans)
     expect(TOOLS_NAV_LINKS.map((item) => item.to)).toEqual([
-      ROUTES.studentLoanReportCard, '/health-insurance-report-card', '/personal-insurance-report-card',
-      '/commercial-insurance-report-card', '/commercial-trucking-report-card', ROUTES.homeBuyerReportCard,
-      '/employee-benefits-report-card', ROUTES.retirementReportCard, ROUTES.protectionAnalysis,
-      ROUTES.reportCard, ROUTES.businessReportCard, ROUTES.creditReportCard, '/tsp-report-card', '/tax-review-report-card',
+      ROUTES.reportCard, ROUTES.businessReportCard, '/health-insurance-report-card',
+      ROUTES.studentLoanReportCard, '/tsp-report-card', ROUTES.retirementReportCard, ROUTES.homeBuyerReportCard,
     ])
     const html = renderChrome('/')
     expect(html).toContain(`href="${ROUTES.insurance}"`)

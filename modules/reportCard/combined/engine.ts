@@ -1,3 +1,5 @@
+import { mainReportCard } from './cardProfiles.js';
+import { isProtectionArea, protectionQuestions } from './protectionCalculator.js';
 import { normalizePhone } from '../../../crm/households/normalizeContact.js';
 import { validQuestion, validShortContact, type ShortDiagnostic } from '../shortForm/contract.js';
 import type { ShortQuestion, Locale } from '../shortForm/catalog.js';
@@ -16,7 +18,7 @@ export const PRIORITIES = [
  {id:'trucking',en:'Commercial trucking insurance',es:'Seguro de transporte comercial'},
 ] as const;
 export type Priority = typeof PRIORITIES[number]['id'];
-export type CombinedAnswers = {format:typeof COMBINED_FORMAT | typeof legacy.COMBINED_FORMAT;strategyVersion?:1;insuranceRoutingVersion?:1;consultationOnly?:true;selected:Priority[];diagnostic:ShortDiagnostic;contact:{fullName:string;email:string;phone:string};locale:Locale};
+export type CombinedAnswers = {format:typeof COMBINED_FORMAT | typeof legacy.COMBINED_FORMAT;strategyVersion?:1;cardVersion?:1;insuranceRoutingVersion?:1;consultationOnly?:true;selected:Priority[];diagnostic:ShortDiagnostic;contact:{fullName:string;email:string;phone:string};locale:Locale};
 export type CombinedQuestion = {id:string;question:ShortQuestion;reviews:Priority[]};
 export const PRIORITY_GROUPS: {en:string;es:string;ids:Priority[]}[] = [
  {en:'Start here: student loans & health',es:'Comienza aquí: préstamos y salud',ids:['student_loan','health']},
@@ -53,7 +55,60 @@ export function primaryAssessment(s:readonly Priority[]):PublicReportCardAssessm
  return old.length ? legacy.primaryAssessment(old) : 'business';
 }
 export function isCombined(v:unknown):v is CombinedAnswers{return !!v&&typeof v==='object'&&[COMBINED_FORMAT,legacy.COMBINED_FORMAT].includes((v as CombinedAnswers).format);}
-export function combinedQuestions(selected:readonly Priority[],answers:ShortDiagnostic,insuranceRoutingVersion?:1,strategyVersion?:1):CombinedQuestion[]{
+export function combinedQuestions(selected:readonly Priority[],answers:ShortDiagnostic,insuranceRoutingVersion?:1,strategyVersion?:1,cardVersion?:1):CombinedQuestion[]{
+ const readiness = readinessQuestions(selected, answers, insuranceRoutingVersion, strategyVersion);
+ if (cardVersion !== 1) return readiness;
+ const profile = mainReportCard(selected);
+ const protectionAreas = orderedPriorities(selected).filter(isProtectionArea);
+ const calculator = protectionAreas.flatMap(area => protectionQuestions(area, answers).map(question => ({ id: question.id, question, reviews: [area] })));
+ const shared = readiness.filter(question => question.id.startsWith('shared.') &&
+   (question.id !== 'shared.timing' || protectionAreas.length !== 2 || selected.length !== 2));
+ const scoped: CombinedQuestion[] = [];
+ const add = (question: ShortQuestion, review: Priority) => scoped.push({id:question.id, question, reviews:[review]});
+ if (profile === 'family') {
+  add(choice('family.cashflow.status','How does your household cash flow usually look after bills and debt payments?','¿Cómo suele quedar el presupuesto del hogar después de pagar las facturas y deudas?',[
+   option('current','We have money left and save regularly','Nos sobra dinero y ahorramos con regularidad'),
+   option('partial','We usually break even','Generalmente quedamos al día'),
+   option('missing','We often use savings or borrow to cover bills','A menudo usamos ahorros o pedimos prestado para pagar facturas'),
+  ]), 'family');
+  const reserves = readiness.find(question => question.id === 'family.status')!;
+  add({...reserves.question, id:'family.reserves.review'}, 'family');
+  add(choice('family.debt.review','How manageable are your household debt payments?','¿Qué tan manejables son los pagos de deudas de tu hogar?',[
+   option('current','Payments are manageable or we have no debt','Los pagos son manejables o no tenemos deudas'),
+   option('partial','We are current but payments are putting pressure on our budget','Estamos al día pero los pagos presionan nuestro presupuesto'),
+   option('missing','We struggle to keep up with payments','Nos cuesta mantenernos al día'),
+  ]), 'family');
+  add(choice('retirement.investments.review','Are you investing toward your longer-term goals with a plan you have reviewed?','¿Inviertes para tus metas a largo plazo con un plan que has revisado?',preparedness), 'retirement');
+  add(choice('family.estate.review','Are your will, decision-making documents and beneficiaries current?','¿Están actualizados tu testamento, documentos para la toma de decisiones y beneficiarios?',preparedness), 'family');
+  add(choice('protection.coverage.review','Have you checked how your life and disability coverage would support your household?','¿Has revisado cómo tus seguros de vida y discapacidad ayudarían a tu hogar?',preparedness), 'protection');
+ }
+ if (profile === 'business') {
+  add(choice('business.cashflow.review','How consistently does operating cash flow cover payroll and bills?','¿Con qué regularidad cubre el flujo de efectivo la nómina y las facturas?',[
+   option('current','Consistently, with money to reinvest or reserve','Con regularidad y con margen para reinvertir o ahorrar'),
+   option('partial','Usually, but some months are tight','Generalmente, pero algunos meses son ajustados'),
+   option('missing','We often need to borrow or defer payments','Con frecuencia necesitamos pedir prestado o aplazar pagos'),
+  ]), 'business');
+  add(choice('business.key_person.review','Is there a plan for the financial impact of losing a key owner or employee?','¿Existe un plan para el impacto financiero de perder a un dueño o empleado clave?',preparedness), 'business');
+  add(choice('business.succession.review','Have you documented who could take over ownership or operations if you step away?','¿Has documentado quién podría asumir la propiedad u operaciones si te retiras?',preparedness), 'business');
+  add(choice('benefits.workforce','How many employees would a benefits review cover?','¿Cuántos empleados incluiría una revisión de beneficios?',[
+   option('none','No employees','Sin empleados'),option('small','1–9','1–9'),option('medium','10–49','10–49'),option('large','50 or more','50 o más'),
+  ]), 'benefits');
+  add(choice('tax.business_focus','Which business tax-planning topic would be most useful to discuss?','¿Qué tema de planificación fiscal empresarial te sería más útil revisar?',[
+   option('estimates','Estimated payments and cash reserves','Pagos estimados y reservas'),
+   option('payroll','Owner compensation or payroll','Remuneración del dueño o nómina'),
+   option('records','Recordkeeping and coordination with my tax professional','Registros y coordinación con mi profesional fiscal'),
+  ]), 'tax');
+ }
+ const other = readiness.filter(question => !question.id.startsWith('shared.') &&
+   !question.reviews.some(isProtectionArea) &&
+   (profile !== 'family' || !['lifestyle.review', 'retirement.review', 'tax.review', 'insurance.goal'].includes(question.id)) &&
+   (answers['benefits.workforce'] !== 'none' || profile !== 'business' || !question.reviews.includes('benefits')));
+ // Reserve the possible housing follow-up before budgeting questions for other priorities.
+ const reserve = protectionAreas.includes('family') && !calculator.some(q => ['family.mortgage_balance', 'family.monthly_rent'].includes(q.id)) ? 1 : 0;
+ return [...shared, ...scoped, ...other.slice(0, MAX_ASSESSMENT_QUESTIONS - shared.length - scoped.length - calculator.length - reserve), ...calculator];
+}
+
+function readinessQuestions(selected:readonly Priority[],answers:ShortDiagnostic,insuranceRoutingVersion?:1,strategyVersion?:1):CombinedQuestion[]{
  const types=orderedPriorities(selected);if(!types.length)return [];
  const out:CombinedQuestion[]=[];
  const add=(question:ShortQuestion,reviews:Priority[])=>out.push({id:question.id,question,reviews});
@@ -117,16 +172,17 @@ export function combinedQuestions(selected:readonly Priority[],answers:ShortDiag
  return visible.sort((a,b)=>rank(a)-rank(b));
 }
 export function validCombinedQuestion(q:CombinedQuestion,value:unknown):boolean{if(q.question.kind==='date')return value==='unknown'||typeof value==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value)&&Number.isFinite(Date.parse(value+'T12:00:00Z'))&&new Date(value+'T12:00:00Z').toISOString().slice(0,10)===value;return validQuestion(q.question,value);}
-export function pruneCombined(s:readonly Priority[],d:ShortDiagnostic,insuranceRoutingVersion?:1,strategyVersion?:1):ShortDiagnostic{const keys=new Set(combinedQuestions(s,d,insuranceRoutingVersion,strategyVersion).map(q=>q.id));return Object.fromEntries(Object.entries(d).filter(([k])=>keys.has(k)));}
-export function updateCombined(s:readonly Priority[],d:ShortDiagnostic,id:string,value:string|string[],insuranceRoutingVersion?:1,strategyVersion?:1):ShortDiagnostic{return pruneCombined(s,{...d,[id]:value},insuranceRoutingVersion,strategyVersion);}
+export function pruneCombined(s:readonly Priority[],d:ShortDiagnostic,insuranceRoutingVersion?:1,strategyVersion?:1,cardVersion?:1):ShortDiagnostic{const keys=new Set(combinedQuestions(s,d,insuranceRoutingVersion,strategyVersion,cardVersion).map(q=>q.id));return Object.fromEntries(Object.entries(d).filter(([k])=>keys.has(k)));}
+export function updateCombined(s:readonly Priority[],d:ShortDiagnostic,id:string,value:string|string[],insuranceRoutingVersion?:1,strategyVersion?:1,cardVersion?:1):ShortDiagnostic{return pruneCombined(s,{...d,[id]:value},insuranceRoutingVersion,strategyVersion,cardVersion);}
 export function validateCombined(raw:unknown,assessmentType?:PublicReportCardAssessmentType):CombinedAnswers|null{
  if(!isCombined(raw))return null;
  if(raw.format===legacy.COMBINED_FORMAT)return legacy.validateCombined(raw,assessmentType);
- if(Object.keys(raw).some(k=>!['format','selected','diagnostic','contact','locale','consultationOnly','insuranceRoutingVersion','strategyVersion'].includes(k))||!Array.isArray(raw.selected)||!raw.selected.length||!raw.selected.every(isPriority)||new Set(raw.selected).size!==raw.selected.length||!['en','es'].includes(raw.locale)||!raw.diagnostic||typeof raw.diagnostic!=='object'||Array.isArray(raw.diagnostic)||raw.consultationOnly!==undefined&&raw.consultationOnly!==true)return null;
+ if(Object.keys(raw).some(k=>!['format','selected','diagnostic','contact','locale','consultationOnly','insuranceRoutingVersion','strategyVersion','cardVersion'].includes(k))||!Array.isArray(raw.selected)||!raw.selected.length||!raw.selected.every(isPriority)||new Set(raw.selected).size!==raw.selected.length||!['en','es'].includes(raw.locale)||!raw.diagnostic||typeof raw.diagnostic!=='object'||Array.isArray(raw.diagnostic)||raw.consultationOnly!==undefined&&raw.consultationOnly!==true)return null;
  if(raw.strategyVersion!==undefined&&raw.strategyVersion!==1)return null;
+ if(raw.cardVersion!==undefined&&(raw.cardVersion!==1||raw.strategyVersion!==1||raw.consultationOnly))return null;
  if(raw.insuranceRoutingVersion!==undefined&&raw.insuranceRoutingVersion!==1)return null;
  if(assessmentType&&primaryAssessment(raw.selected)!==assessmentType)return null;
- const active=raw.consultationOnly?[]:combinedQuestions(raw.selected,raw.diagnostic,raw.insuranceRoutingVersion,raw.strategyVersion);
+ const active=raw.consultationOnly?[]:combinedQuestions(raw.selected,raw.diagnostic,raw.insuranceRoutingVersion,raw.strategyVersion,raw.cardVersion);
  if(Object.keys(raw.diagnostic).some(k=>!active.some(q=>q.id===k))||active.some(q=>!validCombinedQuestion(q,raw.diagnostic[q.id])))return null;
  if(!raw.contact||typeof raw.contact!=='object'||Array.isArray(raw.contact)||Object.keys(raw.contact).some(k=>!['fullName','email','phone'].includes(k))||!(['fullName','email','phone'] as const).every(k=>typeof raw.contact[k]==='string')||!validShortContact(raw.contact)||!normalizePhone(raw.contact.phone))return null;
  return {...raw,selected:orderedPriorities(raw.selected),contact:{fullName:raw.contact.fullName.trim(),email:raw.contact.email.trim(),phone:raw.contact.phone.trim()}};
@@ -138,5 +194,5 @@ export function readStoredCombined(raw:unknown){if(!isCombined(raw))return null;
 export function combinedAnswerRows(raw:unknown,locale:Locale='en'){
  if(isCombined(raw)&&raw.format===legacy.COMBINED_FORMAT)return legacy.combinedAnswerRows(raw,locale);
  const saved=readStoredCombined(raw);if(!saved)return [];
- return combinedQuestions(saved.selected,saved.diagnostic,(saved as CombinedAnswers).insuranceRoutingVersion,(saved as CombinedAnswers).strategyVersion).map(({id,question})=>({id,label:question.label[locale],value:(Array.isArray(saved.diagnostic[id])?saved.diagnostic[id] as string[]:[String(saved.diagnostic[id]??'—')]).map(v=>question.options?.find(o=>o.value===v)?.label[locale]??v).join(', ')}));
+ return combinedQuestions(saved.selected,saved.diagnostic,(saved as CombinedAnswers).insuranceRoutingVersion,(saved as CombinedAnswers).strategyVersion,(saved as CombinedAnswers).cardVersion).map(({id,question})=>({id,label:question.label[locale],value:(Array.isArray(saved.diagnostic[id])?saved.diagnostic[id] as string[]:[String(saved.diagnostic[id]??'—')]).map(v=>question.options?.find(o=>o.value===v)?.label[locale]??v).join(', ')}));
 }
