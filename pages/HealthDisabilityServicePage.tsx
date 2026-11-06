@@ -7,11 +7,11 @@ import type { ServiceLinks } from '../components/publicSite/services/serviceLink
 
 const HEALTH_LINKS: ServiceLinks = {
   primaryTo: '/health-insurance-report-card',
-  secondaryTo: '/employee-benefits-report-card',
+  secondaryTo: '/business-report-card',
   bridgePrimaryTo: '/health-insurance-report-card',
-  bridgeSecondaryTo: '/employee-benefits-report-card',
+  bridgeSecondaryTo: '/business-report-card',
   finalPrimaryTo: '/health-insurance-report-card',
-  finalSecondaryTo: '/employee-benefits-report-card',
+  finalSecondaryTo: '/business-report-card',
 }
 
 export default function HealthDisabilityServicePage() {

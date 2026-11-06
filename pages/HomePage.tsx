@@ -96,7 +96,7 @@ export default function HomePage() {
         [
           "Employee benefits",
           "Beneficios para empleados",
-          "/employee-benefits-report-card",
+          "/business-report-card",
         ],
         [
           "Owner protection",
@@ -118,7 +118,7 @@ export default function HomePage() {
         [
           "Home, auto & lifestyle",
           "Hogar, auto y estilo de vida",
-          "/lifestyle-report-card",
+          "/report-card",
         ],
         [
           "Health coverage",

@@ -90,7 +90,7 @@ export const healthServiceCopy: Record<PublicLocale, ServiceCopy> = {
     bridgeKicker: 'Strategy conversation',
     bridgeTitle: 'Start with the Right Report Card',
     bridgeBody:
-      'Use the Health Insurance Report Card for personal or family coverage, supplemental insurance, and income-protection questions. Employers reviewing group health coverage should start with the Employee Benefits Report Card. These educational assessments are not quotes or applications.',
+      'Use the Health Insurance Report Card for personal or family coverage, supplemental insurance, and income-protection questions. Employers reviewing group health coverage should start with the Business Owner Financial Report Card. These educational assessments are not quotes or applications.',
     bridgePrimaryCta: 'Take the Health Report Card',
     bridgeSecondaryCta: 'Review Employee Benefits',
     complianceHeading: 'Important information',
@@ -100,7 +100,7 @@ export const healthServiceCopy: Record<PublicLocale, ServiceCopy> = {
     complianceResourceHref: '',
     finalHeading: 'Ready to Review Health and Income Protection Together?',
     finalLead:
-      'Review personal coverage with the Health Insurance Report Card, or assess group coverage with the Employee Benefits Report Card.',
+      'Review personal coverage with the Health Insurance Report Card, or assess group coverage with the Business Owner Financial Report Card.',
     finalPrimaryCta: 'Take the Health Report Card',
     finalSecondaryCta: 'Review Employee Benefits',
   },

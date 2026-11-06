@@ -24,10 +24,7 @@ describe('public funnel discovery',()=>{
    expect(entry.body).toContain('<h1>');expect(entry.body).toContain('Begin My Assessment')
    expect(JSON.parse(entry.structuredData)['@graph'][0].url).toBe(entry.canonical)
    const rewrite={source:FUNNEL_PATHS[priority],destination:`/funnel-entry/${priority}.html`}
-   if (priority==='lifestyle'||priority==='commercial') {
-    expect(config.rewrites).not.toContainEqual(rewrite)
-    expect(sitemap).not.toContain(`<loc>${entry.canonical}</loc>`)
-   } else if (priority==='trucking') {
+   if (priority==='trucking') {
     expect(config.rewrites).toContainEqual(rewrite)
     expect(sitemap).not.toContain(`<loc>${entry.canonical}</loc>`)
     expect(config.headers).toContainEqual({source:FUNNEL_PATHS.trucking,headers:[{key:'X-Robots-Tag',value:'noindex, nofollow'}]})
@@ -38,4 +35,24 @@ describe('public funnel discovery',()=>{
    expect(entry.body).not.toContain(`href="${FUNNEL_PATHS.trucking}"`)
   }
  })
+ it('redirects retired Report Cards to their replacements and removes their sitemap entries',()=>{
+  const config=JSON.parse(readFileSync('vercel.json','utf8')),sitemap=readFileSync('public/sitemap.xml','utf8')
+  const retired = {
+   '/personal-insurance-report-card':'/report-card',
+   '/lifestyle-report-card':'/report-card',
+   '/commercial-insurance-report-card':'/business-report-card',
+   '/employee-benefits-report-card':'/business-report-card',
+   '/tax-review-report-card':'/report-card',
+   '/tax-planning-report-card':'/report-card',
+   '/funnel-entry/lifestyle.html':'/report-card',
+   '/funnel-entry/commercial.html':'/business-report-card',
+  }
+  for (const [source,destination] of Object.entries(retired)) {
+   expect(config.redirects).toContainEqual({source,destination,permanent:true})
+   expect(sitemap).not.toContain(`${source}</loc>`)
+   expect(Object.values(FUNNEL_PATHS)).not.toContain(source)
+  }
+  expect(config.redirects.some((redirect:{source:string})=>redirect.source===FUNNEL_PATHS.trucking)).toBe(false)
+ })
+
 })

@@ -2,17 +2,16 @@ import { useLocation } from 'react-router-dom'
 import { ROUTES } from '../constants/routes'
 import { readPublicLocale } from '../components/publicSite/locale'
 import PublicLink from '../components/publicSite/PublicLink'
-import { FUNNEL_PATHS, funnelContent } from '../components/publicSite/aeo/funnelContent'
 import ServicePage from '../components/publicSite/services/ServicePage'
 import { insuranceServiceCopy } from '../components/publicSite/services/insuranceCopy'
 import type { ServiceLinks } from '../components/publicSite/services/serviceLinks'
 
 const INSURANCE_LINKS: ServiceLinks = {
-  primaryTo: '/personal-insurance-report-card',
+  primaryTo: ROUTES.reportCard,
   secondaryTo: ROUTES.solutions,
-  bridgePrimaryTo: '/personal-insurance-report-card',
+  bridgePrimaryTo: ROUTES.reportCard,
   bridgeSecondaryTo: ROUTES.solutions,
-  finalPrimaryTo: '/personal-insurance-report-card',
+  finalPrimaryTo: ROUTES.reportCard,
   finalSecondaryTo: ROUTES.solutions,
 }
 
@@ -20,5 +19,14 @@ export default function InsuranceServicePage() {
   const location = useLocation()
   const locale = readPublicLocale(location.search)
 
-  return <><ServicePage copy={insuranceServiceCopy[locale]} links={INSURANCE_LINKS} /><section className="container premium-review-focus"><h2>{locale==='es'?'Elige tu revisión de seguros':'Choose Your Insurance Review'}</h2>{(['lifestyle','commercial','trucking']as const).map(type=><article key={type}><h3><PublicLink to={FUNNEL_PATHS[type]}>{funnelContent[type][locale].title}</PublicLink></h3><p>{funnelContent[type][locale].summary}</p></article>)}</section></>
+  return <>
+    <ServicePage copy={insuranceServiceCopy[locale]} links={INSURANCE_LINKS} />
+    <section className="container premium-review-focus">
+      <h2>{locale === 'es' ? 'Report Cards de seguros' : 'Insurance Report Cards'}</h2>
+      <ul>
+        <li><PublicLink to={ROUTES.reportCard}>{locale === 'es' ? 'Seguro de hogar y auto en el Report Card Familiar' : 'Home and auto insurance in the Family Report Card'}</PublicLink></li>
+        <li><PublicLink to={ROUTES.businessReportCard}>{locale === 'es' ? 'Seguro comercial en el Report Card Empresarial' : 'Commercial insurance in the Business Owner Report Card'}</PublicLink></li>
+      </ul>
+    </section>
+  </>
 }
