@@ -14,7 +14,7 @@ import { type IntakeAnswers } from '../../crm/serviceIntakes/studentLoanSchema'
 import './studentLoanIntake.css'
 import { IntakeSaveUnconfirmedError } from '../../crm/serviceIntakes/intakeSaveDeadline'
 
-export type ServiceIntakeDefinition = { sensitiveLife?: boolean; title: string; Form: ComponentType<IntakeFormProps>; api: ReturnType<typeof createServiceIntakeApi>; validate: (raw: unknown, complete?: boolean) => string[]; loadSource: (client: SupabaseClient, origin: IntakeOrigin) => Promise<IntakeSource> }
+export type ServiceIntakeDefinition = { sensitiveLife?: boolean; existingOnly?: boolean; title: string; Form: ComponentType<IntakeFormProps>; api: ReturnType<typeof createServiceIntakeApi>; validate: (raw: unknown, complete?: boolean) => string[]; loadSource: (client: SupabaseClient, origin: IntakeOrigin) => Promise<IntakeSource> }
 export default function CrmServiceIntakePage({ definition }: { definition: ServiceIntakeDefinition }) {
   const { householdId = '' } = useParams()
   const [params] = useSearchParams()
@@ -22,7 +22,7 @@ export default function CrmServiceIntakePage({ definition }: { definition: Servi
   return <IntakeWorkspace key={`${householdId}:${params.toString()}`} householdId={householdId} query={params.toString()} definition={definition} />
 }
 function IntakeWorkspace({ householdId, query, definition }: { householdId: string; query: string; definition: ServiceIntakeDefinition }) {
-  const { Form, api, validate, loadSource, title } = definition
+  const { Form, api, validate, loadSource, title, existingOnly } = definition
   const client = useMemo(() => createSupabaseBrowserClient(), [])
   const origin = useMemo(() => parseIntakeOrigin(householdId, new URLSearchParams(query)), [householdId, query])
   const [source, setSource] = useState<IntakeSource | null>(null)
@@ -46,12 +46,16 @@ function IntakeWorkspace({ householdId, query, definition }: { householdId: stri
       .then(([loaded, records]) => {
         if (cancelled) return
         const current = records.find(r => r.status === 'draft') ?? records[0] ?? null
+        if (existingOnly && !current) {
+          setErrors(['Start new P&C requests from the household’s Insurance quote requests and quote documents. This intake is available for saved reviews.'])
+          return
+        }
         const initial = current?.answers ?? loaded.answers
         setSource(loaded); setHistory(records); setSaved(current); setAnswers(initial); setBaseline(JSON.stringify(initial))
       }).catch(() => { if (!cancelled) setErrors(['This intake could not be loaded. Return to the household and try again.']) })
       .finally(() => { if (!cancelled) setBusy(false) })
     return () => { cancelled = true }
-  }, [client, origin, api, loadSource])
+  }, [client, origin, api, loadSource, existingOnly])
   useEffect(() => {
     if (!dirty) return
     const unload = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = '' }
@@ -65,7 +69,7 @@ function IntakeWorkspace({ householdId, query, definition }: { householdId: stri
   }, [dirty])
 
   const persist = async (complete: boolean) => {
-    if (!origin || !answers || busy || saveUnconfirmed) return
+    if (!origin || !answers || busy || saveUnconfirmed || (existingOnly && !saved)) return
     if (protectedDirty) { setErrors(['Save or close the protected details before saving or completing the intake.']); return }
     const problems = validate(answers, complete)
     setErrors(problems); setMessage('')
@@ -106,7 +110,7 @@ function IntakeWorkspace({ householdId, query, definition }: { householdId: stri
         </button>)}</div>
       </section>}
       {source.priorResponses.length > 0 && <details className="crm-panel"><summary>View original report-card answers</summary><p>Submitted {source.sourceDate ? new Date(source.sourceDate).toLocaleDateString() : 'previously'}. Confirm current details with the client.</p><dl>{source.priorResponses.map(r => <div key={r.id}><dt>{r.label}</dt><dd>{r.value}</dd></div>)}</dl></details>}
-      {completed && <div className="crm-panel"><p>This completed intake is read-only. Start another review to record changes.</p><button type="button" className="crm-secondary-btn" disabled={busy || saveUnconfirmed} onClick={() => {
+      {completed && !existingOnly && <div className="crm-panel"><p>This completed intake is read-only. Start another review to record changes.</p><button type="button" className="crm-secondary-btn" disabled={busy || saveUnconfirmed} onClick={() => {
         const draft = history.find(r => r.status === 'draft')
         if (draft) { selectRecord(draft); return }
         setSaved(null); setAnswers(source.answers); setBaseline(JSON.stringify(source.answers)); setMessage('New review started. Confirm current information and save a draft.'); setErrors([])
