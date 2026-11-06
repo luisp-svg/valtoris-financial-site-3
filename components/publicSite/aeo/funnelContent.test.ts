@@ -38,15 +38,15 @@ describe('public funnel discovery',()=>{
  it('redirects retired Report Cards to their replacements and removes their sitemap entries',()=>{
   const config=JSON.parse(readFileSync('vercel.json','utf8')),sitemap=readFileSync('public/sitemap.xml','utf8')
   const retired = {
-   '/personal-insurance-report-card':'/report-card',
-   '/lifestyle-report-card':'/report-card',
-   '/commercial-insurance-report-card':'/business-report-card',
+   '/personal-insurance-report-card':'/personal-insurance',
+   '/lifestyle-report-card':'/personal-insurance',
+   '/commercial-insurance-report-card':'/commercial-insurance',
    '/employee-benefits-report-card':'/business-report-card',
    '/tax-review-report-card':'/report-card',
    '/tax-planning-report-card':'/report-card',
    '/tsp-report-card':'/retirement-report-card',
-   '/funnel-entry/lifestyle.html':'/report-card',
-   '/funnel-entry/commercial.html':'/business-report-card',
+   '/funnel-entry/lifestyle.html':'/personal-insurance',
+   '/funnel-entry/commercial.html':'/commercial-insurance',
   }
   for (const [source,destination] of Object.entries(retired)) {
    expect(config.redirects).toContainEqual({source,destination,permanent:true})

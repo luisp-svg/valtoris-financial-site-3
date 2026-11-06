@@ -7,11 +7,11 @@ import { insuranceServiceCopy } from '../components/publicSite/services/insuranc
 import type { ServiceLinks } from '../components/publicSite/services/serviceLinks'
 
 const INSURANCE_LINKS: ServiceLinks = {
-  primaryTo: ROUTES.reportCard,
+  primaryTo: ROUTES.getQuote,
   secondaryTo: ROUTES.solutions,
-  bridgePrimaryTo: ROUTES.reportCard,
+  bridgePrimaryTo: ROUTES.getQuote,
   bridgeSecondaryTo: ROUTES.solutions,
-  finalPrimaryTo: ROUTES.reportCard,
+  finalPrimaryTo: ROUTES.getQuote,
   finalSecondaryTo: ROUTES.solutions,
 }
 
@@ -22,10 +22,10 @@ export default function InsuranceServicePage() {
   return <>
     <ServicePage copy={insuranceServiceCopy[locale]} links={INSURANCE_LINKS} />
     <section className="container premium-review-focus">
-      <h2>{locale === 'es' ? 'Report Cards de seguros' : 'Insurance Report Cards'}</h2>
+      <h2>{locale === 'es' ? 'Solicita una cotización de seguro' : 'Request an Insurance Quote'}</h2>
       <ul>
-        <li><PublicLink to={ROUTES.reportCard}>{locale === 'es' ? 'Seguro de hogar y auto en el Report Card Familiar' : 'Home and auto insurance in the Family Report Card'}</PublicLink></li>
-        <li><PublicLink to={ROUTES.businessReportCard}>{locale === 'es' ? 'Seguro comercial en el Report Card Empresarial' : 'Commercial insurance in the Business Owner Report Card'}</PublicLink></li>
+        <li><PublicLink to={ROUTES.personalInsurance}>{locale === 'es' ? 'Cotizaciones de hogar y auto' : 'Home and auto insurance quotes'}</PublicLink></li>
+        <li><PublicLink to={ROUTES.commercialInsurance}>{locale === 'es' ? 'Cotización de seguro comercial' : 'Commercial insurance quote'}</PublicLink></li>
       </ul>
     </section>
   </>

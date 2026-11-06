@@ -31,19 +31,47 @@ const content = {
   },
 }
 
-export default function GetQuotePage() {
+const entryCopy = {
+  en: {
+    personal: {
+      title: 'Personal Property & Casualty Insurance',
+      intro: 'Start a home or auto quote request. Tell us about your property or vehicles, current coverage, and what you would like to insure.',
+    },
+    commercial: {
+      title: 'Commercial Insurance',
+      intro: 'Start a quote request with details about your operations, current coverage, and when you need coverage to begin. The form adapts to the coverages you select.',
+    },
+  },
+  es: {
+    personal: {
+      title: 'Seguros personales de propiedad y responsabilidad',
+      intro: 'Inicia una solicitud de seguro de vivienda o auto. Comparte los detalles de tu propiedad o vehículos, tu cobertura actual y lo que deseas asegurar.',
+    },
+    commercial: {
+      title: 'Seguros comerciales',
+      intro: 'Inicia una solicitud con los detalles de tus operaciones, tu cobertura actual y cuándo necesitas que comience. El formulario se adapta a las coberturas que elijas.',
+    },
+  },
+}
+
+export default function GetQuotePage({ audience }: { audience?: "personal" | "commercial" }) {
   const location = useLocation()
-  const copy = content[readPublicLocale(location.search)]
-  useServiceDocumentMeta({ metaTitle: `${copy.title} | Valtoris Financial`, metaDescription: copy.intro })
+  const locale = readPublicLocale(location.search)
+  const copy = content[locale]
+  const entry = audience ? entryCopy[locale][audience] : copy
+  const cards = audience === 'personal'
+    ? copy.cards.filter(card => card.kind !== 'commercial')
+    : audience === 'commercial' ? copy.cards.filter(card => card.kind === 'commercial') : copy.cards
+  useServiceDocumentMeta({ metaTitle: `${entry.title} | Valtoris Financial`, metaDescription: entry.intro })
   return <div className="quote-shell">
     <div className="quote-intro">
       <span className="quote-eyebrow">VALTORIS FINANCIAL</span>
-      <h1>{copy.title}</h1>
-      <p>{copy.intro}</p>
+      <h1>{entry.title}</h1>
+      <p>{entry.intro}</p>
       {copy.language ? <p className="quote-note">{copy.language}</p> : null}
     </div>
     <div className="quote-choice-grid">
-      {copy.cards.map(card => <section className="quote-card quote-choice-card" key={card.kind}>
+      {cards.map(card => <section className="quote-card quote-choice-card" key={card.kind}>
         <h2>{card.title}</h2>
         <p>{card.description}</p>
         <PublicLink className="quote-primary" to={`/${card.kind}-quote`} aria-label={`${copy.action}: ${card.title}`}>

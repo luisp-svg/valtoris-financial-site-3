@@ -100,15 +100,15 @@ function CrmAuthLayout() {
 }
 
 const retiredReportCards = [
-  ['/personal-insurance-report-card', ROUTES.reportCard],
-  ['/lifestyle-report-card', ROUTES.reportCard],
-  ['/commercial-insurance-report-card', ROUTES.businessReportCard],
+  ['/personal-insurance-report-card', ROUTES.personalInsurance],
+  ['/lifestyle-report-card', ROUTES.personalInsurance],
+  ['/commercial-insurance-report-card', ROUTES.commercialInsurance],
   ['/employee-benefits-report-card', ROUTES.businessReportCard],
   ['/tax-review-report-card', ROUTES.reportCard],
   ['/tax-planning-report-card', ROUTES.reportCard],
   ['/tsp-report-card', ROUTES.retirementReportCard],
-  ['/funnel-entry/lifestyle.html', ROUTES.reportCard],
-  ['/funnel-entry/commercial.html', ROUTES.businessReportCard],
+  ['/funnel-entry/lifestyle.html', ROUTES.personalInsurance],
+  ['/funnel-entry/commercial.html', ROUTES.commercialInsurance],
 ] as const
 
 function ArchivedReportCardRedirect({ destination }: { destination: string }) {
@@ -148,6 +148,8 @@ export default function App() {
       </>}
       <Route path={ROUTES.reportCards} element={<SiteLayout><ReportCardsPage /></SiteLayout>} />
       <Route path={ROUTES.education} element={<SiteLayout><EducationPage /></SiteLayout>} />
+      <Route path={ROUTES.personalInsurance} element={<SiteLayout><GetQuotePage audience="personal" /></SiteLayout>} />
+      <Route path={ROUTES.commercialInsurance} element={<SiteLayout><GetQuotePage audience="commercial" /></SiteLayout>} />
       <Route path={ROUTES.getQuote} element={<SiteLayout><GetQuotePage /></SiteLayout>} />
       {(['auto', 'home', 'commercial'] as const).map(kind => <Route key={kind} path={`/${kind}-quote`} element={<SiteLayout><InsuranceQuotePage key={kind} kind={kind} /></SiteLayout>} />)}
       <Route path={ROUTES.familyAssessment} element={<FinancialAssessmentPage key="family" initialPriority="family" />} />
