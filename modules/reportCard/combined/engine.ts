@@ -111,6 +111,23 @@ export function combinedQuestions(selected:readonly Priority[],answers:ShortDiag
   ]), 'business');
   add(choice('business.key_person.review','Is there a plan for the financial impact of losing a key owner or employee?','¿Existe un plan para el impacto financiero de perder a un dueño o empleado clave?',preparedness), 'business');
   add(choice('business.succession.review','Have you documented who could take over ownership or operations if you step away?','¿Has documentado quién podría asumir la propiedad u operaciones si te retiras?',preparedness), 'business');
+  add(choice('business.funding.credit.status','Have you established and reviewed a credit profile in your business’s name?','¿Has establecido y revisado un historial de crédito a nombre de tu negocio?',[
+   option('current','Established and recently reviewed','Establecido y revisado recientemente'),
+   option('partial','Established, but I have not reviewed it recently','Establecido, pero no lo he revisado recientemente'),
+   option('missing','The business does not have a separate credit profile','El negocio no tiene un historial de crédito separado'),
+  ]), 'business');
+  add(choice('business.funding.purpose','What would you use business funding for?','¿Para qué usarías el financiamiento empresarial?',[
+   option('operations','Working capital or seasonal expenses','Capital de trabajo o gastos de temporada'),
+   option('equipment','Equipment, vehicles, or inventory','Equipo, vehículos o inventario'),
+   option('growth','Expansion or a new location','Expansión o una nueva ubicación'),
+   option('refinance','Refinancing existing business debt','Refinanciar deudas del negocio'),
+   option('none','No funding planned right now','Por ahora no planeo solicitar financiamiento'),
+  ]), 'business');
+  add(choice('business.funding.documents.review','If your business needed funding, how ready are your recent bank statements and financial statements?','Si tu negocio necesitara financiamiento, ¿qué tan listos están tus estados bancarios y financieros recientes?',[
+   option('current','Current and ready to share','Actualizados y listos para compartir'),
+   option('partial','Some are ready or need updating','Algunos están listos o necesitan actualizarse'),
+   option('missing','Still need to gather them','Aún necesito reunirlos'),
+  ]), 'business');
   add(choice('benefits.workforce','How many employees would a benefits review cover?','¿Cuántos empleados incluiría una revisión de beneficios?',[
    option('none','No employees','Sin empleados'),option('small','1–9','1–9'),option('medium','10–49','10–49'),option('large','50 or more','50 o más'),
   ]), 'benefits');

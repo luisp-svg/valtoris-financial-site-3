@@ -104,14 +104,18 @@ describe('combined protection calculator', () => {
   it('keeps Business Owner topics contiguous and skips employee benefits for owners without employees', () => {
     const withEmployees = combinedQuestions(businessAreas, { 'benefits.workforce': 'small' }, 1, 1, 1);
     const withoutEmployees = combinedQuestions(businessAreas, { 'benefits.workforce': 'none' }, 1, 1, 1);
-    expect(withEmployees).toHaveLength(17);
-    expect(withoutEmployees).toHaveLength(15);
+    expect(withEmployees).toHaveLength(20);
+    expect(withoutEmployees).toHaveLength(18);
     expect(withoutEmployees.filter(question => question.reviews[0] === 'benefits').map(question => question.id))
       .toEqual(['benefits.workforce']);
     const ids = withEmployees.map(question => question.id);
     expect(ids.indexOf('benefits.status')).toBe(ids.indexOf('benefits.workforce') + 1);
     expect(ids).not.toContain('commercial.people');
     expect(ids).not.toContain('business.review');
+    expect(ids.filter(id => id.startsWith('business.funding.'))).toEqual([
+      'business.funding.credit.status', 'business.funding.purpose', 'business.funding.documents.review',
+    ]);
+    expect(ids).not.toContain('credit.status');
   });
 
   it('preserves earlier readiness-only submissions and the overall question cap', () => {

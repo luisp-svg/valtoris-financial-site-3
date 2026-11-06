@@ -403,7 +403,9 @@ function FinancialAssessmentForm({
                 <p className="premium-kicker">
                   {q.id.startsWith("shared.") && funnel
                     ? funnel.title[es ? 1 : 0]
-                    : funnel?.id === "family" && (
+                    : q.id.startsWith("business.funding.")
+                      ? t("Business Credit & Funding", "Crédito y financiamiento empresarial")
+                      : funnel?.id === "family" && (
                         q.id === "protection.coverage.review" ||
                         (q.id.startsWith("family.") && !/\.(status|review)$/.test(q.id))
                       )

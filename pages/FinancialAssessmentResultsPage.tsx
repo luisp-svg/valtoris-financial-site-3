@@ -167,7 +167,18 @@ export default function FinancialAssessmentResultsPage() {
             {reports.filter(review => review.kind !== "protection-estimate").map((review) => (
               <section className="premium-report" key={review.type}>
                 <h2>{review.title}</h2>
-                {review.kind === "adaptive" ? <div><strong>{strategyVersion===1?readinessRatingLabel(review.result.rating,locale):review.result.grade??t('Needs review','Requiere revisión')}{review.result.score!==null?` · ${review.result.score}/100`:''}</strong><p>{review.result.status==='needs-review'?t('Preliminary / needs review — limited or missing evidence.','Preliminar / requiere revisión — información limitada o faltante.'):t('Preliminary — confirm with records and your advisor.','Preliminar — confirmar con registros y tu asesor.')}</p><p>{review.result.known}/{review.result.total} {t('planning checks answered; review current records during your consultation.','verificaciones respondidas; revisa registros actuales durante tu consulta.')}</p><div className="report-answer-breakdown"><h3>{t('Your Answers & Breakdown','Tus respuestas y desglose')}</h3><dl>{answerRows.filter(row=>row.id.startsWith(review.type+'.')||(['lifestyle','commercial','trucking'].includes(review.type)&&row.id.startsWith('insurance.'))).map(row=><div key={row.id}><dt>{row.label}</dt><dd>{row.value}</dd></div>)}</dl></div></div> : review.kind === "short" ? (
+                {review.kind === "adaptive" ? <div><strong>{strategyVersion===1?readinessRatingLabel(review.result.rating,locale):review.result.grade??t('Needs review','Requiere revisión')}{review.result.score!==null?` · ${review.result.score}/100`:''}</strong><p>{review.result.status==='needs-review'?t('Preliminary / needs review — limited or missing evidence.','Preliminar / requiere revisión — información limitada o faltante.'):t('Preliminary — confirm with records and your advisor.','Preliminar — confirmar con registros y tu asesor.')}</p><p>{review.result.known}/{review.result.total} {t('planning checks answered; review current records during your consultation.','verificaciones respondidas; revisa registros actuales durante tu consulta.')}</p><div className="report-answer-breakdown">
+                  <h3>{t('Your Answers & Breakdown', 'Tus respuestas y desglose')}</h3>
+                  <dl>{answerRows.filter(row => !row.id.startsWith('business.funding.') &&
+                    (row.id.startsWith(review.type + '.') || (['lifestyle', 'commercial', 'trucking'].includes(review.type) && row.id.startsWith('insurance.')))
+                  ).map(row => <div key={row.id}><dt>{row.label}</dt><dd>{row.value}</dd></div>)}</dl>
+                  {review.type === 'business' && answerRows.some(row => row.id.startsWith('business.funding.')) && <>
+                    <h3>{t('Business Credit & Funding', 'Crédito y financiamiento empresarial')}</h3>
+                    <dl>{answerRows.filter(row => row.id.startsWith('business.funding.')).map(row =>
+                      <div key={row.id}><dt>{row.label}</dt><dd>{row.value}</dd></div>
+                    )}</dl>
+                  </>}
+                </div></div> : review.kind === "short" ? (
                   <>
                     <ShortResultBody result={review.result} locale={locale} />
                     {review.type === "home_buyer" && (
