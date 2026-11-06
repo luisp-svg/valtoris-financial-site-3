@@ -146,6 +146,5 @@ function AcademyLessonPlayer() {
         {allComplete && <p className="crm-banner crm-banner-success">{isCore ? 'Core practice complete. The student loan specialty is now available.' : 'Student loan practice complete.'}</p>}
       </article>
     </div>
-    <aside className="crm-panel tac-academy-reference"><h2>External education</h2><p>This is original Valtoris workflow practice. It does not award a designation or continuing education credit.</p><a href="https://cslainstitute.org/home">Visit the CSLA Institute’s CSLP® program</a></aside>
   </div>
 }
