@@ -4,7 +4,7 @@ import SavedHouseholdIntakes from './SavedHouseholdIntakes'
 import Widget from '../components/ui/Widget'
 import { createSupabaseBrowserClient } from '../../lib/supabase/client'
 import type { IntakeOrigin } from './intakeSource'
-import { CLIENT_INTAKE_SERVICES, loadIntakeHubSources, loadIntakeHubStatus, type IntakeHubSource, type IntakeHubStatus } from './intakeHubApi'
+import { CLIENT_INTAKE_SERVICES, RETIRED_CLIENT_INTAKE_ID, loadIntakeHubSources, loadIntakeHubStatus, type IntakeHubSource, type IntakeHubStatus } from './intakeHubApi'
 export default function ClientIntakesWidget({ householdId }: { householdId: string }) {
   const [kind, setKind] = useState<IntakeOrigin['kind']>('member')
   const [page, setPage] = useState(0)
@@ -48,6 +48,7 @@ function IntakeServiceLinks({ origin }: { origin: IntakeOrigin }) {
   if (!statuses) return <p role="status">Loading intake progress…</p>
   return <div className="crm-dashboard-quick-action-row">{CLIENT_INTAKE_SERVICES.map(service => {
     const status = statuses.find(s => s.type===service.id)
+    if (service.id === RETIRED_CLIENT_INTAKE_ID && !status) return null
     return <div key={service.id}><h3>{service.label}</h3><p>{status ? `${status.status === 'draft' ? 'Draft saved' : 'Completed'} · ${new Date(status.updatedAt).toLocaleDateString()}` : 'Not started for this record'}</p><Link className="crm-secondary-btn" to={service.path(origin)}>{status?.status==='draft' ? 'Resume intake' : status?.status==='completed' ? 'View intake' : 'Start intake'}</Link></div>
   })}</div>
 }

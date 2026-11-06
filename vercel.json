@@ -1,13 +1,16 @@
 {
+  "redirects": [
+    {"source": "/tsp-report-card", "destination": "/retirement-report-card", "permanent": true},
+    {"source": "/personal-insurance-report-card", "destination": "/personal-insurance", "permanent": true},
+    {"source": "/lifestyle-report-card", "destination": "/personal-insurance", "permanent": true},
+    {"source": "/commercial-insurance-report-card", "destination": "/commercial-insurance", "permanent": true},
+    {"source": "/employee-benefits-report-card", "destination": "/business-report-card", "permanent": true},
+    {"source": "/tax-review-report-card", "destination": "/report-card", "permanent": true},
+    {"source": "/tax-planning-report-card", "destination": "/report-card", "permanent": true},
+    {"source": "/funnel-entry/lifestyle.html", "destination": "/personal-insurance", "permanent": true},
+    {"source": "/funnel-entry/commercial.html", "destination": "/commercial-insurance", "permanent": true}
+  ],
   "rewrites": [
-    {
-      "source": "/personal-insurance-report-card",
-      "destination": "/funnel-entry/lifestyle.html"
-    },
-    {
-      "source": "/commercial-insurance-report-card",
-      "destination": "/funnel-entry/commercial.html"
-    },
     {
       "source": "/commercial-trucking-report-card",
       "destination": "/funnel-entry/trucking.html"
@@ -56,6 +59,14 @@
     }
   },
   "headers": [
+    {
+      "source": "/commercial-trucking-report-card",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+    },
+    {
+      "source": "/funnel-entry/trucking.html",
+      "headers": [{ "key": "X-Robots-Tag", "value": "noindex, nofollow" }]
+    },
     {
       "source": "/crm/:path*",
       "headers": [

@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it } from 'vitest'
 import SolutionsPage from '../../pages/SolutionsPage'
-import { specializedFunnels } from '../../modules/reportCard/funnelStrategy'
+import { publicReportCards } from '../../modules/reportCard/funnelStrategy'
 import ReportCardsPage from '../../pages/ReportCardsPage'
 import EducationPage from '../../pages/EducationPage'
 import { ROUTES } from '../../constants/routes'
@@ -12,9 +12,9 @@ function render(page: typeof ReportCardsPage, path: string) {
   return renderToStaticMarkup(createElement(MemoryRouter, { initialEntries: [path] }, createElement(page)))
 }
 describe('assessment-first discovery', () => {
-  it('exposes all nine specialized funnels in the directory with attribution', () => {
+  it('exposes the main and supporting cards in the directory with attribution', () => {
     const html = render(SolutionsPage, '/solutions?lang=es&utm_source=partner&card=advisor')
-    for (const item of specializedFunnels) expect(html).toContain(`href="/financial-assessment?lang=es&amp;utm_source=partner&amp;card=advisor&amp;focus=${item.id}"`)
+    for (const item of publicReportCards) expect(html).toContain(`href="/financial-assessment?lang=es&amp;utm_source=partner&amp;card=advisor&amp;focus=${item.id}"`)
     expect(html.match(/<h1/g)).toHaveLength(1)
     expect(html).toContain('Empieza con lo que más importa.')
   })

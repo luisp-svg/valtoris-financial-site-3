@@ -92,11 +92,11 @@ export default function HomePage() {
         "Considera las personas, los activos y la continuidad de tu empresa.",
       ),
       links: [
-        ["Commercial insurance", "Seguros comerciales", "/insurance"],
+        ["Commercial insurance", "Seguros comerciales", "/commercial-insurance"],
         [
           "Employee benefits",
           "Beneficios para empleados",
-          "/employee-benefits-report-card",
+          "/business-report-card",
         ],
         [
           "Owner protection",
@@ -116,9 +116,9 @@ export default function HomePage() {
       ),
       links: [
         [
-          "Home, auto & lifestyle",
-          "Hogar, auto y estilo de vida",
-          "/lifestyle-report-card",
+          "Home and auto insurance",
+          "Seguros de hogar y auto",
+          "/personal-insurance",
         ],
         [
           "Health coverage",
@@ -156,14 +156,9 @@ export default function HomePage() {
       ),
       links: [
         [
-          "Retirement readiness",
-          "Preparación para la jubilación",
+          "Retirement, TSP & government benefits",
+          "Jubilación, TSP y beneficios gubernamentales",
           "/retirement-report-card",
-        ],
-        [
-          "TSP & federal retirement",
-          "TSP y jubilación federal",
-          "/tsp-report-card",
         ],
         ["Estate & legacy", "Patrimonio y legado", "/estate-legacy"],
       ],

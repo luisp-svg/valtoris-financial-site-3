@@ -1,3 +1,5 @@
+import { mainReportCard } from "../modules/reportCard/combined/cardProfiles";
+import { ROUTES } from "../constants/routes";
 import {readinessRatingLabel} from "../modules/reportCard/readinessRating";
 import ReportResultsOverview from "../components/premium/ReportResultsOverview";
 import ReadinessGrade from "../components/premium/ReadinessGrade";
@@ -43,6 +45,7 @@ export default function FinancialAssessmentResultsPage() {
       : [],
   );
   const [nextSteps,setNextSteps]=useState<{service:string;title:string;text:string}[]>([]);
+  const [cardVersion, setCardVersion] = useState<number | null>(null);
   const [strategyVersion,setStrategyVersion]=useState<number|null>(null);
   const [awaitingConfirmation, setAwaitingConfirmation] = useState(false);
   const [confirmationPaused, setConfirmationPaused] = useState(false);
@@ -73,6 +76,7 @@ export default function FinancialAssessmentResultsPage() {
       if (sequence === requestSequence.current) setConsultationOnly(data.consultationOnly === true);
       if (sequence === requestSequence.current) setPreliminary(Array.isArray(data.preliminary)?data.preliminary:[]);
       if (sequence !== requestSequence.current) return;
+      setCardVersion(data.cardVersion ?? null);
       if (Array.isArray(data.selected))
         setSelected(data.selected.filter(isPriority));
       if (response.ok && data.ok && Array.isArray(data.results)) {
@@ -123,6 +127,13 @@ export default function FinancialAssessmentResultsPage() {
     timer = setTimeout(() => void poll(), 1000);
     return () => { disposed = true; clearTimeout(timer); };
   }, [awaitingConfirmation, reports, needsSession, check]);
+  const profile = cardVersion === 1 ? mainReportCard(selected) : undefined;
+  const reportTitle = profile === "family"
+    ? t("Your Family Financial Report Card", "Tu Report Card Financiero Familiar")
+    : profile === "business"
+      ? t("Your Business Owner Financial Report Card", "Tu Report Card para Dueños de Negocios")
+      : t("Your Financial Report Card", "Tu Report Card Financiero");
+
   return (
     <main className="premium-results">
       <header className="premium-assessment-header">
@@ -141,10 +152,7 @@ export default function FinancialAssessmentResultsPage() {
               {t("YOUR FINANCIAL PERSPECTIVE", "TU PERSPECTIVA FINANCIERA")}
             </p>
             <h1 ref={heading} tabIndex={-1}>
-              {t(
-                consultationOnly ? "Your Consultation Is Confirmed." : "Your Financial Report Card",
-                consultationOnly ? "Tu consulta está confirmada." : "Tu Report Card Financiero",
-              )}
+              {consultationOnly ? t("Your Consultation Is Confirmed.", "Tu consulta está confirmada.") : reportTitle}
             </h1>
             <p className="premium-lead">
               {t(
@@ -152,14 +160,25 @@ export default function FinancialAssessmentResultsPage() {
                 consultationOnly ? "Tu consulta está reservada. Conversaremos sobre tus prioridades y completaremos la información financiera juntos. No se ha completado un Report Card." : "Tus prioridades. Tu perspectiva. Un plan para lo que sigue.",
               )}
             </p>
-            {!consultationOnly && <ReportResultsOverview card={reportCard} selected={selected} locale={locale} strategyVersion={strategyVersion}/> }
-            {strategyVersion===1 && <section className="premium-report premium-follow-up"><h2>{t('Book Your Complimentary Consultation','Reserva tu consulta sin costo')}</h2><TacConsultationBooking assessmentId={assessmentId} locale={locale} onBooked={()=>void check()} /><h2>{t('Optional: Discover Your Bigger Financial Picture','Opcional: descubre tu panorama financiero')}</h2><p>{t('Your results and booking are available now. Continue with Family or Business Owner discovery if you wish. Prior answers carry forward; no duplicate questions.','Tus resultados y reserva están disponibles. Continúa con la revisión familiar o empresarial si deseas. Conservamos tus respuestas sin repetir preguntas.')}</p><Link className="premium-secondary" to={`/comprehensive-discovery?assessment=${assessmentId}&scope=family&lang=${locale}`}>{t('Family Financial Report Card','Report Card Financiero Familiar')}</Link>{' '}<Link className="premium-secondary" to={`/comprehensive-discovery?assessment=${assessmentId}&scope=business&lang=${locale}`}>{t('Business Owner Financial Report Card','Report Card Financiero Empresarial')}</Link></section>}
+            {!consultationOnly && <ReportResultsOverview card={reportCard} selected={selected} locale={locale} strategyVersion={strategyVersion} mainCard={Boolean(profile)} protectionReviews={reports.filter(review => review.kind === "protection-estimate")}/> }
+            {strategyVersion===1 && <section className="premium-report premium-follow-up"><h2>{t('Book Your Complimentary Consultation','Reserva tu consulta sin costo')}</h2><TacConsultationBooking assessmentId={assessmentId} locale={locale} onBooked={()=>void check()} />{cardVersion !== 1 && <><h2>{t('Optional: Discover Your Bigger Financial Picture','Opcional: descubre tu panorama financiero')}</h2><p>{t('Your results and booking are available now. Continue with Family or Business Owner discovery if you wish. Prior answers carry forward; no duplicate questions.','Tus resultados y reserva están disponibles. Continúa con la revisión familiar o empresarial si deseas. Conservamos tus respuestas sin repetir preguntas.')}</p><Link className="premium-secondary" to={`/comprehensive-discovery?assessment=${assessmentId}&scope=family&lang=${locale}`}>{t('Family Financial Report Card','Report Card Financiero Familiar')}</Link>{' '}<Link className="premium-secondary" to={`/comprehensive-discovery?assessment=${assessmentId}&scope=business&lang=${locale}`}>{t('Business Owner Financial Report Card','Report Card Financiero Empresarial')}</Link></>}{cardVersion === 1 && !profile && <><h2>{t('Explore the Main Report Cards', 'Explora los Report Cards principales')}</h2><Link className="premium-secondary" to={`${ROUTES.reportCard}?lang=${locale}`}>{t('Family Financial Report Card', 'Report Card Financiero Familiar')}</Link>{' '}<Link className="premium-secondary" to={`${ROUTES.businessReportCard}?lang=${locale}`}>{t('Business Owner Financial Report Card', 'Report Card para Dueños de Negocios')}</Link></>}</section>}
 
             {nextSteps.length>0&&<section className="premium-report"><h2>{t("Your Next Steps","Tus próximos pasos")}</h2>{nextSteps.map(item=><p key={item.service}><strong>{item.title}</strong>: {item.text}</p>)}</section>}
-            {reports.map((review) => (
+            {reports.filter(review => review.kind !== "protection-estimate").map((review) => (
               <section className="premium-report" key={review.type}>
                 <h2>{review.title}</h2>
-                {review.kind === "adaptive" ? <div><strong>{strategyVersion===1?readinessRatingLabel(review.result.rating,locale):review.result.grade??t('Needs review','Requiere revisión')}{review.result.score!==null?` · ${review.result.score}/100`:''}</strong><p>{review.result.status==='needs-review'?t('Preliminary / needs review — limited or missing evidence.','Preliminar / requiere revisión — información limitada o faltante.'):t('Preliminary — confirm with records and your advisor.','Preliminar — confirmar con registros y tu asesor.')}</p><p>{review.result.known}/{review.result.total} {t('planning checks answered; review current records during your consultation.','verificaciones respondidas; revisa registros actuales durante tu consulta.')}</p><div className="report-answer-breakdown"><h3>{t('Your Answers & Breakdown','Tus respuestas y desglose')}</h3><dl>{answerRows.filter(row=>row.id.startsWith(review.type+'.')||(['lifestyle','commercial','trucking'].includes(review.type)&&row.id.startsWith('insurance.'))).map(row=><div key={row.id}><dt>{row.label}</dt><dd>{row.value}</dd></div>)}</dl></div></div> : review.kind === "short" ? (
+                {review.kind === "adaptive" ? <div><strong>{strategyVersion===1?readinessRatingLabel(review.result.rating,locale):review.result.grade??t('Needs review','Requiere revisión')}{review.result.score!==null?` · ${review.result.score}/100`:''}</strong><p>{review.result.status==='needs-review'?t('Preliminary / needs review — limited or missing evidence.','Preliminar / requiere revisión — información limitada o faltante.'):t('Preliminary — confirm with records and your advisor.','Preliminar — confirmar con registros y tu asesor.')}</p><p>{review.result.known}/{review.result.total} {t('planning checks answered; review current records during your consultation.','verificaciones respondidas; revisa registros actuales durante tu consulta.')}</p><div className="report-answer-breakdown">
+                  <h3>{t('Your Answers & Breakdown', 'Tus respuestas y desglose')}</h3>
+                  <dl>{answerRows.filter(row => !row.id.startsWith('business.funding.') &&
+                    (row.id.startsWith(review.type + '.') || (['lifestyle', 'commercial', 'trucking'].includes(review.type) && row.id.startsWith('insurance.')))
+                  ).map(row => <div key={row.id}><dt>{row.label}</dt><dd>{row.value}</dd></div>)}</dl>
+                  {review.type === 'business' && answerRows.some(row => row.id.startsWith('business.funding.')) && <>
+                    <h3>{t('Business Credit & Funding', 'Crédito y financiamiento empresarial')}</h3>
+                    <dl>{answerRows.filter(row => row.id.startsWith('business.funding.')).map(row =>
+                      <div key={row.id}><dt>{row.label}</dt><dd>{row.value}</dd></div>
+                    )}</dl>
+                  </>}
+                </div></div> : review.kind === "short" ? (
                   <>
                     <ShortResultBody result={review.result} locale={locale} />
                     {review.type === "home_buyer" && (

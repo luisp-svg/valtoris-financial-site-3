@@ -11,6 +11,7 @@ import SiteHeader from '../../SiteHeader'
 import SiteFooter from '../../SiteFooter'
 import HomePage from '../../../pages/HomePage'
 import InsuranceServicePage from '../../../pages/InsuranceServicePage'
+import GetQuotePage from '../../../pages/GetQuotePage'
 import HealthDisabilityServicePage from '../../../pages/HealthDisabilityServicePage'
 import BusinessFormationServicePage from '../../../pages/BusinessFormationServicePage'
 import StudentLoanServicePage from '../../../pages/StudentLoanServicePage'
@@ -132,10 +133,8 @@ describe('Phase 4 insurance, health, and business formation service pages', () =
     expect(SERVICES_NAV_LINKS.find((item) => item.id === 'credit')?.to).toBe(ROUTES.credit)
     expect(SERVICES_NAV_LINKS.find((item) => item.id === 'studentLoans')?.to).toBe(ROUTES.studentLoans)
     expect(TOOLS_NAV_LINKS.map((item) => item.to)).toEqual([
-      ROUTES.studentLoanReportCard, '/health-insurance-report-card', '/personal-insurance-report-card',
-      '/commercial-insurance-report-card', '/commercial-trucking-report-card', ROUTES.homeBuyerReportCard,
-      '/employee-benefits-report-card', ROUTES.retirementReportCard, ROUTES.protectionAnalysis,
-      ROUTES.reportCard, ROUTES.businessReportCard, ROUTES.creditReportCard, '/tsp-report-card', '/tax-review-report-card',
+      ROUTES.reportCard, ROUTES.businessReportCard, '/health-insurance-report-card',
+      ROUTES.studentLoanReportCard, ROUTES.retirementReportCard, ROUTES.homeBuyerReportCard, ROUTES.creditReportCard,
     ])
     const html = renderChrome('/')
     expect(html).toContain(`href="${ROUTES.insurance}"`)
@@ -198,8 +197,11 @@ describe('Phase 4 insurance, health, and business formation service pages', () =
     const insurance = renderAt('/insurance', createElement(InsuranceServicePage))
     const health = renderAt('/health-disability', createElement(HealthDisabilityServicePage))
     const formation = renderAt('/business-formation', createElement(BusinessFormationServicePage))
-    expect(insurance).toContain('Request a Coverage Review')
-    expect(insurance).toContain('href="/personal-insurance-report-card"')
+    expect(insurance).toContain('Request an Insurance Quote')
+    expect(insurance).toContain('href="/get-a-quote"')
+    expect(insurance).toContain('href="/personal-insurance"')
+    expect(insurance).toContain('href="/commercial-insurance"')
+    expect(insurance).not.toContain('/commercial-trucking-report-card')
     expect(insurance).toContain('Explore All Solutions')
     expect(insurance).toContain(`href="${ROUTES.solutions}"`)
     expect(insurance).toContain('Clearview Insurance Agency')
@@ -207,7 +209,7 @@ describe('Phase 4 insurance, health, and business formation service pages', () =
     expect(health).toContain('Take the Health Report Card')
     expect(health).toContain(`href="/health-insurance-report-card"`)
     expect(health).toContain('Review Employee Benefits')
-    expect(health).toContain(`href="/employee-benefits-report-card"`)
+    expect(health).toContain(`href="/business-report-card"`)
     expect(health).not.toContain(`href="${ROUTES.protectionAnalysis}"`)
     expect(formation).toContain('Book a Business Setup Review')
     expect(formation).toContain(`href="${ROUTES.schedule}"`)
@@ -258,16 +260,29 @@ describe('Phase 4 insurance, health, and business formation service pages', () =
     }
   })
 
+  it('routes insurance entry pages directly to their quote forms', () => {
+    const suffix = 'lang=es&amp;utm_source=qa'
+    const personal = renderAt('/personal-insurance?lang=es&utm_source=qa', createElement(GetQuotePage, { audience: 'personal' }))
+    const commercial = renderAt('/commercial-insurance?lang=es&utm_source=qa', createElement(GetQuotePage, { audience: 'commercial' }))
+    expect(personal).toContain(`href="/auto-quote?${suffix}"`)
+    expect(personal).toContain(`href="/home-quote?${suffix}"`)
+    expect(personal).not.toContain('href="/commercial-quote')
+    expect(commercial).toContain(`href="/commercial-quote?${suffix}"`)
+    expect(commercial).not.toContain('href="/auto-quote')
+    expect(commercial).not.toContain('href="/home-quote')
+  })
+
   it('preserves locale and attribution through the three service journeys', () => {
     const query = '?lang=es&utm_source=qa&utm_campaign=phase4&card=test-card'
     const suffix = 'lang=es&amp;utm_source=qa&amp;utm_campaign=phase4&amp;card=test-card'
     const insurance = renderAt(`/insurance${query}`, createElement(InsuranceServicePage))
     const health = renderAt(`/health-disability${query}`, createElement(HealthDisabilityServicePage))
     const formation = renderAt(`/business-formation${query}`, createElement(BusinessFormationServicePage))
-    expect(insurance).toContain(`href="/personal-insurance-report-card?${suffix}"`)
+    expect(insurance).toContain(`href="/personal-insurance?${suffix}"`)
+    expect(insurance).toContain(`href="/commercial-insurance?${suffix}"`)
     expect(insurance).toContain(`href="${ROUTES.solutions}?${suffix}"`)
     expect(health).toContain(`href="/health-insurance-report-card?${suffix}"`)
-    expect(health).toContain(`href="/employee-benefits-report-card?${suffix}"`)
+    expect(health).toContain(`href="/business-report-card?${suffix}"`)
     expect(formation).toContain(`href="${ROUTES.schedule}?${suffix}"`)
     expect(formation).toContain(`href="${ROUTES.solutions}?${suffix}"`)
     expect(formation).toContain(`href="${ROUTES.businessReportCard}?${suffix}"`)

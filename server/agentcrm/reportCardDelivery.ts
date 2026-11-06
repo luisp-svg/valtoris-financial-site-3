@@ -1,6 +1,6 @@
 import { coverageReview } from '../../modules/reportCard/specialtyPreview/coverageReview.js'
 import { projectDiagnostic } from '../../modules/reportCard/combined/engine.js'
-import { isCombined, isPriority, PRIORITIES } from '../../modules/reportCard/combined/engine.js'
+import { COMBINED_FORMAT, isCombined, isPriority, PRIORITIES } from '../../modules/reportCard/combined/engine.js'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createSupabaseAdminClient } from '../../lib/supabase/admin.js'
 import { normalizeEmail, normalizePhone } from '../../crm/households/normalizeContact.js'
@@ -118,11 +118,22 @@ export async function syncReportCardDelivery(leadId?: string, deps: { admin?: Su
       let reviewPriorities: string[] | undefined
       let reviewOperations: {type:string;priority:string;renewalDates:{id:string;date:string}[]}[] | undefined
       const raw = record(lead.raw_payload)
+      let routingType: string = input.assessmentType
       try {
         const combined = typeof raw.rawAnswers === 'string' ? JSON.parse(raw.rawAnswers) : null
-        if (isCombined(combined) && Array.isArray(combined.selected) && combined.selected.every(isPriority)) {reviewPriorities = combined.selected.map(type => PRIORITIES.find(p => p.id === type)!.en); reviewOperations=combined.selected.filter(type=>type==='health'||type==='benefits').map(type=>({type,...coverageReview(type,projectDiagnostic(type,combined.diagnostic))!.internal}))}
+        if (isCombined(combined) && Array.isArray(combined.selected) && combined.selected.every(isPriority)) {
+          const dedicated = combined.format === COMBINED_FORMAT && combined.cardVersion === 1
+          const retirementPath = dedicated && input.assessmentType === 'retirement' ? combined.diagnostic?.['retirement.path'] : undefined
+          if (!dedicated && combined.selected.length > 1) routingType = 'family'
+          if (retirementPath === 'federal' || retirementPath === 'both') routingType = 'tsp'
+          const areas = combined.selected.filter(type => type !== 'benefits' || combined.diagnostic?.['benefits.workforce'] !== 'none')
+          reviewPriorities = areas.map(type => type === 'retirement' && routingType === 'tsp'
+            ? retirementPath === 'both' ? 'Private and federal or military retirement' : 'TSP and federal or military retirement'
+            : PRIORITIES.find(priority => priority.id === type)!.en)
+          reviewOperations = areas.filter(type => type === 'health' || type === 'benefits')
+            .map(type => ({type, ...coverageReview(type, projectDiagnostic(type, combined.diagnostic))!.internal}))
+        }
       } catch { /* Legacy submissions do not contain combined priorities. */ }
-      const routingType = (reviewPriorities?.length ?? 0) > 1 ? 'family' : input.assessmentType
       const transport = new ReportCardFollowUpClient(config.token)
       await assignReportCardSpecialist({
         assessmentType: routingType, contactId, checkpoint,

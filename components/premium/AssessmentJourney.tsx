@@ -1,7 +1,9 @@
 export default function AssessmentJourney({
   locale = "en",
+  showDiscovery = true,
 }: {
   locale?: "en" | "es";
+  showDiscovery?: boolean;
 }) {
   const es = locale === "es";
   const steps = es
@@ -51,7 +53,7 @@ export default function AssessmentJourney({
       ];
   return (
     <ol className="atelier-journey">
-      {steps.map(([title, body], i) => (
+      {(showDiscovery ? steps : steps.filter((_, index) => index !== 2)).map(([title, body], i) => (
         <li key={title}>
           <span aria-hidden="true">0{i + 1}</span>
           <div>

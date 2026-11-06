@@ -1,6 +1,6 @@
 import { describe,expect,it,vi } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { loadHouseholdSavedIntakes,loadIntakeHubSources,loadIntakeHubStatus } from './intakeHubApi'
+import { NEW_CLIENT_INTAKE_SERVICES,loadHouseholdSavedIntakes,loadIntakeHubSources,loadIntakeHubStatus } from './intakeHubApi'
 function fake(results: {data: unknown;error: unknown}[]) {
   const calls: {table:string;filters:unknown[][]}[]=[]
   return {calls,client:{from:(table:string) => {
@@ -52,6 +52,15 @@ describe('saved household intake discovery', () => {
     expect(f.calls[0].filters).toContainEqual(['eq', 'capture_channel', 'advisor_onboarding'])
     expect(f.calls[0].filters).toContainEqual(['is', 'deleted_at', null])
     expect(f.calls[0].filters.find(filter => filter[0] === 'select')?.[1]).not.toContain('answers')
+  })
+  it('retires new generic P&C intakes while preserving saved P&C drafts', async () => {
+    expect(NEW_CLIENT_INTAKE_SERVICES.some(service => service.id === 'pc')).toBe(false)
+    const pc = { ...savedRow, assessment_type: 'service_intake', derived_metrics: { ...savedRow.derived_metrics, service_id: 'pc' } }
+    const result = await loadHouseholdSavedIntakes(fake([{data:[pc],error:null}]).client, 'household', 0)
+    expect(result.items[0]).toMatchObject({
+      label: 'Property & Casualty', status: 'draft',
+      href: '/crm/households/household/service-intake/pc?report=11111111-1111-4111-8111-111111111111',
+    })
   })
   it('paginates without hiding older records behind a fixed cap', async () => {
     const f = fake([{ data: Array.from({ length: 11 }, (_, i) => ({ ...savedRow, id: String(i) })), error: null }])

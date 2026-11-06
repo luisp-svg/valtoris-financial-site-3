@@ -7,6 +7,8 @@ export const CLIENT_INTAKE_SERVICES = [
   { id: 'student_loan_intake', assessmentType:'student_loan_intake', label: 'Student Loan', path: studentLoanIntakePath },
   ...Object.entries(ADDITIONAL_SERVICE_CONTRACTS).map(([id,c])=>({id,assessmentType:'service_intake',label:c.label,path:(origin:IntakeOrigin)=>`/crm/households/${origin.householdId}/service-intake/${id}?${origin.kind==='report_card'?'report':origin.kind}=${origin.id}`})),
 ] as const
+export const RETIRED_CLIENT_INTAKE_ID = 'pc'
+export const NEW_CLIENT_INTAKE_SERVICES = CLIENT_INTAKE_SERVICES.filter(service => service.id !== RETIRED_CLIENT_INTAKE_ID)
 export type IntakeHubSource = { origin: IntakeOrigin; label: string }
 export async function loadIntakeHubSources(client: SupabaseClient, householdId: string, kind: IntakeOrigin['kind'], page: number): Promise<IntakeHubSource[]> {
   if(kind==='member'){

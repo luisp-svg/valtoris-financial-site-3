@@ -10,7 +10,7 @@ export const insuranceServiceCopy: Record<PublicLocale, ServiceCopy> = {
     heroTitle: 'Protect Your Home. Your Business. Your Future.',
     heroSupport:
       'From home and auto to commercial property, business vehicles, workers’ compensation, and liability, Valtoris helps coordinate the protection around what you have worked to build. Coverage is placed through our Clearview Insurance Agency relationship and depends on state, carrier, and underwriting availability.',
-    heroPrimaryCta: 'Request a Coverage Review',
+    heroPrimaryCta: 'Request an Insurance Quote',
     heroSecondaryCta: 'Explore All Solutions',
     heroTertiaryCta: 'See How It Works',
     heroImage: '/images/property-business-insurance-hero.webp',
@@ -94,7 +94,7 @@ export const insuranceServiceCopy: Record<PublicLocale, ServiceCopy> = {
     bridgeTitle: 'Personal or Business—Start With One Coordinated Review',
     bridgeBody:
       'Tell us what you need to protect, and we will help organize the information required for a personal-lines or commercial-lines review. You do not need to know every policy name before contacting us.',
-    bridgePrimaryCta: 'Request a Coverage Review',
+    bridgePrimaryCta: 'Request an Insurance Quote',
     bridgeSecondaryCta: 'Explore All Solutions',
     partnerKicker: 'P&C agency relationship',
     partnerTitle: 'Independent Coverage Access Through Clearview',
@@ -109,7 +109,7 @@ export const insuranceServiceCopy: Record<PublicLocale, ServiceCopy> = {
     finalHeading: 'Ready to Protect What You Have Built?',
     finalLead:
       'Request a coverage review for your household or business. We will help you identify the right starting point and gather what is needed to compare available options.',
-    finalPrimaryCta: 'Request a Coverage Review',
+    finalPrimaryCta: 'Request an Insurance Quote',
     finalSecondaryCta: 'Explore All Solutions',
   },
   es: {
@@ -120,7 +120,7 @@ export const insuranceServiceCopy: Record<PublicLocale, ServiceCopy> = {
     heroTitle: 'Proteja su hogar. Su negocio. Su futuro.',
     heroSupport:
       'Desde casa y auto hasta propiedad comercial, vehículos del negocio, compensación laboral y responsabilidad, Valtoris ayuda a coordinar la protección de lo que ha trabajado para construir. La cobertura se coloca mediante nuestra relación con Clearview Insurance Agency y depende del estado, la aseguradora y la suscripción.',
-    heroPrimaryCta: 'Solicitar una revisión',
+    heroPrimaryCta: 'Solicitar una cotización',
     heroSecondaryCta: 'Explorar soluciones',
     heroTertiaryCta: 'Vea cómo funciona',
     heroImage: '/images/property-business-insurance-hero.webp',
@@ -204,7 +204,7 @@ export const insuranceServiceCopy: Record<PublicLocale, ServiceCopy> = {
     bridgeTitle: 'Personal o comercial: empiece con una revisión coordinada',
     bridgeBody:
       'Díganos qué necesita proteger y le ayudaremos a organizar la información necesaria para una revisión personal o comercial. No necesita conocer el nombre de cada póliza antes de contactarnos.',
-    bridgePrimaryCta: 'Solicitar una revisión',
+    bridgePrimaryCta: 'Solicitar una cotización',
     bridgeSecondaryCta: 'Explorar soluciones',
     partnerKicker: 'Relación de agencia P&C',
     partnerTitle: 'Acceso independiente a cobertura mediante Clearview',
@@ -219,7 +219,7 @@ export const insuranceServiceCopy: Record<PublicLocale, ServiceCopy> = {
     finalHeading: '¿Listo para proteger lo que ha construido?',
     finalLead:
       'Solicite una revisión de cobertura para su hogar o negocio. Le ayudaremos a identificar el punto de partida y reunir lo necesario para comparar opciones disponibles.',
-    finalPrimaryCta: 'Solicitar una revisión',
+    finalPrimaryCta: 'Solicitar una cotización',
     finalSecondaryCta: 'Explorar soluciones',
   },
 }

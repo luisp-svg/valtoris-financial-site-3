@@ -112,17 +112,15 @@ describe('Phase 5 estate and tax strategy service pages', () => {
       ROUTES.businessFormation,
     )
     expect(TOOLS_NAV_LINKS.map((item) => item.to)).toEqual([
-      ROUTES.studentLoanReportCard, '/health-insurance-report-card', '/personal-insurance-report-card',
-      '/commercial-insurance-report-card', '/commercial-trucking-report-card', ROUTES.homeBuyerReportCard,
-      '/employee-benefits-report-card', ROUTES.retirementReportCard, ROUTES.protectionAnalysis,
-      ROUTES.reportCard, ROUTES.businessReportCard, ROUTES.creditReportCard, '/tsp-report-card', '/tax-review-report-card',
+      ROUTES.reportCard, ROUTES.businessReportCard, '/health-insurance-report-card',
+      ROUTES.studentLoanReportCard, ROUTES.retirementReportCard, ROUTES.homeBuyerReportCard, ROUTES.creditReportCard,
     ])
     const html = renderChrome('/')
     expect(html).toContain(`href="${ROUTES.estateLegacy}"`)
     expect(html).toContain(`href="${ROUTES.taxStrategy}"`)
     expect(html).toContain('Estate &amp; Legacy')
     expect(html).toContain('Tax Strategy')
-    expect(html).toContain('site-nav-menu--catalog')
+    expect(html).toContain('Solutions &amp; Report Cards')
   })
 
   it('updates homepage estate and tax cards without moving diagnostic cards', () => {
@@ -232,7 +230,10 @@ describe('Phase 5 estate and tax strategy service pages', () => {
     const health = renderAt('/health-disability', createElement(HealthDisabilityServicePage))
     expect(sl).toContain(`href="${ROUTES.studentLoanReportCard}"`)
     expect(credit).toContain(`href="${ROUTES.creditReportCard}"`)
-    expect(insurance).toContain('href="/personal-insurance-report-card"')
+    expect(insurance).toContain('href="/get-a-quote"')
+    expect(insurance).toContain('href="/personal-insurance"')
+    expect(insurance).toContain('href="/commercial-insurance"')
+    expect(insurance).not.toContain('/commercial-trucking-report-card')
     expect(health).toContain(`href="/health-insurance-report-card"`)
   })
 

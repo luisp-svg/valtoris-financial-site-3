@@ -22,6 +22,8 @@ export const ROUTES = {
   studentLoanReportCardResults: '/student-loan-results',
   credit: '/credit',
   insurance: '/insurance',
+  personalInsurance: '/personal-insurance',
+  commercialInsurance: '/commercial-insurance',
   healthDisability: '/health-disability',
   amazeHealth: '/amaze-health',
   businessFormation: '/business-formation',

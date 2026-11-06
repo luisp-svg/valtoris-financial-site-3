@@ -23,8 +23,37 @@ describe('public funnel discovery',()=>{
    const entry=renderFunnelEntry(priority)
    expect(entry.body).toContain('<h1>');expect(entry.body).toContain('Begin My Assessment')
    expect(JSON.parse(entry.structuredData)['@graph'][0].url).toBe(entry.canonical)
-   expect(config.rewrites).toContainEqual({source:FUNNEL_PATHS[priority],destination:`/funnel-entry/${priority}.html`})
-   expect(sitemap).toContain(`<loc>${entry.canonical}</loc>`)
+   const rewrite={source:FUNNEL_PATHS[priority],destination:`/funnel-entry/${priority}.html`}
+   if (priority==='trucking') {
+    expect(config.rewrites).toContainEqual(rewrite)
+    expect(sitemap).not.toContain(`<loc>${entry.canonical}</loc>`)
+    expect(config.headers).toContainEqual({source:FUNNEL_PATHS.trucking,headers:[{key:'X-Robots-Tag',value:'noindex, nofollow'}]})
+   } else {
+    expect(config.rewrites).toContainEqual(rewrite)
+    expect(sitemap).toContain(`<loc>${entry.canonical}</loc>`)
+   }
+   expect(entry.body).not.toContain(`href="${FUNNEL_PATHS.trucking}"`)
   }
  })
+ it('redirects retired Report Cards to their replacements and removes their sitemap entries',()=>{
+  const config=JSON.parse(readFileSync('vercel.json','utf8')),sitemap=readFileSync('public/sitemap.xml','utf8')
+  const retired = {
+   '/personal-insurance-report-card':'/personal-insurance',
+   '/lifestyle-report-card':'/personal-insurance',
+   '/commercial-insurance-report-card':'/commercial-insurance',
+   '/employee-benefits-report-card':'/business-report-card',
+   '/tax-review-report-card':'/report-card',
+   '/tax-planning-report-card':'/report-card',
+   '/tsp-report-card':'/retirement-report-card',
+   '/funnel-entry/lifestyle.html':'/personal-insurance',
+   '/funnel-entry/commercial.html':'/commercial-insurance',
+  }
+  for (const [source,destination] of Object.entries(retired)) {
+   expect(config.redirects).toContainEqual({source,destination,permanent:true})
+   expect(sitemap).not.toContain(`${source}</loc>`)
+   expect(Object.values(FUNNEL_PATHS)).not.toContain(source)
+  }
+  expect(config.redirects.some((redirect:{source:string})=>redirect.source===FUNNEL_PATHS.trucking)).toBe(false)
+ })
+
 })

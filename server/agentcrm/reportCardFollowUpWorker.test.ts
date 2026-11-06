@@ -22,7 +22,7 @@ vi.mock('./reportCardFollowUpClient.js', () => ({ReportCardFollowUpClient: class
   }
 }}))
 const env={SUPABASE_URL:'https://phanoknohbidqtgrpwvk.supabase.co',AGENTCRM_REPORT_CARD_SYNC_ENABLED:'true',AGENTCRM_CONTACT_LINKING_ENABLED:'true',AGENTCRM_PRIVATE_INTEGRATION_TOKEN:'test-token',AGENTCRM_LOCATION_ID:target.locationId,AGENTCRM_REPORT_CARD_TRIGGERS_VERIFIED:'true',AGENTCRM_REPORT_CARD_DIRECT_FOLLOW_UP_VERIFIED:'true'}
-function fixture(studentLoan: boolean | 'health' | 'tsp' = false) {
+function fixture(studentLoan: boolean | 'health' | 'tsp' | 'retirement' | 'business' = false, rawAnswers?: object) {
   const type = typeof studentLoan === 'string' ? studentLoan : studentLoan ? 'student_loan' : 'family'
   const source = getReportCardAgentCrmConfig(type)!.source
   const delivery={lead_id:'00000000-0000-4000-8000-000000000001',claim_token:'claim',delivery_kind:'report_card',target_location_id:target.locationId,contact_id:null as string|null,contact_create_started:false,tag_write_started:false,tag_applied:false,opportunity_id:null,opportunity_create_started:false,task_id:null,task_create_started:false}
@@ -32,7 +32,7 @@ function fixture(studentLoan: boolean | 'health' | 'tsp' = false) {
     const patch=args!.p_patch as Record<string,unknown>;patches.push({...patch});Object.assign(delivery,patch);return {data:true,error:null}
   })
   const from=(table:string)=>{
-    const result={data:table==='leads'?{id:delivery.lead_id,created_at:'2026-09-28T18:00:00Z',household_id:'household',assessment_type:type,lead_type:source,raw_payload:{firstName:'Test',lastName:'Person'},normalized_email:'qa@example.invalid',normalized_phone:null,consent_snapshot:{contactPermission:true}}:table==='households'?{id:'household'}:[{id:'member',first_name:'Test',last_name:'Person'}],error:null}
+    const result={data:table==='leads'?{id:delivery.lead_id,created_at:'2026-09-28T18:00:00Z',household_id:'household',assessment_type:type,lead_type:source,raw_payload:{firstName:'Test',lastName:'Person',rawAnswers:rawAnswers ? JSON.stringify(rawAnswers) : undefined},normalized_email:'qa@example.invalid',normalized_phone:null,consent_snapshot:{contactPermission:true}}:table==='households'?{id:'household'}:[{id:'member',first_name:'Test',last_name:'Person'}],error:null}
     const query={select:()=>query,eq:()=>query,is:()=>query,single:async()=>result,maybeSingle:async()=>result,then:(resolve:(value:unknown)=>unknown)=>Promise.resolve(result).then(resolve)}
     return query
   }
@@ -51,6 +51,26 @@ describe('Report Card worker follow-up integration',()=>{
     expect(await syncReportCardDelivery(undefined,{admin:f.admin,env})).toBe('synced')
     expect(remote.assignments).toEqual([owner]);expect(remote.posts).toEqual(['/contacts/contact123/tasks'])
     expect(remote.contactSync.mock.calls[0][1].taggingEnabled).toBe(false)
+  })
+  it('routes the dedicated Health & Disability card to Health despite its protection topic', async () => {
+    const f = fixture('health', {format:'combined-priorities-v2',cardVersion:1,selected:['health','protection'],diagnostic:{}})
+    expect(await syncReportCardDelivery(undefined,{admin:f.admin,env})).toBe('synced')
+    expect(remote.assignments).toEqual([jaz])
+    expect(remote.tasks[0].assignedTo).toBe(jaz)
+  })
+
+  it('uses the existing TSP owner for a federal path on the combined retirement card', async () => {
+    const f = fixture('retirement', {format:'combined-priorities-v2',cardVersion:1,selected:['retirement'],diagnostic:{'retirement.path':'federal'}})
+    expect(await syncReportCardDelivery(undefined,{admin:f.admin,env})).toBe('synced')
+    expect(remote.assignments).toEqual([target.assignedUserId])
+    expect(remote.tasks[0].body).toContain('TSP and federal or military retirement')
+  })
+
+  it('keeps the Business Owner task scoped to business topics that apply', async () => {
+    const f = fixture('business', {format:'combined-priorities-v2',cardVersion:1,selected:['business','commercial','benefits','tax'],diagnostic:{'benefits.workforce':'none'}})
+    expect(await syncReportCardDelivery(undefined,{admin:f.admin,env})).toBe('synced')
+    expect(remote.tasks[0].body).toContain(getReportCardAgentCrmConfig('business')!.source)
+    expect(remote.tasks[0].body).not.toMatch(/employee benefits|benefits:/i)
   })
   it('routes student-loan ownership to Lizbeth while keeping review tasks with Luis',async()=>{
     const f=fixture(true)

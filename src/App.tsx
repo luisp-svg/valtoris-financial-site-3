@@ -5,7 +5,7 @@ import FinancialAssessmentPage from '../pages/FinancialAssessmentPage'
 import FinancialAssessmentResultsPage from '../pages/FinancialAssessmentResultsPage'
 import VersionedReportResults from '../components/reportCard/shortForm/ShortResults'
 import { lazy, ReactNode, Suspense } from 'react'
-import { Navigate, Outlet, Route, Routes } from 'react-router-dom'
+import { Navigate, Outlet, Route, Routes, useLocation } from 'react-router-dom'
 import ScrollToTop from '../components/ScrollToTop'
 import PublicRouteIndexing from '../components/publicSite/PublicRouteIndexing'
 import SiteHeader from '../components/SiteHeader'
@@ -99,6 +99,23 @@ function CrmAuthLayout() {
   )
 }
 
+const retiredReportCards = [
+  ['/personal-insurance-report-card', ROUTES.personalInsurance],
+  ['/lifestyle-report-card', ROUTES.personalInsurance],
+  ['/commercial-insurance-report-card', ROUTES.commercialInsurance],
+  ['/employee-benefits-report-card', ROUTES.businessReportCard],
+  ['/tax-review-report-card', ROUTES.reportCard],
+  ['/tax-planning-report-card', ROUTES.reportCard],
+  ['/tsp-report-card', ROUTES.retirementReportCard],
+  ['/funnel-entry/lifestyle.html', ROUTES.personalInsurance],
+  ['/funnel-entry/commercial.html', ROUTES.commercialInsurance],
+] as const
+
+function ArchivedReportCardRedirect({ destination }: { destination: string }) {
+  const { search, hash } = useLocation()
+  return <Navigate replace to={{ pathname: destination, search, hash }} />
+}
+
 export default function App() {
   return (
     <>
@@ -106,6 +123,9 @@ export default function App() {
       <PublicRouteIndexing />
       <Suspense fallback={<p role="status" aria-live="polite">Loading page…</p>}>
       <Routes>
+      {retiredReportCards.map(([source, destination]) => (
+        <Route key={source} path={source} element={<ArchivedReportCardRedirect destination={destination} />} />
+      ))}
       <Route path="/personal-family" element={<SiteLayout><ProtectionAudiencePage audience="personal" /></SiteLayout>} />
       <Route path="/private-client" element={<SiteLayout><ProtectionAudiencePage audience="private" /></SiteLayout>} />
       <Route path="/business-owners" element={<SiteLayout><ProtectionAudiencePage audience="business" /></SiteLayout>} />
@@ -113,10 +133,7 @@ export default function App() {
       <Route path="/assessment-results" element={<FinancialAssessmentResultsPage />} />
       <Route path="/comprehensive-discovery" element={<ComprehensiveDiscoveryPage />} />
       <Route path="/life-insurance-report-card" element={<SiteLayout><PremiumFunnelLanding priority="protection" /></SiteLayout>} />
-      <Route path="/commercial-insurance-report-card" element={<SiteLayout><PremiumFunnelLanding priority="commercial" /></SiteLayout>} />
       <Route path="/commercial-trucking-report-card" element={<SiteLayout><PremiumFunnelLanding priority="trucking" /></SiteLayout>} />
-      <Route path="/personal-insurance-report-card" element={<SiteLayout><PremiumFunnelLanding priority="lifestyle" /></SiteLayout>} />
-      <Route path="/lifestyle-report-card" element={<SiteLayout><PremiumFunnelLanding priority="lifestyle" /></SiteLayout>} />
       {SpecialtyReportCardPreview && <>
        {import.meta.env.DEV && <>
         <Route path="/preview/report-cards/family" element={<SiteLayout><Suspense fallback={<p>Loading…</p>}><SpecialtyReportCardPreview key="family" type="family" /></Suspense></SiteLayout>} />
@@ -128,13 +145,11 @@ export default function App() {
         <Route path="/preview/report-cards/home_buyer" element={<SiteLayout><Suspense fallback={<p>Loading…</p>}><SpecialtyReportCardPreview key="home_buyer" type="home_buyer" /></Suspense></SiteLayout>} />
        </>}
         <Route path="/health-insurance-report-card" element={<SiteLayout><Suspense fallback={<p>Loading…</p>}><PremiumFunnelLanding priority="health" /></Suspense></SiteLayout>} />
-        <Route path="/tsp-report-card" element={<SiteLayout><Suspense fallback={<p>Loading…</p>}><PremiumFunnelLanding priority="tsp" /></Suspense></SiteLayout>} />
-        <Route path="/employee-benefits-report-card" element={<SiteLayout><Suspense fallback={<p>Loading…</p>}><PremiumFunnelLanding priority="benefits" /></Suspense></SiteLayout>} />
-        <Route path="/tax-review-report-card" element={<SiteLayout><Suspense fallback={<p>Loading…</p>}><PremiumFunnelLanding priority="tax" /></Suspense></SiteLayout>} />
-        <Route path="/tax-planning-report-card" element={<SiteLayout><Suspense fallback={<p>Loading…</p>}><PremiumFunnelLanding priority="tax" /></Suspense></SiteLayout>} />
       </>}
       <Route path={ROUTES.reportCards} element={<SiteLayout><ReportCardsPage /></SiteLayout>} />
       <Route path={ROUTES.education} element={<SiteLayout><EducationPage /></SiteLayout>} />
+      <Route path={ROUTES.personalInsurance} element={<SiteLayout><GetQuotePage audience="personal" /></SiteLayout>} />
+      <Route path={ROUTES.commercialInsurance} element={<SiteLayout><GetQuotePage audience="commercial" /></SiteLayout>} />
       <Route path={ROUTES.getQuote} element={<SiteLayout><GetQuotePage /></SiteLayout>} />
       {(['auto', 'home', 'commercial'] as const).map(kind => <Route key={kind} path={`/${kind}-quote`} element={<SiteLayout><InsuranceQuotePage key={kind} kind={kind} /></SiteLayout>} />)}
       <Route path={ROUTES.familyAssessment} element={<FinancialAssessmentPage key="family" initialPriority="family" />} />
