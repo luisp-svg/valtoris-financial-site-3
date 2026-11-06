@@ -28,7 +28,11 @@ export default function PipelineBoard({items,allItems,stages,onChanged}: {items:
   finally{moving.current=false;setBusy(false)}
  }
  return <div aria-label="Pipeline board"><p className="crm-muted">Drag the handle to move an opportunity, or use Move to. Each opportunity moves independently; closing or reopening asks for confirmation.</p>{message&&<p role="status" className="tac-board-move-status">{message}</p>}
-  {groups.map(group=><section key={group.id} aria-label={group.name}><h2>{group.name}</h2><StageBoard label={`${group.name} stages`} columns={group.columns.map(c=>({id:c.id,label:c.name,disabled:!stages.some(s=>s.id===c.id)}))} disabled={busy||!!pending} onMove={requestMove} items={group.columns.flatMap(column=>column.items.map(item=>({id:item.id,stage:item.stage_id,label:item.household?.display_name??item.title,content:<><OpportunityPipelineCard opportunity={item}/>{(counts.get(item.household_id)??0)>1&&<p className="crm-sales-board-parallel">{counts.get(item.household_id)} active opportunities for this household</p>}</>})))}/></section>)}
+  {groups.map(group=><section key={group.id} aria-label={group.name}><h2>{group.name}</h2><StageBoard label={`${group.name} stages`} columns={group.columns.map(c=>({id:c.id,label:c.name,disabled:!stages.some(s=>s.id===c.id)}))} disabled={busy||!!pending} onMove={requestMove} items={group.columns.flatMap(column=>column.items.map(item=>({id:item.id,stage:column.id,label:item.household?.display_name??item.title,content:<><OpportunityPipelineCard opportunity={item}/>{(counts.get(item.household_id)??0)>1&&<p className="crm-sales-board-parallel">{counts.get(item.household_id)} active opportunities for this household</p>}</>})))}/>
+   {group.closedItems.length > 0 && <details><summary>Closed / Lost ({group.closedItems.length})</summary>
+    {group.closedItems.map(item => <OpportunityPipelineCard key={item.id} opportunity={item}/>)}
+   </details>}
+  </section>)}
   {pending&&<OpportunityLifecycleDialog key={pending.opportunity.id+pending.stage} mode="move" opportunity={pending.opportunity} initialStageId={pending.stage} onCancel={()=>setPending(null)} onMoved={()=>{setPending(null);setMessage('Stage saved.');onChanged?.()}} onMovedReloadFailed={()=>{setPending(null);setMessage('Stage saved. Refreshing the board.');onChanged?.()}}/>}
  </div>
 }
