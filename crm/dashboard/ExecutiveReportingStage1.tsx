@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { Link } from 'react-router-dom'
 import { useCrmAuth } from '../auth/CrmAuthContext'
 import { createSupabaseBrowserClient } from '../../lib/supabase/client'
@@ -7,6 +8,30 @@ type TaskRow = { id: string; status: string; priority: string; due_date: string 
 type OpportunityRow = { id: string; status: string; service_vertical_id: string | null }
 type PolicyRow = { id: string; production_stage: string }
 type VerticalRow = { id: string; name: string }
+
+
+// Pages are ordered by stable UUID to avoid silent truncation at the Data API row limit.
+// An error on any page invalidates the whole report rather than showing partial totals.
+export async function fetchExecutiveRows<T>(
+  db: SupabaseClient,
+  table: 'tasks' | 'opportunities' | 'policy_applications' | 'service_verticals',
+  columns: string,
+  filter: 'active' | 'not_deleted' | 'active_verticals',
+): Promise<T[]> {
+  const pageSize = 200
+  const all: T[] = []
+  for (let offset = 0; ; offset += pageSize) {
+    let query = db.from(table).select(columns).order('id', { ascending: true }).range(offset, offset + pageSize - 1)
+    if (filter === 'active') query = query.is('deleted_at', null).in('status', ['open', 'in_progress'])
+    else if (filter === 'not_deleted') query = query.is('deleted_at', null)
+    else query = query.eq('is_active', true)
+    const { data, error } = await query
+    if (error) throw error
+    const page = (data ?? []) as T[]
+    all.push(...page)
+    if (page.length < pageSize) return all
+  }
+}
 
 function countBy<T>(items: T[], key: (item: T) => string): Record<string, number> {
   return items.reduce<Record<string, number>>((acc, item) => {
@@ -32,18 +57,12 @@ export default function ExecutiveReportingStage1() {
         const db = createSupabaseBrowserClient()
         // Existing RLS remains authoritative. Never use a service key or a privileged reporting RPC.
         const [tasks, opportunities, policies, verticals] = await Promise.all([
-          db.from('tasks').select('id,status,priority,due_date,assigned_user_id,metadata,workflow_type,source_type').is('deleted_at', null).in('status', ['open', 'in_progress']),
-          db.from('opportunities').select('id,status,service_vertical_id').is('deleted_at', null),
-          db.from('policy_applications').select('id,production_stage').is('deleted_at', null),
-          db.from('service_verticals').select('id,name').eq('is_active', true),
+          fetchExecutiveRows<TaskRow>(db, 'tasks', 'id,status,priority,due_date,assigned_user_id,metadata,workflow_type,source_type', 'active'),
+          fetchExecutiveRows<OpportunityRow>(db, 'opportunities', 'id,status,service_vertical_id', 'not_deleted'),
+          fetchExecutiveRows<PolicyRow>(db, 'policy_applications', 'id,production_stage', 'not_deleted'),
+          fetchExecutiveRows<VerticalRow>(db, 'service_verticals', 'id,name', 'active_verticals'),
         ])
-        for (const result of [tasks, opportunities, policies, verticals]) if (result.error) throw result.error
-        if (!cancelled) setData({
-          tasks: (tasks.data ?? []) as TaskRow[],
-          opportunities: (opportunities.data ?? []) as OpportunityRow[],
-          policies: (policies.data ?? []) as PolicyRow[],
-          verticals: (verticals.data ?? []) as VerticalRow[],
-        })
+        if (!cancelled) setData({ tasks, opportunities, policies, verticals })
       } catch {
         if (!cancelled) { setData(null); setError('Executive reporting could not be loaded. No partial totals are shown.') }
       } finally { if (!cancelled) setLoading(false) }
