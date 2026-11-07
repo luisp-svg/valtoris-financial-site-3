@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { classifyTaskQueue } from '../tasks/taskQueues'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { Link } from 'react-router-dom'
 import { useCrmAuth } from '../auth/CrmAuthContext'
@@ -83,9 +84,9 @@ export default function ExecutiveReportingStage1() {
   const stageCounts = countBy(policies, row => row.production_stage)
   const names = new Map(verticals.map(row => [row.id, row.name]))
   const activeByDivision = countBy(active, row => names.get(row.service_vertical_id ?? '') ?? 'Unclassified')
-  const operations = tasks.filter(row => row.source_type === 'manual' && row.workflow_type !== 'review_initial_diagnostic')
-  const sales = tasks.filter(row => row.workflow_type === 'review_initial_diagnostic' && row.metadata?.contact_permission === true)
-  const internalOnly = tasks.filter(row => !operations.some(op => op.id === row.id) && !sales.some(sale => sale.id === row.id))
+  const operations = tasks.filter(row => classifyTaskQueue(row) === 'operations')
+  const sales = tasks.filter(row => classifyTaskQueue(row) === 'sales')
+  const internalOnly = tasks.filter(row => classifyTaskQueue(row) === 'internal')
   const metrics = [
     ['Open tasks', tasks.length],
     ['High-priority tasks', tasks.filter(row => row.priority === 'high' || row.priority === 'urgent').length],
@@ -105,7 +106,7 @@ export default function ExecutiveReportingStage1() {
     <h3>Active pipeline by division</h3>
     {Object.keys(activeByDivision).length ? <ul>{Object.entries(activeByDivision).map(([name, count]) => <li key={name}>{name}: {count}</li>)}</ul> : <p className="crm-muted">No active opportunities.</p>}
     <h3>Policy application stages</h3>
-    <ul>{Object.entries(stageCounts).sort(([a],[b]) => a.localeCompare(b)).map(([stage, count]) => <li key={stage}>{stage.replaceAll('_', ' ')}: {count}</li>)}</ul>
+    <ul>{Object.entries(stageCounts).sort(([a],[b]) => a.localeCompare(b)).map(([stage, count]) => <li key={stage}>{stage.replace(/_/g, ' ')}: {count}</li>)}</ul>
     <p className="crm-muted">Revenue and paid commissions are unavailable until verified financial sources are connected. Application counts are not revenue.</p>
   </section>
 }

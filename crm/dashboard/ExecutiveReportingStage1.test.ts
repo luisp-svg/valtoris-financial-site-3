@@ -9,16 +9,23 @@ function mockClient(rows: Row[], failAtOffset?: number) {
   const db = {
     from: () => ({
       select: () => {
+        let start = 0
+        let end = 0
         const query = {
           order: () => query,
           is: () => query,
           in: () => query,
           eq: () => query,
-          range: async (start: number, end: number) => {
+          range: (pageStart: number, pageEnd: number) => {
+            start = pageStart
+            end = pageEnd
             offsets.push(start)
-            if (start === failAtOffset) return { data: null, error: { message: 'Page unavailable' } }
-            return { data: rows.slice(start, end + 1), error: null }
+            return query
           },
+          then: (resolve: (result: { data: Row[] | null; error: { message: string } | null }) => unknown) =>
+            Promise.resolve(start === failAtOffset
+              ? { data: null, error: { message: 'Page unavailable' } }
+              : { data: rows.slice(start, end + 1), error: null }).then(resolve),
         }
         return query
       },
