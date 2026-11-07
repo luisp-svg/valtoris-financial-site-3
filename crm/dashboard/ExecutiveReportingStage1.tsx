@@ -64,10 +64,9 @@ export default function ExecutiveReportingStage1() {
   const stageCounts = countBy(policies, row => row.production_stage)
   const names = new Map(verticals.map(row => [row.id, row.name]))
   const activeByDivision = countBy(active, row => names.get(row.service_vertical_id ?? '') ?? 'Unclassified')
-  const internal = tasks.filter(row => row.workflow_type === 'resolve_possible_duplicate' || row.metadata?.contact_permission !== true || (row.source_type === 'manual' && row.workflow_type !== 'review_initial_diagnostic'))
-  const sales = tasks.filter(row => row.workflow_type === 'review_initial_diagnostic' && row.metadata?.contact_permission === true)
   const operations = tasks.filter(row => row.source_type === 'manual' && row.workflow_type !== 'review_initial_diagnostic')
-  const internalOnly = internal.filter(row => !operations.some(op => op.id === row.id))
+  const sales = tasks.filter(row => row.workflow_type === 'review_initial_diagnostic' && row.metadata?.contact_permission === true)
+  const internalOnly = tasks.filter(row => !operations.some(op => op.id === row.id) && !sales.some(sale => sale.id === row.id))
   const metrics = [
     ['Open tasks', tasks.length],
     ['High-priority tasks', tasks.filter(row => row.priority === 'high' || row.priority === 'urgent').length],
