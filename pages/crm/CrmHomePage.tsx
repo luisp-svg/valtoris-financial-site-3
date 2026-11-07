@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import MyDay from '../../crm/dashboard/MyDay'
+import ExecutiveReportingStage1 from '../../crm/dashboard/ExecutiveReportingStage1'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import '../../crm/dashboard/dashboardHome.css'
 import { useCrmAuth } from '../../crm/auth/CrmAuthContext'
@@ -111,7 +112,8 @@ export default function CrmHomePage() {
   const navigate = useNavigate()
   const [showCreateOpportunity, setShowCreateOpportunity] = useState(false)
   const requestedView = params.get('view')
-  const overview = requestedView === 'overview' || (requestedView !== 'day' && role === 'owner')
+  const reporting = role === 'owner' && requestedView === 'reporting'
+  const overview = !reporting && (requestedView === 'overview' || (requestedView !== 'day' && role === 'owner'))
   return <div className="tac-dashboard-home">
     <header className="crm-page-header">
       <div><p className="crm-page-eyebrow">Your agency workspace</p>
@@ -122,13 +124,14 @@ export default function CrmHomePage() {
     <nav className="tac-dashboard-views" aria-label="Dashboard views">
       {role === 'owner' ? <>
         <Link to="?view=overview" aria-current={overview ? 'page' : undefined}>Agency overview</Link>
+        <Link to="?view=reporting" aria-current={reporting ? 'page' : undefined}>Executive reporting</Link>
         <Link to="?view=day" aria-current={!overview ? 'page' : undefined}>My Day</Link>
       </> : <>
         <Link to="?view=day" aria-current={!overview ? 'page' : undefined}>My Day</Link>
         <Link to="?view=overview" aria-current={overview ? 'page' : undefined}>Business overview</Link>
       </>}
     </nav>
-    {overview ? (role === 'owner' ? <OwnerOpsHome /> : <AdvisorCommandCenter />) : <>
+    {reporting ? <ExecutiveReportingStage1 /> : overview ? (role === 'owner' ? <OwnerOpsHome /> : <AdvisorCommandCenter />) : <>
       <QuickActions onNewOpportunity={() => setShowCreateOpportunity(true)} />
       <MyDay />
       <details className="tac-workflow-help"><summary>Client workflow guide</summary><ClientWorkflowGuide /></details>
