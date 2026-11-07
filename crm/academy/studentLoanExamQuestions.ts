@@ -10,6 +10,24 @@ export const STUDENT_LOAN_EXAM_CASE = {
     'Draft a review task for Morgan and a separate client-update task for yourself. Include due times and what would count as completing each task.',
     'Draft the Thursday update and record how you would escalate the unresolved review and set the next check-in.',
   ],
+  debrief: [
+    {
+      lesson: 'Prepare for the first conversation',
+      title: 'Sample intake note',
+      text: 'Jordan and Riley need to know which payments may be due before Jordan’s first paycheck next Tuesday. I promised an update by 3 p.m. Thursday. Ask Riley to share a dated statement through the approved intake channel showing the account, payment amount, and due date.',
+    },
+    {
+      lesson: 'Verify the loan record',
+      title: 'Sample verification note',
+      text: 'Jordan’s October 28 summary verifies $21,600 across two loans and lists a Friday payment. The $8,400 detail is already included. The $30,000 household balance is an estimate. Riley reports a Monday payment. Its amount and due date still need verification.',
+    },
+    {
+      lesson: 'Document the next step',
+      title: 'Sample task handoff',
+      text: 'Morgan checks Riley’s statement for the payment amount and due date by noon Thursday and logs the source or the missing evidence. At noon the statement is still missing, so I alert the team lead and keep Morgan’s review task open with a revised deadline of 11 a.m. Friday. I own the 3 p.m. update and will contact the client again by noon Friday. I’ll log what I told the client and the Friday follow-up in TAC.',
+    },
+  ],
+  clientUpdate: '“Jordan’s statement shows a Friday payment. We’re still checking the payment Riley expects on Monday. Could you send the latest statement through our intake channel? I’ll check in again by noon Friday, even if we’re still waiting for it.”',
 }
 
 export const STUDENT_LOAN_EXAM_QUESTIONS = [

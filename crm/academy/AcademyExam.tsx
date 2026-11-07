@@ -54,6 +54,17 @@ export default function AcademyExam({ kind, onBack }: { kind: ExamKind; onBack: 
     <p>Answer all seven questions. Six correct answers meet the 85% passing mark. You can retry and your best score is saved.</p>
     {result?.best != null && <p>Best score: {formatCoreExamScore(result.best)} · {result.best >= CORE_EXAM_PASS ? 'Passed' : 'Below passing mark'}</p>}
     {result?.score != null && <p role="status">This attempt: {formatCoreExamScore(result.score)}</p>}
+    {!isCore && result?.score != null && <details className="tac-academy-material">
+      <summary>Review the TAC exercise</summary>
+      <p>Compare your notes and tasks with this sample. Each section names the lesson you can revisit.</p>
+      {STUDENT_LOAN_EXAM_CASE.debrief.map(({ lesson, title, text }) => <section key={lesson}>
+        <h2>{title}</h2>
+        <p><strong>Lesson</strong> {lesson}</p>
+        <p>{text}</p>
+      </section>)}
+      <h2>Sample client update</h2>
+      <p>{STUDENT_LOAN_EXAM_CASE.clientUpdate}</p>
+    </details>}
     {error && <p role="alert">{error}</p>}
     {isCore && result?.certificate && <AcademyCoreCertificate certificate={result.certificate} />}
     {!isCore && <div className="tac-academy-material">
