@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, useRef, type FormEvent } from 'react'
 import TaskActions from '../../crm/tasks/TaskActions'
+import { classifyTaskQueue, TASK_QUEUE_LABELS, type TaskQueue } from '../../crm/tasks/taskQueues'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useCrmAuth } from '../../crm/auth/CrmAuthContext'
 import {
@@ -214,6 +215,8 @@ export default function CrmTasksPage() {
       const value = searchParams.get(key)
       if (value) params.set(key, value)
     }
+    const queue = searchParams.get('queue')
+    if (queue) params.set('queue', queue)
     if (completed) params.set('view', 'completed')
     else if (overdue) params.set('due', 'overdue')
     return '/crm/tasks' + (params.size ? '?' + params.toString() : '')
@@ -312,6 +315,20 @@ export default function CrmTasksPage() {
   }
 
   const requiredOptionsReady = !optionsError && !formLoading
+  const activeQueue = (['sales', 'internal', 'operations'] as const).includes(searchParams.get('queue') as TaskQueue)
+    ? (searchParams.get('queue') as TaskQueue)
+    : 'sales'
+  const queueCounts = {
+    sales: tasks.filter(task => classifyTaskQueue(task) === 'sales').length,
+    internal: tasks.filter(task => classifyTaskQueue(task) === 'internal').length,
+    operations: tasks.filter(task => classifyTaskQueue(task) === 'operations').length,
+  }
+  const visibleTasks = tasks.filter(task => classifyTaskQueue(task) === activeQueue)
+  function queuePath(queue: TaskQueue) {
+    const next = new URLSearchParams(searchParams)
+    next.set('queue', queue)
+    return `/crm/tasks?${next.toString()}`
+  }
 
   return (
     <div className="crm-tasks-page">
@@ -547,16 +564,19 @@ export default function CrmTasksPage() {
         </section>
       ) : null}
 
+      <nav aria-label="Task queues">{(['sales', 'internal', 'operations'] as TaskQueue[]).map(queue => (
+        <span key={queue}><Link to={queuePath(queue)} aria-current={activeQueue === queue ? 'page' : undefined}>{TASK_QUEUE_LABELS[queue]} ({queueCounts[queue]})</Link>{' · '}</span>
+      ))}</nav>
       <nav aria-label="Task views"><Link to={taskViewPath()}>Open tasks</Link>{' · '}<Link to={taskViewPath(false, true)}>Overdue tasks</Link>{' · '}<Link to={taskViewPath(true)}>Completed tasks</Link></nav>
       <section className="crm-panel">
         <div className="crm-panel-head">
-          <h2>{searchParams.get('view') === 'completed' ? 'Completed tasks' : searchParams.get('due') === 'overdue' ? 'Overdue tasks' : 'Open tasks'}</h2>
-          <span className="crm-count-pill">{loading ? '…' : `${tasks.length}`}</span>
+          <h2>{TASK_QUEUE_LABELS[activeQueue]} — {searchParams.get('view') === 'completed' ? 'Completed' : searchParams.get('due') === 'overdue' ? 'Overdue' : 'Open'}</h2>
+          <span className="crm-count-pill">{loading ? '…' : `${visibleTasks.length}`}</span>
         </div>
 
         {loading ? <p className="crm-muted">Loading tasks…</p> : null}
 
-        {!loading && !error && tasks.length === 0 ? (
+        {!loading && !error && visibleTasks.length === 0 ? (
           <div className="crm-empty-state">
             <p>No tasks in this view.</p>
             <button type="button" className="crm-primary-btn" onClick={openForm}>
@@ -565,9 +585,9 @@ export default function CrmTasksPage() {
           </div>
         ) : null}
 
-        {!loading && tasks.length > 0 ? (
+        {!loading && visibleTasks.length > 0 ? (
           <ul className="crm-task-list">
-            {tasks.map((task) => (
+            {visibleTasks.map((task) => (
               <li key={task.id} className="crm-task-row">
                 <div className="crm-task-row-main">
                   <p className="crm-task-title">{task.title}</p>
@@ -582,6 +602,7 @@ export default function CrmTasksPage() {
                     {' · '}
                     {formatDueDate(task.due_date)}
                   </p>
+                  {classifyTaskQueue(task) === 'internal' ? <p className="crm-field-hint">Internal review only. Do not initiate outreach without independently verified contact authority and channel permissions.</p> : null}
                   {task.description ? (
                     <p className="crm-task-description">{task.description}</p>
                   ) : null}
