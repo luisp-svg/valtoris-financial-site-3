@@ -26,9 +26,12 @@ REMAINING RELEASE GATES
 3. Broader security scan: 90 authenticated SECURITY DEFINER execution warnings, 11 INFO tables with RLS/no policies, and leaked-password protection disabled. Scoped grants/guards reviewed above; review remaining RPCs and Auth configuration separately before release. Warnings do not alone establish an exploitable flaw.
    https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable
    https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection
-4. Production schema/history inventory and reviewed ordered migration plan remain pending. Development history repair covers only the five known executed migrations, not all repository/environment drift. Never replay 075 against a populated ledger; it intentionally requires evidence review. Never delete ledger facts to satisfy a migration guard.
+4. READ-ONLY production inventory completed for the scoped repairs: production already records 073/074/075/077; directory pagination is recorded as 20261028210952 and privilege hardening as 20261028210959. All 23 scoped function bodies match repository source. presented_product/payment_leg/service tables/directory function are present. No production SQL replay is indicated for these known repairs. Keep environment-specific recorded timestamps intact; do not insert duplicate directory history under the repository timestamp. This is a scoped inventory, not a full schema equality proof. Never replay 075 against a populated ledger or delete immutable facts to satisfy its guard. Production was only read, never mutated.
 5. Retain QA fixtures until repeat testing is finished. No cleanup or account deletion was authorized. Never copy development credentials or synthetic facts into production.
 6. Obtain explicit user approval before main merge or production deployment.
 
 RETAINED SYNTHETIC FIXTURES
 advisor.qa@valtoris.test (advisor; new-lead routing disabled), QA Queue Verification 2026-11-07 household, six queue tasks, QA-COMMISSION-20261107 application/allocation, five immutable commission events. No credentials are included.
+
+RELEASE PLAN
+Keep both original feature branches and combined candidate isolated from main until explicit approval. No database replay for the verified scoped repairs. Before a later approved application release, recheck candidate SHA, main divergence, preview readiness, required tests and skipped-test disposition, broader security findings and environment configuration. Retain production migration versions already present. No production rollout, merge, credential change, fixture cleanup, or risk acceptance is authorized by this plan.
