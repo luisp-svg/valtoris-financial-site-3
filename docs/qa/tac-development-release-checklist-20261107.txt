@@ -1,16 +1,34 @@
-TAC combined development release candidate — 2026-11-07
+TAC DEVELOPMENT RELEASE VERIFICATION — 2026-11-07
+Repository: luisp-svg/valtoris-financial-site-3
+Candidate: dev/tac-release-candidate-20261107
+Verified application commit: 8c8ec575b3f685360e35af413236edf19efaf10c
+Sources: reporting c275e0e; task queues d862565.
+Production and main unchanged. No production release is authorized.
 
-Sources: executive reporting c275e0e8f27c5a66cc40fd8b2aef77bf022b6405 and task queues d862565bbd8fd5245168eb8f9cac13eda61e44a1.
-Resolution: retain reporting's shared classifier (nullable metadata/minimal field shape) and six classification regression cases; incorporate the task-list queue UI. No main merge or production deployment authorized.
+COMPLETED
+- Combined Vercel application preview READY.
+- Node 22 typecheck, Vite build, lint, function-count budget, server ESM imports, browser Activity INSERT guard passed.
+- Full suite: 4036 tests passed, 306 skipped (467 files passed, 34 skipped). Following test-only lint cleanup, lint/typecheck and its 8 affected tests passed.
+- Combined owner browser: 21 tasks reconcile as 2 sales + 17 internal + 2 operations; 2 draft applications. Denied/missing-permission and duplicate-review QA tasks stay internal.
+- Combined advisor browser: QA advisor identity confirmed; executive reporting hidden and direct report URL exposes no owner totals; assigned task queues 1/4/1; unrelated application denied.
+- Owner/advisor commission browser: 1000 released, -200 chargeback, 800 net. Separate 600 agent-paid leg does not inflate release totals. Recovery/reversal cancel; identical retry creates one release.
+- Database permissions: QA advisor reads own ledger and cannot post; unrelated advisor sees no events; anonymous SELECT denied.
+- Loading repairs retested: owner Pipeline 1 active opportunity, directory 24 households; advisor directory 1 assigned QA household; commission loading warning resolved.
+- Development history reconciled for 073,074,075,077,20261028150953 only. The 23 source-defined function bodies matched repository source before history-only repair. Recorded original source SQL without rerunning schema or ledger changes.
+- Scoped security review: all 23 functions deny anon execution and have fixed search paths; reviewed service/workflow tables use RLS; no direct anon/authenticated write grants on reviewed service/commission tables. Directory is SECURITY INVOKER. No clean full-database security certification is implied.
 
-Local verification on Node 22: typecheck PASS; Vite build PASS; 97 focused tests PASS. Lint PASS (one pre-existing test helper any replaced with an explicit response object type; its eight tests pass). Function budget, server ESM import, and browser Activity INSERT checks PASS. Full test suite PASS: 467 files passed, 34 skipped; 4036 tests passed, 306 skipped. Skipped tests remain unverified. Combined-preview authenticated browser verification remains pending. Local Vercel runtime packaging check requires generated .vercel/output/functions; Vite build alone does not supply it.
+DEVELOPMENT REPAIRS
+Applied existing sources 073_service_production_foundation.sql, 074_service_case_management.sql, 075_commission_payment_legs.sql, 077_opportunity_presented_product.sql, 20261028150953_household_directory_pagination.sql. Service/commission dependency set passed rollback dry run before atomic application. Also fixed sp_history_immutable search_path; this corresponds only to that statement, NOT the entire privilege-hardening migration.
 
-Development database: cxgiaevervjttbuiramd (valtoris-crm-dev), distinct from production phanoknohbidqtgrpwvk. Only development was changed.
-Executed existing sources: 077_opportunity_presented_product.sql; 20261028150953_household_directory_pagination.sql; 073_service_production_foundation.sql; 074_service_case_management.sql; 075_commission_payment_legs.sql. Payment-leg dependency set passed transaction rollback dry run, then applied atomically. Also set public.sp_history_immutable search_path to pg_catalog, public.
+REMAINING RELEASE GATES
+1. 306 skipped tests: suites require a local Supabase/Docker stack or additional hosted-development credentials. No Docker/PostgreSQL executable is available here. They remain unverified; successful browser/database checks do not replace every skipped test.
+2. Local Vercel runtime-packaging check requires generated .vercel/output/functions; a Vite build is not equivalent. Preview READY is independently verified.
+3. Broader security scan: 90 authenticated SECURITY DEFINER execution warnings, 11 INFO tables with RLS/no policies, and leaked-password protection disabled. Scoped grants/guards reviewed above; review remaining RPCs and Auth configuration separately before release. Warnings do not alone establish an exploitable flaw.
+   https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable
+   https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection
+4. Production schema/history inventory and reviewed ordered migration plan remain pending. Development history repair covers only the five known executed migrations, not all repository/environment drift. Never replay 075 against a populated ledger; it intentionally requires evidence review. Never delete ledger facts to satisfy a migration guard.
+5. Retain QA fixtures until repeat testing is finished. No cleanup or account deletion was authorized. Never copy development credentials or synthetic facts into production.
+6. Obtain explicit user approval before main merge or production deployment.
 
-IMPORTANT migration tracking: these development repairs were executed directly and their source names are absent from supabase_migrations.schema_migrations. Reconcile actual schema/function definitions against the source files before marking versions applied via the normal migration-repair workflow. Do not blindly replay: the commission migration requires an empty event ledger, and five labeled synthetic events now exist. Do not delete immutable ledger facts merely to pass a migration guard. Production schema/history inventory and an evidence-reviewed migration plan remain mandatory before any separately approved release. Production migration applicability is not established by development success.
-
-Retained QA fixtures: advisor.qa@valtoris.test (advisor; no new-lead routing); QA Queue Verification 2026-11-07 household; six synthetic tasks; QA-COMMISSION-20261107 application and writing allocation; five immutable synthetic commission events. No credentials are recorded here.
-Earlier live verification: owner reporting restrictions, advisor household/task isolation, queue classification (1 sales/4 internal/1 operations for QA tasks), overdue/completed views, owner directory (24), pipeline (1 active), and commission UI (1000 released, -200 chargeback, 800 net; separate 600 agent payment excluded). Recovery/reversal cancel; repeat release is idempotent. QA advisor reads own ledger, unrelated advisor sees none, anonymous SELECT denied, advisor posting denied. These were separate-branch previews; combined candidate must still be tested.
-
-Remaining: full-suite triage if failures; combined-preview owner/advisor retest; advisor browser commission display; fresh reporting reconciliation after commission QA application; migration-history repair; security-advisor review (do not describe earlier scan as a clean audit); QA fixture retention/cleanup decision. Explicit user approval required before main merge or production deployment. Do not promote QA records or development credentials to production.
+RETAINED SYNTHETIC FIXTURES
+advisor.qa@valtoris.test (advisor; new-lead routing disabled), QA Queue Verification 2026-11-07 household, six queue tasks, QA-COMMISSION-20261107 application/allocation, five immutable commission events. No credentials are included.
