@@ -1,3 +1,13 @@
+CURRENT VERIFICATION STATUS — 2026-11-08
+- Complete single-run result: 4,342 tests passed across 501 files, 0 failed, 0 skipped (Node 22, serial workers, local Supabase plus authenticated hosted DEVELOPMENT suites).
+- Tracked application/test sources in the tested checkout exactly match combined candidate edd4b501a7c9cdadbcadaf9f0617083b311fd737; only this historical checklist differed locally. Preview deployment dpl_GkTApNZVzNhTMfRAkPURjeGSr54u is READY at that commit. Original feature branches remain unmerged.
+- main remains af6edfb0fc3ed1467bcf5af1db85f84e74fa1274, verified by GitHub compare (identical). No production deploy, merge, or database/config write performed.
+- Retained six QA queue tasks and five commission events have identical before/after row-content fingerprints. Private development test credentials remain ignored and owner-readable only.
+- Hosted test prerequisite gates are now closed: all 74 formerly skipped tests passed within this complete run.
+- Still pending before a production release: (1) separately authorized Pro-or-higher billing upgrade to enable leaked-password protection, or explicit acceptance of that limitation; (2) environment-specific Vercel packaged-function import check, which needs generated .vercel/output/functions and is not replaced by Vite build or READY status; (3) final security risk acceptance and explicit production release authorization. This verification does not authorize those actions.
+- Fresh development security advisory counts unchanged: 90 authenticated SECURITY DEFINER execution notices, 11 informational RLS-without-policy notices, 1 leaked-password-protection warning. Prior guard/grant review and authenticated permission checks remain evidence; notices are not all automatically closed by passing tests.
+- This current status supersedes historical skipped-test counts below. Historical verification details retained for traceability.
+
 TAC DEVELOPMENT RELEASE VERIFICATION — 2026-11-07
 Repository: luisp-svg/valtoris-financial-site-3
 Candidate: dev/tac-release-candidate-20261107
