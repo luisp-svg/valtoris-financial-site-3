@@ -98,3 +98,8 @@ Supersedes the missing-password / 60-skipped status above.
 - Together with the earlier 14 read-only passes, all 74 previously pending hosted-development tests have now passed. This focused rerun is separate from the earlier full run of 4,282 passed / 60 skipped; do not misstate it as one new full-suite run.
 - SHA-independent row-content fingerprints of retained QA queue tasks (6) and commission events (5) exactly match before and after the run. Retained fixtures preserved. Suite-created fixture cleanup completed without test failure.
 - Production remains unchanged. No production deployment or merge to main. Leaked-password protection remains separately blocked by the current Free plan; no billing upgrade performed.
+
+
+SECURITY SIGNOFF PREPARED — 2026-11-08
+Prepared approval document: docs/qa/tac-security-signoff-20261108.txt
+Status: pending accountable owner approval; no risk acceptance or signature recorded by the agent. Documents the Free-plan leaked-password limitation, the residual privileged-function risk, deny-all no-policy tables, testing limits, and explicit development-only scope. Production and billing unchanged.
