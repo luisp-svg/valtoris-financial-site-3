@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, useRef, type FormEvent } from 'react'
 import TaskActions from '../../crm/tasks/TaskActions'
-import { classifyTaskQueue, resolveTaskQueue, TASK_QUEUE_LABELS, type TaskQueue } from '../../crm/tasks/taskQueues'
+import { classifyTaskQueue, createdTaskSearchParams, resolveTaskQueue, TASK_QUEUE_LABELS, type TaskQueue } from '../../crm/tasks/taskQueues'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useCrmAuth } from '../../crm/auth/CrmAuthContext'
 import {
@@ -60,6 +60,7 @@ export default function CrmTasksPage() {
   const initialOpportunity = useRef(searchParams.get('action') === 'new' ? searchParams.get('opportunity') : null)
   const initialHousehold = useRef(searchParams.get('action') === 'new' ? searchParams.get('household') : null)
   const [taskRequestId, setTaskRequestId] = useState(() => crypto.randomUUID())
+  const taskLoadVersion = useRef(0)
   const [tasks, setTasks] = useState<CrmTask[]>([])
   const [households, setHouseholds] = useState<HouseholdOption[]>([])
   const [leads, setLeads] = useState<LeadOption[]>([])
@@ -78,9 +79,10 @@ export default function CrmTasksPage() {
   const [success, setSuccess] = useState<string | null>(null)
 
   const loadTasks = useCallback(async () => {
+    const version = ++taskLoadVersion.current
     const supabase = createSupabaseBrowserClient()
     const rows = await fetchVisibleTasks(supabase, { dueBefore: searchParams.get('due') === 'overdue' ? localDateString() : undefined, completed: searchParams.get('view') === 'completed', householdId: searchParams.get('household') || undefined, opportunityId: searchParams.get('opportunity') || undefined })
-    setTasks(rows)
+    if (version === taskLoadVersion.current) setTasks(rows)
   }, [searchParams])
 
   const loadFormOptions = useCallback(async () => {
@@ -165,6 +167,7 @@ export default function CrmTasksPage() {
     })()
     return () => {
       cancelled = true
+      taskLoadVersion.current += 1
     }
   }, [loadTasks])
 
@@ -239,9 +242,11 @@ export default function CrmTasksPage() {
     setShowForm(true)
   }
 
-  function closeForm() {
+  function closeForm(savedTaskParams?: URLSearchParams) {
     setShowForm(false)
-    if (searchParams.has('action')) {
+    if (savedTaskParams) {
+      setSearchParams(savedTaskParams, { replace: true })
+    } else if (searchParams.has('action')) {
       const next = new URLSearchParams(searchParams)
       next.delete('action')
       setSearchParams(next, { replace: true })
@@ -281,7 +286,7 @@ export default function CrmTasksPage() {
     setSuccess(null)
     try {
       const supabase = createSupabaseBrowserClient()
-      await createTask(
+      const created = await createTask(
         supabase,
         {
           title,
@@ -298,9 +303,9 @@ export default function CrmTasksPage() {
         profile.id,
         taskRequestId,
       )
-      await loadTasks()
+      setTasks(previous => [...previous.filter(task => task.id !== created.id), created])
       setSuccess('Task created.')
-      closeForm()
+      closeForm(createdTaskSearchParams(searchParams, created))
       setForm({
         ...EMPTY_FORM,
         assigned_user_id: profile.id,
@@ -351,7 +356,7 @@ export default function CrmTasksPage() {
         <section className="crm-panel crm-task-form-panel" aria-labelledby="crm-add-task-heading">
           <div className="crm-panel-head">
             <h2 id="crm-add-task-heading">Add Task</h2>
-            <button type="button" className="crm-text-btn" onClick={closeForm} disabled={submitting}>
+            <button type="button" className="crm-text-btn" onClick={() => closeForm()} disabled={submitting}>
               Cancel
             </button>
           </div>

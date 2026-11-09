@@ -26,3 +26,20 @@ export function resolveTaskQueue(
   if (target) return classifyTaskQueue(target)
   return queue === 'internal' || queue === 'operations' || queue === 'sales' ? queue : 'sales'
 }
+
+/** Reveal a successful save even when it does not match the previous list filters. */
+export function createdTaskSearchParams(
+  current: URLSearchParams,
+  task: { id: string; household_id: string; opportunity_id: string | null } & Parameters<typeof classifyTaskQueue>[0],
+): URLSearchParams {
+  const next = new URLSearchParams(current)
+  for (const key of ['action', 'title', 'view', 'due']) next.delete(key)
+  next.set('task', task.id)
+  next.set('queue', classifyTaskQueue(task))
+  if (next.has('household')) next.set('household', task.household_id)
+  if (next.has('opportunity')) {
+    if (task.opportunity_id) next.set('opportunity', task.opportunity_id)
+    else next.delete('opportunity')
+  }
+  return next
+}
