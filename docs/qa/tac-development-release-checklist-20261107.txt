@@ -58,3 +58,12 @@ Supersedes the earlier count of 74 remaining tests.
 - Remaining 60 tests across 10 hosted integration suites require passwords for owner.dev@valtoris.test, advisor.a@valtoris.test, and advisor.b@valtoris.test. Browser login is insufficient for these runner credentials. Do not place passwords in chat or commits.
 - Retained QA fixtures were not cleaned up. No production database/config changes, production deployment, or main merge performed.
 - Leaked-password protection remains plan-blocked on Free; Pro-or-higher upgrade requires separate billing authorization.
+
+
+AUTHENTICATED TEST COMPLETION — 2026-11-08
+Supersedes the missing-password / 60-skipped status above.
+- User explicitly authorized resetting only owner.dev@valtoris.test, advisor.a@valtoris.test, and advisor.b@valtoris.test in development project cxgiaevervjttbuiramd. Exact account UUID/email pairs checked before reset; all three post-reset logins verified. Strong random passwords saved only in ignored, owner-only .env; no credential values in source, logs, chat, or this report. Account roles remain owner/advisor/advisor; advisor.qa remains active advisor and was not reset.
+- Focused run of all 10 formerly skipped authenticated integration suites: 60 passed, 0 failed, 0 skipped. Suite counts: intakeArchive 1; intakePhase2 1; migration043 9; migration044 6; migration045 17; migration046 16; migration047 3; caseOperations 4; requirementUrgency 1; requirementWorkflow 2.
+- Together with the earlier 14 read-only passes, all 74 previously pending hosted-development tests have now passed. This focused rerun is separate from the earlier full run of 4,282 passed / 60 skipped; do not misstate it as one new full-suite run.
+- SHA-independent row-content fingerprints of retained QA queue tasks (6) and commission events (5) exactly match before and after the run. Retained fixtures preserved. Suite-created fixture cleanup completed without test failure.
+- Production remains unchanged. No production deployment or merge to main. Leaked-password protection remains separately blocked by the current Free plan; no billing upgrade performed.
