@@ -1,3 +1,15 @@
+PR 43 TASK CREATION AND CURSOR VERIFICATION — 2026-11-08
+Current verified application/test source: b9f1b4d75d61e795607ff22e2ebc0335ef685a71.
+- Successful creation now reveals the saved task in its actual queue, clears incompatible date/status/form parameters, and adjusts existing household/opportunity scope. Failed saves leave the form open. A refresh of the previous scope cannot turn a successful save into a submission error; older in-flight results are rejected after context changes.
+- Unbounded task retrieval uses an immutable ID cursor instead of offsets. Completion/rescheduling of earlier rows cannot shift the next page past an unchanged task. Scope filters apply on every request. Due-date/creation-time/ID display ordering is restored after loading; bounded widgets retain database ordering. This prevents offset-shift omissions; it is not an atomic point-in-time snapshot of all concurrent changes.
+- Added 8 additional regression cases: 5 creation cases plus 3 cursor/order cases; expanded prior pagination tests. The latest 11 relevant cases produce 7 failures and 4 passes against the previous PR, and all 11 pass with the fixes. All 23 focused task checks pass.
+- Complete run: 4,358 passed across 504 files; 0 failed, 0 skipped, including local and authenticated hosted-development suites.
+- Typecheck, full lint, whitespace, function budget, server ESM imports, and browser Activity INSERT guard passed. Local PREVIEW build and all 12 Node bundle imports passed; Edge remains outside the Node import checker. Static scan: 168 files, 0 private development credential matches.
+- Six retained QA queue tasks and five commission events exactly match their prior fingerprints. Authentication, RLS, database grants, and consent classification rules are unchanged.
+- Original development-only risk acceptance remains recorded; no production authorization is inferred. Supabase is NOT being upgraded. Production, billing, and QA fixtures remain unchanged.
+- Candidate automatic deployment remains disabled. These are PR-only commits: no merge or deployment.
+- Prior verification sections below are historical and are superseded by this complete run.
+
 PR 43 REVIEW FIX VERIFICATION — 2026-11-08
 Current verified application/test source: 7422ef9aca752933aa2b347ef88c96fb4335d629.
 - Fixed all three review findings: deep links select the target task's queue; task view/tab navigation preserves the resolved queue and permits leaving a target; complete task pagination prevents capped-response queue omissions; only the active dashboard tab is marked current.
