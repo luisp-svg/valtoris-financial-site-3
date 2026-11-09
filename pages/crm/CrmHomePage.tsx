@@ -125,9 +125,9 @@ export default function CrmHomePage() {
       {role === 'owner' ? <>
         <Link to="?view=overview" aria-current={overview ? 'page' : undefined}>Agency overview</Link>
         <Link to="?view=reporting" aria-current={reporting ? 'page' : undefined}>Executive reporting</Link>
-        <Link to="?view=day" aria-current={!overview ? 'page' : undefined}>My Day</Link>
+        <Link to="?view=day" aria-current={!overview && !reporting ? 'page' : undefined}>My Day</Link>
       </> : <>
-        <Link to="?view=day" aria-current={!overview ? 'page' : undefined}>My Day</Link>
+        <Link to="?view=day" aria-current={!overview && !reporting ? 'page' : undefined}>My Day</Link>
         <Link to="?view=overview" aria-current={overview ? 'page' : undefined}>Business overview</Link>
       </>}
     </nav>

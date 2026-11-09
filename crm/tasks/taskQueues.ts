@@ -15,3 +15,14 @@ export const TASK_QUEUE_LABELS: Record<TaskQueue, string> = {
   internal: 'Internal reviews',
   operations: 'Client operations',
 }
+
+/** A deep link opens the target's queue; explicit tab changes remove the target. */
+export function resolveTaskQueue(
+  tasks: ReadonlyArray<{ id: string } & Parameters<typeof classifyTaskQueue>[0]>,
+  queue: string | null,
+  taskId: string | null,
+): TaskQueue {
+  const target = taskId ? tasks.find(task => task.id === taskId) : undefined
+  if (target) return classifyTaskQueue(target)
+  return queue === 'internal' || queue === 'operations' || queue === 'sales' ? queue : 'sales'
+}

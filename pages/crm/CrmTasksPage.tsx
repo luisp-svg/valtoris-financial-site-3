@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, useRef, type FormEvent } from 'react'
 import TaskActions from '../../crm/tasks/TaskActions'
-import { classifyTaskQueue, TASK_QUEUE_LABELS, type TaskQueue } from '../../crm/tasks/taskQueues'
+import { classifyTaskQueue, resolveTaskQueue, TASK_QUEUE_LABELS, type TaskQueue } from '../../crm/tasks/taskQueues'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useCrmAuth } from '../../crm/auth/CrmAuthContext'
 import {
@@ -215,8 +215,7 @@ export default function CrmTasksPage() {
       const value = searchParams.get(key)
       if (value) params.set(key, value)
     }
-    const queue = searchParams.get('queue')
-    if (queue) params.set('queue', queue)
+    params.set('queue', resolveTaskQueue(tasks, searchParams.get('queue'), searchParams.get('task')))
     if (completed) params.set('view', 'completed')
     else if (overdue) params.set('due', 'overdue')
     return '/crm/tasks' + (params.size ? '?' + params.toString() : '')
@@ -315,9 +314,7 @@ export default function CrmTasksPage() {
   }
 
   const requiredOptionsReady = !optionsError && !formLoading
-  const activeQueue = (['sales', 'internal', 'operations'] as const).includes(searchParams.get('queue') as TaskQueue)
-    ? (searchParams.get('queue') as TaskQueue)
-    : 'sales'
+  const activeQueue = resolveTaskQueue(tasks, searchParams.get('queue'), searchParams.get('task'))
   const queueCounts = {
     sales: tasks.filter(task => classifyTaskQueue(task) === 'sales').length,
     internal: tasks.filter(task => classifyTaskQueue(task) === 'internal').length,
@@ -327,6 +324,7 @@ export default function CrmTasksPage() {
   function queuePath(queue: TaskQueue) {
     const next = new URLSearchParams(searchParams)
     next.set('queue', queue)
+    next.delete('task')
     return `/crm/tasks?${next.toString()}`
   }
 
