@@ -3,7 +3,7 @@ Prepared November 8, 2026
 
 STATUS AND DECISION
 
-Prepared for authorized owner review. Risk acceptance and approval are pending.
+Approved for development-only use on November 8, 2026 by the requesting user through explicit approval in this chat. The documented risks, including the leaked-password protection limitation, are accepted for the named development scope.
 The completed checks support continued development verification with the retained QA fixtures. This document does not approve a production release, a merge to main, a billing upgrade, or a change to production security settings.
 
 SCOPE
@@ -27,13 +27,13 @@ VERIFIED EVIDENCE
 - Six retained QA queue tasks and five commission events had identical before/after row-content fingerprints. The QA advisor profile remains active with advisor permissions.
 - Only the three explicitly authorized development test-account passwords were reset. Random replacement credentials remain in an ignored, owner-only local file; no passwords or keys are included here.
 
-OPEN LIMITATION 1 — LEAKED PASSWORD PROTECTION
+ACCEPTED DEVELOPMENT LIMITATION 1 — LEAKED PASSWORD PROTECTION
 
 Development leaked-password protection remains disabled. The valtoris organization was confirmed on Supabase Free on November 8, 2026; Supabase requires Pro or above for this feature.
 
 Consequence: the hosted development Auth configuration does not screen passwords against the leaked-password service. A reused or compromised password could therefore be accepted. Strong random passwords for the three test accounts reduce their reuse risk but do not establish equivalent protection for every account.
 
-Decision needed: either separately authorize an eligible plan upgrade and then enable and verify protection, or explicitly accept the limitation for the named development candidate. No plan upgrade, charge, or security-setting change is authorized by preparing this document. A development exception does not carry over to production.
+Decision recorded November 8, 2026: the requesting user explicitly accepts this limitation for the named development candidate. An eligible plan upgrade and subsequent enablement remain a separately authorized future option. No plan upgrade, charge, or security-setting change is authorized by this approval. The development exception does not carry over to production.
 
 Reference:
 https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection
@@ -72,18 +72,22 @@ This is a scoped development verification, not an independent penetration test o
 
 Reopen the review if authentication, account roles, RLS policies, database grants, privileged functions, environment targets, or application/test sources materially change. Production release requires its own explicit authorization and review of the actual release candidate.
 
-APPROVAL RECORD — NOT YET COMPLETED
+APPROVAL RECORD — RECORDED
 
-Accountable approver: ____________________
-Decision: [ ] Approve continued development with the stated exception
-          [ ] Require remediation before approval
-Leaked-password limitation explicitly accepted for development: [ ] Yes [ ] No
-Privileged-function residual risk reviewed and accepted: [ ] Yes [ ] No
-Conditions or required follow-up: ____________________
-Approval date: ____________________
-Candidate or commit accepted: ____________________
+Approver: Requesting user, by explicit approval in this chat.
+Decision: [x] Approve continued development with the documented exceptions.
+Leaked-password limitation explicitly accepted for development: [x] Yes
+Privileged-function residual risk reviewed and accepted: [x] Yes
+Other documented risks and verification limits accepted for development: [x] Yes
+Approval date: November 8, 2026 (America/Chicago).
+Approved document: prepared signoff at b3e90a2763773cad6574b4428e17b58aa36b0e90.
+Candidate accepted: dev/tac-release-candidate-20261107, with the application/test sources and development configuration described above; packaging snapshot 6e61fd972e0cba368da9204b92d1c2d5975c8298. Approval does not extend to future material changes.
+Conditions: retain the documented authorization controls and regression checks; reopen review on the material changes listed above; preserve QA fixtures. Production release, merge to main, production changes, and billing changes are outside this approval.
 
-An approval recorded here is limited to the named development scope. Production and billing remain unchanged and unauthorized.
+Approval statement received:
+“I approve the development-only security signoff and accept the documented risks, including the leaked-password protection limitation. Record my approval and keep production, billing, and QA fixtures unchanged.”
+
+This records the user's chat approval; it is not a separately executed signature or contract. Production and billing changes remain unauthorized.
 
 EVIDENCE RECORD
 
