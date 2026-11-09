@@ -48,3 +48,13 @@ SECURITY AND SKIPPED-TEST FOLLOW-UP — 2026-11-07
 - Hosted development QA fixtures checked after tests: all six queue tasks, five commission events, and active QA advisor retained.
 - Cumulative coverage now includes all 232 formerly skipped local tests in addition to the earlier 4036 passing tests. This is cross-run coverage; no new single full-suite run is claimed.
 - Remaining gates: hosted-suite prerequisites, Auth leaked-password protection decision, environment-specific Vercel runtime packaging check, final risk acceptance/release approval. Existing QA fixtures remain retained by explicit user instruction. No main merge or production change.
+
+
+FOLLOW-UP VERIFICATION — 2026-11-08
+Supersedes the earlier count of 74 remaining tests.
+- Test-only fix: 6ce1a824439e9f295b178cf1cbe80f3a89bc7e1f on dev/tac-release-candidate-20261107. Migration 043 uses advisor.a@valtoris.test; requires owner and advisor passwords; failed logins fail setup before fixture creation. Advisor permission and owner reassignment assertions can no longer be silently omitted.
+- Fresh complete local run (Node 22, one worker, recovered local Supabase): 4,282 passed, 0 failed, 60 skipped. All 14 hosted read-only checks across migrations 048–052 passed, also confirmed in a separate focused run. Typecheck, changed-file lint, and diff whitespace checks passed.
+- CLI saved authentication worked; test checkout linked only to development ref cxgiaevervjttbuiramd. Existing development API keys retrieved privately into ignored owner-only .env. No key values included in this report.
+- Remaining 60 tests across 10 hosted integration suites require passwords for owner.dev@valtoris.test, advisor.a@valtoris.test, and advisor.b@valtoris.test. Browser login is insufficient for these runner credentials. Do not place passwords in chat or commits.
+- Retained QA fixtures were not cleaned up. No production database/config changes, production deployment, or main merge performed.
+- Leaked-password protection remains plan-blocked on Free; Pro-or-higher upgrade requires separate billing authorization.
