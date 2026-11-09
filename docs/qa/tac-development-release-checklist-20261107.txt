@@ -1,4 +1,17 @@
-CURRENT VERIFICATION STATUS — 2026-11-08
+PR 43 REVIEW FIX VERIFICATION — 2026-11-08
+Current verified application/test source: 7422ef9aca752933aa2b347ef88c96fb4335d629.
+- Fixed all three review findings: deep links select the target task's queue; task view/tab navigation preserves the resolved queue and permits leaving a target; complete task pagination prevents capped-response queue omissions; only the active dashboard tab is marked current.
+- Added 8 regression cases across taskNavigation.test.ts and taskPagination.test.ts. Against the original PR source, 7 detect the defects and 1 preserves bounded widget behavior; all 8 pass after the fixes.
+- New complete run: 4,350 passed across 503 files, 0 failed, 0 skipped. Includes all authenticated hosted-development and local database suites.
+- Typecheck, full lint, whitespace check, function budget, server ESM imports, and browser Activity INSERT guard passed.
+- Local Vercel PREVIEW build passed; all 12 Node function bundles native-imported. Edge middleware remains outside the Node import checker. Static output: 168 files, no development service key or test-password matches.
+- Retained six QA queue tasks and five commission events exactly match their prior row-content fingerprints.
+- Auth, RLS, database grants, and task consent classification rules were not changed by these fixes. Existing development-only risk acceptance remains recorded separately; no production approval is inferred or added.
+- Supabase is NOT being upgraded; Free plan and billing remain unchanged. The development leaked-password limitation remains explicitly accepted.
+- Draft PR 43 remains review-only. Candidate git.deploymentEnabled is false; no deployment, merge, production change, billing change, or retained fixture cleanup authorized or performed.
+- Earlier counts below are historical evidence, superseded by this complete run.
+
+PREVIOUS VERIFICATION STATUS — 2026-11-08
 - Development deployment packaging check: PASSED (12 Node bundles; details below).
 - Complete single-run result: 4,342 tests passed across 501 files, 0 failed, 0 skipped (Node 22, serial workers, local Supabase plus authenticated hosted DEVELOPMENT suites).
 - Tracked application/test sources in the tested checkout exactly match combined candidate edd4b501a7c9cdadbcadaf9f0617083b311fd737; only this historical checklist differed locally. Preview deployment dpl_GkTApNZVzNhTMfRAkPURjeGSr54u is READY at that commit. Original feature branches remain unmerged.
