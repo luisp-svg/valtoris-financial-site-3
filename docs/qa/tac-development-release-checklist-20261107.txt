@@ -5,7 +5,7 @@ CURRENT VERIFICATION STATUS — 2026-11-08
 - main remains af6edfb0fc3ed1467bcf5af1db85f84e74fa1274, verified by GitHub compare (identical). No production deploy, merge, or database/config write performed.
 - Retained six QA queue tasks and five commission events have identical before/after row-content fingerprints. Private development test credentials remain ignored and owner-readable only.
 - Hosted test prerequisite gates are now closed: all 74 formerly skipped tests passed within this complete run.
-- Still pending before a production release: separately authorized Pro-or-higher billing upgrade to enable leaked-password protection (or explicit acceptance of that limitation), final security risk acceptance, and explicit production release authorization. The development packaging gate is now closed; no production action is authorized by this checklist.
+- Development security signoff APPROVED November 8, 2026 by explicit user approval, including documented risks and the leaked-password protection limitation. Development packaging and test gates are closed. Production release, production security decisions, merge to main, and billing changes remain outside this approval.
 - Fresh development security advisory counts unchanged: 90 authenticated SECURITY DEFINER execution notices, 11 informational RLS-without-policy notices, 1 leaked-password-protection warning. Prior guard/grant review and authenticated permission checks remain evidence; notices are not all automatically closed by passing tests.
 - This current status supersedes historical skipped-test counts below. Historical verification details retained for traceability.
 
@@ -100,6 +100,6 @@ Supersedes the missing-password / 60-skipped status above.
 - Production remains unchanged. No production deployment or merge to main. Leaked-password protection remains separately blocked by the current Free plan; no billing upgrade performed.
 
 
-SECURITY SIGNOFF PREPARED — 2026-11-08
-Prepared approval document: docs/qa/tac-security-signoff-20261108.txt
-Status: pending accountable owner approval; no risk acceptance or signature recorded by the agent. Documents the Free-plan leaked-password limitation, the residual privileged-function risk, deny-all no-policy tables, testing limits, and explicit development-only scope. Production and billing unchanged.
+SECURITY SIGNOFF APPROVED — 2026-11-08
+Approval record: docs/qa/tac-security-signoff-20261108.txt
+Status: explicitly approved by the requesting user for development only on November 8, 2026. Documented risks, including the leaked-password limitation, accepted. This records chat approval rather than a separately executed signature. Documents the Free-plan leaked-password limitation, the residual privileged-function risk, deny-all no-policy tables, testing limits, and explicit development-only scope. Production and billing unchanged.
