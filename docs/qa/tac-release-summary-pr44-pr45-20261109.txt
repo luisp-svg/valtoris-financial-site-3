@@ -2,9 +2,10 @@ FINAL RELEASE SUMMARY — PRs #44 AND #45
 Released November 9, 2026
 Status: Live
 
-Both PRs are merged and deployed. Production serves commit
-b0a68add3b278090d6927a5aba8b29cab598a0ce.
-Deployment dpl_HdPmdAGaXAXWVZWsSv1iwyjJAkDy was confirmed READY.
+Both PRs are merged and deployed. The verified PR #45 application release was
+commit b0a68add3b278090d6927a5aba8b29cab598a0ce, with deployment
+dpl_HdPmdAGaXAXWVZWsSv1iwyjJAkDy confirmed READY at release verification.
+Later documentation-only deployments do not change that application behavior.
 
 WHAT SHIPPED
 
@@ -120,7 +121,11 @@ PR #44 and PR #45 descriptions contain final authorization and live verification
 
 DOCUMENTATION-SAVE BOUNDARY
 
-This summary is saved on docs/pr44-pr45-release-summary-20261109, with automatic
-Vercel deployment explicitly disabled for that branch. Saving it does not merge to
-main, release application code, replay migrations, change billing, edit business
-records or alter retained QA fixtures. Main and the live release are left unchanged.
+This summary was initially saved on docs/pr44-pr45-release-summary-20261109,
+with automatic Vercel deployment explicitly disabled for that branch. That save
+left main and the live release unchanged.
+
+The user subsequently authorized merging and deploying the documentation commit.
+That publication includes this summary and the documentation-branch deployment
+guard only; it changes no application logic or database migration and does not
+change billing, business records or retained QA fixtures.
