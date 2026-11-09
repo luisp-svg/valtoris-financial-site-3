@@ -103,6 +103,7 @@
     "20261102223910_agent_licensing_profile.sql": "aab5cc7b861a43b468bc8662874af1ffca61f62eabe32b4cbd01289e51fc05eb",
     "20261104200100_allow_duplicate_review_booking.sql": "95a1afccfdbf96cdaedfe986c26f34eb9e198564e78de9ea4733fcfab1f4c583",
     "20261105155007_booking_rejected_slot_recovery.sql": "fa3bd3f5a1074878f4d127da947713106ab697bd43ac01ab7342655cd4ee8393",
-    "20261105163428_owner_archive_pending_duplicates.sql": "d55433106c720c8586060fa6b8db1deb2cc95368336777a7d572651c1bc48c2d"
+    "20261105163428_owner_archive_pending_duplicates.sql": "d55433106c720c8586060fa6b8db1deb2cc95368336777a7d572651c1bc48c2d",
+    "20261109164519_licensing_workflow_private_profile.sql": "a9874a2157bf49c503558e42a1a93dd64837d319238a28b8b153ebe26790aafd"
   }
 }

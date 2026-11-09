@@ -1,8 +1,8 @@
 import { useState, type FormEvent } from 'react'
 import type { Option } from './types'
 export type Field = { key: string; label: string; required?: boolean; type?: 'text' | 'email' | 'date' | 'checkbox' | 'textarea' | 'checkboxes'; options?: Option[]; hint?: string; maxLength?: number }
-type Props = { title: string; description?: string; submitLabel?: string; changeReason?: string; fields: Field[]; initial?: Record<string, unknown>; busy: boolean; onCancel: () => void; onSubmit: (values: Record<string, unknown>, reason: string) => Promise<void> }
-export default function RecruitForm({ title, description, submitLabel = 'Save changes', changeReason, fields, initial = {}, busy, onCancel, onSubmit }: Props) {
+type Props = { sensitive?: boolean; title: string; description?: string; submitLabel?: string; changeReason?: string; fields: Field[]; initial?: Record<string, unknown>; busy: boolean; onCancel: () => void; onSubmit: (values: Record<string, unknown>, reason: string) => Promise<void> }
+export default function RecruitForm({ sensitive = false, title, description, submitLabel = 'Save changes', changeReason, fields, initial = {}, busy, onCancel, onSubmit }: Props) {
   const [values, setValues] = useState<Record<string, unknown>>(() => Object.fromEntries(fields.map(f => [f.key, initial[f.key] ?? (f.type === 'checkboxes' ? [] : f.type === 'checkbox' ? false : '')])))
   const [reason, setReason] = useState(changeReason ?? '')
   async function submit(event: FormEvent) { event.preventDefault(); if (!busy) await onSubmit(values, reason) }
@@ -20,7 +20,7 @@ export default function RecruitForm({ title, description, submitLabel = 'Save ch
         {field.hint ? <span className="crm-muted">{field.hint}</span> : null}
       </label>)}</div>
       {changeReason === undefined ? <label className="crm-field">Reason for this change *<textarea required maxLength={1000} value={reason} disabled={busy} onChange={e => setReason(e.target.value)} /></label> : null}
-      <p className="crm-muted">Use non-sensitive references only. Keep identity documents, banking details, and background-check information in the approved external process.</p>
+      <p className="crm-muted">{sensitive ? 'Licensing managers only. Enter only the last four SSN digits. Keep identity values out of the change reason and do not upload identity documents.' : 'Use non-sensitive references only. Keep identity documents, banking details, and background-check information in the approved external process.'}</p>
       <button className="crm-primary-btn" disabled={busy} type="submit">{busy ? 'Saving…' : submitLabel}</button>
     </form>
   </section>

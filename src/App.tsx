@@ -1,3 +1,4 @@
+import ReportCardSamplesPage from '../pages/ReportCardSamplesPage'
 import ComprehensiveDiscoveryPage from "../pages/ComprehensiveDiscoveryPage";
 import { guidedReportCardsEnabled } from '../modules/reportCard/guidedRelease'
 import PremiumFunnelLanding from '../components/premium/PremiumFunnelLanding'
@@ -123,6 +124,7 @@ export default function App() {
       <PublicRouteIndexing />
       <Suspense fallback={<p role="status" aria-live="polite">Loading page…</p>}>
       <Routes>
+      <Route path="/report-card-samples" element={<SiteLayout><ReportCardSamplesPage /></SiteLayout>} />
       {retiredReportCards.map(([source, destination]) => (
         <Route key={source} path={source} element={<ArchivedReportCardRedirect destination={destination} />} />
       ))}

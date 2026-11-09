@@ -20,6 +20,7 @@ export default function SolutionsHub({ copy }: {copy: SolutionsCopy}) {
           <h1 id="solutions-hero-heading" className="site-home-headline">{es?'Empieza con lo que más importa.':'Start With What Matters Most.'}</h1>
           <p className="site-home-hero-support">{es?'Comienza con un Report Card Familiar o Empresarial para ver una calificación general y un desglose por área. Usa un Report Card complementario para profundizar en un tema.':'Start with a Family or Business Owner Report Card for an overall grade and a breakdown by area. Use a supporting card when you want a closer look at one topic.'}</p>
           <div className="site-home-hero-actions"><PublicLink className="platform-btn platform-btn-primary" to="/family-assessment">{es?'Comenzar el Report Card familiar':'Start the Family Report Card'} ↗</PublicLink><PublicLink className="platform-btn platform-btn-secondary" to={ROUTES.businessAssessment}>{es ? "Comenzar el Report Card empresarial" : "Start the Business Owner Report Card"}</PublicLink></div>
+          <PublicLink className="priority-directory-detail" to="/report-card-samples">{es ? 'Ver todos los ejemplos' : 'View All Sample Reports'}</PublicLink>
           <p className="premium-fineprint">{es?'Cada Report Card tiene sus propias preguntas y resultados.':'Each Report Card has its own questions and results.'}</p>
         </div>
         <EditorialVisual kind="lifestyle" compact />
@@ -30,6 +31,7 @@ export default function SolutionsHub({ copy }: {copy: SolutionsCopy}) {
       <div className="priority-directory-grid">{section.cards.map(journey=><article key={journey.id}>
         <h3>{journey.title[index]}</h3><p>{es?"Una revisión breve con resultados útiles y consulta sin costo.":"A dedicated assessment with preliminary results and complimentary consultation booking."}</p>
         <div className="priority-directory-actions"><PublicLink className="platform-btn platform-btn-primary" aria-label={`${es ? "Comenzar Report Card" : "Begin Report Card"}: ${journey.title[index]}`} to={`/financial-assessment?focus=${journey.id}`}>{es?'Comenzar este Report Card':'Begin This Report Card'} ↗</PublicLink>
+          <PublicLink className="priority-directory-detail" to={`/report-card-samples?type=${journey.id}`}>{es ? 'Ver ejemplo de resultados' : 'View Sample Results'}</PublicLink>
           <PublicLink className="priority-directory-detail" to={journey.path}>{es ? 'Qué incluye la revisión' : 'What the Review Covers'}</PublicLink>
         </div>
       </article>)}</div>

@@ -1,0 +1,15 @@
+.report-sample-navigation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem;
+  margin: 1.5rem 0 2.5rem;
+}
+.report-sample-navigation a {
+  white-space: normal;
+  max-width: 100%;
+}
+.report-sample-navigation a[aria-current="page"] {
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: .25em;
+}

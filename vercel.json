@@ -191,6 +191,7 @@
   ],
   "git": {
     "deploymentEnabled": {
+      "dev/licensing-and-report-samples-20261109": false,
       "dev/tac-release-candidate-20261107": false,
       "codex/restore-valtoris-v2": false,
       "codex/academy-migration-audit": false,
