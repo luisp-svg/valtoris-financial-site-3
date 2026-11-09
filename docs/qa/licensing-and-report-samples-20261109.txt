@@ -79,9 +79,10 @@ Supabase advisors still flag intentional authenticated SECURITY DEFINER recruiti
 entry points. Fixed search paths, revoked anon/PUBLIC execution, manager checks,
 RLS and denial regressions were verified. The prior leaked-password protection
 plan limitation remains; no plan upgrade, billing change or setting change was made.
-Populated private-form browser editing remains a manual acceptance check: the
-hosted development recruiting list has no persistent recruits, and this work did
-not add a retained recruit solely to fill that screen. Backend populated tests pass.
+Populated private-form browser acceptance completed November 9, 2026 using a
+disposable synthetic recruit linked to the existing authorized development
+advisor test account. The record and all test-only children/history/audit rows
+were removed after testing; no persistent recruit was retained.
 No actual identity documents or personal identity data were used in tests.
 
 Protected state
@@ -91,3 +92,33 @@ production database write, business-record edit, or billing change performed.
 Retained development QA task fixtures: 6, fingerprint 4ddaae1762314eb25ba09e1ad7148aad.
 Retained QA commission events: 5, fingerprint 99e728bcb4b71e50dfd664e6256ab6ba.
 Both match their pre-change values.
+
+
+Populated private licensing form — final browser acceptance
+User authorized synthetic development-only testing and preservation of production,
+billing, existing business records and retained QA fixtures.
+PASS: manager opens private form on an actual populated development record.
+PASS: empty required fields block submission; future DOB is rejected without a save.
+PASS: synthetic NPN, SSN last four (0000), DOB, driver license number and first
+policy reference/submission date save and survive reload exactly.
+PASS: invalid nonnumeric SSN last four does not persist; only two valid saves
+appear in the private-field change history during this test.
+PASS: Cancel discards an unsaved NPN edit; valid NPN update persists and preserves
+all other identity fields, including leading zeros in SSN last four.
+PASS: create and update private history contain only the identity-updated marker,
+without before/after identity values.
+PASS: real browser login as the linked advisor can see its own synthetic recruit,
+but private form, identity values, license number, edit controls and history are
+absent. Authenticated advisor SQL/RPC checks also deny those reads/writes.
+PASS: the disposable recruit, private row, credential, history and test-only audit
+rows were removed with exact record-ID/name/email guards. Zero test rows remain.
+PASS: before/after counts and complete-row fingerprints match for all 16 checked
+development tables: households, leads, opportunities, tasks, appointments,
+policy_applications, policies, policy_writing_commission_events, profiles,
+advisor_profiles, recruit_records, recruit_credentials, recruit_carrier_readiness,
+recruit_license_private, recruit_history and audit_logs. Retained QA fixtures are
+therefore unchanged, including their complete contents.
+No application changes or deployments were needed for this acceptance check.
+Previous full-suite result remains 4,379 passed, zero failures/skips.
+The development owner session was restored after advisor testing.
+The previously pending populated-private-form acceptance check is now closed.
