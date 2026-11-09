@@ -1,0 +1,57 @@
+Licensing revoked-contract writing-code guard — development verification
+November 9, 2026
+
+Problem
+A carrier record could retain contract_progress=code_issued and writing_code after
+contract_status was changed to revoked. The ready/active workflow transition check
+accepted that stale code. An isolated regression reproduced the released behavior.
+Production currently has no recruit records; production records were not used for
+mutation testing.
+
+Change
+New generated migration:
+20261109173147_licensing_revoked_contract_code_guard.sql
+
+The recruit_command transition predicate now also requires contract_status <> revoked.
+A valid code from any other active carrier can still qualify the recruit. The error
+message explicitly identifies the non-revoked-contract requirement. Existing recorded
+stages and business rows are not rewritten. No automatic stage demotion is introduced.
+
+Compared with the released function, only the carrier eligibility predicate and its
+error message changed. Existing manager authorization, revision locking, required
+licensing details, first-policy evidence, identity privacy, and audit behavior remain.
+Historical migration SQL is unchanged; the source inventory registers the new file.
+
+Regression verification
+RED: new test failed against the old function because Ready to Write unexpectedly
+succeeded with only a revoked carrier code (1 failure, 5 passes).
+GREEN: recruiting plus migration-inventory checks: 32 tests / 7 files passed.
+Tests cover blocked Ready to Write and Active Agent transitions, unchanged stage after
+rejection, a qualifying second carrier despite another revoked carrier, and retained
+manager-only identity/read/write boundaries.
+Full suite: 4,381 passed, 0 failed, 0 skipped (local Docker available).
+TypeScript, full lint, asset build, 12-function budget, server ESM imports and browser
+Activity INSERT guard passed.
+
+Hosted development verification
+Project: cxgiaevervjttbuiramd (development only).
+Applied migration name: licensing_revoked_contract_code_guard
+Hosted history version: 20261109173310; source version: 20261109173147.
+Existing source/hosted migration-version mapping must be considered in future releases.
+A rollback-only test created a synthetic recruit, required synthetic licensing details,
+a revoked carrier/code, and a valid second carrier/code. Both revoked-code transitions
+were rejected; the valid second carrier enabled advancement. The entire test rolled
+back. No retained recruit, credential, private record, carrier review or audit row added.
+Before/after complete-row fingerprints and counts match across all 16 checked
+hosted-development business/recruiting/audit tables. Retained QA fixtures unchanged.
+Supabase advisors checked before/after; the change adds no function entry point or grant.
+
+Release boundary
+Branch: dev/licensing-revoked-code-guard-20261109
+Automatic deployment disabled for this branch in vercel.json.
+No frontend/preview deployment is needed for the server-side development check.
+No production migration, merge or deployment performed for this follow-up.
+Production recruit_command remains at released body hash
+2bc4e876cd557162d758086bc4b29a26 and deployment dpl_Dvb4GzkVjZjuyLQzMP5E3MJwwppz.
+Billing, existing business records and retained QA fixtures unchanged.
+A separate explicit release authorization is required before applying the fix to production.
