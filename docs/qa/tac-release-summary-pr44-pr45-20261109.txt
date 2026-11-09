@@ -1,0 +1,131 @@
+FINAL RELEASE SUMMARY — PRs #44 AND #45
+Released November 9, 2026
+Status: Live
+
+Both PRs are merged and deployed. The verified PR #45 application release was
+commit b0a68add3b278090d6927a5aba8b29cab598a0ce, with deployment
+dpl_HdPmdAGaXAXWVZWsSv1iwyjJAkDy confirmed READY at release verification.
+Later documentation-only deployments do not change that application behavior.
+
+WHAT SHIPPED
+
+PR #44 — Licensing workflow, report samples, and Family questionnaire
+https://github.com/luisp-svg/valtoris-financial-site-3/pull/44
+Merge: bac61684ab7d1de737d93eb854f16c9920638003
+
+- Expanded licensing stages and placed Contracting before E&O.
+- Added carrier-specific Submitted, Pending, Approved and Code Issued progress,
+  including the actual writing code.
+- Ready to Write requires a carrier code; Active Agent also requires a
+  manager-recorded first submitted policy reference and date.
+- License number and issue/expiration dates reuse credential records. NPN, SSN
+  last four only, DOB and driver license number use manager-only private storage.
+  Identity values are excluded from general change-history snapshots.
+- Added fictional sample reports for all nine current report journeys, using the
+  actual report renderer and calculations, with English and Spanish support.
+- Added health coverage, who needs coverage, monthly premium, medical-cost
+  difficulty, student loan type, balance, monthly payment and repayment status
+  to the active Family questionnaire. Conditional follow-ups and Not sure choices
+  are included; older assessment versions remain supported.
+
+PR #45 — Revoked carrier writing-code guard
+https://github.com/luisp-svg/valtoris-financial-site-3/pull/45
+Merge: b0a68add3b278090d6927a5aba8b29cab598a0ce
+
+- Prevents revoked carrier contracts from qualifying agents for new Ready to Write
+  or Active Agent transitions, even if an old issued code remains recorded.
+- A valid code from another active carrier can still qualify the agent.
+- Existing recorded stages are not rewritten or automatically demoted.
+
+VERIFICATION RESULTS
+
+- PR #44: 4,379 tests passed, zero failures and zero skips.
+- PR #45: 4,381 tests passed, zero failures and zero skips. This later full suite
+  includes the earlier coverage; these are not additive test totals.
+- PR #45 final review reran 32 focused recruiting/migration-inventory tests; all passed.
+- Type checking, full lint, asset builds, the 12-function budget, server ESM imports
+  and the browser Activity INSERT guard passed.
+- All nine live sample reports rendered; the Spanish Family sample passed.
+- Live Family questionnaire walkthroughs verified the new questions and conditional
+  follow-ups without submitting an assessment or booking.
+- Populated private-form testing used disposable synthetic development data and
+  verified saving, reloads, edits, cancellation, required fields, invalid-input
+  rejection, leading-zero SSN last four preservation and identity-history redaction.
+- A real linked development advisor could see its synthetic recruit but could not
+  see private identity values, the license number, edit controls or change history.
+  Direct advisor database/RPC reads and edits were also denied.
+- Synthetic test records were removed. Two audit rows left by disposable household
+  tests were removed after confirming their test households had already been deleted.
+  Pre-existing audit rows and retained QA fixtures were preserved.
+- Rollback-only development tests rejected revoked-code transitions for both ready
+  stages, then accepted a valid second carrier code. No test rows persisted.
+- Production verification confirmed owner licensing access, the exact installed fix
+  and eight successful website/access checks, including signed-out CRM rejection.
+- Production function hash: 4611684d6d9f737692f3cb4fceb61560.
+- No error/fatal entries were observed in the available post-release log windows.
+  This is a bounded observation, not a guarantee of future error-free operation.
+- Before/after counts and complete-row fingerprints matched across 16 checked
+  production tables. PR #44 comparisons excluded only newly added null carrier fields.
+- Retained development QA fixtures remained unchanged: six tasks with fingerprint
+  4ddaae1762314eb25ba09e1ad7148aad, and five commission events with fingerprint
+  99e728bcb4b71e50dfd664e6256ab6ba.
+- Billing and existing business-record contents remained unchanged.
+
+REMAINING LIMITATIONS
+
+1. Leaked-password protection remains disabled under the current plan limitation.
+   No upgrade or billing change was made.
+2. Existing security notices remain documented: 94 authenticated privileged-function
+   warnings and six policy informational notices. Fixed search paths, manager checks,
+   RLS and denied anonymous access remain in place. These checks are not a
+   comprehensive security certification or penetration test.
+3. First-policy submission is recorded by a licensing manager. Workflow stages do
+   not independently establish carrier compliance or writing authority.
+4. Revoked contracts block qualifying transitions, but existing stages are not
+   automatically demoted. Compliance readiness remains a separate review.
+5. Health and student loan answers remain questionnaire-only, as approved; they
+   do not add finished-report sections or change scoring.
+6. Populated identity-form testing used synthetic development data. Production
+   verification did not create customer records or submit applications or bookings.
+7. Verification suites ran outside GitHub CI. No automated GitHub check results
+   were posted for these commits.
+8. Source and hosted migration timestamps differ. Future migration work must use
+   the recorded mappings below and must not blindly replay installed migrations.
+
+MIGRATION RECEIPTS
+
+PR #44 source: 20261109164519_licensing_workflow_private_profile.sql
+Production history version: 20261109171948
+Production name: licensing_workflow_private_profile
+Production prerequisites already existed and were not replayed.
+Development received the reviewed recruiting prerequisites and new workflow in one
+atomic bootstrap named licensing_workflow_with_recruiting_prerequisites.
+
+PR #45 source: 20261109173147_licensing_revoked_contract_code_guard.sql
+Development history version: 20261109173310
+Production history version: 20261109182646
+Migration name: licensing_revoked_contract_code_guard
+Production application enforced an exact-prerequisite function hash check first.
+
+LIVE PAGES
+
+Report samples: https://www.valtorisfinancial.com/report-card-samples
+Family questionnaire: https://www.valtorisfinancial.com/family-assessment
+TAC licensing: https://www.valtorisfinancial.com/crm/recruiting
+
+DETAILED PROJECT EVIDENCE
+
+docs/qa/licensing-and-report-samples-20261109.txt
+docs/qa/licensing-revoked-code-guard-20261109.txt
+PR #44 and PR #45 descriptions contain final authorization and live verification notes.
+
+DOCUMENTATION-SAVE BOUNDARY
+
+This summary was initially saved on docs/pr44-pr45-release-summary-20261109,
+with automatic Vercel deployment explicitly disabled for that branch. That save
+left main and the live release unchanged.
+
+The user subsequently authorized merging and deploying the documentation commit.
+That publication includes this summary and the documentation-branch deployment
+guard only; it changes no application logic or database migration and does not
+change billing, business records or retained QA fixtures.
