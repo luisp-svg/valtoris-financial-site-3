@@ -45,7 +45,7 @@ export function licensingSummary(record: Recruit, credentials: Credential[], car
 }
 export function matchesAttention(record: Recruit, summary: ReturnType<typeof licensingSummary>, filter: AttentionFilter) {
   switch (filter) {
-    case 'licensing': return record.stage === 'licensing'
+    case 'licensing': return ['licensing','test_booked','fingerprints','state_fee','pending_state_approval'].includes(record.stage)
     case 'appointments': return summary.pendingAppointments > 0
     case 'requirements': return summary.requirementsNeeded
     case 'renewals': return summary.renewals.length > 0

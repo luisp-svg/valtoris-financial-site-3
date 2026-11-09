@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import type { CarrierReview, Credential, History, Option, Readiness, Recruit } from './types'
+import type { CarrierReview, Credential, History, LicensePrivate, Option, Readiness, Recruit } from './types'
 
 /** Stable pagination avoids silently losing older recruiting records. RLS scopes every page. */
 export async function listRecruits(db: SupabaseClient): Promise<Recruit[]> {
@@ -52,11 +52,12 @@ export async function recruitDetail(db: SupabaseClient, id: string, manager: boo
     db.from('recruit_credentials').select('*').eq('recruit_id', id).order('updated_at', { ascending: false }),
     db.from('recruit_carrier_readiness').select('*').eq('recruit_id', id).order('updated_at', { ascending: false }),
     db.rpc('recruit_readiness', { p_recruit_id: id }),
+    manager ? db.from('recruit_license_private').select('*').eq('recruit_id', id).maybeSingle() : Promise.resolve({data:null,error:null}),
     manager ? db.from('recruit_history').select('*').eq('recruit_id', id).order('occurred_at', { ascending: false }).limit(100) : Promise.resolve({ data: [], error: null }),
   ])
   for (const result of results) if (result.error) throw result.error
   if (!results[0].data) throw new Error('Recruit not available for your account.')
-  return { record: results[0].data as Recruit, credentials: results[1].data as Credential[], carriers: results[2].data as CarrierReview[], readiness: results[3].data as Readiness[], history: results[4].data as History[] }
+  return { record: results[0].data as Recruit, credentials: results[1].data as Credential[], carriers: results[2].data as CarrierReview[], readiness: results[3].data as Readiness[], licensePrivate: results[4].data as LicensePrivate | null, history: results[5].data as History[] }
 }
 export async function recruitOptions(db: SupabaseClient): Promise<{ advisors: Option[]; carriers: Option[] }> {
   const [advisors, carriers] = await Promise.all([

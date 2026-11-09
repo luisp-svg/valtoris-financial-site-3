@@ -21,7 +21,7 @@ export const credentialFields = (kind: 'license' | 'eo'): Field[] => [
   ...(kind === 'license' ? [{ key: 'state', label: 'State or territory (two letters)', required: true, maxLength: 2 }, { key: 'authority_scope', label: 'License scope', required: true, maxLength: 120, hint: 'Use the same scope on the carrier review, for example Life or Health.' }] as Field[] : []),
   { key: 'provider_reference', label: kind === 'license' ? 'License number / reference' : 'E&O provider / policy reference', required: true },
   { key: 'status', label: 'Verification status', required: true, options: choices('reported', 'verified', 'revoked') },
-  { key: 'effective_on', label: 'Effective date', type: 'date' },
+  { key: 'effective_on', label: kind === 'license' ? 'Date issued' : 'Effective date', type: 'date' },
   { key: 'expires_on', label: 'Expiration date', type: 'date' },
   { key: 'no_expiration', label: 'No expiration confirmed', type: 'checkbox', hint: 'Select only when explicitly confirmed; leave expiration blank.' },
   { key: 'evidence_reference', label: 'Evidence reference', maxLength: 1000, hint: 'Required to verify. Record where the evidence was reviewed, without credentials or private documents.' },
@@ -30,6 +30,8 @@ export const carrierFields = (carriers: Option[]): Field[] => [
   { key: 'carrier_id', label: 'Carrier', required: true, options: carriers },
   { key: 'state', label: 'State or territory (two letters)', required: true, maxLength: 2 },
   { key: 'authority_scope', label: 'License scope', required: true, maxLength: 120, hint: 'Must match the verified license scope.' },
+  { key: 'contract_progress', label: 'Contracting progress', required: true, options: [{id:'submitted',name:'Submitted'},{id:'pending',name:'Pending'},{id:'approved',name:'Approved'},{id:'code_issued',name:'Code Issued'}] },
+  { key: 'writing_code', label: 'Carrier writing code', maxLength: 120, hint: 'Record the actual code issued by this carrier. Required for Code Issued.' },
   ...(['contract', 'appointment'] as const).flatMap(prefix => {
     const label = prefix === 'contract' ? 'Contracting' : 'Appointment'
     return [
@@ -41,4 +43,13 @@ export const carrierFields = (carriers: Option[]): Field[] => [
     ] as Field[]
   }),
   { key: 'review_now', label: 'Record my readiness review now', type: 'checkbox', hint: 'Confirm that you reviewed this carrier, state, scope, and the supporting credentials. Readiness still requires current verified records.' },
+]
+
+export const privateLicenseFields: Field[] = [
+ {key:'npn',label:'NPN #',required:true,maxLength:20},
+ {key:'ssn_last_four',label:'SSN last four only',required:true,maxLength:4,hint:'Never enter a full Social Security number.'},
+ {key:'dob',label:'Date of birth',type:'date',required:true},
+ {key:'drivers_license_number',label:'Driver license #',required:true,maxLength:100},
+ {key:'first_policy_reference',label:'First submitted policy reference',maxLength:200,hint:'Record the carrier policy or application reference after the first policy is submitted.'},
+ {key:'first_policy_submitted_on',label:'First policy submission date',type:'date'},
 ]

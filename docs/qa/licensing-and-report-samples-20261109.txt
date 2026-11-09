@@ -1,0 +1,124 @@
+Valtoris TAC licensing and public report samples — development verification
+Date: November 9, 2026
+
+Scope and approval
+The user approved the licensing workflow and carrier-specific contracting statuses,
+first code for Ready to Write, first policy submission for Active Agent, required
+license/identity fields, and access limited to licensing managers. The user also
+approved samples for all report cards and health/student loan questions in the
+family questionnaire ONLY. Production release is not authorized for these changes.
+
+Development implementation
+Branch: dev/licensing-and-report-samples-20261109
+Application source: 4001e0c726bb4ef38f91b5f02968c1e313531a2e
+Preview: https://valtoris-financial-site-3-9gdfhzh5b-valtoris.vercel.app
+Preview deployment: dpl_Dsgq7jucrdsU7YHBCSLnHmjnygqB (READY, preview)
+Samples: /report-card-samples?type=family
+Family questionnaire: /family-assessment
+Licensing: /crm/recruiting
+
+Licensing: Recruit retained, followed by Licensing, Test Booked, Fingerprints,
+State Fee, Pending State Approval, Licensed, Contracting, E&O, Carrier Appointments,
+Ready to Write, Active Agent; Paused and Withdrawn retained. Contracting progress
+is per carrier/state/scope: Submitted, Pending, Approved, Code Issued. Actual code
+is recorded. Compliance evidence/readiness remains separate from workflow stages.
+First policy reference/date is confirmed by the manager, including policies
+submitted outside TAC; no automatic promotion or production policy mutation.
+
+License number and issue/expiration dates reuse credential records. NPN, SSN last
+four ONLY, DOB and driver license number use a separate RLS-protected table.
+Manager-only database access applies to license credentials as well as the new
+identity table. Nonmanagers cannot change these through RPCs. Identity values
+are excluded from general history/audit snapshots. Current recruiting-manager
+access model is retained, including owners; no additional advisor was granted
+manager access. Existing stages/records are not backfilled or rewritten.
+
+Public examples: nine current report journeys (family, business, student loans,
+health/disability, trucking, home buyer, retirement/TSP, life/protection, credit).
+They reuse the actual results renderer/calculations with fictional inputs. Public
+samples never load saved answers or submit information. Links are available from
+Solutions, with a type selector on the sample page. English and Spanish supported.
+
+Family intake: coverage, who needs coverage, monthly premium, medical cost
+payment difficulty, household student loans, loan type, approximate balance,
+monthly payment and repayment status. Conditional follow-ups, unknown choices,
+and answer pruning included. Version flag preserves older assessments. No new
+report categories, scores or result sections are introduced.
+
+Verification
+PASS: 4,379 tests, 0 failed, 0 skipped (full suite, local Docker available).
+PASS: TypeScript, full lint, production asset build.
+PASS: 12-function budget, server ESM imports, browser Activity INSERT guard.
+PASS: all nine public samples rendered in browser; Spanish family sample checked.
+PASS: hosted family questionnaire begins, health follow-ups and all loan questions
+are visible; walkthrough stopped before contact/submission (no assessment saved).
+PASS: owner test login and full licensing board stage order in hosted preview.
+PASS: isolated database regressions enforce required fields, first code and first
+policy rules, validate identity inputs, and deny nonmanager reads/writes.
+PASS: populated rollback-only hosted-development check saved private details,
+verified history redaction, and denied advisor read/write; 0 temporary recruits remain.
+PASS: anon cannot read identity table or call recruit_command; authenticated cannot
+directly update the private table.
+
+Development database: cxgiaevervjttbuiramd (valtoris-crm-dev). Recruiting tables
+were absent there, so reviewed existing 079_recruiting_readiness.sql and
+20261102223910_agent_licensing_profile.sql prerequisites plus the new generated
+20261109164519_licensing_workflow_private_profile.sql were applied atomically in
+one development migration named licensing_workflow_with_recruiting_prerequisites.
+The first attempt without prerequisites failed because recruit_records was absent;
+no partial schema change occurred. Verify installed prerequisites before any future
+promotion; do not blindly rerun this combined development bootstrap.
+
+Preview environment is scoped to this branch and the separate development database,
+with an independent assessment signing secret. External booking writes are disabled.
+Automatic deployment for this branch is disabled in vercel.json; previews are explicit.
+No credentials were committed or placed in this report.
+
+Security review
+Supabase advisors still flag intentional authenticated SECURITY DEFINER recruiting
+entry points. Fixed search paths, revoked anon/PUBLIC execution, manager checks,
+RLS and denial regressions were verified. The prior leaked-password protection
+plan limitation remains; no plan upgrade, billing change or setting change was made.
+Populated private-form browser acceptance completed November 9, 2026 using a
+disposable synthetic recruit linked to the existing authorized development
+advisor test account. The record and all test-only children/history/audit rows
+were removed after testing; no persistent recruit was retained.
+No actual identity documents or personal identity data were used in tests.
+
+Protected state
+Production still serves dpl_F3j2RddV4YFEBHQEoxYgPdXcmfvD, main
+19aebd22c1431ba056561c52ca08bdffe1e69604. No merge, production deployment,
+production database write, business-record edit, or billing change performed.
+Retained development QA task fixtures: 6, fingerprint 4ddaae1762314eb25ba09e1ad7148aad.
+Retained QA commission events: 5, fingerprint 99e728bcb4b71e50dfd664e6256ab6ba.
+Both match their pre-change values.
+
+
+Populated private licensing form — final browser acceptance
+User authorized synthetic development-only testing and preservation of production,
+billing, existing business records and retained QA fixtures.
+PASS: manager opens private form on an actual populated development record.
+PASS: empty required fields block submission; future DOB is rejected without a save.
+PASS: synthetic NPN, SSN last four (0000), DOB, driver license number and first
+policy reference/submission date save and survive reload exactly.
+PASS: invalid nonnumeric SSN last four does not persist; only two valid saves
+appear in the private-field change history during this test.
+PASS: Cancel discards an unsaved NPN edit; valid NPN update persists and preserves
+all other identity fields, including leading zeros in SSN last four.
+PASS: create and update private history contain only the identity-updated marker,
+without before/after identity values.
+PASS: real browser login as the linked advisor can see its own synthetic recruit,
+but private form, identity values, license number, edit controls and history are
+absent. Authenticated advisor SQL/RPC checks also deny those reads/writes.
+PASS: the disposable recruit, private row, credential, history and test-only audit
+rows were removed with exact record-ID/name/email guards. Zero test rows remain.
+PASS: before/after counts and complete-row fingerprints match for all 16 checked
+development tables: households, leads, opportunities, tasks, appointments,
+policy_applications, policies, policy_writing_commission_events, profiles,
+advisor_profiles, recruit_records, recruit_credentials, recruit_carrier_readiness,
+recruit_license_private, recruit_history and audit_logs. Retained QA fixtures are
+therefore unchanged, including their complete contents.
+No application changes or deployments were needed for this acceptance check.
+Previous full-suite result remains 4,379 passed, zero failures/skips.
+The development owner session was restored after advisor testing.
+The previously pending populated-private-form acceptance check is now closed.

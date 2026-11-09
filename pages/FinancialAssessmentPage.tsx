@@ -1,3 +1,4 @@
+import { mainReportCard } from '../modules/reportCard/combined/cardProfiles';
 import { publicReportCards, reportCardForFocus } from "../modules/reportCard/funnelStrategy";
 import { premiumSpanishConsent } from "../components/premium/consentLabels";
 import { useEffect, useRef, useState } from "react";
@@ -89,7 +90,8 @@ function FinancialAssessmentForm({
     inFlight = useRef(false),
     heading = useRef<HTMLHeadingElement>(null);
   const cardVersion = consultationOnly ? undefined : 1;
-  const questions = consultationOnly ? [] : combinedQuestions(selected, diagnostic, 1, 1, cardVersion),
+  const familySupplementVersion = !consultationOnly && mainReportCard(selected) === 'family' ? 1 : undefined;
+  const questions = consultationOnly ? [] : combinedQuestions(selected, diagnostic, 1, 1, cardVersion, familySupplementVersion),
     atContact = step >= questions.length,
     q = questions[step];
   useEffect(() => {
@@ -165,6 +167,7 @@ function FinancialAssessmentForm({
         insuranceRoutingVersion: 1,
         ...(consultationOnly?{}:{strategyVersion:1 as const}),
         ...(cardVersion ? { cardVersion } : {}),
+        ...(familySupplementVersion ? { familySupplementVersion } : {}),
       ...(consultationOnly ? {consultationOnly:true as const} : {}),
       selected,
       diagnostic,
@@ -279,7 +282,7 @@ function FinancialAssessmentForm({
             {!funnel && !consultationOnly && <div className="priority-directory-grid">{publicReportCards.map(item=><Link className="premium-secondary" key={item.id} to={`/financial-assessment?focus=${item.id}&lang=${locale}`}>{item.title[es?1:0]}</Link>)}</div>}
             {(funnel||consultationOnly)&&<div className="premium-selection-footer">
               <p aria-live="polite">
-                {consultationOnly ? t("Contact details, then choose a time.","Tus datos y después el horario.") : t(`About ${Math.max(3, Math.ceil((questions.length * 20 + 60) / 60))} minutes to start; never more than 25 questions including contact details.`, `Unos ${Math.max(3, Math.ceil((questions.length * 20 + 60) / 60))} minutos para comenzar; pueden aparecer preguntas según tus respuestas.`)}
+                {consultationOnly ? t("Contact details, then choose a time.","Tus datos y después el horario.") : t(`About ${Math.max(3, Math.ceil((questions.length * 20 + 60) / 60))} minutes to start; follow-up questions depend on your answers.`, `Unos ${Math.max(3, Math.ceil((questions.length * 20 + 60) / 60))} minutos para comenzar; pueden aparecer preguntas según tus respuestas.`)}
               </p>
               <button
                 className="premium-button"
@@ -444,7 +447,7 @@ function FinancialAssessmentForm({
                         }
                         onChange={(e) => {
                           setDiagnostic((d) =>
-                            updateCombined(selected, d, q.id, e.target.value, 1, 1, cardVersion),
+                            updateCombined(selected, d, q.id, e.target.value, 1, 1, cardVersion, familySupplementVersion),
                           );
                           setError("");
                         }}
@@ -465,6 +468,7 @@ function FinancialAssessmentForm({
                                 1,
                                 1,
                                 cardVersion,
+                                familySupplementVersion,
                               ),
                             );
                             setError("");
@@ -484,7 +488,7 @@ function FinancialAssessmentForm({
                       value={String(diagnostic[q.id] ?? "")}
                       onChange={(e) => {
                         setDiagnostic((d) =>
-                          updateCombined(selected, d, q.id, e.target.value, 1, 1, cardVersion),
+                          updateCombined(selected, d, q.id, e.target.value, 1, 1, cardVersion, familySupplementVersion),
                         );
                         setError("");
                       }}
@@ -539,7 +543,7 @@ function FinancialAssessmentForm({
                                       ]
                                 : option.value;
                               setDiagnostic((d) =>
-                                updateCombined(selected, d, q.id, next, 1, 1, cardVersion),
+                                updateCombined(selected, d, q.id, next, 1, 1, cardVersion, familySupplementVersion),
                               );
                               setError("");
                             }}
