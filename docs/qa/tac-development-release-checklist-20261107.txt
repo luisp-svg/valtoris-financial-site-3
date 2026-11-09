@@ -1,12 +1,33 @@
 CURRENT VERIFICATION STATUS — 2026-11-08
+- Development deployment packaging check: PASSED (12 Node bundles; details below).
 - Complete single-run result: 4,342 tests passed across 501 files, 0 failed, 0 skipped (Node 22, serial workers, local Supabase plus authenticated hosted DEVELOPMENT suites).
 - Tracked application/test sources in the tested checkout exactly match combined candidate edd4b501a7c9cdadbcadaf9f0617083b311fd737; only this historical checklist differed locally. Preview deployment dpl_GkTApNZVzNhTMfRAkPURjeGSr54u is READY at that commit. Original feature branches remain unmerged.
 - main remains af6edfb0fc3ed1467bcf5af1db85f84e74fa1274, verified by GitHub compare (identical). No production deploy, merge, or database/config write performed.
 - Retained six QA queue tasks and five commission events have identical before/after row-content fingerprints. Private development test credentials remain ignored and owner-readable only.
 - Hosted test prerequisite gates are now closed: all 74 formerly skipped tests passed within this complete run.
-- Still pending before a production release: (1) separately authorized Pro-or-higher billing upgrade to enable leaked-password protection, or explicit acceptance of that limitation; (2) environment-specific Vercel packaged-function import check, which needs generated .vercel/output/functions and is not replaced by Vite build or READY status; (3) final security risk acceptance and explicit production release authorization. This verification does not authorize those actions.
+- Still pending before a production release: separately authorized Pro-or-higher billing upgrade to enable leaked-password protection (or explicit acceptance of that limitation), final security risk acceptance, and explicit production release authorization. The development packaging gate is now closed; no production action is authorized by this checklist.
 - Fresh development security advisory counts unchanged: 90 authenticated SECURITY DEFINER execution notices, 11 informational RLS-without-policy notices, 1 leaked-password-protection warning. Prior guard/grant review and authenticated permission checks remain evidence; notices are not all automatically closed by passing tests.
 - This current status supersedes historical skipped-test counts below. Historical verification details retained for traceability.
+
+
+DEVELOPMENT PACKAGING AND SECURITY REVIEW — 2026-11-08
+- Packaging PASS. Isolated checkout /tmp/valtoris-package-check-20261108 at candidate 6e61fd972e0cba368da9204b92d1c2d5975c8298; Vercel project prj_PizD9wgsixo5A7TE8inTAGXEVpQG, team valtoris. Vercel CLI 65.9.0 authenticated; branch-specific PREVIEW settings pulled. Omitted Secret values were supplied only from the existing private DEVELOPMENT Supabase configuration. All effective Supabase URLs were set to cxgiaevervjttbuiramd.supabase.co locally. No test passwords copied into build configuration.
+- Local vercel build --environment=preview succeeded and generated .vercel/output. This was a local preview build only: no deploy, promotion, production environment pull, or production configuration change.
+- scripts/check-vercel-runtime.mjs PASS under Node 22.23.4: all 12 expected Node function bundles native-imported without module-resolution errors. Middleware is Edge runtime and is explicitly excluded by this Node-only checker; its successful build is not described as a Node import test.
+- Static output scanned: 168 files; zero occurrences of the development service-role key or the three test passwords. Build settings, environment files, and artifacts remain local and uncommitted.
+- Security advisory counts remain 90 authenticated SECURITY DEFINER execution warnings, 11 RLS-without-policy informational findings, and 1 disabled leaked-password warning.
+- All 90 flagged functions: anonymous EXECUTE denied; fixed per-function search_path configured; no dynamic EXECUTE or user_metadata authorization references observed in those function bodies. Neither anon nor authenticated can CREATE objects in public/extensions; neither is superuser nor BYPASSRLS.
+- Guard review traced shared household/application checks, private intake delegation, requirement loader checks, and the commission writer's internal owner guard. Read-only/self-scoped helpers and conditional owner/advisor workflows were distinguished from owner-only writes.
+- Targeted rollback-only advisor probes: all 27 functions whose first statement asserts owner access returned not_authorized; the standard commission writer wrapper also returned not_authorized through its internal guard (28 total). These null-argument probes prove the initial owner gate only; they are not a comprehensive adversarial audit of every valid payload for all 90 functions. Existing full-suite permission tests remain complementary evidence.
+- All 11 no-policy tables have RLS enabled. Ten grant no browser SELECT/INSERT/UPDATE/DELETE. _dryrun_results retains browser DML grants but zero policies: anonymous and QA-advisor SELECTs both returned zero rows; neither browser role has TRUNCATE/TRIGGER privileges. No permissive policies were added merely to silence informational findings. Optional least-privilege cleanup can remove unused scratch-table grants after checking consumers.
+- No new access bypass confirmed within this review. Notices are reviewed, not automatically resolved. Preserve explicit RPC authorization/permission regression checks; final risk acceptance remains required before release.
+- Leaked-password protection still requires a separately authorized Pro-or-higher upgrade; no billing/configuration change made.
+- QA preservation verified again: six retained queue tasks and five commission events have exactly the same row-content fingerprints as before packaging/security probes.
+- No persistent database security/permission changes were made during this review. No QA fixture deletion, main merge, production deploy, or production database/configuration change.
+- Supabase remediation references:
+  https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable
+  https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy
+  https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection
 
 TAC DEVELOPMENT RELEASE VERIFICATION — 2026-11-07
 Repository: luisp-svg/valtoris-financial-site-3
