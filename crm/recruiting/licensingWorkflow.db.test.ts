@@ -28,7 +28,7 @@ beforeAll(async () => {
     insert into profiles values('${owner}','owner','owner@example.invalid',true,null);
     insert into carriers values('${carrier}','Sample carrier',true,null); set test.manager='yes';`)
   await db.exec(readFileSync('supabase/migrations/079_recruiting_readiness.sql','utf8').replace(/extensions\.citext/g,'text'))
-  for (const suffix of ['_agent_licensing_profile.sql','_licensing_workflow_private_profile.sql']) {
+  for (const suffix of ['_agent_licensing_profile.sql','_licensing_workflow_private_profile.sql','_licensing_revoked_contract_code_guard.sql']) {
     const name = readdirSync('supabase/migrations').find(f => f.endsWith(suffix))!
     await db.exec(readFileSync(`supabase/migrations/${name}`,'utf8'))
   }
@@ -59,6 +59,23 @@ describe('licensing workflow and manager-only identity', () => {
     await move('active_agent')
     const rows = await db.query<{after_data:Record<string,unknown>}>('select after_data from recruit_history where recruit_id=$1 and action=$2',[recruit,'license_private'])
     expect(rows.rows.every(row => JSON.stringify(row.after_data)==='{"licensing_identity_updated":true}')).toBe(true)
+  })
+  it('rejects retained writing codes on revoked contracts for both ready stages', async () => {
+    await move('licensed')
+    const primary = (await db.query<{id:string}>('select id from recruit_carrier_readiness where recruit_id=$1 and carrier_id=$2',[recruit,carrier])).rows[0]
+    const revoked = {id:primary.id,carrier_id:carrier,state:'TX',authority_scope:'life',contract_status:'revoked',appointment_status:'pending',contract_progress:'code_issued',writing_code:'TEST-CODE'}
+    await run('carrier',revoked)
+    await expect(move('ready_to_write')).rejects.toThrow(/writing code/)
+    await expect(move('active_agent')).rejects.toThrow(/writing code/)
+    expect((await db.query<{stage:string}>('select stage from recruit_records where id=$1',[recruit])).rows[0].stage).toBe('licensed')
+  })
+  it('accepts a valid second carrier even when another carrier contract is revoked', async () => {
+    const second = '33333333-3333-4333-8333-333333333333'
+    await db.query('insert into carriers values($1,$2,true,null)',[second,'Second sample carrier'])
+    await run('carrier',{carrier_id:second,state:'TX',authority_scope:'life',contract_status:'pending',appointment_status:'pending',contract_progress:'code_issued',writing_code:'SECOND-VALID-CODE'})
+    await move('ready_to_write')
+    await move('active_agent')
+    expect((await db.query<{stage:string}>('select stage from recruit_records where id=$1',[recruit])).rows[0].stage).toBe('active_agent')
   })
   it('denies nonmanager API writes and direct identity/license reads', async () => {
     await db.exec(`set test.manager='no'; set role authenticated;`)
