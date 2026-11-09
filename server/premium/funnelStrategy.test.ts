@@ -14,7 +14,7 @@ function setup(){
  const saved:SavedAssessment={id:'original-assessment',updatedAt:new Date(now).toISOString(),submittedAt:new Date(now).toISOString(),answers,derived:{combinedReportResults:combinedResults(answers),bookingVerification:{retained:true}}};
  const deps={env:{VALTORIS_PREMIUM_ENABLED:'true',VALTORIS_ASSESSMENT_SESSION_SECRET:secret},now:()=>now,load:vi.fn(async()=>saved),saveProof:vi.fn(async()=>true),saveDiscovery:vi.fn(async(_s:SavedAssessment,d:Record<string,unknown>)=>{saved.derived={...saved.derived,comprehensiveDiscovery:d};return true}),verifyBooking:vi.fn(async()=>null),ingest:vi.fn()};
  async function request(action:string,body:Record<string,unknown>={},cookie=true){
-  const state={status:200,body:{} as any};const res={setHeader:vi.fn(),status(n:number){state.status=n;return res},json(b:unknown){state.body=b;return res}};
+  const state={status:200,body:{} as Record<string,unknown>};const res={setHeader:vi.fn(),status(n:number){state.status=n;return res},json(b:unknown){state.body=b as Record<string,unknown>;return res}};
   const post=action==='save-discovery'||action==='book';
   await premiumAssessmentHttp({method:post?'POST':'GET',query:{action,assessment:issued.session.id,scope:'business'},body:{submissionId:issued.session.id,...body},headers:{host:'localhost',origin:'http://localhost','content-type':'application/json',cookie:cookie?`${assessmentCookieName(issued.session.id)}=${issued.token}`:''}} as unknown as VercelRequest,res as unknown as VercelResponse,deps);
   return state;
@@ -28,7 +28,7 @@ describe('two-stage authenticated workflow',()=>{
  });
  it('recomputes final ratings for saved results from before the rating panel existed',async()=>{
   const {request,saved}=setup();saved.derived.combinedReportResults=[{type:'student_loan',title:'Old saved result',kind:'adaptive',result:{grade:null}}];
-  const result=await request('report');expect(result.status).toBe(200);expect(result.body.results[0].result.rating.code).toBe('PENDING');
+  const result=await request('report');expect(result.status).toBe(200);expect(result.body.results).toMatchObject([{result:{rating:{code:'PENDING'}}}]);
  });
  it('saves both stages on the original record, retains booking and does not re-ingest',async()=>{
   const {request,deps,saved}=setup();const plan=discoveryPlan('business',saved.answers);

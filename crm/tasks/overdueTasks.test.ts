@@ -4,7 +4,7 @@ import { fetchVisibleTasks } from './tasksApi'
 
 it('filters overdue open work in the database before limiting results', async () => {
   const query: Record<string, ReturnType<typeof vi.fn>> = {}
-  for (const method of ['select', 'is', 'in', 'order', 'lt', 'limit']) query[method] = vi.fn(() => query)
+  for (const method of ['select', 'is', 'in', 'order', 'lt', 'limit', 'range']) query[method] = vi.fn(() => query)
   query.then = vi.fn(resolve => resolve({ data: [], error: null }))
   const client = { from: () => query } as unknown as SupabaseClient
   await fetchVisibleTasks(client, { dueBefore: '2026-10-16', limit: 10 })

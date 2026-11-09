@@ -1,0 +1,95 @@
+Valtoris TAC Development Security Signoff
+Prepared November 8, 2026
+
+STATUS AND DECISION
+
+Approved for development-only use on November 8, 2026 by the requesting user through explicit approval in this chat. The documented risks, including the leaked-password protection limitation, are accepted for the named development scope.
+The completed checks support continued development verification with the retained QA fixtures. This document does not approve a production release, a merge to main, a billing upgrade, or a change to production security settings.
+
+SCOPE
+
+Repository: luisp-svg/valtoris-financial-site-3
+Feature branches: dev/executive-reporting-stage1 and dev/task-queue-separation
+Combined branch: dev/tac-release-candidate-20261107
+Development database: cxgiaevervjttbuiramd
+Vercel project: prj_PizD9wgsixo5A7TE8inTAGXEVpQG
+
+The full test checkout matched the combined application/test sources at edd4b501a7c9cdadbcadaf9f0617083b311fd737. The isolated packaging check used 6e61fd972e0cba368da9204b92d1c2d5975c8298; intervening differences were verification documentation. Later signoff documentation does not extend approval to future code changes.
+
+VERIFIED EVIDENCE
+
+- Complete single test run: 4,342 passed across 501 files, zero failed and zero skipped. All 74 previously blocked hosted-development tests are included.
+- Owner and advisor preview checks covered reporting visibility, assigned and unrelated household/application access, task queue classification, commission visibility, and owner-only posting.
+- Commission fixture calculations reconciled to 1,000 released minus 200 chargeback = 800 net. The separate 600 agent-paid leg did not inflate released totals; recovery/reversal offset and retry idempotency were verified.
+- Local Vercel PREVIEW build succeeded with development-only Supabase configuration. All 12 Node function bundles native-imported under Node 22.23.4 without module-resolution errors.
+- The Node import checker excludes Edge middleware. The successful middleware build is not an independent Edge-runtime import or adversarial test.
+- Scanning 168 static build files found none of the development service-role key or the three test passwords. This exact-value scan is not a general secret-scanning certification.
+- Six retained QA queue tasks and five commission events had identical before/after row-content fingerprints. The QA advisor profile remains active with advisor permissions.
+- Only the three explicitly authorized development test-account passwords were reset. Random replacement credentials remain in an ignored, owner-only local file; no passwords or keys are included here.
+
+ACCEPTED DEVELOPMENT LIMITATION 1 — LEAKED PASSWORD PROTECTION
+
+Development leaked-password protection remains disabled. The valtoris organization was confirmed on Supabase Free on November 8, 2026; Supabase requires Pro or above for this feature.
+
+Consequence: the hosted development Auth configuration does not screen passwords against the leaked-password service. A reused or compromised password could therefore be accepted. Strong random passwords for the three test accounts reduce their reuse risk but do not establish equivalent protection for every account.
+
+Decision recorded November 8, 2026: the requesting user explicitly accepts this limitation for the named development candidate. An eligible plan upgrade and subsequent enablement remain a separately authorized future option. No plan upgrade, charge, or security-setting change is authorized by this approval. The development exception does not carry over to production.
+
+Reference:
+https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection
+
+REVIEWED RESIDUAL RISK 2 — PRIVILEGED DATABASE FUNCTIONS
+
+Supabase still reports 90 authenticated SECURITY DEFINER execution warnings. These functions run with elevated database privileges and depend on correct authorization inside each callable path.
+
+Reviewed controls:
+- Anonymous EXECUTE is denied for all 90 flagged functions.
+- All 90 have a fixed per-function search_path.
+- Neither anonymous nor authenticated roles can CREATE objects in public/extensions, and neither is superuser or BYPASSRLS.
+- The reviewed function bodies contain no dynamic EXECUTE or user_metadata authorization references.
+- Shared household/application guards, private intake delegation, requirement access checks, and the commission writer's internal owner guard were traced.
+- Rollback-only QA-advisor probes returned not_authorized for 27 functions with an immediate owner assertion and for the standard commission wrapper: 28 entry points total.
+
+Remaining risk: authenticated EXECUTE grants remain, and a missed authorization defect in a conditional path could expose or change another user's records. The null-argument probes establish the initial owner gate; they do not prove every valid payload or every path across all 90 functions. Full-suite permission tests provide additional evidence. No new bypass was confirmed within this review.
+
+Acceptance condition: retain explicit function-level authorization and permission regression tests, and review changes to grants, guards, or callable paths before extending this signoff.
+
+Reference:
+https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable
+
+INFORMATIONAL FINDING 3 — TABLES WITHOUT ACCESS POLICIES
+
+Eleven tables have RLS enabled with no policies. Ten grant no browser SELECT/INSERT/UPDATE/DELETE access. The remaining scratch table, _dryrun_results, has browser DML grants but zero policies; anonymous and QA-advisor SELECTs both returned zero rows. Neither browser role has TRUNCATE or TRIGGER privileges.
+
+Current disposition: access remains denied. No permissive policies were added to silence these notices. Optional least-privilege cleanup may revoke unused scratch-table grants after checking consumers. Future policy or grant changes require review because they could change the effective access boundary.
+
+Reference:
+https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy
+
+LIMITS AND REOPEN CONDITIONS
+
+This is a scoped development verification, not an independent penetration test or a full-database security certification. Production configuration and production behavior are outside this approval. Production migration history differences previously identified require their own release review; do not replay migrations solely to match development history.
+
+Reopen the review if authentication, account roles, RLS policies, database grants, privileged functions, environment targets, or application/test sources materially change. Production release requires its own explicit authorization and review of the actual release candidate.
+
+APPROVAL RECORD — RECORDED
+
+Approver: Requesting user, by explicit approval in this chat.
+Decision: [x] Approve continued development with the documented exceptions.
+Leaked-password limitation explicitly accepted for development: [x] Yes
+Privileged-function residual risk reviewed and accepted: [x] Yes
+Other documented risks and verification limits accepted for development: [x] Yes
+Approval date: November 8, 2026 (America/Chicago).
+Approved document: prepared signoff at b3e90a2763773cad6574b4428e17b58aa36b0e90.
+Candidate accepted: dev/tac-release-candidate-20261107, with the application/test sources and development configuration described above; packaging snapshot 6e61fd972e0cba368da9204b92d1c2d5975c8298. Approval does not extend to future material changes.
+Conditions: retain the documented authorization controls and regression checks; reopen review on the material changes listed above; preserve QA fixtures. Production release, merge to main, production changes, and billing changes are outside this approval.
+
+Approval statement received:
+“I approve the development-only security signoff and accept the documented risks, including the leaked-password protection limitation. Record my approval and keep production, billing, and QA fixtures unchanged.”
+
+This records the user's chat approval; it is not a separately executed signature or contract. Production and billing changes remain unauthorized.
+
+EVIDENCE RECORD
+
+Detailed verification checklist and historical results:
+https://github.com/luisp-svg/valtoris-financial-site-3/blob/13f80cc0efd96bf6008e759f3cc4aea37809a723/docs/qa/tac-development-release-checklist-20261107.txt

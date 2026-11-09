@@ -76,32 +76,57 @@ export async function fetchVisibleTasks(
   supabase: SupabaseClient,
   options?: { dueBefore?: string; dueOn?: string; assignedUserId?: string; limit?: number; completed?: boolean; householdId?: string; opportunityId?: string },
 ): Promise<CrmTask[]> {
-  let query = supabase
-    .from('tasks')
-    .select(TASK_SELECT)
-    .is('deleted_at', null)
-    .in('status', options?.completed ? ['done'] : ['open', 'in_progress'])
-    .order('due_date', { ascending: true, nullsFirst: false })
-    .order('created_at', { ascending: false })
+  const buildQuery = (displayOrder: boolean) => {
+    let query = supabase
+      .from('tasks')
+      .select(TASK_SELECT)
+      .is('deleted_at', null)
+      .in('status', options?.completed ? ['done'] : ['open', 'in_progress'])
+    if (displayOrder) {
+      query = query.order('due_date', { ascending: true, nullsFirst: false })
+        .order('created_at', { ascending: false })
+    }
+    query = query.order('id', { ascending: true })
 
-  if (options?.opportunityId) query = query.eq('opportunity_id', options.opportunityId)
-  if (options?.householdId) query = query.eq('household_id', options.householdId)
-  if (options?.dueBefore && !options.completed) {
-    query = query.lt('due_date', options.dueBefore)
+    if (options?.opportunityId) query = query.eq('opportunity_id', options.opportunityId)
+    if (options?.householdId) query = query.eq('household_id', options.householdId)
+    if (options?.dueBefore && !options.completed) query = query.lt('due_date', options.dueBefore)
+    if (options?.dueOn) query = query.eq('due_date', options.dueOn)
+    if (options?.assignedUserId) query = query.eq('assigned_user_id', options.assignedUserId)
+    return query
   }
-  if (options?.dueOn) {
-    query = query.eq('due_date', options.dueOn)
-  }
-  if (options?.assignedUserId) {
-    query = query.eq('assigned_user_id', options.assignedUserId)
-  }
+
+  // Small dashboard widgets intentionally request bounded results.
   if (options?.limit) {
-    query = query.limit(options.limit)
+    const { data, error } = await buildQuery(true).limit(options.limit)
+    if (error) throw error
+    return (data ?? []).map(row => normalizeTask(row as Record<string, unknown>))
   }
 
-  const { data, error } = await query
-  if (error) throw error
-  return (data ?? []).map((row) => normalizeTask(row as Record<string, unknown>))
+  // Cursor on immutable IDs: completing/rescheduling earlier work cannot shift
+  // the next page. Apply due-date presentation order only after every page loads.
+  const pageSize = 200
+  const tasks: CrmTask[] = []
+  let cursor: string | null = null
+  for (;;) {
+    let query = buildQuery(false).limit(pageSize)
+    if (cursor) query = query.gt('id', cursor)
+    const { data, error } = await query
+    if (error) throw error
+    const page = (data ?? []).map(row => normalizeTask(row as Record<string, unknown>))
+    tasks.push(...page)
+    if (page.length < pageSize) {
+      return tasks.sort((a, b) => {
+        if (a.due_date == null && b.due_date != null) return 1
+        if (b.due_date == null && a.due_date != null) return -1
+        return (a.due_date ?? '').localeCompare(b.due_date ?? '') ||
+          (b.created_at ?? '').localeCompare(a.created_at ?? '') || a.id.localeCompare(b.id)
+      })
+    }
+    const next = page[page.length - 1].id
+    if (!next || (cursor && next <= cursor)) throw new Error('Task pagination did not advance.')
+    cursor = next
+  }
 }
 
 export async function createTask(

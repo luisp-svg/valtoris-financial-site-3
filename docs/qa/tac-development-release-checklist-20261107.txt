@@ -1,0 +1,141 @@
+PR 43 REPORTING CURSOR AND QUEUE RETENTION VERIFICATION — 2026-11-08
+Current verified application/test source: 538986d58dceb1daa72c44e0e3abf72ed79ce3b6.
+- Executive reporting now uses immutable ID cursors for all four report sources, avoiding offset-shift omissions or duplication when earlier rows leave or enter the result set. Page errors still invalidate the report. This does not claim an atomic snapshot of concurrent changes.
+- Task deep links persist their resolved queue in the URL with replace navigation. Completing an Internal or Operations task no longer falls back to Sales. Explicit tab changes still remove the target and work normally.
+- Added 5 regression cases: concurrent task completion, opportunity removal, insertion before the report cursor, and queue retention after completion in both Internal and Operations. Updated earlier pagination contract coverage. Against the prior PR, 6 of the latest 13 reporting/navigation cases fail and 7 pass; all 13 pass after the fixes. All 31 focused reporting/task checks pass.
+- New complete run: 4,363 passed across 504 files, 0 failed, 0 skipped, including all local and authenticated development suites.
+- Typecheck, full lint, whitespace, function budget, server ESM imports, and browser Activity INSERT guard passed. Local PREVIEW build and all 12 Node bundle imports passed; Edge remains outside the Node checker. Static output scan: 168 files, no private development credential matches.
+- Six retained QA queue tasks and five commission events exactly match prior row-content fingerprints. No changes to authentication, RLS, database grants, consent classification, production, or billing.
+- Existing development-only risk acceptance remains recorded separately. No upgrade is planned or performed. Production authorization is not inferred. Candidate auto-deployment remains disabled; no merge or deployment.
+- Prior verification sections below are historical and superseded by this complete run.
+
+PR 43 TASK CREATION AND CURSOR VERIFICATION — 2026-11-08
+Current verified application/test source: b9f1b4d75d61e795607ff22e2ebc0335ef685a71.
+- Successful creation now reveals the saved task in its actual queue, clears incompatible date/status/form parameters, and adjusts existing household/opportunity scope. Failed saves leave the form open. A refresh of the previous scope cannot turn a successful save into a submission error; older in-flight results are rejected after context changes.
+- Unbounded task retrieval uses an immutable ID cursor instead of offsets. Completion/rescheduling of earlier rows cannot shift the next page past an unchanged task. Scope filters apply on every request. Due-date/creation-time/ID display ordering is restored after loading; bounded widgets retain database ordering. This prevents offset-shift omissions; it is not an atomic point-in-time snapshot of all concurrent changes.
+- Added 8 additional regression cases: 5 creation cases plus 3 cursor/order cases; expanded prior pagination tests. The latest 11 relevant cases produce 7 failures and 4 passes against the previous PR, and all 11 pass with the fixes. All 23 focused task checks pass.
+- Complete run: 4,358 passed across 504 files; 0 failed, 0 skipped, including local and authenticated hosted-development suites.
+- Typecheck, full lint, whitespace, function budget, server ESM imports, and browser Activity INSERT guard passed. Local PREVIEW build and all 12 Node bundle imports passed; Edge remains outside the Node import checker. Static scan: 168 files, 0 private development credential matches.
+- Six retained QA queue tasks and five commission events exactly match their prior fingerprints. Authentication, RLS, database grants, and consent classification rules are unchanged.
+- Original development-only risk acceptance remains recorded; no production authorization is inferred. Supabase is NOT being upgraded. Production, billing, and QA fixtures remain unchanged.
+- Candidate automatic deployment remains disabled. These are PR-only commits: no merge or deployment.
+- Prior verification sections below are historical and are superseded by this complete run.
+
+PR 43 REVIEW FIX VERIFICATION — 2026-11-08
+Current verified application/test source: 7422ef9aca752933aa2b347ef88c96fb4335d629.
+- Fixed all three review findings: deep links select the target task's queue; task view/tab navigation preserves the resolved queue and permits leaving a target; complete task pagination prevents capped-response queue omissions; only the active dashboard tab is marked current.
+- Added 8 regression cases across taskNavigation.test.ts and taskPagination.test.ts. Against the original PR source, 7 detect the defects and 1 preserves bounded widget behavior; all 8 pass after the fixes.
+- New complete run: 4,350 passed across 503 files, 0 failed, 0 skipped. Includes all authenticated hosted-development and local database suites.
+- Typecheck, full lint, whitespace check, function budget, server ESM imports, and browser Activity INSERT guard passed.
+- Local Vercel PREVIEW build passed; all 12 Node function bundles native-imported. Edge middleware remains outside the Node import checker. Static output: 168 files, no development service key or test-password matches.
+- Retained six QA queue tasks and five commission events exactly match their prior row-content fingerprints.
+- Auth, RLS, database grants, and task consent classification rules were not changed by these fixes. Existing development-only risk acceptance remains recorded separately; no production approval is inferred or added.
+- Supabase is NOT being upgraded; Free plan and billing remain unchanged. The development leaked-password limitation remains explicitly accepted.
+- Draft PR 43 remains review-only. Candidate git.deploymentEnabled is false; no deployment, merge, production change, billing change, or retained fixture cleanup authorized or performed.
+- Earlier counts below are historical evidence, superseded by this complete run.
+
+PREVIOUS VERIFICATION STATUS — 2026-11-08
+- Development deployment packaging check: PASSED (12 Node bundles; details below).
+- Complete single-run result: 4,342 tests passed across 501 files, 0 failed, 0 skipped (Node 22, serial workers, local Supabase plus authenticated hosted DEVELOPMENT suites).
+- Tracked application/test sources in the tested checkout exactly match combined candidate edd4b501a7c9cdadbcadaf9f0617083b311fd737; only this historical checklist differed locally. Preview deployment dpl_GkTApNZVzNhTMfRAkPURjeGSr54u is READY at that commit. Original feature branches remain unmerged.
+- main remains af6edfb0fc3ed1467bcf5af1db85f84e74fa1274, verified by GitHub compare (identical). No production deploy, merge, or database/config write performed.
+- Retained six QA queue tasks and five commission events have identical before/after row-content fingerprints. Private development test credentials remain ignored and owner-readable only.
+- Hosted test prerequisite gates are now closed: all 74 formerly skipped tests passed within this complete run.
+- Development security signoff APPROVED November 8, 2026 by explicit user approval, including documented risks and the leaked-password protection limitation. Development packaging and test gates are closed. Production release, production security decisions, merge to main, and billing changes remain outside this approval.
+- Fresh development security advisory counts unchanged: 90 authenticated SECURITY DEFINER execution notices, 11 informational RLS-without-policy notices, 1 leaked-password-protection warning. Prior guard/grant review and authenticated permission checks remain evidence; notices are not all automatically closed by passing tests.
+- This current status supersedes historical skipped-test counts below. Historical verification details retained for traceability.
+
+
+DEVELOPMENT PACKAGING AND SECURITY REVIEW — 2026-11-08
+- Packaging PASS. Isolated checkout /tmp/valtoris-package-check-20261108 at candidate 6e61fd972e0cba368da9204b92d1c2d5975c8298; Vercel project prj_PizD9wgsixo5A7TE8inTAGXEVpQG, team valtoris. Vercel CLI 65.9.0 authenticated; branch-specific PREVIEW settings pulled. Omitted Secret values were supplied only from the existing private DEVELOPMENT Supabase configuration. All effective Supabase URLs were set to cxgiaevervjttbuiramd.supabase.co locally. No test passwords copied into build configuration.
+- Local vercel build --environment=preview succeeded and generated .vercel/output. This was a local preview build only: no deploy, promotion, production environment pull, or production configuration change.
+- scripts/check-vercel-runtime.mjs PASS under Node 22.23.4: all 12 expected Node function bundles native-imported without module-resolution errors. Middleware is Edge runtime and is explicitly excluded by this Node-only checker; its successful build is not described as a Node import test.
+- Static output scanned: 168 files; zero occurrences of the development service-role key or the three test passwords. Build settings, environment files, and artifacts remain local and uncommitted.
+- Security advisory counts remain 90 authenticated SECURITY DEFINER execution warnings, 11 RLS-without-policy informational findings, and 1 disabled leaked-password warning.
+- All 90 flagged functions: anonymous EXECUTE denied; fixed per-function search_path configured; no dynamic EXECUTE or user_metadata authorization references observed in those function bodies. Neither anon nor authenticated can CREATE objects in public/extensions; neither is superuser nor BYPASSRLS.
+- Guard review traced shared household/application checks, private intake delegation, requirement loader checks, and the commission writer's internal owner guard. Read-only/self-scoped helpers and conditional owner/advisor workflows were distinguished from owner-only writes.
+- Targeted rollback-only advisor probes: all 27 functions whose first statement asserts owner access returned not_authorized; the standard commission writer wrapper also returned not_authorized through its internal guard (28 total). These null-argument probes prove the initial owner gate only; they are not a comprehensive adversarial audit of every valid payload for all 90 functions. Existing full-suite permission tests remain complementary evidence.
+- All 11 no-policy tables have RLS enabled. Ten grant no browser SELECT/INSERT/UPDATE/DELETE. _dryrun_results retains browser DML grants but zero policies: anonymous and QA-advisor SELECTs both returned zero rows; neither browser role has TRUNCATE/TRIGGER privileges. No permissive policies were added merely to silence informational findings. Optional least-privilege cleanup can remove unused scratch-table grants after checking consumers.
+- No new access bypass confirmed within this review. Notices are reviewed, not automatically resolved. Preserve explicit RPC authorization/permission regression checks; final risk acceptance remains required before release.
+- Leaked-password protection still requires a separately authorized Pro-or-higher upgrade; no billing/configuration change made.
+- QA preservation verified again: six retained queue tasks and five commission events have exactly the same row-content fingerprints as before packaging/security probes.
+- No persistent database security/permission changes were made during this review. No QA fixture deletion, main merge, production deploy, or production database/configuration change.
+- Supabase remediation references:
+  https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable
+  https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy
+  https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection
+
+TAC DEVELOPMENT RELEASE VERIFICATION — 2026-11-07
+Repository: luisp-svg/valtoris-financial-site-3
+Candidate: dev/tac-release-candidate-20261107
+Verified application commit: 8c8ec575b3f685360e35af413236edf19efaf10c
+Sources: reporting c275e0e; task queues d862565.
+Production and main unchanged. No production release is authorized.
+
+COMPLETED
+- Combined Vercel application preview READY.
+- Node 22 typecheck, Vite build, lint, function-count budget, server ESM imports, browser Activity INSERT guard passed.
+- Full suite: 4036 tests passed, 306 skipped (467 files passed, 34 skipped). Following test-only lint cleanup, lint/typecheck and its 8 affected tests passed.
+- Combined owner browser: 21 tasks reconcile as 2 sales + 17 internal + 2 operations; 2 draft applications. Denied/missing-permission and duplicate-review QA tasks stay internal.
+- Combined advisor browser: QA advisor identity confirmed; executive reporting hidden and direct report URL exposes no owner totals; assigned task queues 1/4/1; unrelated application denied.
+- Owner/advisor commission browser: 1000 released, -200 chargeback, 800 net. Separate 600 agent-paid leg does not inflate release totals. Recovery/reversal cancel; identical retry creates one release.
+- Database permissions: QA advisor reads own ledger and cannot post; unrelated advisor sees no events; anonymous SELECT denied.
+- Loading repairs retested: owner Pipeline 1 active opportunity, directory 24 households; advisor directory 1 assigned QA household; commission loading warning resolved.
+- Development history reconciled for 073,074,075,077,20261028150953 only. The 23 source-defined function bodies matched repository source before history-only repair. Recorded original source SQL without rerunning schema or ledger changes.
+- Scoped security review: all 23 functions deny anon execution and have fixed search paths; reviewed service/workflow tables use RLS; no direct anon/authenticated write grants on reviewed service/commission tables. Directory is SECURITY INVOKER. No clean full-database security certification is implied.
+
+DEVELOPMENT REPAIRS
+Applied existing sources 073_service_production_foundation.sql, 074_service_case_management.sql, 075_commission_payment_legs.sql, 077_opportunity_presented_product.sql, 20261028150953_household_directory_pagination.sql. Service/commission dependency set passed rollback dry run before atomic application. Also fixed sp_history_immutable search_path; this corresponds only to that statement, NOT the entire privilege-hardening migration.
+
+REMAINING RELEASE GATES
+1. 306 skipped tests: suites require a local Supabase/Docker stack or additional hosted-development credentials. No Docker/PostgreSQL executable is available here. They remain unverified; successful browser/database checks do not replace every skipped test.
+2. Local Vercel runtime-packaging check requires generated .vercel/output/functions; a Vite build is not equivalent. Preview READY is independently verified.
+3. Broader security scan: 90 authenticated SECURITY DEFINER execution warnings, 11 INFO tables with RLS/no policies, and leaked-password protection disabled. Scoped grants/guards reviewed above; review remaining RPCs and Auth configuration separately before release. Warnings do not alone establish an exploitable flaw.
+   https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable
+   https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection
+4. READ-ONLY production inventory completed for the scoped repairs: production already records 073/074/075/077; directory pagination is recorded as 20261028210952 and privilege hardening as 20261028210959. All 23 scoped function bodies match repository source. presented_product/payment_leg/service tables/directory function are present. No production SQL replay is indicated for these known repairs. Keep environment-specific recorded timestamps intact; do not insert duplicate directory history under the repository timestamp. This is a scoped inventory, not a full schema equality proof. Never replay 075 against a populated ledger or delete immutable facts to satisfy its guard. Production was only read, never mutated.
+5. Retain QA fixtures until repeat testing is finished. No cleanup or account deletion was authorized. Never copy development credentials or synthetic facts into production.
+6. Obtain explicit user approval before main merge or production deployment.
+
+RETAINED SYNTHETIC FIXTURES
+advisor.qa@valtoris.test (advisor; new-lead routing disabled), QA Queue Verification 2026-11-07 household, six queue tasks, QA-COMMISSION-20261107 application/allocation, five immutable commission events. No credentials are included.
+
+RELEASE PLAN
+Keep both original feature branches and combined candidate isolated from main until explicit approval. No database replay for the verified scoped repairs. Before a later approved application release, recheck candidate SHA, main divergence, preview readiness, required tests and skipped-test disposition, broader security findings and environment configuration. Retain production migration versions already present. No production rollout, merge, credential change, fixture cleanup, or risk acceptance is authorized by this plan.
+
+SECURITY AND SKIPPED-TEST FOLLOW-UP — 2026-11-07
+- Inspected all 90 authenticated-callable SECURITY DEFINER function bodies and their entry/helper guards. None is anon-executable; all have fixed search paths; none of these bodies constructs dynamic SQL or uses user-editable metadata for authorization. Warnings are intentionally retained rather than hiding them by indiscriminately revoking app RPCs.
+- Reviewed the 11 RLS/no-policy tables: 10 have no browser SELECT grants; _dryrun_results has SELECT grants but RLS denies all rows (anon runtime check returned zero). These deny-by-default tables do not require permissive policies just to clear lint.
+- Runtime rollback probes: 28 direct owner-only entry points reject the QA advisor with not_authorized; create_policy_application and transition_policy_application_stage have conditional owner guards and initially reject null probes as invalid_payload, so they were not counted in those 28. A specific unrelated-application stage transition was then denied with not_found. Profile self-promotion to owner was denied; qa_role remains advisor.
+- Delegated guards traced for private intake writers, requirement loaders, and normal commission posting. Identity helpers expose caller identity/access predicates; Academy functions restrict active advisor/owner self data or owner overview; Operations functions validate workspace membership/ownership/assignment. This is a scoped source/permission review with targeted probes, not exhaustive adversarial coverage of every payload.
+- Leaked-password protection remains disabled. Do not interpret the RPC review as resolving Auth password hardening. Guidance: https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection
+- Found Docker installed under /Applications but a broken command symlink and stopped runtime. Started the installed runtime; recovered local PostgreSQL from stale/corrupt startup PID/socket lock files, preserving the database volume and backups. No local database reset was performed.
+- Previously skipped local suites: 19 suites / 232 distinct tests now PASS across serial runs (initial 2 suites: 23 pass; next 17: 208 pass, 1 failed; final repaired suite: all 10 pass). The failure was local schema drift, not a masked assertion: added the existing read-only intake_review_assignments relation plus home_buyer/health/tsp/benefits/tax enum values expected by current Intake code. Only the local stack was changed.
+- Remaining: 15 hosted-development suites / 74 tests require linked CLI access and/or missing owner/advisor/service credentials. Guards were preserved; no account passwords were reset and no suites were redirected to production. These tests remain unverified, not passed.
+- Hosted development QA fixtures checked after tests: all six queue tasks, five commission events, and active QA advisor retained.
+- Cumulative coverage now includes all 232 formerly skipped local tests in addition to the earlier 4036 passing tests. This is cross-run coverage; no new single full-suite run is claimed.
+- Remaining gates: hosted-suite prerequisites, Auth leaked-password protection decision, environment-specific Vercel runtime packaging check, final risk acceptance/release approval. Existing QA fixtures remain retained by explicit user instruction. No main merge or production change.
+
+
+FOLLOW-UP VERIFICATION — 2026-11-08
+Supersedes the earlier count of 74 remaining tests.
+- Test-only fix: 6ce1a824439e9f295b178cf1cbe80f3a89bc7e1f on dev/tac-release-candidate-20261107. Migration 043 uses advisor.a@valtoris.test; requires owner and advisor passwords; failed logins fail setup before fixture creation. Advisor permission and owner reassignment assertions can no longer be silently omitted.
+- Fresh complete local run (Node 22, one worker, recovered local Supabase): 4,282 passed, 0 failed, 60 skipped. All 14 hosted read-only checks across migrations 048–052 passed, also confirmed in a separate focused run. Typecheck, changed-file lint, and diff whitespace checks passed.
+- CLI saved authentication worked; test checkout linked only to development ref cxgiaevervjttbuiramd. Existing development API keys retrieved privately into ignored owner-only .env. No key values included in this report.
+- Remaining 60 tests across 10 hosted integration suites require passwords for owner.dev@valtoris.test, advisor.a@valtoris.test, and advisor.b@valtoris.test. Browser login is insufficient for these runner credentials. Do not place passwords in chat or commits.
+- Retained QA fixtures were not cleaned up. No production database/config changes, production deployment, or main merge performed.
+- Leaked-password protection remains plan-blocked on Free; Pro-or-higher upgrade requires separate billing authorization.
+
+
+AUTHENTICATED TEST COMPLETION — 2026-11-08
+Supersedes the missing-password / 60-skipped status above.
+- User explicitly authorized resetting only owner.dev@valtoris.test, advisor.a@valtoris.test, and advisor.b@valtoris.test in development project cxgiaevervjttbuiramd. Exact account UUID/email pairs checked before reset; all three post-reset logins verified. Strong random passwords saved only in ignored, owner-only .env; no credential values in source, logs, chat, or this report. Account roles remain owner/advisor/advisor; advisor.qa remains active advisor and was not reset.
+- Focused run of all 10 formerly skipped authenticated integration suites: 60 passed, 0 failed, 0 skipped. Suite counts: intakeArchive 1; intakePhase2 1; migration043 9; migration044 6; migration045 17; migration046 16; migration047 3; caseOperations 4; requirementUrgency 1; requirementWorkflow 2.
+- Together with the earlier 14 read-only passes, all 74 previously pending hosted-development tests have now passed. This focused rerun is separate from the earlier full run of 4,282 passed / 60 skipped; do not misstate it as one new full-suite run.
+- SHA-independent row-content fingerprints of retained QA queue tasks (6) and commission events (5) exactly match before and after the run. Retained fixtures preserved. Suite-created fixture cleanup completed without test failure.
+- Production remains unchanged. No production deployment or merge to main. Leaked-password protection remains separately blocked by the current Free plan; no billing upgrade performed.
+
+
+SECURITY SIGNOFF APPROVED — 2026-11-08
+Approval record: docs/qa/tac-security-signoff-20261108.txt
+Status: explicitly approved by the requesting user for development only on November 8, 2026. Documented risks, including the leaked-password limitation, accepted. This records chat approval rather than a separately executed signature. Documents the Free-plan leaked-password limitation, the residual privileged-function risk, deny-all no-policy tables, testing limits, and explicit development-only scope. Production and billing unchanged.

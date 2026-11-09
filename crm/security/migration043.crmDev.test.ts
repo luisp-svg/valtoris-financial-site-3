@@ -54,11 +54,19 @@ function loadDotEnv(): void {
 
 loadDotEnv()
 
-function crmDevReady(): { url: string; anon: string; service: string } | null {
+function crmDevReady(): {
+  url: string
+  anon: string
+  service: string
+  advisorPassword: string
+  ownerPassword: string
+} | null {
   const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || ''
   const anon = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || ''
   const service = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-  if (!url || !anon || !service) return null
+  const advisorPassword = process.env.DEV_ADVISOR_A_PASSWORD || ''
+  const ownerPassword = process.env.DEV_OWNER_PASSWORD || ''
+  if (!url || !anon || !service || !advisorPassword || !ownerPassword) return null
   let host = ''
   try {
     host = new URL(url).hostname
@@ -67,7 +75,7 @@ function crmDevReady(): { url: string; anon: string; service: string } | null {
   }
   if (host !== REQUIRED_HOST) return null
   if (/prod|production/i.test(host)) return null
-  return { url, anon, service }
+  return { url, anon, service, advisorPassword, ownerPassword }
 }
 
 const env = crmDevReady()
@@ -82,10 +90,11 @@ function clone<T>(value: T): T {
 }
 
 describe.skipIf(!env)('migration 043 CRM-dev live ingest (cxgiaevervjttbuiramd only)', () => {
-  const cfg = env as { url: string; anon: string; service: string }
+  const cfg = env as NonNullable<ReturnType<typeof crmDevReady>>
   let admin: SupabaseClient
   let anon: SupabaseClient
-  let advisorSession: SupabaseClient | null = null
+  let advisorSession: SupabaseClient
+  let ownerSession: SupabaseClient
 
   const created = {
     households: [] as string[],
@@ -244,6 +253,29 @@ describe.skipIf(!env)('migration 043 CRM-dev live ingest (cxgiaevervjttbuiramd o
       auth: { persistSession: false, autoRefreshToken: false },
     })
 
+    // Authenticate before creating fixtures; a failed login must never omit permission checks.
+    advisorSession = createClient(cfg.url, cfg.anon, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    })
+    const { data: advisorAuth, error: advisorError } = await advisorSession.auth.signInWithPassword({
+      email: 'advisor.a@valtoris.test',
+      password: cfg.advisorPassword,
+    })
+    if (advisorError || !advisorAuth.session) {
+      throw new Error('CRM-dev advisor.a test login failed; check DEV_ADVISOR_A_PASSWORD')
+    }
+
+    ownerSession = createClient(cfg.url, cfg.anon, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    })
+    const { data: ownerAuth, error: ownerError } = await ownerSession.auth.signInWithPassword({
+      email: 'owner.dev@valtoris.test',
+      password: cfg.ownerPassword,
+    })
+    if (ownerError || !ownerAuth.session) {
+      throw new Error('CRM-dev owner test login failed; check DEV_OWNER_PASSWORD')
+    }
+
     const { data: advisors, error: advisorErr } = await admin
       .from('advisor_profiles')
       .select('id, slug, display_name, user_id, is_active')
@@ -258,6 +290,7 @@ describe.skipIf(!env)('migration 043 CRM-dev live ingest (cxgiaevervjttbuiramd o
     luisProfileId = luis.id
     luisSlug = typeof luis.slug === 'string' ? luis.slug : 'luis-perez'
     otherAdvisorId = advisors?.find((row) => row.id !== luisProfileId)?.id || ''
+    if (!otherAdvisorId) throw new Error('CRM-dev attribution test requires a second active advisor profile')
 
     const { data: published } = await admin
       .from('digital_cards')
@@ -313,18 +346,6 @@ describe.skipIf(!env)('migration 043 CRM-dev live ingest (cxgiaevervjttbuiramd o
       if (campErr) throw campErr
       created.campaigns.push(inserted.id)
     }
-
-    const advisorPass = process.env.DEV_ADVISOR_A_PASSWORD
-    if (advisorPass) {
-      advisorSession = createClient(cfg.url, cfg.anon, {
-        auth: { persistSession: false, autoRefreshToken: false },
-      })
-      const { error } = await advisorSession.auth.signInWithPassword({
-        email: 'advisor.a.dev@valtoris.test',
-        password: advisorPass,
-      })
-      if (error) advisorSession = null
-    }
   }, 60_000)
 
   afterAll(async () => {
@@ -366,11 +387,9 @@ describe.skipIf(!env)('migration 043 CRM-dev live ingest (cxgiaevervjttbuiramd o
     expect(anonRes.error).toBeTruthy()
     expect(anonRes.data).toBeNull()
 
-    if (advisorSession) {
-      const authRes = await advisorSession.rpc('ingest_public_report_card', { p_payload: payload })
-      expect(authRes.error).toBeTruthy()
-      expect(authRes.data).toBeNull()
-    }
+    const authRes = await advisorSession.rpc('ingest_public_report_card', { p_payload: payload })
+    expect(authRes.error).toBeTruthy()
+    expect(authRes.data).toBeNull()
   })
 
   it('rejects arbitrary assessment_type and mismatched lead_type at the RPC', async () => {
@@ -686,28 +705,18 @@ describe.skipIf(!env)('migration 043 CRM-dev live ingest (cxgiaevervjttbuiramd o
     expect(meta.campaignCode).toBe(campaignCode)
 
     const householdId = famLoaded.lead?.household_id as string
-    if (otherAdvisorId && process.env.DEV_OWNER_PASSWORD) {
-      const owner = createClient(cfg.url, cfg.anon, {
-        auth: { persistSession: false, autoRefreshToken: false },
-      })
-      const { error: ownerErr } = await owner.auth.signInWithPassword({
-        email: 'owner.dev@valtoris.test',
-        password: process.env.DEV_OWNER_PASSWORD,
-      })
-      expect(ownerErr).toBeNull()
-      const { error: assignErr } = await owner.rpc('assign_household', {
-        p_household_id: householdId,
-        p_advisor_id: otherAdvisorId,
-        p_reason: 'manual',
-      })
-      expect(assignErr).toBeNull()
-      const { data: reassigned } = await admin
-        .from('households')
-        .select('assigned_advisor_id')
-        .eq('id', householdId)
-        .single()
-      expect(reassigned?.assigned_advisor_id).toBe(otherAdvisorId)
-    }
+    const { error: assignErr } = await ownerSession.rpc('assign_household', {
+      p_household_id: householdId,
+      p_advisor_id: otherAdvisorId,
+      p_reason: 'manual',
+    })
+    expect(assignErr).toBeNull()
+    const { data: reassigned } = await admin
+      .from('households')
+      .select('assigned_advisor_id')
+      .eq('id', householdId)
+      .single()
+    expect(reassigned?.assigned_advisor_id).toBe(otherAdvisorId)
 
     const biz = await ingest(businessBody(contact, attribution))
     const ret = await ingest(retirementBody(contact, attribution))

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, useRef, type FormEvent } from 'react'
 import TaskActions from '../../crm/tasks/TaskActions'
+import { classifyTaskQueue, createdTaskSearchParams, resolvedTaskSearchParams, resolveTaskQueue, TASK_QUEUE_LABELS, type TaskQueue } from '../../crm/tasks/taskQueues'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useCrmAuth } from '../../crm/auth/CrmAuthContext'
 import {
@@ -59,6 +60,7 @@ export default function CrmTasksPage() {
   const initialOpportunity = useRef(searchParams.get('action') === 'new' ? searchParams.get('opportunity') : null)
   const initialHousehold = useRef(searchParams.get('action') === 'new' ? searchParams.get('household') : null)
   const [taskRequestId, setTaskRequestId] = useState(() => crypto.randomUUID())
+  const taskLoadVersion = useRef(0)
   const [tasks, setTasks] = useState<CrmTask[]>([])
   const [households, setHouseholds] = useState<HouseholdOption[]>([])
   const [leads, setLeads] = useState<LeadOption[]>([])
@@ -77,9 +79,10 @@ export default function CrmTasksPage() {
   const [success, setSuccess] = useState<string | null>(null)
 
   const loadTasks = useCallback(async () => {
+    const version = ++taskLoadVersion.current
     const supabase = createSupabaseBrowserClient()
     const rows = await fetchVisibleTasks(supabase, { dueBefore: searchParams.get('due') === 'overdue' ? localDateString() : undefined, completed: searchParams.get('view') === 'completed', householdId: searchParams.get('household') || undefined, opportunityId: searchParams.get('opportunity') || undefined })
-    setTasks(rows)
+    if (version === taskLoadVersion.current) setTasks(rows)
   }, [searchParams])
 
   const loadFormOptions = useCallback(async () => {
@@ -164,8 +167,14 @@ export default function CrmTasksPage() {
     })()
     return () => {
       cancelled = true
+      taskLoadVersion.current += 1
     }
   }, [loadTasks])
+
+  useEffect(() => {
+    const next = resolvedTaskSearchParams(tasks, searchParams)
+    if (next) setSearchParams(next, { replace: true })
+  }, [tasks, searchParams, setSearchParams])
 
   useEffect(() => {
     if (!showForm) return
@@ -214,6 +223,7 @@ export default function CrmTasksPage() {
       const value = searchParams.get(key)
       if (value) params.set(key, value)
     }
+    params.set('queue', resolveTaskQueue(tasks, searchParams.get('queue'), searchParams.get('task')))
     if (completed) params.set('view', 'completed')
     else if (overdue) params.set('due', 'overdue')
     return '/crm/tasks' + (params.size ? '?' + params.toString() : '')
@@ -237,9 +247,11 @@ export default function CrmTasksPage() {
     setShowForm(true)
   }
 
-  function closeForm() {
+  function closeForm(savedTaskParams?: URLSearchParams) {
     setShowForm(false)
-    if (searchParams.has('action')) {
+    if (savedTaskParams) {
+      setSearchParams(savedTaskParams, { replace: true })
+    } else if (searchParams.has('action')) {
       const next = new URLSearchParams(searchParams)
       next.delete('action')
       setSearchParams(next, { replace: true })
@@ -279,7 +291,7 @@ export default function CrmTasksPage() {
     setSuccess(null)
     try {
       const supabase = createSupabaseBrowserClient()
-      await createTask(
+      const created = await createTask(
         supabase,
         {
           title,
@@ -296,9 +308,9 @@ export default function CrmTasksPage() {
         profile.id,
         taskRequestId,
       )
-      await loadTasks()
+      setTasks(previous => [...previous.filter(task => task.id !== created.id), created])
       setSuccess('Task created.')
-      closeForm()
+      closeForm(createdTaskSearchParams(searchParams, created))
       setForm({
         ...EMPTY_FORM,
         assigned_user_id: profile.id,
@@ -312,6 +324,19 @@ export default function CrmTasksPage() {
   }
 
   const requiredOptionsReady = !optionsError && !formLoading
+  const activeQueue = resolveTaskQueue(tasks, searchParams.get('queue'), searchParams.get('task'))
+  const queueCounts = {
+    sales: tasks.filter(task => classifyTaskQueue(task) === 'sales').length,
+    internal: tasks.filter(task => classifyTaskQueue(task) === 'internal').length,
+    operations: tasks.filter(task => classifyTaskQueue(task) === 'operations').length,
+  }
+  const visibleTasks = tasks.filter(task => classifyTaskQueue(task) === activeQueue)
+  function queuePath(queue: TaskQueue) {
+    const next = new URLSearchParams(searchParams)
+    next.set('queue', queue)
+    next.delete('task')
+    return `/crm/tasks?${next.toString()}`
+  }
 
   return (
     <div className="crm-tasks-page">
@@ -336,7 +361,7 @@ export default function CrmTasksPage() {
         <section className="crm-panel crm-task-form-panel" aria-labelledby="crm-add-task-heading">
           <div className="crm-panel-head">
             <h2 id="crm-add-task-heading">Add Task</h2>
-            <button type="button" className="crm-text-btn" onClick={closeForm} disabled={submitting}>
+            <button type="button" className="crm-text-btn" onClick={() => closeForm()} disabled={submitting}>
               Cancel
             </button>
           </div>
@@ -547,16 +572,19 @@ export default function CrmTasksPage() {
         </section>
       ) : null}
 
+      <nav aria-label="Task queues">{(['sales', 'internal', 'operations'] as TaskQueue[]).map(queue => (
+        <span key={queue}><Link to={queuePath(queue)} aria-current={activeQueue === queue ? 'page' : undefined}>{TASK_QUEUE_LABELS[queue]} ({queueCounts[queue]})</Link>{' · '}</span>
+      ))}</nav>
       <nav aria-label="Task views"><Link to={taskViewPath()}>Open tasks</Link>{' · '}<Link to={taskViewPath(false, true)}>Overdue tasks</Link>{' · '}<Link to={taskViewPath(true)}>Completed tasks</Link></nav>
       <section className="crm-panel">
         <div className="crm-panel-head">
-          <h2>{searchParams.get('view') === 'completed' ? 'Completed tasks' : searchParams.get('due') === 'overdue' ? 'Overdue tasks' : 'Open tasks'}</h2>
-          <span className="crm-count-pill">{loading ? '…' : `${tasks.length}`}</span>
+          <h2>{TASK_QUEUE_LABELS[activeQueue]} — {searchParams.get('view') === 'completed' ? 'Completed' : searchParams.get('due') === 'overdue' ? 'Overdue' : 'Open'}</h2>
+          <span className="crm-count-pill">{loading ? '…' : `${visibleTasks.length}`}</span>
         </div>
 
         {loading ? <p className="crm-muted">Loading tasks…</p> : null}
 
-        {!loading && !error && tasks.length === 0 ? (
+        {!loading && !error && visibleTasks.length === 0 ? (
           <div className="crm-empty-state">
             <p>No tasks in this view.</p>
             <button type="button" className="crm-primary-btn" onClick={openForm}>
@@ -565,9 +593,9 @@ export default function CrmTasksPage() {
           </div>
         ) : null}
 
-        {!loading && tasks.length > 0 ? (
+        {!loading && visibleTasks.length > 0 ? (
           <ul className="crm-task-list">
-            {tasks.map((task) => (
+            {visibleTasks.map((task) => (
               <li key={task.id} className="crm-task-row">
                 <div className="crm-task-row-main">
                   <p className="crm-task-title">{task.title}</p>
@@ -582,6 +610,7 @@ export default function CrmTasksPage() {
                     {' · '}
                     {formatDueDate(task.due_date)}
                   </p>
+                  {classifyTaskQueue(task) === 'internal' ? <p className="crm-field-hint">Internal review only. Do not initiate outreach without independently verified contact authority and channel permissions.</p> : null}
                   {task.description ? (
                     <p className="crm-task-description">{task.description}</p>
                   ) : null}
