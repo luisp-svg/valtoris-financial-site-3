@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, useRef, type FormEvent } from 'react'
 import TaskActions from '../../crm/tasks/TaskActions'
-import { classifyTaskQueue, createdTaskSearchParams, resolveTaskQueue, TASK_QUEUE_LABELS, type TaskQueue } from '../../crm/tasks/taskQueues'
+import { classifyTaskQueue, createdTaskSearchParams, resolvedTaskSearchParams, resolveTaskQueue, TASK_QUEUE_LABELS, type TaskQueue } from '../../crm/tasks/taskQueues'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useCrmAuth } from '../../crm/auth/CrmAuthContext'
 import {
@@ -170,6 +170,11 @@ export default function CrmTasksPage() {
       taskLoadVersion.current += 1
     }
   }, [loadTasks])
+
+  useEffect(() => {
+    const next = resolvedTaskSearchParams(tasks, searchParams)
+    if (next) setSearchParams(next, { replace: true })
+  }, [tasks, searchParams, setSearchParams])
 
   useEffect(() => {
     if (!showForm) return

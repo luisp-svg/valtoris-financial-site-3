@@ -11,9 +11,9 @@ type PolicyRow = { id: string; production_stage: string }
 type VerticalRow = { id: string; name: string }
 
 
-// Pages are ordered by stable UUID to avoid silent truncation at the Data API row limit.
+// Immutable UUID cursors avoid truncation and offset shifts during concurrent changes.
 // An error on any page invalidates the whole report rather than showing partial totals.
-export async function fetchExecutiveRows<T>(
+export async function fetchExecutiveRows<T extends { id: string }>(
   db: SupabaseClient,
   table: 'tasks' | 'opportunities' | 'policy_applications' | 'service_verticals',
   columns: string,
@@ -21,16 +21,21 @@ export async function fetchExecutiveRows<T>(
 ): Promise<T[]> {
   const pageSize = 200
   const all: T[] = []
-  for (let offset = 0; ; offset += pageSize) {
-    let query = db.from(table).select(columns).order('id', { ascending: true }).range(offset, offset + pageSize - 1)
+  let cursor: string | null = null
+  for (;;) {
+    let query = db.from(table).select(columns).order('id', { ascending: true }).limit(pageSize)
+    if (cursor) query = query.gt('id', cursor)
     if (filter === 'active') query = query.is('deleted_at', null).in('status', ['open', 'in_progress'])
     else if (filter === 'not_deleted') query = query.is('deleted_at', null)
     else query = query.eq('is_active', true)
     const { data, error } = await query
     if (error) throw error
-    const page = (data ?? []) as T[]
+    const page = (data ?? []) as unknown as T[]
     all.push(...page)
     if (page.length < pageSize) return all
+    const next = page[page.length - 1].id
+    if (!next || (cursor && next <= cursor)) throw new Error('Reporting pagination did not advance.')
+    cursor = next
   }
 }
 

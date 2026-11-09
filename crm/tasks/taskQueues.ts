@@ -43,3 +43,17 @@ export function createdTaskSearchParams(
   }
   return next
 }
+
+/** Persist a deep link's resolved queue before its task leaves the open list. */
+export function resolvedTaskSearchParams(
+  tasks: ReadonlyArray<{ id: string } & Parameters<typeof classifyTaskQueue>[0]>,
+  current: URLSearchParams,
+): URLSearchParams | null {
+  const target = tasks.find(task => task.id === current.get('task'))
+  if (!target) return null
+  const queue = classifyTaskQueue(target)
+  if (current.get('queue') === queue) return null
+  const next = new URLSearchParams(current)
+  next.set('queue', queue)
+  return next
+}
