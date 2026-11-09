@@ -1,3 +1,14 @@
+PR 43 REPORTING CURSOR AND QUEUE RETENTION VERIFICATION — 2026-11-08
+Current verified application/test source: 538986d58dceb1daa72c44e0e3abf72ed79ce3b6.
+- Executive reporting now uses immutable ID cursors for all four report sources, avoiding offset-shift omissions or duplication when earlier rows leave or enter the result set. Page errors still invalidate the report. This does not claim an atomic snapshot of concurrent changes.
+- Task deep links persist their resolved queue in the URL with replace navigation. Completing an Internal or Operations task no longer falls back to Sales. Explicit tab changes still remove the target and work normally.
+- Added 5 regression cases: concurrent task completion, opportunity removal, insertion before the report cursor, and queue retention after completion in both Internal and Operations. Updated earlier pagination contract coverage. Against the prior PR, 6 of the latest 13 reporting/navigation cases fail and 7 pass; all 13 pass after the fixes. All 31 focused reporting/task checks pass.
+- New complete run: 4,363 passed across 504 files, 0 failed, 0 skipped, including all local and authenticated development suites.
+- Typecheck, full lint, whitespace, function budget, server ESM imports, and browser Activity INSERT guard passed. Local PREVIEW build and all 12 Node bundle imports passed; Edge remains outside the Node checker. Static output scan: 168 files, no private development credential matches.
+- Six retained QA queue tasks and five commission events exactly match prior row-content fingerprints. No changes to authentication, RLS, database grants, consent classification, production, or billing.
+- Existing development-only risk acceptance remains recorded separately. No upgrade is planned or performed. Production authorization is not inferred. Candidate auto-deployment remains disabled; no merge or deployment.
+- Prior verification sections below are historical and superseded by this complete run.
+
 PR 43 TASK CREATION AND CURSOR VERIFICATION — 2026-11-08
 Current verified application/test source: b9f1b4d75d61e795607ff22e2ebc0335ef685a71.
 - Successful creation now reveals the saved task in its actual queue, clears incompatible date/status/form parameters, and adjusts existing household/opportunity scope. Failed saves leave the form open. A refresh of the previous scope cannot turn a successful save into a submission error; older in-flight results are rejected after context changes.
