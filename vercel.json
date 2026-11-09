@@ -191,6 +191,7 @@
   ],
   "git": {
     "deploymentEnabled": {
+      "docs/pr44-pr45-release-summary-20261109": false,
       "dev/licensing-revoked-code-guard-20261109": false,
       "dev/licensing-and-report-samples-20261109": false,
       "dev/tac-release-candidate-20261107": false,
