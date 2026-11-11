@@ -30,7 +30,7 @@ The next phase deepens the student loan track toward the competencies in the [CS
 1. Loan identification and borrower roles. Lesson 1 now adds federal and private loan classification, parent PLUS borrower responsibility, cosigner roles, and a three-loan TAC exercise. Primary source links and a review date appear inside the lesson.
 2. Interest and balances. Lesson 2 now includes principal, accrued interest, capitalization, daily interest estimates, payment allocation, and a TAC calculation exercise with dated primary references. Fixed and variable rate comparisons remain further content.
 3. Consolidation and refinancing. Lesson 3 now adds transaction identification, illustrative weighted-rate and scheduled-payment calculations, protection changes, and a TAC comparison handoff. Current eligibility and program effects require separate dated verification.
-4. Repayment analysis. Build a dated comparison of available plans, eligibility, cash flow, and total cost using verified current rules.
+4. Repayment analysis. Lesson 3 includes a dedicated repayment comparison section with dated plan-family guidance, a fictional affordability table, an income-change scenario, and a TAC exercise. Its invented estimates teach comparison and require verification against named plans and current records.
 5. Forgiveness and financial planning. Add employment verification, tax coordination, household planning, and specialist escalation cases with current primary sources.
 
 Each expansion needs an original case, a TAC exercise, and an assessment coverage review. The current seven-question exam measures the initial three-lesson client-review workflow. Added reading does not create a new exam version or establish mastery of the expanded curriculum.

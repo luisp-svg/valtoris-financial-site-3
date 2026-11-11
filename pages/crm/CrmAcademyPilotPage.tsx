@@ -6,6 +6,7 @@ import { CORE_LESSONS } from '../../crm/academy/coreLessons'
 import { PILOT_LESSONS } from '../../crm/academy/pilotLessons'
 import { fetchAcademyProgress, type AcademyProgress } from '../../crm/academy/progressApi'
 import AcademyExam from '../../crm/academy/AcademyExam'
+import AcademyRepaymentComparison from '../../crm/academy/AcademyRepaymentComparison'
 import AcademyOwnerOverview from '../../crm/academy/AcademyOwnerOverview'
 import '../../crm/academy/pilot.css'
 
@@ -154,6 +155,7 @@ function AcademyLessonPlayer() {
             <h4>Check your work</h4>
             <ul>{lesson.material.exercise.checklist.map(item => <li key={item}>{item}</li>)}</ul>
           </section>
+          {lesson.id === 'handoff-and-follow-up' && <AcademyRepaymentComparison />}
           {'sources' in lesson.material && <section>
             <h3>Lesson references</h3>
             <p>Sources checked {lesson.material.sourceReviewDate}</p>
