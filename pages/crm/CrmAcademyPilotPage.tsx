@@ -154,6 +154,11 @@ function AcademyLessonPlayer() {
             <h4>Check your work</h4>
             <ul>{lesson.material.exercise.checklist.map(item => <li key={item}>{item}</li>)}</ul>
           </section>
+          {'sources' in lesson.material && <section>
+            <h3>Lesson references</h3>
+            <p>Sources checked {lesson.material.sourceReviewDate}</p>
+            <ul>{lesson.material.sources.map(source => <li key={source.url}><a href={source.url} target="_blank" rel="noopener noreferrer">{source.title}</a></li>)}</ul>
+          </section>}
           <h3>Workflow recap</h3>
         </div>}
         <ol className="tac-academy-steps">{lesson.steps.map(item => <li key={item}>{item}</li>)}</ol>

@@ -4,9 +4,16 @@ export const PILOT_LESSONS = [
     title: 'Prepare for the first conversation',
     goal: 'Turn a broad request for student loan help into a clear question to investigate.',
     material: {
-      duration: '15–20 minutes',
+      sources: [
+        { title: 'CFPB — Private student loans', url: 'https://www.consumerfinance.gov/ask-cfpb/what-are-private-student-loans-en-2136/' },
+        { title: 'CFPB — Student loan cosigners', url: 'https://www.consumerfinance.gov/ask-cfpb/what-is-a-co-signer-for-a-student-loan-en-565/' },
+        { title: 'Federal Student Aid — Evaluating aid offers and parent PLUS borrowing', url: 'https://studentaid.gov/articles/evaluating-financial-aid-offers/' },
+      ],
+      sourceReviewDate: 'November 10, 2026',
+      duration: '25–30 minutes',
       objectives: [
         'Translate a request for help into a decision the client needs to make.',
+        'Identify the loan program, borrower, and any cosigner from the records.',
         'Identify the records needed to understand who owes each loan and what is currently due.',
         'Record the client’s goal, open questions, and next action in TAC.',
       ],
@@ -26,6 +33,21 @@ export const PILOT_LESSONS = [
           ],
         },
         {
+          title: 'Identify the loan and the people responsible',
+          paragraphs: [
+            'Federal and private student loans have different terms and protections. Private education loans come from private lenders and sit outside the federal student loan program. Record the exact program or product named in the documents and keep the lender and servicer fields separate.',
+            'For a parent PLUS loan, the parent is the borrower responsible for repayment. The student who benefited from the education and the person making a payment may be different people. Record each role explicitly.',
+            'A cosigner agrees to repay alongside the primary borrower and is legally responsible for the debt. Read the loan documents to establish each person’s role. A household member’s description of a loan as “mine” leaves that role open until verified.',
+          ],
+        },
+        {
+          title: 'Worked classification example',
+          paragraphs: [
+            'Fictional records show a Direct Unsubsidized Loan in Alex’s name, a parent PLUS loan in Alex’s mother Dana’s name, and a private education loan with Alex as borrower and Dana as cosigner. Create three loan entries. Identify Dana’s different roles on the parent PLUS and private loans, and count the private loan once when summarizing household debt.',
+            'In TAC, give each entry a borrower, program or product, lender or servicer, dated source, and verification status. Link Dana’s cosigner role to the same private loan entry. If a loan type is absent from the records, assign a task to obtain the relevant document.',
+          ],
+        },
+        {
           title: 'Hand off a question someone can answer',
           paragraphs: [
             'In TAC, note the client’s goal, the deadline, what they reported, and what still needs verification. Give each next action an owner. The client might gather the statements, while the advisor checks that the records match the accounts described and schedules the review.',
@@ -40,9 +62,10 @@ export const PILOT_LESSONS = [
       },
       exercise: {
         prompt: 'A fictional client expects reduced hours next month. They report two loans, including one they describe as a parent loan, and think a payment is due next Friday. They’re unsure whose name is on the parent loan.',
-        instruction: 'In a development practice household, draft an intake note, a short records request, and an assigned follow-up task. Include the sentence you would use to confirm the client’s goal.',
+        instruction: 'In a development practice household, draft an intake note, a short records request, and an assigned follow-up task. Include the sentence you would use to confirm the client’s goal. Then classify the three loans in Alex and Dana’s example using a TAC note with one entry per loan.',
         checklist: [
           'Capture the decision and the reported payment deadline in plain language.',
+          'Identify Alex as the Direct Unsubsidized borrower, Dana as the parent PLUS borrower, and Alex and Dana as borrower and cosigner on the same private loan.',
           'Separate client-reported details from facts that still need verification, especially who owes each loan.',
           'Request dated statements through the approved intake channel and identify the fields to check.',
           'Assign an advisor to review the records and update the client before the reported deadline.',

@@ -4,7 +4,7 @@ The pilot opens with Valtoris Core for active Valtoris advisors and owners. Four
 
 To view the pilot, run `VITE_TAC_ACADEMY_PILOT=true npm run dev` locally with an authorized development login, then open Academy pilot in TAC. The development build flag is also required by the route, so setting the variable in a production build cannot enable it. Saved progress requires the reviewed development setup in `scripts/sql/academy/pilot-progress.sql`. Apply it to the verified development project before running this draft against it. The database checks the active TAC profile, saves the last lesson and passed practice checks, and enforces the Core prerequisite. Previous in-memory completions cannot be recovered.
 
-## Remaining implementation, in order
+## Further implementation, in order
 
 1. **Release gate — isolate and verify development.** Review [hardening draft #23](https://github.com/luisp-svg/valtoris-financial-site-3/pull/23) against current development and production inventories. Resolve drift that affects Academy schema, grants, and deployment. Capture scoped recovery evidence, verify existing CRM flows, and separately authorize any hosted hardening. Verify that a future preview targets development. No blanket privilege changes.
 2. **First persisted course — course versions and learner progress.** Use active advisor/owner identity. Add versioned published lessons and per-advisor enrollment, completion, and attempt records in development. Enforce row and column access in the database. Learners read published content and their own records; inactive, unprovisioned, anonymous, and cross-advisor access fail. Track version with progress so published changes cannot silently rewrite completion.
@@ -12,7 +12,7 @@ To view the pilot, run `VITE_TAC_ACADEMY_PILOT=true npm run dev` locally with an
 4. **Instructor and owner views.** Confirm who can author, review, publish, and view learner results. Use explicit assignments for instructors; do not infer permission from a menu link. Show status, last activity, and the course version. Review content and fictional scenarios before publishing.
 5. **Internal completion record and rollout.** Record course version, completion date, and the internal training title. Do not present it as CSLP certification or CE. Run advisor/owner walkthroughs against development with synthetic records, then seek separate production approval.
 
-This draft implements pilot progress and practice checks. Hosted rollout verification, formal exams, instructor access, and versioned courses remain separate work.
+The development pilot includes saved progress, server-graded Core and student loan exams, owner progress views, and completion certificates. Versioned courses, instructor review, and production rollout remain further work.
 
 The proposed Advisor progress view requires `scripts/sql/academy/pilot-owner-overview.sql` after the progress setup. The read-only function returns practice completion and last lesson for active advisors. It checks the caller’s active owner profile before returning any rows.
 
@@ -21,3 +21,18 @@ The proposed graded Core exam requires `scripts/sql/academy/pilot-core-exam.sql`
 The Core completion certificate uses `scripts/sql/academy/pilot-core-certificate.sql` after the exam setup. Active advisors receive one internal training certificate on passing. The saved name, ID, and issue date remain stable across retries. Existing active advisor passes receive the rollout date because earlier exam records have no attempt timestamp. Owners can view certificate status and identifiers in Advisor progress.
 
 The proposed student loan exam follows the three Student Loan Client Review practice checks. It uses seven original workflow scenarios on intake, account verification, secure handling of records, and follow-up. Six correct answers pass and the best score is saved separately from Core. Apply `scripts/sql/academy/pilot-student-loan-exam.sql` after the Core certificate setup to enable grading and the owner score column.
+
+
+## Student loan curriculum expansion
+
+The next phase deepens the student loan track toward the competencies in the [CSLA public curriculum](https://cslainstitute.org/home). Build original instruction and cases in this order.
+
+1. Loan identification and borrower roles. Lesson 1 now adds federal and private loan classification, parent PLUS borrower responsibility, cosigner roles, and a three-loan TAC exercise. Primary source links and a review date appear inside the lesson.
+2. Interest and balances. Teach principal, accrued interest, fixed and variable rates, and dated balance reconciliation with worked calculations.
+3. Consolidation and refinancing. Teach the questions, tradeoffs, and records needed to compare choices, with current primary sources.
+4. Repayment analysis. Build a dated comparison of available plans, eligibility, cash flow, and total cost using verified current rules.
+5. Forgiveness and financial planning. Add employment verification, tax coordination, household planning, and specialist escalation cases with current primary sources.
+
+Each expansion needs an original case, a TAC exercise, and an assessment coverage review. The current seven-question exam measures the initial three-lesson client-review workflow. Added reading does not create a new exam version or establish mastery of the expanded curriculum.
+
+Student loan certificates use `scripts/sql/academy/pilot-student-loan-certificate.sql`, applied to development with approval. The server issues stable certificate records for qualifying advisors. Advisor progress includes certificate ID and issue date. Earlier qualifying passes use the rollout date because the original exam records have no pass timestamp.
