@@ -5,12 +5,12 @@ import { STUDENT_LOAN_EXAM_CASE, STUDENT_LOAN_EXAM_QUESTIONS } from './studentLo
 import { CORE_EXAM_QUESTIONS } from './coreExamQuestions'
 import { CORE_EXAM_PASS, formatCoreExamScore } from './coreExamScore'
 
-type Result = { score: number | null; best: number | null; certificate: CoreCertificate | null }
+type Result = { score: number | null; best: number | null; certificate: CoreCertificate | null; lastScore?: number | null; lastAttemptAt?: string | null }
 
 type ExamKind = 'core' | 'student-loan'
 
 async function fetchResult(kind: ExamKind, answers?: number[]): Promise<Result> {
-  const { data, error } = await createSupabaseBrowserClient().rpc(kind === 'core' ? 'academy_pilot_core_exam' : 'academy_pilot_student_loan_exam', { p_answers: answers ?? null })
+  const { data, error } = await createSupabaseBrowserClient().rpc(kind === 'core' ? 'academy_pilot_core_exam' : 'academy_pilot_student_loan_expanded_exam', { p_answers: answers ?? null })
   if (error || !data) throw new Error('Exam result unavailable')
   return data
 }
@@ -52,9 +52,12 @@ export default function AcademyExam({ kind, onBack }: { kind: ExamKind; onBack: 
   return <section className="crm-panel tac-academy-lesson">
     <h1>{isCore ? 'Valtoris Core exam' : 'Student Loan Client Review exam'}</h1>
     <p>Answer all seven questions. Six correct answers meet the 85% passing mark. You can retry and your best score is saved.</p>
-    {!isCore && <p>This expanded case covers loan records, interest, consolidation, repayment, PSLF, and tax planning. The saved best score includes earlier pilot exam revisions. Submit a new attempt to see your score on this case.</p>}
+    {!isCore && <p>This expanded case covers loan records, interest, consolidation, repayment, PSLF, and tax planning. Your best score here records attempts on this expanded case. Earlier pilot certificates remain visible below.</p>}
     {result?.best != null && <p>Best score: {formatCoreExamScore(result.best)} · {result.best >= CORE_EXAM_PASS ? 'Passed' : 'Below passing mark'}</p>}
     {result?.score != null && <p role="status">This attempt: {formatCoreExamScore(result.score)}</p>}
+    {!isCore && result?.best == null && <p>Expanded exam not taken yet.</p>}
+    {!isCore && result?.score == null && result?.lastScore != null && <p>Latest expanded attempt: {formatCoreExamScore(result.lastScore)}</p>}
+    {!isCore && result?.certificate && (result.best == null || result.best < CORE_EXAM_PASS) && <p>This certificate records an earlier pilot pass. Complete the expanded exam to record a pass on the new material.</p>}
     {!isCore && result?.score != null && <details className="tac-academy-material">
       <summary>Review the TAC exercise</summary>
       <p>Compare your notes and tasks with this sample. Each section names the lesson you can revisit.</p>

@@ -11,6 +11,9 @@ type AdvisorProgress = {
   completed: string[]
   last_lesson: string | null
   core_exam_best: number | null
+  student_loan_expanded_exam_best: number | null
+  student_loan_expanded_exam_last: number | null
+  student_loan_expanded_exam_attempted_at: string | null
   student_loan_exam_best: number | null
   student_loan_certificate_id: string | null
   student_loan_certificate_issued_at: string | null
@@ -41,7 +44,7 @@ export default function AcademyOwnerOverview() {
   return <section className="crm-panel" aria-labelledby="academy-owner-heading">
     <h1 id="academy-owner-heading">Advisor progress</h1>
     <p>Practice checks completed by active Valtoris advisors.</p>
-    <p>Student loan best scores and certificates span pilot exam revisions, including the earlier workflow exam. A new attempt shows the advisor’s score on the expanded client case in My learning.</p>
+    <p>Expanded exam results track the new client case separately. Pilot best scores and certificates include earlier exam revisions.</p>
     {error ? <>
       <p role="alert">Could not load advisor progress.</p>
       <button type="button" className="crm-secondary-btn" onClick={() => { setError(false); setRevision(n => n + 1) }}>Retry</button>
@@ -49,7 +52,7 @@ export default function AcademyOwnerOverview() {
       : rows.length === 0 ? <p>No active advisors found.</p>
       : <div className="tac-academy-progress-scroll" role="region" aria-label="Advisor training progress" tabIndex={0}>
         <table className="crm-opportunities-table">
-          <thead><tr><th scope="col">Advisor</th><th scope="col">Core</th><th scope="col">Core exam best</th><th scope="col">Core certificate</th><th scope="col">Student loan</th><th scope="col">Student loan exam best</th><th scope="col">Student loan certificate</th><th scope="col">Last lesson</th></tr></thead>
+          <thead><tr><th scope="col">Advisor</th><th scope="col">Core</th><th scope="col">Core exam best</th><th scope="col">Core certificate</th><th scope="col">Student loan</th><th scope="col">Student loan pilot best</th><th scope="col">Expanded exam best</th><th scope="col">Latest expanded attempt</th><th scope="col">Student loan certificate</th><th scope="col">Last lesson</th></tr></thead>
           <tbody>{rows.map(row => {
             const coreCount = CORE_LESSONS.filter(lesson => row.completed.includes(lesson.id)).length
             const specialtyCount = PILOT_LESSONS.filter(lesson => row.completed.includes(lesson.id)).length
@@ -64,6 +67,11 @@ export default function AcademyOwnerOverview() {
               </> : 'Not issued'}</td>
               <td>{coreCount === CORE_LESSONS.length ? `${specialtyCount} of ${PILOT_LESSONS.length}` : 'Locked until Core is complete'}</td>
               <td>{row.student_loan_exam_best == null ? 'Not taken' : `${formatCoreExamScore(row.student_loan_exam_best)} · ${row.student_loan_exam_best >= CORE_EXAM_PASS ? 'Passed' : 'Below passing mark'}`}</td>
+              <td>{row.student_loan_expanded_exam_best == null ? 'Not taken' : `${formatCoreExamScore(row.student_loan_expanded_exam_best)} · ${row.student_loan_expanded_exam_best >= CORE_EXAM_PASS ? 'Passed' : 'Below passing mark'}`}</td>
+              <td>{row.student_loan_expanded_exam_last == null ? 'Not taken' : <>
+                <div>{formatCoreExamScore(row.student_loan_expanded_exam_last)}</div>
+                {row.student_loan_expanded_exam_attempted_at && <div>{formatCertificateDate(row.student_loan_expanded_exam_attempted_at)}</div>}
+              </>}</td>
               <td>{row.student_loan_certificate_id && row.student_loan_certificate_issued_at ? <>
                 <div>Issued {formatCertificateDate(row.student_loan_certificate_issued_at)}</div>
                 <div className="tac-core-certificate-id">{row.student_loan_certificate_id}</div>
