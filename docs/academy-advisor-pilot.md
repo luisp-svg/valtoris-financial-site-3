@@ -28,7 +28,7 @@ The proposed student loan exam follows the three Student Loan Client Review prac
 The next phase deepens the student loan track toward the competencies in the [CSLA public curriculum](https://cslainstitute.org/home). Build original instruction and cases in this order.
 
 1. Loan identification and borrower roles. Lesson 1 now adds federal and private loan classification, parent PLUS borrower responsibility, cosigner roles, and a three-loan TAC exercise. Primary source links and a review date appear inside the lesson.
-2. Interest and balances. Teach principal, accrued interest, fixed and variable rates, and dated balance reconciliation with worked calculations.
+2. Interest and balances. Lesson 2 now includes principal, accrued interest, capitalization, daily interest estimates, payment allocation, and a TAC calculation exercise with dated primary references. Fixed and variable rate comparisons remain further content.
 3. Consolidation and refinancing. Teach the questions, tradeoffs, and records needed to compare choices, with current primary sources.
 4. Repayment analysis. Build a dated comparison of available plans, eligibility, cash flow, and total cost using verified current rules.
 5. Forgiveness and financial planning. Add employment verification, tax coordination, household planning, and specialist escalation cases with current primary sources.

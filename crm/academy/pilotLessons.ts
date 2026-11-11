@@ -87,9 +87,16 @@ export const PILOT_LESSONS = [
     title: 'Verify the loan record',
     goal: 'Separate documented facts from information that still needs confirmation.',
     material: {
-      duration: '15–20 minutes',
+      sources: [
+        { title: 'Edfinancial — Daily interest calculation', url: 'https://edfinancial.studentaid.gov/faqs' },
+        { title: 'CFPB — How payments are applied', url: 'https://www.consumerfinance.gov/ask-cfpb/how-is-my-student-loan-payment-applied-to-my-account-en-605/' },
+        { title: 'Federal Student Aid — Capitalization glossary', url: 'https://fsapartners.ed.gov/knowledge-center/fsa-handbook/glossary' },
+      ],
+      sourceReviewDate: 'November 11, 2026',
+      duration: '30–35 minutes',
       objectives: [
         'Match each statement to the borrower, account, and date it covers.',
+        'Calculate daily interest and explain how a payment changes interest and principal.',
         'Distinguish a verified account balance from an unverified household total.',
         'Document the discrepancy in TAC and assign a specific verification task.',
       ],
@@ -109,6 +116,27 @@ export const PILOT_LESSONS = [
           ],
         },
         {
+          title: 'Separate principal, accrued interest, and the balance',
+          paragraphs: [
+            'Principal is the outstanding amount on which interest is calculated. Accrued interest has accumulated but has not yet been paid. For the examples below, the balance equals principal plus unpaid interest because there are no fees. Record these components separately and check what the statement’s total includes.',
+            'Capitalization adds unpaid interest to principal. If $60 is capitalized into $30,000 of principal, the new principal is $30,060 and that $60 leaves the separate unpaid-interest bucket. Capitalization changes the base for later interest. Verify any capitalization event in the transaction history before changing your record.',
+          ],
+        },
+        {
+          title: 'Calculate interest over a stated period',
+          paragraphs: [
+            'For a simple daily-interest estimate, multiply outstanding principal by the annual rate as a decimal, divide by the day-count divisor, and multiply by elapsed days. Edfinancial describes a 365.25 divisor. Use the method applicable to the actual loan when reconciling a statement.',
+            'The worked example assumes constant principal and a 6% annual rate, 30 elapsed days, a 365.25 divisor, and no payments, fees, capitalization, subsidies, or other adjustments during the interval. Keep full precision until the final amount is rounded to cents. Split the period if the principal or rate changes.',
+          ],
+        },
+        {
+          title: 'Reconcile a payment with the transaction record',
+          paragraphs: [
+            'Payments generally cover fees first, then unpaid interest, then principal. The cases here have no fees and one loan. Include interest already outstanding at the start of the period when determining how much of the payment reduces principal.',
+            'Compare your estimate with dated account transactions and confirm the payment’s effective date and allocation. A payoff quote can include interest through a later date. Label the calculation as an estimate and request the servicer’s explanation if it differs from the record.',
+          ],
+        },
+        {
           title: 'Turn the discrepancy into a follow-up task',
           paragraphs: [
             'In TAC, record what is verified, what is client-reported, and the question still open. Make the task specific enough that another advisor knows what evidence to request. For example, ask them to confirm whether the intake total includes a second borrower and obtain that borrower’s statement through the approved intake channel.',
@@ -117,18 +145,19 @@ export const PILOT_LESSONS = [
         },
       ],
       example: {
-        situation: 'A fictional household reports about $31,000 in student loan balances on October 10. An October 28 statement shows $27,800 for Morgan’s loans with one servicer. Morgan thinks the intake may also include Taylor’s loan, but Taylor’s statement is missing.',
-        response: '“I can verify $27,800 for the loans on your October 28 statement. To reconcile that with the intake estimate, can you confirm whether it included Taylor’s loan and send Taylor’s latest statement through our intake channel?”',
-        record: 'The household reported approximately $31,000 on October 10. Morgan’s October 28 statement verifies $27,800 for the accounts listed there. Whether Taylor’s loan was included in the intake remains open. The assigned advisor will confirm the scope of the estimate and review the missing statement before the household review.',
+        situation: 'A fictional statement shows $30,000 principal and $60 unpaid interest on October 1. The rate is 6%. Exactly 30 days elapse before a $300 payment is applied. Use a 365.25 divisor, constant principal and rate, no fees, and no capitalization, subsidies, or other adjustments.',
+        response: '“The daily interest estimate is $30,000 × 0.06 ÷ 365.25, or about $4.928131. Over 30 days that adds $147.84. Including the earlier $60, unpaid interest is $207.84. The $300 payment covers that interest and reduces principal by $92.16, leaving approximately $29,907.84.”',
+        record: 'Training estimate, rounded at the final step. Opening balance $30,060. Add $147.84 interest to reach $30,207.84 before payment. Subtract $300 to reach $29,907.84, comprising principal of $29,907.84 and zero unpaid interest. Confirm the actual payment allocation and effective date against the servicer history. The opening $60 was unpaid interest, so it was excluded from the interest-bearing principal.',
       },
       exercise: {
-        prompt: 'A fictional client reports $24,000 in loans. They send a summary dated October 20 showing $22,400 for two loans and a detail page from the same date showing $9,400 for one of those two loans. They mention another lender but provide no statement for it.',
-        instruction: 'In a development practice household, draft a verification note and an assigned follow-up task. Include the verified subtotal, why the detail page should not be added again, and the question you would ask the client about the other lender.',
+        prompt: 'A fictional November 1 statement lists $20,000 principal and $40 unpaid interest at a 5% annual rate. A $200 payment is applied after exactly 28 days. Assume a 365.25 divisor, constant principal and rate, no fees, capitalization, subsidies, or other adjustments. The client also mentions a different lender but has no statement for it.',
+        instruction: 'In a development practice household, draft a TAC calculation note showing the dated inputs, formula, new interest, payment allocation, and closing principal and unpaid interest. Label your result as an estimate. Assign a task to verify the transaction history and obtain the other lender’s statement.',
         checklist: [
-          'Record $22,400 as the verified subtotal for the two loans shown on October 20.',
-          'Identify the $9,400 detail as part of that subtotal and avoid counting it twice.',
-          'Keep $24,000 as the client-reported estimate and mark the full total unverified.',
-          'Assign someone to confirm the other account and request a dated statement before the review.',
+          'Use 0.05 for the annual rate and $20,000 for the interest-bearing principal. Retain precision until the final rounding.',
+          'New interest is $76.66. Add the opening $40 to obtain $116.66 unpaid interest before payment.',
+          'Allocate $116.66 of the payment to interest and $83.34 to principal. Closing principal is $19,916.66 and unpaid interest is zero.',
+          'Cross-check $20,040 opening balance + $76.66 new interest − $200 payment = $19,916.66. Keep the missing lender outside this verified account subtotal.',
+          'Record the assumptions and source date, then assign the verification task with an owner and due date.',
         ],
       },
     },
