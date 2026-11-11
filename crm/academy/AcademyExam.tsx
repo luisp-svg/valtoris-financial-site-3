@@ -52,6 +52,7 @@ export default function AcademyExam({ kind, onBack }: { kind: ExamKind; onBack: 
   return <section className="crm-panel tac-academy-lesson">
     <h1>{isCore ? 'Valtoris Core exam' : 'Student Loan Client Review exam'}</h1>
     <p>Answer all seven questions. Six correct answers meet the 85% passing mark. You can retry and your best score is saved.</p>
+    {!isCore && <p>This expanded case covers loan records, interest, consolidation, repayment, PSLF, and tax planning. The saved best score includes earlier pilot exam revisions. Submit a new attempt to see your score on this case.</p>}
     {result?.best != null && <p>Best score: {formatCoreExamScore(result.best)} · {result.best >= CORE_EXAM_PASS ? 'Passed' : 'Below passing mark'}</p>}
     {result?.score != null && <p role="status">This attempt: {formatCoreExamScore(result.score)}</p>}
     {!isCore && result?.score != null && <details className="tac-academy-material">

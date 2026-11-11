@@ -41,6 +41,7 @@ export default function AcademyOwnerOverview() {
   return <section className="crm-panel" aria-labelledby="academy-owner-heading">
     <h1 id="academy-owner-heading">Advisor progress</h1>
     <p>Practice checks completed by active Valtoris advisors.</p>
+    <p>Student loan best scores and certificates span pilot exam revisions, including the earlier workflow exam. A new attempt shows the advisor’s score on the expanded client case in My learning.</p>
     {error ? <>
       <p role="alert">Could not load advisor progress.</p>
       <button type="button" className="crm-secondary-btn" onClick={() => { setError(false); setRevision(n => n + 1) }}>Retry</button>
