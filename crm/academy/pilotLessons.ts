@@ -176,9 +176,15 @@ export const PILOT_LESSONS = [
     title: 'Document the next step',
     goal: 'Leave a handoff that another advisor can pick up without reconstructing the conversation.',
     material: {
-      duration: '15–20 minutes',
+      sources: [
+        { title: 'CFPB — Consolidation and refinancing', url: 'https://www.consumerfinance.gov/ask-cfpb/should-i-consolidate-refinance-student-loans-en-561/' },
+        { title: 'Federal Student Aid — Consolidation rate calculation', url: 'https://studentaid.gov/articles/5-things-before-consolidating-student-loans/' },
+      ],
+      sourceReviewDate: 'November 11, 2026',
+      duration: '30–35 minutes',
       objectives: [
         'Summarize the client’s goal, verified facts, and the open question in a TAC note.',
+        'Compare federal consolidation with private refinancing and document the unresolved tradeoffs.',
         'Assign the review and client update with separate owners and deadlines when needed.',
         'Escalate a stalled review and record the outcome of the client follow-up.',
       ],
@@ -198,6 +204,20 @@ export const PILOT_LESSONS = [
           ],
         },
         {
+          title: 'Identify which transaction the client is considering',
+          paragraphs: [
+            'A federal Direct Consolidation Loan combines eligible federal loans. Private refinancing replaces selected debt with a private loan. Ask which loans are included and who would issue the replacement loan.',
+            'Moving federal debt into a private loan removes federal benefits and protections on that debt and cannot be reversed. Compare the proposed term, APR, fixed or variable rate, and protections with the existing loans. Record the client’s need for payment flexibility and any forgiveness review.',
+          ],
+        },
+        {
+          title: 'Compare the rate and the full repayment schedule',
+          paragraphs: [
+            'The Direct Consolidation rate is the balance-weighted average of the included loans’ official rates, rounded up to the next one-eighth percentage point. For $10,000 at 4% and $20,000 at 6%, calculate ($10,000 × 0.04 + $20,000 × 0.06) ÷ $30,000 = 5.333333%. Rounding up gives 5.375%. This example assumes no unpaid interest or other balance adjustments.',
+            'For a separate payment illustration, compare 120 remaining payments of $320 with 180 proposed payments of $250. The monthly payment falls $70, while scheduled payments total $38,400 versus $45,000, a $6,600 increase. Assume fixed payments, no fees, and no early payoff. These totals include principal. Obtain a complete quote before evaluating an actual offer.',
+          ],
+        },
+        {
           title: 'Close the loop in TAC',
           paragraphs: [
             'Tell the client what has been verified, what is still being checked, and when they will hear from you again. If you reach voicemail or the client cannot respond, log the attempt and schedule the next contact.',
@@ -206,18 +226,19 @@ export const PILOT_LESSONS = [
         },
       ],
       example: {
-        situation: 'A fictional client named Casey wants to plan next week’s cash flow. A statement dated October 28 lists a payment due Friday. Casey says the account portal shows Monday, but has not shared a dated record from the portal. Casey expects an update Wednesday afternoon.',
-        response: '“The October 28 statement shows Friday, and you saw Monday in the portal. We’ll check which date applies to this payment. I’ll update you by 3 p.m. Wednesday, even if we’re still waiting for confirmation.”',
-        record: 'Casey needs the current due date for next week’s cash-flow plan. The October 28 statement lists Friday. Monday is client-reported. Assign the reviewing advisor to verify the date for the same account and billing period and record the source by noon Wednesday. The referring advisor owns the 3 p.m. update. If the review is still open at noon, the referring advisor alerts the team lead, gives Casey a status update as promised, and records the next check-in.',
+        situation: 'A fictional client, Sam, wants a lower payment during a job transition. Sam has $10,000 of federal debt at 4%, $20,000 of federal debt at 6%, and a separate $8,000 private loan. A lender advertises one lower payment for all three. Sam also asks whether federal consolidation would help. The advertisement omits the APR, term, and full payment schedule.',
+        response: '“Let’s compare the federal consolidation option with the private lender’s written offer. We need to see which loans it includes, the full repayment schedule, and what protections would change. I’ll update you Thursday after the reviewing advisor checks those items.”',
+        record: 'Sam’s goal is payment flexibility during a job transition. For the two federal loans, the illustrative weighted rate is 5.333333%, rounded up to 5.375%, assuming the listed balances and official rates are verified and no balance adjustments. The separate $8,000 private loan stays outside that federal calculation. Assign the reviewer to obtain the written private quote, compare terms and protections, and verify current consolidation eligibility and program effects by noon Thursday. I own the Thursday 3 p.m. update and will record any remaining questions.',
       },
       exercise: {
-        prompt: 'A fictional client wants to plan their next payment before leaving town Saturday. The latest statement verifies one loan’s payment amount and due date. The client believes a second payment is due while they are away, but the second account’s statement is missing. You promised an update by 4 p.m. Thursday. By noon Thursday, the reviewing advisor has no new record.',
-        instruction: 'In a development practice household, draft a TAC handoff note and tasks for the review and client update. Then draft the Thursday update and log what you would do next if the second statement is still missing.',
+        prompt: 'A fictional client has $15,000 of federal loans at 4% and $25,000 at 6%, with no unpaid interest. They want a lower payment and mention possible public-service employment. A private lender offers 180 payments of $300 to replace both loans. A current schedule shows 120 remaining payments of $400. The written private offer has not been provided.',
+        instruction: 'In a development practice household, write a TAC comparison note. Calculate the illustrative federal consolidation rate and both scheduled payment totals. Separate confirmed records from the client’s description. Assign a review task and a client update with owners and deadlines, including how you will handle a missing quote.',
         checklist: [
-          'State the travel deadline, what the first statement verifies, and what is still unknown about the second account.',
-          'Assign a named reviewer and a deadline before the client update. Specify the record to request and what to verify when it arrives.',
-          'Name who will escalate the delay and who will update the client by 4 p.m. Thursday.',
-          'Draft a status update that explains the open question and sets a next check-in. Keep the unresolved review task open with an owner and due date.',
+          'Calculate ($15,000 × 0.04 + $25,000 × 0.06) ÷ $40,000 = 5.25%. It already lies on a one-eighth percentage point increment, so it stays 5.25%.',
+          'Compare $48,000 of current scheduled payments with $54,000 proposed. The proposed monthly payment is $100 lower and the scheduled total is $6,000 higher under the stated fixed-payment assumptions.',
+          'Identify the loss of federal protections if the debt is privately refinanced. Flag the public-service question for verification without assuming eligibility.',
+          'Request the written APR, rate type, term, fees, and payment schedule. Label the comparison provisional until the records support it.',
+          'Assign a reviewer and due date before the promised client update. Keep an unresolved review open and schedule the next check-in if the quote is delayed.',
         ],
       },
     },
