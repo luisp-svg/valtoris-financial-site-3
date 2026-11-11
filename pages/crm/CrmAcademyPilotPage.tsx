@@ -8,6 +8,7 @@ import { fetchAcademyProgress, type AcademyProgress } from '../../crm/academy/pr
 import AcademyExam from '../../crm/academy/AcademyExam'
 import AcademyRepaymentComparison from '../../crm/academy/AcademyRepaymentComparison'
 import AcademyForgivenessReview from '../../crm/academy/AcademyForgivenessReview'
+import AcademyTaxPlanning from '../../crm/academy/AcademyTaxPlanning'
 import AcademyOwnerOverview from '../../crm/academy/AcademyOwnerOverview'
 import '../../crm/academy/pilot.css'
 
@@ -159,6 +160,7 @@ function AcademyLessonPlayer() {
           {lesson.id === 'handoff-and-follow-up' && <>
             <AcademyRepaymentComparison />
             <AcademyForgivenessReview />
+            <AcademyTaxPlanning />
           </>}
           {'sources' in lesson.material && <section>
             <h3>Lesson references</h3>
