@@ -12,6 +12,8 @@ type AdvisorProgress = {
   last_lesson: string | null
   core_exam_best: number | null
   student_loan_exam_best: number | null
+  student_loan_certificate_id: string | null
+  student_loan_certificate_issued_at: string | null
   core_certificate_id: string | null
   core_certificate_issued_at: string | null
 }
@@ -46,7 +48,7 @@ export default function AcademyOwnerOverview() {
       : rows.length === 0 ? <p>No active advisors found.</p>
       : <div className="tac-academy-progress-scroll" role="region" aria-label="Advisor training progress" tabIndex={0}>
         <table className="crm-opportunities-table">
-          <thead><tr><th scope="col">Advisor</th><th scope="col">Core</th><th scope="col">Core exam best</th><th scope="col">Core certificate</th><th scope="col">Student loan</th><th scope="col">Student loan exam best</th><th scope="col">Last lesson</th></tr></thead>
+          <thead><tr><th scope="col">Advisor</th><th scope="col">Core</th><th scope="col">Core exam best</th><th scope="col">Core certificate</th><th scope="col">Student loan</th><th scope="col">Student loan exam best</th><th scope="col">Student loan certificate</th><th scope="col">Last lesson</th></tr></thead>
           <tbody>{rows.map(row => {
             const coreCount = CORE_LESSONS.filter(lesson => row.completed.includes(lesson.id)).length
             const specialtyCount = PILOT_LESSONS.filter(lesson => row.completed.includes(lesson.id)).length
@@ -61,6 +63,10 @@ export default function AcademyOwnerOverview() {
               </> : 'Not issued'}</td>
               <td>{coreCount === CORE_LESSONS.length ? `${specialtyCount} of ${PILOT_LESSONS.length}` : 'Locked until Core is complete'}</td>
               <td>{row.student_loan_exam_best == null ? 'Not taken' : `${formatCoreExamScore(row.student_loan_exam_best)} · ${row.student_loan_exam_best >= CORE_EXAM_PASS ? 'Passed' : 'Below passing mark'}`}</td>
+              <td>{row.student_loan_certificate_id && row.student_loan_certificate_issued_at ? <>
+                <div>Issued {formatCertificateDate(row.student_loan_certificate_issued_at)}</div>
+                <div className="tac-core-certificate-id">{row.student_loan_certificate_id}</div>
+              </> : 'Not issued'}</td>
               <td>{lastLesson?.title ?? 'Not started'}</td>
             </tr>
           })}</tbody>

@@ -66,7 +66,7 @@ export default function AcademyExam({ kind, onBack }: { kind: ExamKind; onBack: 
       <p>{STUDENT_LOAN_EXAM_CASE.clientUpdate}</p>
     </details>}
     {error && <p role="alert">{error}</p>}
-    {isCore && result?.certificate && <AcademyCoreCertificate certificate={result.certificate} />}
+    {result?.certificate && <AcademyCoreCertificate certificate={result.certificate} course={isCore ? 'Valtoris Core' : 'Student Loan Client Review'} />}
     {!isCore && <div className="tac-academy-material">
       <section>
         <h2>Client case</h2>

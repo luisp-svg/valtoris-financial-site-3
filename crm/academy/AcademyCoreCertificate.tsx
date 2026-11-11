@@ -11,13 +11,13 @@ export function formatCertificateDate(issuedAt: string) {
   }).format(new Date(issuedAt))
 }
 
-export default function AcademyCoreCertificate({ certificate }: { certificate: CoreCertificate }) {
+export default function AcademyCoreCertificate({ certificate, course = 'Valtoris Core' }: { certificate: CoreCertificate; course?: 'Valtoris Core' | 'Student Loan Client Review' }) {
   return <section className="tac-core-certificate" aria-labelledby="core-certificate-title">
     <p className="crm-page-eyebrow">Valtoris Academy</p>
-    <h2 id="core-certificate-title">Valtoris Core Certificate of Completion</h2>
+    <h2 id="core-certificate-title">{course} Certificate of Completion</h2>
     <p>Awarded to</p>
     <p className="tac-core-certificate-name">{certificate.name}</p>
-    <p>For completing Valtoris Core training and passing the graded exam.</p>
+    <p>For completing {course} training and passing the graded exam.</p>
     <p>Issued {formatCertificateDate(certificate.issuedAt)}</p>
     <p className="tac-core-certificate-id">Certificate ID {certificate.id}</p>
     <p>Internal Valtoris training record</p>
