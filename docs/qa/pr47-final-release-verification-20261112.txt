@@ -116,3 +116,12 @@ DOCUMENTATION SAVE
 Saved locally in project documentation only. No push, merge, deployment, database
 write, billing change or QA fixture change was performed to save this summary.
 Detailed pre-release evidence: licensing-acceptance-fixes-20261112.txt.
+
+GITHUB PUBLICATION — 2026-11-12
+
+The user subsequently authorized publication to GitHub without deployment.
+Publication uses docs/pr47-final-verification-20261112, with automatic Vercel
+deployment explicitly disabled for that exact branch before its first push.
+This publishes documentation plus the branch-specific deployment guard only;
+main, the live release, billing, business records and retained QA fixtures remain
+unchanged. No merge or production deployment is included in this publication.

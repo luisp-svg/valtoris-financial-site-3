@@ -191,6 +191,7 @@
   ],
   "git": {
     "deploymentEnabled": {
+      "docs/pr47-final-verification-20261112": false,
       "dev/licensing-acceptance-fixes-20261112": false,
       "docs/pr44-pr45-release-summary-20261109": false,
       "dev/licensing-revoked-code-guard-20261109": false,
