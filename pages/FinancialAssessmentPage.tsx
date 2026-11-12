@@ -90,8 +90,9 @@ function FinancialAssessmentForm({
     inFlight = useRef(false),
     heading = useRef<HTMLHeadingElement>(null);
   const cardVersion = consultationOnly ? undefined : 1;
+  const planningVersion = !consultationOnly && mainReportCard(selected) ? 1 : undefined;
   const familySupplementVersion = !consultationOnly && mainReportCard(selected) === 'family' ? 1 : undefined;
-  const questions = consultationOnly ? [] : combinedQuestions(selected, diagnostic, 1, 1, cardVersion, familySupplementVersion),
+  const questions = consultationOnly ? [] : combinedQuestions(selected, diagnostic, 1, 1, cardVersion, familySupplementVersion, planningVersion),
     atContact = step >= questions.length,
     q = questions[step];
   useEffect(() => {
@@ -168,6 +169,7 @@ function FinancialAssessmentForm({
         ...(consultationOnly?{}:{strategyVersion:1 as const}),
         ...(cardVersion ? { cardVersion } : {}),
         ...(familySupplementVersion ? { familySupplementVersion } : {}),
+        ...(planningVersion ? { planningVersion } : {}),
       ...(consultationOnly ? {consultationOnly:true as const} : {}),
       selected,
       diagnostic,
@@ -447,7 +449,7 @@ function FinancialAssessmentForm({
                         }
                         onChange={(e) => {
                           setDiagnostic((d) =>
-                            updateCombined(selected, d, q.id, e.target.value, 1, 1, cardVersion, familySupplementVersion),
+                            updateCombined(selected, d, q.id, e.target.value, 1, 1, cardVersion, familySupplementVersion, planningVersion),
                           );
                           setError("");
                         }}
@@ -469,6 +471,7 @@ function FinancialAssessmentForm({
                                 1,
                                 cardVersion,
                                 familySupplementVersion,
+                                planningVersion,
                               ),
                             );
                             setError("");
@@ -488,7 +491,7 @@ function FinancialAssessmentForm({
                       value={String(diagnostic[q.id] ?? "")}
                       onChange={(e) => {
                         setDiagnostic((d) =>
-                          updateCombined(selected, d, q.id, e.target.value, 1, 1, cardVersion, familySupplementVersion),
+                          updateCombined(selected, d, q.id, e.target.value, 1, 1, cardVersion, familySupplementVersion, planningVersion),
                         );
                         setError("");
                       }}
@@ -543,7 +546,7 @@ function FinancialAssessmentForm({
                                       ]
                                 : option.value;
                               setDiagnostic((d) =>
-                                updateCombined(selected, d, q.id, next, 1, 1, cardVersion, familySupplementVersion),
+                                updateCombined(selected, d, q.id, next, 1, 1, cardVersion, familySupplementVersion, planningVersion),
                               );
                               setError("");
                             }}

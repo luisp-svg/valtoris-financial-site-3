@@ -1,20 +1,18 @@
+import { US_STATES } from '../../components/assessment/constants'
 import type { Field } from './RecruitForm'
 import { RECRUIT_STAGES, LICENSE_TYPES, APPOINTING_ORGANIZATIONS, stageLabel, type Option } from './types'
 const choices = (...values: string[]): Option[] => values.map(value => ({ id: value, name: value === 'eo' ? 'E&O' : value[0].toUpperCase() + value.slice(1) }))
-export const createFields = (advisors: Option[]): Field[] => [
+export const createFields = (_advisors: Option[]): Field[] => [
   { key: 'full_name', label: 'Full name', required: true, maxLength: 200 },
   { key: 'email', label: 'Email', type: 'email', required: true, maxLength: 254 },
   { key: 'phone', label: 'Phone', maxLength: 80 },
   { key: 'license_types', label: 'License types', type: 'checkboxes', options: [...LICENSE_TYPES], hint: 'Select all that apply. State license evidence is recorded separately.' },
-  { key: 'appointing_organization', label: 'Appointing under', options: [...APPOINTING_ORGANIZATIONS] },
+  { key: 'appointing_organizations', label: 'Appointing under', type: 'checkboxes', options: [...APPOINTING_ORGANIZATIONS] },
   { key: 'contract_level', label: 'Contract level', maxLength: 120, hint: 'Enter the exact level from the contract; leave blank if not yet confirmed.' },
-  { key: 'assigned_advisor_id', label: 'Follow-up owner', options: advisors, hint: 'Assignment tracks follow-up responsibility. Management remains with Luis and Jazmin.' },
 ]
 export const editFields = (advisors: Option[]): Field[] => [...createFields(advisors),
   { key: 'advisor_profile_id', label: 'Link existing advisor account', options: advisors, hint: 'Select only the same person. Their account email must match. This does not create an account or change access.' },
   { key: 'stage', label: 'Workflow stage', required: true, options: RECRUIT_STAGES.map(s => ({ id: s, name: stageLabel(s) })) },
-  { key: 'next_action', label: 'Next action', maxLength: 1000 },
-  { key: 'next_action_due_on', label: 'Follow-up date', type: 'date' },
   { key: 'is_archived', label: 'Archived', type: 'checkbox', hint: 'Hide from the active recruiting list; history is retained.' },
 ]
 export const credentialFields = (kind: 'license' | 'eo'): Field[] => [
@@ -49,6 +47,7 @@ export const privateLicenseFields: Field[] = [
  {key:'npn',label:'NPN #',required:true,maxLength:20},
  {key:'ssn_last_four',label:'SSN last four only',required:true,maxLength:4,hint:'Never enter a full Social Security number.'},
  {key:'dob',label:'Date of birth',type:'date',required:true},
+ {key:'drivers_license_state',label:'Driver license issuing state / territory',required:true,options:[...US_STATES.map(state=>({id:state.value,name:state.label})),...([{id:'AS',name:'American Samoa'},{id:'GU',name:'Guam'},{id:'MP',name:'Northern Mariana Islands'},{id:'PR',name:'Puerto Rico'},{id:'VI',name:'U.S. Virgin Islands'}])]},
  {key:'drivers_license_number',label:'Driver license #',required:true,maxLength:100},
  {key:'first_policy_reference',label:'First submitted policy reference',maxLength:200,hint:'Record the carrier policy or application reference after the first policy is submitted.'},
  {key:'first_policy_submitted_on',label:'First policy submission date',type:'date'},

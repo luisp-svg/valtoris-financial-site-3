@@ -1,3 +1,4 @@
+import { planningQuestions } from './planningQuestions.js';
 import { familySupplementQuestions } from './familySupplement.js';
 import { mainReportCard } from './cardProfiles.js';
 import { isProtectionArea, protectionQuestions } from './protectionCalculator.js';
@@ -19,7 +20,7 @@ export const PRIORITIES = [
  {id:'trucking',en:'Commercial trucking insurance',es:'Seguro de transporte comercial'},
 ] as const;
 export type Priority = typeof PRIORITIES[number]['id'];
-export type CombinedAnswers = {format:typeof COMBINED_FORMAT | typeof legacy.COMBINED_FORMAT;strategyVersion?:1;cardVersion?:1;familySupplementVersion?:1;insuranceRoutingVersion?:1;consultationOnly?:true;selected:Priority[];diagnostic:ShortDiagnostic;contact:{fullName:string;email:string;phone:string};locale:Locale};
+export type CombinedAnswers = {format:typeof COMBINED_FORMAT | typeof legacy.COMBINED_FORMAT;strategyVersion?:1;cardVersion?:1;familySupplementVersion?:1;planningVersion?:1;insuranceRoutingVersion?:1;consultationOnly?:true;selected:Priority[];diagnostic:ShortDiagnostic;contact:{fullName:string;email:string;phone:string};locale:Locale};
 export type CombinedQuestion = {id:string;question:ShortQuestion;reviews:Priority[]};
 export const PRIORITY_GROUPS: {en:string;es:string;ids:Priority[]}[] = [
  {en:'Start here: student loans & health',es:'Comienza aquí: préstamos y salud',ids:['student_loan','health']},
@@ -56,7 +57,7 @@ export function primaryAssessment(s:readonly Priority[]):PublicReportCardAssessm
  return old.length ? legacy.primaryAssessment(old) : 'business';
 }
 export function isCombined(v:unknown):v is CombinedAnswers{return !!v&&typeof v==='object'&&[COMBINED_FORMAT,legacy.COMBINED_FORMAT].includes((v as CombinedAnswers).format);}
-export function combinedQuestions(selected:readonly Priority[],answers:ShortDiagnostic,insuranceRoutingVersion?:1,strategyVersion?:1,cardVersion?:1,familySupplementVersion?:1):CombinedQuestion[]{
+export function combinedQuestions(selected:readonly Priority[],answers:ShortDiagnostic,insuranceRoutingVersion?:1,strategyVersion?:1,cardVersion?:1,familySupplementVersion?:1,planningVersion?:1):CombinedQuestion[]{
  const readiness = readinessQuestions(selected, answers, insuranceRoutingVersion, strategyVersion);
  if (cardVersion !== 1) return readiness;
  const profile = mainReportCard(selected);
@@ -144,22 +145,26 @@ export function combinedQuestions(selected:readonly Priority[],answers:ShortDiag
    (profile !== 'business' || !['business.review', 'commercial.people'].includes(question.id)) &&
    (answers['benefits.workforce'] !== 'none' || profile !== 'business' || !question.reviews.includes('benefits')));
  if (profile === 'family') {
+  const supplement = (familySupplementVersion === 1 || planningVersion === 1) ? familySupplementQuestions(answers) : [];
+  const planning = planningVersion === 1 ? planningQuestions('family', answers) : [];
   return [
    ...shared,
    ...scoped.filter(question => /cashflow|reserves/.test(question.id)),
    ...other.filter(question => ['credit.status', 'credit.review'].includes(question.id)),
+   ...(planningVersion === 1 ? [...supplement.filter(question=>question.id.startsWith('family_loans.')), ...planning.filter(question=>question.reviews.includes('credit'))] : []),
    ...calculator,
    ...scoped.filter(question => question.reviews.includes('protection')),
    ...other.filter(question => question.reviews.includes('lifestyle')),
    ...scoped.filter(question => question.reviews.includes('retirement')),
    ...other.filter(question => question.reviews.includes('retirement')),
    ...scoped.filter(question => question.id === 'family.estate.review'),
-   ...(familySupplementVersion === 1 ? familySupplementQuestions(answers) : []),
+   ...(planningVersion === 1 ? [...supplement.filter(question=>!question.id.startsWith('family_loans.')), ...planning.filter(question=>!question.reviews.includes('credit'))] : supplement),
    ...other.filter(question => question.reviews.includes('tax')),
   ];
  }
  if (profile === 'business') {
   const questions = [...scoped, ...other];
+  if (planningVersion === 1) return [...shared, ...questions.filter(question=>question.id !== 'business.succession.review'), ...planningQuestions('business', answers)];
   return [...shared, ...(['business', 'commercial', 'benefits', 'tax'] as const)
    .flatMap(area => questions.filter(question => question.reviews.includes(area)))];
  }
@@ -232,18 +237,19 @@ function readinessQuestions(selected:readonly Priority[],answers:ShortDiagnostic
  return visible.sort((a,b)=>rank(a)-rank(b));
 }
 export function validCombinedQuestion(q:CombinedQuestion,value:unknown):boolean{if(q.question.kind==='date')return value==='unknown'||typeof value==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value)&&Number.isFinite(Date.parse(value+'T12:00:00Z'))&&new Date(value+'T12:00:00Z').toISOString().slice(0,10)===value;return validQuestion(q.question,value);}
-export function pruneCombined(s:readonly Priority[],d:ShortDiagnostic,insuranceRoutingVersion?:1,strategyVersion?:1,cardVersion?:1,familySupplementVersion?:1):ShortDiagnostic{const keys=new Set(combinedQuestions(s,d,insuranceRoutingVersion,strategyVersion,cardVersion,familySupplementVersion).map(q=>q.id));return Object.fromEntries(Object.entries(d).filter(([k])=>keys.has(k)));}
-export function updateCombined(s:readonly Priority[],d:ShortDiagnostic,id:string,value:string|string[],insuranceRoutingVersion?:1,strategyVersion?:1,cardVersion?:1,familySupplementVersion?:1):ShortDiagnostic{return pruneCombined(s,{...d,[id]:value},insuranceRoutingVersion,strategyVersion,cardVersion,familySupplementVersion);}
+export function pruneCombined(s:readonly Priority[],d:ShortDiagnostic,insuranceRoutingVersion?:1,strategyVersion?:1,cardVersion?:1,familySupplementVersion?:1,planningVersion?:1):ShortDiagnostic{const keys=new Set(combinedQuestions(s,d,insuranceRoutingVersion,strategyVersion,cardVersion,familySupplementVersion,planningVersion).map(q=>q.id));return Object.fromEntries(Object.entries(d).filter(([k])=>keys.has(k)));}
+export function updateCombined(s:readonly Priority[],d:ShortDiagnostic,id:string,value:string|string[],insuranceRoutingVersion?:1,strategyVersion?:1,cardVersion?:1,familySupplementVersion?:1,planningVersion?:1):ShortDiagnostic{return pruneCombined(s,{...d,[id]:value},insuranceRoutingVersion,strategyVersion,cardVersion,familySupplementVersion,planningVersion);}
 export function validateCombined(raw:unknown,assessmentType?:PublicReportCardAssessmentType):CombinedAnswers|null{
  if(!isCombined(raw))return null;
  if(raw.format===legacy.COMBINED_FORMAT)return legacy.validateCombined(raw,assessmentType);
- if(Object.keys(raw).some(k=>!['format','selected','diagnostic','contact','locale','consultationOnly','insuranceRoutingVersion','strategyVersion','cardVersion','familySupplementVersion'].includes(k))||!Array.isArray(raw.selected)||!raw.selected.length||!raw.selected.every(isPriority)||new Set(raw.selected).size!==raw.selected.length||!['en','es'].includes(raw.locale)||!raw.diagnostic||typeof raw.diagnostic!=='object'||Array.isArray(raw.diagnostic)||raw.consultationOnly!==undefined&&raw.consultationOnly!==true)return null;
+ if(Object.keys(raw).some(k=>!['format','selected','diagnostic','contact','locale','consultationOnly','insuranceRoutingVersion','strategyVersion','cardVersion','familySupplementVersion','planningVersion'].includes(k))||!Array.isArray(raw.selected)||!raw.selected.length||!raw.selected.every(isPriority)||new Set(raw.selected).size!==raw.selected.length||!['en','es'].includes(raw.locale)||!raw.diagnostic||typeof raw.diagnostic!=='object'||Array.isArray(raw.diagnostic)||raw.consultationOnly!==undefined&&raw.consultationOnly!==true)return null;
  if(raw.strategyVersion!==undefined&&raw.strategyVersion!==1)return null;
  if(raw.cardVersion!==undefined&&(raw.cardVersion!==1||raw.strategyVersion!==1||raw.consultationOnly))return null;
  if(raw.familySupplementVersion!==undefined&&(raw.familySupplementVersion!==1||raw.cardVersion!==1||mainReportCard(raw.selected)!=='family'))return null;
+ if(raw.planningVersion!==undefined&&(raw.planningVersion!==1||raw.cardVersion!==1||!mainReportCard(raw.selected)))return null;
  if(raw.insuranceRoutingVersion!==undefined&&raw.insuranceRoutingVersion!==1)return null;
  if(assessmentType&&primaryAssessment(raw.selected)!==assessmentType)return null;
- const active=raw.consultationOnly?[]:combinedQuestions(raw.selected,raw.diagnostic,raw.insuranceRoutingVersion,raw.strategyVersion,raw.cardVersion,raw.familySupplementVersion);
+ const active=raw.consultationOnly?[]:combinedQuestions(raw.selected,raw.diagnostic,raw.insuranceRoutingVersion,raw.strategyVersion,raw.cardVersion,raw.familySupplementVersion,raw.planningVersion);
  if(Object.keys(raw.diagnostic).some(k=>!active.some(q=>q.id===k))||active.some(q=>!validCombinedQuestion(q,raw.diagnostic[q.id])))return null;
  if(!raw.contact||typeof raw.contact!=='object'||Array.isArray(raw.contact)||Object.keys(raw.contact).some(k=>!['fullName','email','phone'].includes(k))||!(['fullName','email','phone'] as const).every(k=>typeof raw.contact[k]==='string')||!validShortContact(raw.contact)||!normalizePhone(raw.contact.phone))return null;
  return {...raw,selected:orderedPriorities(raw.selected),contact:{fullName:raw.contact.fullName.trim(),email:raw.contact.email.trim(),phone:raw.contact.phone.trim()}};
@@ -255,5 +261,5 @@ export function readStoredCombined(raw:unknown){if(!isCombined(raw))return null;
 export function combinedAnswerRows(raw:unknown,locale:Locale='en'){
  if(isCombined(raw)&&raw.format===legacy.COMBINED_FORMAT)return legacy.combinedAnswerRows(raw,locale);
  const saved=readStoredCombined(raw);if(!saved)return [];
- return combinedQuestions(saved.selected,saved.diagnostic,(saved as CombinedAnswers).insuranceRoutingVersion,(saved as CombinedAnswers).strategyVersion,(saved as CombinedAnswers).cardVersion).map(({id,question})=>({id,label:question.label[locale],value:(Array.isArray(saved.diagnostic[id])?saved.diagnostic[id] as string[]:[String(saved.diagnostic[id]??'—')]).map(v=>question.options?.find(o=>o.value===v)?.label[locale]??v).join(', ')}));
+ return combinedQuestions(saved.selected,saved.diagnostic,(saved as CombinedAnswers).insuranceRoutingVersion,(saved as CombinedAnswers).strategyVersion,(saved as CombinedAnswers).cardVersion,(saved as CombinedAnswers).planningVersion === 1 ? (saved as CombinedAnswers).familySupplementVersion : undefined,(saved as CombinedAnswers).planningVersion).map(({id,question})=>({id,label:question.label[locale],value:(Array.isArray(saved.diagnostic[id])?saved.diagnostic[id] as string[]:[String(saved.diagnostic[id]??'—')]).map(v=>question.options?.find(o=>o.value===v)?.label[locale]??v).join(', ')}));
 }

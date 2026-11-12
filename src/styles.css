@@ -7134,7 +7134,7 @@ p { color: var(--muted); line-height: 1.7; }
 
 .crm-content {
   min-width: 0;
-  overflow-x: clip;
+  overflow-x: auto;
   padding: 24px 28px 40px;
 }
 

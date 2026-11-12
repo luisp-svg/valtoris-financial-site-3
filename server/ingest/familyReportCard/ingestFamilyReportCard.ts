@@ -100,7 +100,7 @@ function persistableAssessmentAnswers(
   | { diagnostic: StudentLoanAssessmentAnswers['diagnostic'] }
   | { diagnostic: CreditAssessmentAnswers['diagnostic'] }
   | { diagnostic: HomeBuyerAssessmentAnswers['diagnostic'] } {
-  if (isCombined(answers)) return {format:answers.format,selected:answers.selected,diagnostic:answers.diagnostic,locale:answers.locale,...(answers.strategyVersion?{strategyVersion:answers.strategyVersion}:{}),...(answers.cardVersion?{cardVersion:answers.cardVersion}:{}),...(answers.familySupplementVersion?{familySupplementVersion:answers.familySupplementVersion}:{}),...(answers.insuranceRoutingVersion?{insuranceRoutingVersion:answers.insuranceRoutingVersion}:{}),...(answers.consultationOnly?{consultationOnly:true as const}:{})}
+  if (isCombined(answers)) return {format:answers.format,selected:answers.selected,diagnostic:answers.diagnostic,locale:answers.locale,...(answers.strategyVersion?{strategyVersion:answers.strategyVersion}:{}),...(answers.cardVersion?{cardVersion:answers.cardVersion}:{}),...(answers.planningVersion?{planningVersion:answers.planningVersion}:{}),...(answers.familySupplementVersion?{familySupplementVersion:answers.familySupplementVersion}:{}),...(answers.insuranceRoutingVersion?{insuranceRoutingVersion:answers.insuranceRoutingVersion}:{}),...(answers.consultationOnly?{consultationOnly:true as const}:{})}
   if (isGuidedReport(answers)) return {format:answers.format,assessmentType:answers.assessmentType,diagnostic:answers.diagnostic,locale:answers.locale}
   if (isShortForm(answers)) return { format: answers.format, assessmentType: answers.assessmentType, diagnostic: answers.diagnostic }
   if (assessmentType === 'student_loan') {
@@ -142,7 +142,7 @@ function buildCanonicalResult(
       sheetsPayload:buildMasterLeadPayload({...names,fullName:answers.contact.fullName,email:answers.contact.email,phone:answers.contact.phone,
         notes:`${answers.consultationOnly ? "Consultation request only; no assessment completed" : "Valtoris Financial Assessment"}; selected priorities: ${answers.selected.join(', ')}. One parent assessment; detailed intake during consultation.`,
         topPriority1:priorities[0]?.title,topPriority2:priorities[1]?.title,topPriority3:priorities[2]?.title,
-        sourcePage:sourcePage??'',submittedAt,rawAnswers:JSON.stringify({format:answers.format,selected:answers.selected,diagnostic:answers.diagnostic,locale:answers.locale,...(answers.strategyVersion?{strategyVersion:answers.strategyVersion}:{}),...(answers.cardVersion?{cardVersion:answers.cardVersion}:{}),...(answers.familySupplementVersion?{familySupplementVersion:answers.familySupplementVersion}:{}),...(answers.insuranceRoutingVersion?{insuranceRoutingVersion:answers.insuranceRoutingVersion}:{})})})}
+        sourcePage:sourcePage??'',submittedAt,rawAnswers:JSON.stringify({format:answers.format,selected:answers.selected,diagnostic:answers.diagnostic,locale:answers.locale,...(answers.strategyVersion?{strategyVersion:answers.strategyVersion}:{}),...(answers.cardVersion?{cardVersion:answers.cardVersion}:{}),...(answers.planningVersion?{planningVersion:answers.planningVersion}:{}),...(answers.familySupplementVersion?{familySupplementVersion:answers.familySupplementVersion}:{}),...(answers.insuranceRoutingVersion?{insuranceRoutingVersion:answers.insuranceRoutingVersion}:{})})})}
   }
   if (isGuidedReport(answers)) {
     const result=guidedResult(answers.assessmentType,answers.diagnostic,answers.locale)
