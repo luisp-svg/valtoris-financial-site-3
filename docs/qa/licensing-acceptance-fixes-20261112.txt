@@ -1,10 +1,10 @@
 LICENSING AND REPORT CARD ACCEPTANCE CHANGES — 2026-11-12
 
-Status: development source prepared; NOT released or accepted by the licensing manager.
+Status: development database installed and preview READY; report sample browser checks passed. Interactive licensing forms await authorized owner login. NOT released to production or accepted by the licensing manager.
 Branch: dev/licensing-acceptance-fixes-20261112
 Base: main f7e4afbad97d11c8dc22b789710a6650ce192661
 Production, billing, business records, and retained QA fixtures were not changed.
-No hosted database writes, schema applications, deployments, account changes, or upgrades were performed for this work.
+Development-only migration and preview deployment were authorized and completed on 2026-11-12. Synthetic hosted workflow tests ran inside rolled-back transactions. No production migration/deployment, permanent business-record writes, account changes, or upgrades were performed.
 
 Requested licensing fixes
 - Constrain board/grid children to available width and keep horizontal controls/viewport accessible. CRM content has horizontal scrolling instead of clipping an oversized page.
@@ -36,15 +36,37 @@ These are not live browser or hosted integration results.
 TypeScript, lint, build, function budget (12/12), server ESM imports, browser Activity INSERT guard, and whitespace diff checks pass.
 Build reports the existing large-chunk warning; it does not fail the build.
 
+Development verification follow-up — 2026-11-12
+- Migration installed only in cxgiaevervjttbuiramd (development), with an atomic expected-function-hash precondition.
+- Source migration: 20261112165930_licensing_multiple_appointing_organizations.sql.
+- Hosted migration receipt: 20261112172003, licensing_multiple_appointing_organizations. Source/hosted timestamps differ; do not blindly replay.
+- Installed recruit_command body MD5: 348b1dde20d3b45012a58a30129c59bc. SECURITY DEFINER and fixed search_path retained; anon EXECUTE remains false.
+- All 17 tracked table counts and full-row fingerprints match before/after migration and rollback tests (the new nullable organization column is excluded from the comparison).
+- Retained six-task fixture fingerprint: 4ddaae1762314eb25ba09e1ad7148aad.
+- Retained five-commission-event fixture fingerprint: 99e728bcb4b71e50dfd664e6256ab6ba.
+- Security advisors unchanged: 11 INFO no-policy tables, 94 WARN authenticated SECURITY DEFINER functions, one WARN leaked-password protection. No billing upgrade.
+- Hosted authenticated-role rollback tests passed: both organizations save, missing licensing details block stage advancement, private/license/carrier records save, first submitted policy permits Active Agent, retained codes on revoked contracts fail, private values stay out of history, and an existing linked advisor can read their own recruit while private identity/license/history reads and management writes are denied. All synthetic writes rolled back.
+- Repeated the selected suite: 656 passed, zero failed/skipped.
+
+Preview
+- Deployment: dpl_7TrqUrd6ADbSyjhXTeaomWDmrgQt, READY, preview target (not production).
+- Tested application commit: 16fdfe85513450df89ce56b4fb91ec2e8e02dd5b.
+- URL: https://valtoris-financial-site-3-7ya4rgg9d-valtoris.vercel.app
+- Stable branch URL: https://valtoris-financial-site-3-git-dev-licensing-acc-95be89-valtoris.vercel.app
+- Eight branch-scoped preview settings use the separate development database; external booking writes are disabled. Production/global values were not edited.
+- Automatic branch deployment remains disabled; the authorized preview was created explicitly.
+- Chrome browser fallback successfully rendered the deployed Family and Business samples. Family: overall 71/C, Credit & Student Loans 75/B, Health & Disability 60/C. Business: overall 68/C; retirement 75/B; Estate Planning & Exit Strategy 50/D. Commercial Trucking is absent from sample choices.
+- Authenticated Vercel HTTP smoke: login, Family/Business samples, and Family/Business assessments return the application shell; unauthenticated /crm/recruiting correctly redirects to /crm/login. Deployed JavaScript includes the development project reference and no production project reference.
+- Family questionnaire browser walkthrough confirmed the student-loan existence/type/balance/payment/repayment/plan-review sequence directly after Credit. Walkthrough stopped at question 14 when Chrome switched back to the user’s other tab; no contact details, save, or booking were submitted. Health/disability question logic and grading are covered by automated tests; full questionnaire browser walkthrough remains pending.
+- Preview error/fatal log scan (15 minutes): no groups returned.
+- Current production remains dpl_9shDD7C8ap5xejNMW8gA8fFnAJyr at f7e4afbad97d11c8dc22b789710a6650ce192661.
+
 Pending before release
-1. Restore the in-app browser connection and exercise actual desktop/mobile horizontal scrolling, Edit agent/Add license/private details/carrier forms, Cancel/save/error recovery, multiple organization selection, and Family/Business sample output. The browser tool reports native pipe path unavailable. Native Chrome was in active user use; no further interaction was attempted.
-2. Apply and verify the new migration only in the separate development database after schema/function preflight and security-advisor review. It was tested in PGlite but has NOT been applied to development or production.
-   File: supabase/migrations/20261112165930_licensing_multiple_appointing_organizations.sql
-   Historical migration files are unchanged. Source inventory records the new file's reviewed hash.
-3. Build a correctly development-scoped preview after the development migration. The existing 9gdfhzh5b preview does not contain these fixes. Automatic deployment is disabled for this branch.
-4. Perform development owner/manager and ordinary-advisor browser acceptance, using disposable synthetic data; preserve all retained QA fixtures and business rows.
-5. Licensing manager reviews changed grading/wording and signs the revised acceptance checklist. The current user-edited checklist remains Changes required before acceptance.
-6. Separate explicit release authorization is required before any merge, production migration, or production deployment. Prior release approvals do not authorize this new change.
+1. Complete actual owner/manager form interactions: desktop/narrow-screen horizontal scrolling, Edit agent/Add license/private details/carrier forms, Cancel/save/error recovery, and multiple organization selections. In-app browser still reports native pipe path unavailable, but Chrome fallback is working; new preview login is open and an authorized owner login has been requested without requesting credentials in chat.
+2. Perform the ordinary-advisor browser check after owner testing. Hosted authenticated-role permission checks already pass; these do not replace browser acceptance.
+3. Finish questionnaire walkthrough and narrow-screen visual acceptance, stopping before any real contact submission or booking.
+4. Licensing manager reviews changed grading/wording and signs the revised acceptance checklist. The current user-edited checklist remains Changes required before acceptance.
+5. Separate explicit release authorization is required before any merge, production migration, or production deployment. Prior release approvals do not authorize this new change.
 
 Known boundaries retained
 Owners remain included as managers. Private licensing identity protection is unchanged.
