@@ -1,0 +1,89 @@
+FINAL RELEASE VERIFICATION — PR #48
+Verified November 12, 2026
+Status: Merged and live; no new issues found in the final read-only checks.
+
+RELEASE RECEIPT
+
+PR: https://github.com/luisp-svg/valtoris-financial-site-3/pull/48
+Reviewed head: ccc953b15ef8e795d910d889bc9d46f3dd6fbe29
+Merge/main commit: a93084b9daccf1fe456520af8990e1a5445b9019
+Production deployment: dpl_4Dj1QaUidGdEs5P89rA982t21DVi
+Deployment state at final review: READY
+Deployment URL: https://valtoris-financial-site-3-fdst7gxij-valtoris.vercel.app
+Live site: https://www.valtorisfinancial.com
+
+SCOPE AND AUTHORIZATION
+
+The user explicitly authorized merging PR #48 and deploying production after
+review. The release changed two files only:
+- docs/qa/pr47-final-release-verification-20261112.txt
+- vercel.json: disables automatic deployment for the exact documentation branch
+  docs/pr47-final-verification-20261112; all other configuration is unchanged.
+
+No application logic, database migration, account permission, billing setting,
+business record or retained QA fixture was changed by this release. Main's
+authorized Git integration created the production deployment after merge.
+
+FINAL VERIFICATION RESULTS
+
+- GitHub confirms PR #48 merged at the recorded commit. Remote main matches it.
+- The production deployment is READY and assigned to valtorisfinancial.com and
+  www.valtorisfinancial.com. Its Git metadata matches the merged commit.
+- The published PR #47 summary matches the reviewed document byte for byte.
+- Parsed Vercel configuration matches the preceding release except for the exact
+  documentation-branch deployment flag set to false. Diff whitespace checks pass.
+- Eight live route/access checks passed: home, CRM login, signed-out recruiting
+  redirect to login, Family sample, Business sample, Family questionnaire,
+  Business questionnaire and Spanish Business sample. These checks verify route
+  responses/application shells and the anonymous access boundary, not every
+  interactive workflow or production save.
+- Deployed main JavaScript references production rather than development.
+  Licensing lazy assets retain the driver-license state field and blocked-stage
+  recovery action. Asset filenames changed with the rebuild; no application-source
+  changes were introduced by PR #48.
+- The final review's recent 15-minute error/fatal runtime-log query returned no
+  groups. This is a bounded observation, not a guarantee of future error-free use.
+- Before/after row counts and fingerprints matched across all 17 tracked tables
+  in both production and development during the final review. The inherited
+  comparison excludes appointing_organizations and drivers_license_state to
+  support pre-migration comparisons; it does not independently verify those values.
+- Billing, existing business records and retained QA fixtures remained unchanged.
+- The final review was read-only: no form save, assessment submission, booking,
+  migration, account change or additional deployment was performed.
+
+VALIDATION BOUNDARIES AND REMAINING LIMITATIONS
+
+- This documentation/configuration release did not rerun the application test
+  suite or repeat populated licensing saves and advisor sessions in production.
+  PR #47's prior 688 selected passing tests, development owner/advisor checks,
+  live questionnaire walkthroughs and report grading evidence remain historical
+  evidence for the unchanged application behavior, not new PR #48 test runs.
+- At the last pre-merge check, PR #48 had no reviewer comments, check-runs or commit
+  statuses. No automated GitHub CI pass is claimed.
+- Prior PR #47 limitations remain: production questionnaire submissions/bookings
+  were excluded; first-policy submission is manager-recorded; existing stages are
+  not auto-demoted; older records can require a manager-supplied driver state.
+- The accepted leaked-password protection plan limitation and existing security
+  notices remain unchanged. No upgrade was made. This review is not a penetration
+  test or comprehensive security certification.
+
+RELATED EVIDENCE
+
+docs/qa/pr47-final-release-verification-20261112.txt
+docs/qa/licensing-acceptance-fixes-20261112.txt
+https://github.com/luisp-svg/valtoris-financial-site-3/pull/48
+
+DOCUMENTATION-SAVE BOUNDARY
+
+This PR #48 receipt is saved locally in project documentation only. It has not
+been pushed or merged. Saving this file triggers no deployment and changes no
+billing settings, business records or retained QA fixtures.
+
+GITHUB PUBLICATION — 2026-11-12
+
+The user subsequently authorized publishing this summary to GitHub without a
+deployment. Publication uses docs/pr48-final-verification-20261112, with automatic
+Vercel deployment disabled for that exact branch before its first push. Only this
+summary and the branch-specific deployment guard are included. No merge or
+production deployment is included; billing, business records and QA fixtures
+remain unchanged.
