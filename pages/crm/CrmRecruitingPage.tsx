@@ -1,5 +1,6 @@
 import LicensingBoard from '../../crm/recruiting/LicensingBoard'
-import { localDateString, formatDateLabel } from '../../crm/dashboard/dates'
+import { licenseDateLabel as formatDateLabel } from '../../crm/recruiting/licenseDates'
+import { localDateString } from '../../crm/dashboard/dates'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { createSupabaseBrowserClient } from '../../lib/supabase/client'

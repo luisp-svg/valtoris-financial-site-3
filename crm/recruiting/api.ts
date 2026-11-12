@@ -77,6 +77,6 @@ export function recruitingError(error: unknown): string {
   const e = error as { code?: string; message?: string }
   if (e.code === '23505') return 'A matching email, linked advisor, or requirement already exists. Open that record to update it.'
   if (e.code === '23514' || e.code === '23502') return 'Check the required fields, dates, and evidence. Verified items need an effective date, an expiration date or confirmed no expiration, and an evidence reference.'
-  if (e.code === '22007' || e.code === '22008') return 'Enter dates as YYYY-MM-DD.'
+  if (e.code === '22007' || e.code === '22008') return 'Enter dates as MM/DD/YYYY.'
   return e.message || 'Unable to save. Refresh and try again.'
 }

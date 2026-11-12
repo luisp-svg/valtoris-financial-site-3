@@ -14,4 +14,4 @@ export type Readiness = { id: string; carrier_name: string; state: string; autho
 export type History = { id: string; action: string; reason: string; occurred_at: string; before_data: Record<string, unknown> | null; after_data: Record<string, unknown> }
 export type Option = { id: string; name: string; email?: string }
 
-export type LicensePrivate = { recruit_id: string; npn: string; ssn_last_four: string; dob: string; drivers_license_number: string; first_policy_reference: string | null; first_policy_submitted_on: string | null }
+export type LicensePrivate = { recruit_id: string; npn: string; ssn_last_four: string; dob: string; drivers_license_number: string; drivers_license_state: string | null; first_policy_reference: string | null; first_policy_submitted_on: string | null }

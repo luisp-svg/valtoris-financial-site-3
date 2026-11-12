@@ -10,7 +10,7 @@ async function run(action: string, payload: Record<string, unknown>, id: string 
   const row = id ? (await db.query<{revision:number}>('select revision from recruit_records where id=$1',[id])).rows[0] : null
   return (await db.query<{id:string}>('select recruit_command($1,$2,$3,$4,$5) id',[id,row?.revision ?? null,action,JSON.stringify(payload),'Test change'])).rows[0].id
 }
-const profile = { npn:'12345678',ssn_last_four:'0123',dob:'1990-01-01',drivers_license_number:'SAMPLE-DL' }
+const profile = { npn:'12345678',ssn_last_four:'0123',dob:'1990-01-01',drivers_license_number:'SAMPLE-DL',drivers_license_state:'TX' }
 async function move(stage: string) { return run('edit',{full_name:'Workflow test',email:'workflow@example.invalid',stage}) }
 beforeAll(async () => {
   await db.exec(`create role anon; create role authenticated; create schema auth; create schema extensions;
@@ -28,7 +28,7 @@ beforeAll(async () => {
     insert into profiles values('${owner}','owner','owner@example.invalid',true,null);
     insert into carriers values('${carrier}','Sample carrier',true,null); set test.manager='yes';`)
   await db.exec(readFileSync('supabase/migrations/079_recruiting_readiness.sql','utf8').replace(/extensions\.citext/g,'text'))
-  for (const suffix of ['_agent_licensing_profile.sql','_licensing_workflow_private_profile.sql','_licensing_revoked_contract_code_guard.sql','_licensing_multiple_appointing_organizations.sql']) {
+  for (const suffix of ['_agent_licensing_profile.sql','_licensing_workflow_private_profile.sql','_licensing_revoked_contract_code_guard.sql','_licensing_multiple_appointing_organizations.sql','_licensing_driver_state.sql']) {
     const name = readdirSync('supabase/migrations').find(f => f.endsWith(suffix))!
     await db.exec(readFileSync(`supabase/migrations/${name}`,'utf8'))
   }
@@ -44,6 +44,8 @@ describe('licensing workflow and manager-only identity', () => {
     await expect(move('licensed')).rejects.toThrow(/Record license number/)
     await expect(run('license_private',{...profile,ssn_last_four:'123456789'})).rejects.toThrow()
     await expect(run('license_private',{...profile,dob:'2999-01-01'})).rejects.toThrow(/future/)
+    await expect(run('license_private',{...profile,drivers_license_state:''})).rejects.toThrow(/issuing state/);
+    await expect(run('license_private',{...profile,drivers_license_state:'ZZ'})).rejects.toThrow();
     await run('license_private',profile)
     await run('credential',{kind:'license',state:'TX',authority_scope:'life',provider_reference:'TEST-LICENSE',effective_on:'2026-01-01',expires_on:'2028-01-01',status:'reported'})
     await move('licensed')
@@ -84,6 +86,12 @@ describe('licensing workflow and manager-only identity', () => {
     for (const invalid of ['empower',null,[null],['empower',2]]) await expect(run('edit',{full_name:'Multi test',email:'multi@example.invalid',stage:'recruit',appointing_organizations:invalid},id)).rejects.toThrow(/valid appointing/)
     await run('edit',{full_name:'Multi test',email:'multi@example.invalid',stage:'recruit',appointing_organizations:[]},id)
     expect((await db.query<{appointing_organizations:string[]}>('select appointing_organizations from recruit_records where id=$1',[id])).rows[0].appointing_organizations).toEqual([])
+  })
+  it('requires an issuing state on legacy identity rows before a new licensed-stage transition', async()=>{
+    await db.query('update recruit_license_private set drivers_license_state=null where recruit_id=$1',[recruit])
+    await expect(move('licensed')).rejects.toThrow(/driver license state/)
+    await run('license_private',{...profile,first_policy_reference:'TEST-POLICY',first_policy_submitted_on:'2026-01-02'})
+    await move('licensed')
   })
   it('denies nonmanager API writes and direct identity/license reads', async () => {
     await db.exec(`set test.manager='no'; set role authenticated;`)
