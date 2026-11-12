@@ -1,0 +1,127 @@
+FINAL RELEASE VERIFICATION — PR #47
+Verified November 12, 2026
+Status: Merged and live; final review found no new blocking issues in the checked flows.
+
+RELEASE RECEIPT
+
+PR: https://github.com/luisp-svg/valtoris-financial-site-3/pull/47
+Reviewed head: 60a6fbcdabe0000d43652b8362143f65db0d0f7a
+Merge/main commit: 5a208955866b16573dfef16f8fa74d86edba89c0
+Production deployment: dpl_AuZ1YWA3ZXDkF6PrDBSKLArKxDxP, READY
+Live site: https://www.valtorisfinancial.com
+
+The user approved licensing updates/report grading, then explicitly authorized
+merging PR #47 and deploying production. This receipt supersedes the pending
+acceptance/release gates in licensing-acceptance-fixes-20261112.txt, which records
+the earlier development verification chronologically.
+
+WHAT SHIPPED
+
+- Licensing board horizontal scrolling and form navigation fixes, including
+  switching clean forms and confirming before discarding an unsaved draft.
+- Multiple Appointing under selections; simplified routine saves and removal of
+  Follow-up owner/Next action inputs while preserving existing stored fields.
+- Carrier catalog/status visibility and Submitted, Pending, Approved and Code
+  Issued progress; recovery navigation after missing licensing details block a move.
+- Manager-only driver-license issuing state/territory and MM/DD/YYYY licensing
+  date entry/display. Stored date-only values remain ISO; impossible dates reject.
+- Family grading includes Health & Disability and Credit & Student Loans.
+- Business grading includes Retirement and Estate Planning & Exit Strategy.
+- Updated conditional questions and English/Spanish support. Commercial Trucking
+  is hidden from public sample navigation; existing direct routes/history remain.
+
+DEVELOPMENT VERIFICATION
+
+- 688 selected tests passed, zero failed/skipped. This is a selected suite, not a
+  claim that every repository test ran. TypeScript, lint, build, function budget,
+  server ESM imports, browser Activity guard and diff checks passed.
+- Disposable synthetic records verified populated private/license/E&O/carrier
+  saves, reloads, date validation, multiple organizations, stage requirements,
+  draft preservation/switching and blocked-stage recovery. Only those disposable
+  records and their specifically matched children/audit rows were removed.
+- Existing QA advisor browser/database checks confirmed permitted own-record
+  context, hidden private identity/license/history, denied management writes, and
+  rejection of unrelated recruit access. No account roles or credentials changed.
+- Family and Business complete questionnaire navigation passed without submitting
+  contact details or booking. Twenty-two branch tests cover conditional answers,
+  English/Spanish labels, pruning, unique question IDs and answer validation.
+- Family and Spanish Business report layouts were checked at 390 CSS pixels.
+
+LIVE FINAL REVIEW
+
+- Authenticated owner licensing page loaded. Private details form opened with
+  driver-license issuing state/territory and MM/DD/YYYY date placeholders.
+- Selecting Add status for Allianz directly from the clean private-details form
+  opened the carrier form. Progress choices were Submitted, Pending, Approved and
+  Code Issued. Forms were cancelled without entering or saving record values.
+- Family sample rendered overall 71/C, Credit & Student Loans 75/B and Health &
+  Disability 60/C. Business rendered overall 68/C, its retirement review area and
+  Estate Planning & Exit Strategy 50/D. Commercial Trucking was absent from the
+  sample navigation.
+- Full live Family questionnaire reached Prepare Your Consultation, including
+  student-loan type/balance/payment/repayment/review and health/disability checks.
+- Full live Business questionnaire reached Prepare Your Consultation, including
+  retirement funding/review, will/documents, trust-needs and exit/succession checks.
+  These were synthetic walkthrough answers; no contact details, consent submission,
+  saved assessment, booking or application submission occurred.
+- Eight public/access route checks passed: home, CRM login, signed-out recruiting
+  redirect to login, Family/Business samples, Family/Business questionnaires and
+  Spanish Business sample. HTTP shell checks alone are not end-to-end assertions;
+  browser walkthroughs above provide the interactive evidence.
+- Deployed main asset referenced the production database, not development. Lazy
+  licensing assets contained the driver-state field and stage recovery action.
+- Production deployment remained READY. The checked recent 15-minute runtime
+  error/fatal log window returned no groups; this is a bounded observation.
+- Before/after counts and fingerprints matched across all 17 tracked tables in
+  both production and development during the final read-only review. The shared
+  fingerprint query excludes the newly introduced organization/state columns for
+  comparison with pre-migration rows; it is not independent evidence of their values.
+- Billing, existing business records and retained QA fixtures were unchanged.
+
+DATABASE RELEASE RECEIPTS
+
+Reviewed source migrations:
+  20261112165930_licensing_multiple_appointing_organizations.sql
+  20261112175431_licensing_driver_state.sql
+Production hosted receipt: 20261112184434
+Production migration name: pr47_licensing_organizations_and_driver_state
+Installed recruit_command function body MD5: c2f94631c79b9ffbe741e360d0546b1d
+Both reviewed updates were applied atomically with an exact prior-function guard.
+Existing nullable fields were not inferred or backfilled; no existing records were
+rewritten. Anonymous function execution remains denied.
+
+REMAINING LIMITATIONS
+
+1. Production review was read-only. Populated saves, stage transitions and advisor
+   permission enforcement were exercised in development, not through production
+   record mutations or a production advisor browser session.
+2. Questionnaire walkthroughs stopped before contact submission/booking; those
+   downstream production writes were intentionally outside this review.
+3. Older records may require a manager to supply driver-license state before a new
+   Licensed-or-later transition. Existing recorded stages are not auto-demoted.
+4. First-policy submission remains manager-recorded. Workflow stage is separate
+   from current carrier compliance; revoked codes cannot qualify new transitions.
+5. Leaked-password protection remains unavailable under the documented current-plan
+   limitation. No upgrade or billing change was made. Existing production security
+   notices remain: 94 privileged-function warnings and six policy informational
+   notices, in addition to the leaked-password warning. This is not a penetration
+   test or comprehensive security certification.
+6. Verification ran outside registered GitHub CI; no check-runs/statuses were posted
+   for the reviewed head. Do not interpret their absence as a passing CI run.
+7. Source and hosted migration versions differ; use the receipts above rather than
+   blindly replaying already-installed migrations.
+
+DOCUMENTATION SAVE
+
+Saved locally in project documentation only. No push, merge, deployment, database
+write, billing change or QA fixture change was performed to save this summary.
+Detailed pre-release evidence: licensing-acceptance-fixes-20261112.txt.
+
+GITHUB PUBLICATION — 2026-11-12
+
+The user subsequently authorized publication to GitHub without deployment.
+Publication uses docs/pr47-final-verification-20261112, with automatic Vercel
+deployment explicitly disabled for that exact branch before its first push.
+This publishes documentation plus the branch-specific deployment guard only;
+main, the live release, billing, business records and retained QA fixtures remain
+unchanged. No merge or production deployment is included in this publication.
