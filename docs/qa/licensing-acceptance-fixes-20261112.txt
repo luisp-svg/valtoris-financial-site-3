@@ -1,6 +1,6 @@
 LICENSING AND REPORT CARD ACCEPTANCE CHANGES — 2026-11-12
 
-Status: development database installed and preview READY; report sample browser checks passed. Owner licensing-form and desktop/390-pixel scrolling browser checks passed. NOT released to production or accepted by the licensing manager.
+Status: development preview technical verification completed for owner/advisor access, licensing forms, questionnaires and the checked mobile report layouts. NOT released to production or accepted by the licensing manager.
 Branch: dev/licensing-acceptance-fixes-20261112
 Base: main f7e4afbad97d11c8dc22b789710a6650ce192661
 Production, billing, business records, and retained QA fixtures were not changed.
@@ -81,8 +81,8 @@ Owner Chrome browser verification — completed 2026-11-12
 - Screenshot evidence is retained locally under /tmp/valtoris-pr47-verification/ (private-form-synthetic.png, licensing-correction-path.png, board-final-stages.png, mobile-edit-form.png, mobile-board-final-stages.png, clean-board-after-browser-test.png).
 
 Pending before release
-1. Ordinary-advisor browser acceptance remains separate. Hosted authenticated-role tests already verify own-record visibility and denial of private/license/history reads and management writes; no broader access was granted.
-2. Finish the full questionnaire walkthrough and remaining public-report narrow-screen visual acceptance, stopping before real contact submission/booking. Numeric grading, sample rendering and conditional pruning tests pass.
+1. Ordinary-advisor browser acceptance completed; see final verification below. No broader access was granted.
+2. Full Family/Business question walkthroughs and checked public-report narrow-screen visual acceptance completed; see final verification below. No contact submission/booking occurred.
 3. Licensing manager reviews changed grading/wording and signs the revised acceptance checklist. The current user-edited checklist remains Changes required before acceptance.
 4. Separate explicit release authorization is required before any merge, production migration, or production deployment. Prior release approvals do not authorize this new change.
 
@@ -113,3 +113,34 @@ The stable branch URL above now points to this newer preview.
 - Exact disposable test recruit: 54bf8964-b4a8-494f-bde1-923eb7c18d3b, QA SYNTHETIC PR47 US DATES — disposable. Removed only that new record, its private row and matching history/audit rows under exact name/email/actor guards. No carrier or credential rows were created in this follow-up browser test.
 - After cleanup, all 17 tracked fingerprints/counts match the pre-update baseline, comparing prior columns (excluding the new nullable state column). Existing user-entered agent and private details, business records and retained QA fixtures are unchanged.
 - No merge, production migration/deployment or billing/upgrade change. PR remains draft with the previously listed advisor-browser, full questionnaire and manager-acceptance gates.
+
+FINAL ADVISOR AND QUESTIONNAIRE VERIFICATION — 2026-11-12
+This section supersedes earlier pending advisor/questionnaire/mobile-report gates. Licensing-manager acceptance and explicit release authorization remain outstanding. PR remains draft.
+
+Advisor browser
+- User signed into the current unique development preview as the existing advisor.qa@valtoris.test account. The separate stable owner origin/session was preserved; no passwords or account settings changed.
+- One disposable recruit was linked to the existing QA advisor profile, with synthetic identity, license, E&O and carrier records. No advisor profile/access role was changed.
+- Advisor saw exactly the one linked test record, no Add agent or Move controls, and no unrelated owner recruit in the list.
+- Own record displayed permitted E&O/carrier context, but no private identity section, NPN, driver-license state/number, state-license number, manager history, Edit agent, carrier add/update or stage controls.
+- Direct navigation to an unrelated existing recruit returned Recruit not available and exposed no record details. No edit was attempted on that record.
+- The same actual QA advisor identity passed hosted authenticated-role checks: own recruit/E&O visible; private/license/history reads and management writes denied.
+- Exact disposable recruit e392cf09-c975-4280-b7f2-1cbb828bd14f (QA SYNTHETIC PR47 ADVISOR — disposable) and only its synthetic children/history/audit rows were removed under exact name/email/actor guards. Existing QA account/profile/retained fixtures were preserved.
+
+Questionnaires
+- Full Family browser sequence completed to Prepare Your Consultation: Credit and student-loan existence/type/balance/payment/repayment/plan-review questions; protection; health coverage/household needs/premium/cost difficulty; health-plan review and both disability checks. Used synthetic Texas/some coverage/yes loans/Not sure responses. No contact details, consent submission, saved assessment or booking.
+- Full Business browser sequence completed to Prepare Your Consultation with a synthetic small-workforce path. Confirmed owner retirement funding and review, will/documents review, whether a trust is needed, and exit/succession review. No contact entry, saved assessment or booking.
+- Added 22 complete-branch tests: Family all/some/none coverage x yes/no/unknown student loans x English/Spanish; Business none/small workforce x English/Spanish. Every active question validates, hidden follow-ups are pruned, question IDs remain unique, and saved-answer validation succeeds without submitting anything externally.
+- Entire selected suite now 688 passed, zero failed/skipped. TypeScript and lint pass. Tests/docs only were added after the tested application build; no new preview or production deployment is needed for these evidence updates.
+
+Mobile and Spanish report display
+- At exactly 390 CSS pixels, Family Health & Disability grade/description/check counts/action-plan layout fit and remained readable.
+- Spanish Business overall grade, retirement label, Estate Planning & Exit Strategy grade/description/check counts and action plan were rendered and readable at 390 pixels.
+- Responsive setting restored and DevTools closed. Observed console connection warnings came from a Chrome extension, not the application.
+
+Preservation and remaining gates
+- All 17 tracked table counts/fingerprints matched the pre-check baseline after synthetic cleanup and both questionnaire walkthroughs.
+- Retained QA task/commission fixtures, existing business/user records, billing and production remain unchanged.
+- Preview error/fatal runtime scan over the recent 15-minute window returned no groups.
+- Current application/deployment remain 3fc16a310f692089c6647d011f0cb961273e3451 / dpl_5FLRS5Do8Rt1xmg9W9XBU6BJScxf. Later commits contain regression tests/documentation only; branch auto deployment remains disabled.
+- Remaining: licensing-manager acceptance of wording/grading and checklist; independent code/release review as appropriate; separate explicit approval before merge, production migration or production deployment. Documented plan/security limitations remain unchanged.
+- Local screenshots: advisor-private-access-hidden.png, family-questionnaire-complete-no-submit.png, business-questionnaire-complete-no-submit.png, family-mobile-grade.png, business-spanish-mobile-grade.png under /tmp/valtoris-pr47-verification/.
