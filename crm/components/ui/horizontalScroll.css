@@ -24,3 +24,6 @@
   outline: 2px solid var(--crm-blue, #15357d);
   outline-offset: -2px;
 }
+
+.tac-horizontal-scroll { width: 100%; overflow: hidden; }
+.tac-horizontal-scroll-viewport { width: 100%; box-sizing: border-box; }

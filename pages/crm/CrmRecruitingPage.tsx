@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { createSupabaseBrowserClient } from '../../lib/supabase/client'
 import { licensingEvidence, listRecruits, recruitCommand, recruitOptions, recruitingError, recruitingManager } from '../../crm/recruiting/api'
-import { RECRUIT_STAGES, LICENSE_TYPES, APPOINTING_ORGANIZATIONS, licenseTypeLabel, appointingOrganizationLabel, stageLabel, type Option, type Recruit } from '../../crm/recruiting/types'
+import { RECRUIT_STAGES, LICENSE_TYPES, APPOINTING_ORGANIZATIONS, licenseTypeLabel, appointingOrganizationsLabel, appointingOrganizations, stageLabel, type Option, type Recruit } from '../../crm/recruiting/types'
 import { ATTENTION_FILTERS, licensingSummary, matchesAttention, type AttentionFilter } from '../../crm/recruiting/licensingView'
 import RecruitForm from '../../crm/recruiting/RecruitForm'
 import { createFields } from '../../crm/recruiting/formFields'
@@ -43,7 +43,7 @@ export default function CrmRecruitingPage() {
   const today = localDateString()
   const summaries = useMemo(() => records.map(record => ({ record, summary: licensingSummary(record, evidence.credentials, evidence.carriers, today) })), [records, evidence, today])
   const states = [...new Set(summaries.flatMap(row => row.summary.states))].sort()
-  const scoped = summaries.filter(({ record: r, summary: s }) => r.is_archived === archived && (!licenseType || r.license_types?.includes(licenseType)) && (!organization || r.appointing_organization === organization) && (!stage || r.stage === stage) && (!advisor || r.assigned_advisor_id === advisor) && (!state || s.states.includes(state)) && (!carrier || s.carriers.some(c => c.carrier_id === carrier)) && `${r.full_name} ${r.email} ${r.phone ?? ''} ${r.contract_level ?? ''}`.toLowerCase().includes(search.trim().toLowerCase()))
+  const scoped = summaries.filter(({ record: r, summary: s }) => r.is_archived === archived && (!licenseType || r.license_types?.includes(licenseType)) && (!organization || appointingOrganizations(r).includes(organization)) && (!stage || r.stage === stage) && (!advisor || r.assigned_advisor_id === advisor) && (!state || s.states.includes(state)) && (!carrier || s.carriers.some(c => c.carrier_id === carrier)) && `${r.full_name} ${r.email} ${r.phone ?? ''} ${r.contract_level ?? ''}`.toLowerCase().includes(search.trim().toLowerCase()))
   const visible = scoped.filter(({ record, summary }) => matchesAttention(record, summary, attention))
     .sort((a, b) => (a.record.next_action_due_on || '9999').localeCompare(b.record.next_action_due_on || '9999') || a.record.full_name.localeCompare(b.record.full_name))
   async function create(values: Record<string, unknown>, reason: string) {
@@ -54,9 +54,8 @@ export default function CrmRecruitingPage() {
       navigate(`/crm/recruiting/${id}`)
     } catch (e) { setError(recruitingError(e)) } finally { setBusy(false) }
   }
-  const advisorNames = new Map(advisors.map(a => [a.id, a.name]))
   return <div className="recruiting-page">
-    <header className="crm-page-header"><div><p className="crm-page-eyebrow">Agent management</p><h1 className="crm-page-title">Licensing &amp; Appointments</h1><p className="crm-page-subtitle">Manage every agent’s licenses, E&amp;O, carrier contracting, appointments, and follow-up.</p></div>{manager && !loading ? <button className="crm-primary-btn" disabled={creating} onClick={() => setCreating(true)}>Add agent</button> : null}</header>
+    <header className="crm-page-header"><div><p className="crm-page-eyebrow">Agent management</p><h1 className="crm-page-title">Licensing &amp; Appointments</h1><p className="crm-page-subtitle">Manage every agent’s licenses, E&amp;O, carrier contracting, and carrier statuses.</p></div>{manager && !loading ? <button className="crm-primary-btn" disabled={creating} onClick={() => setCreating(true)}>Add agent</button> : null}</header>
     {error ? <p role="alert" className="crm-banner crm-banner-error">{error}</p> : null}
     {creating && manager ? <RecruitForm title="Add agent" description="Add a new or already licensed agent. Save their contact details first, then add licenses, E&O, and carrier appointments in their record. This creates a tracking record without creating a login." submitLabel="Save agent and open record" changeReason="Agent added through the Licensing & Appointments workspace." fields={createFields(advisors)} busy={busy} onCancel={() => setCreating(false)} onSubmit={create} /> : null}
     <section className="crm-panel" aria-label="Filter agents"><div className="recruit-fields">
@@ -65,7 +64,7 @@ export default function CrmRecruitingPage() {
       <label className="crm-field">Appointing under<select value={organization} onChange={e => setOrganization(e.target.value)}><option value="">All organizations</option>{APPOINTING_ORGANIZATIONS.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}</select></label>
       <label className="crm-field">Workflow stage<select value={stage} onChange={e => setStage(e.target.value)}><option value="">All stages</option>{RECRUIT_STAGES.map(s => <option key={s} value={s}>{stageLabel(s)}</option>)}</select></label>
       <label className="crm-field">State<select value={state} onChange={e => setState(e.target.value)}><option value="">All states</option>{states.map(s => <option key={s}>{s}</option>)}</select></label>
-      {manager ? <><label className="crm-field">Carrier<select value={carrier} onChange={e => setCarrier(e.target.value)}><option value="">All carriers</option>{carrierOptions.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label><label className="crm-field">Follow-up owner<select value={advisor} onChange={e => setAdvisor(e.target.value)}><option value="">All advisors</option>{advisors.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select></label><label className="crm-field">Archived agents<input type="checkbox" checked={archived} onChange={e => setArchived(e.target.checked)} /></label></> : null}
+      {manager ? <><label className="crm-field">Carrier<select value={carrier} onChange={e => setCarrier(e.target.value)}><option value="">All carriers</option>{carrierOptions.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label><label className="crm-field">Assigned advisor<select value={advisor} onChange={e => setAdvisor(e.target.value)}><option value="">All advisors</option>{advisors.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}</select></label><label className="crm-field">Archived agents<input type="checkbox" checked={archived} onChange={e => setArchived(e.target.checked)} /></label></> : null}
     </div><div className="recruit-actions"><button className="crm-text-btn" disabled={loading || busy || creating} onClick={() => setReload(v => v + 1)}>Refresh</button><button className="crm-text-btn" onClick={() => { setSearch(''); setStage(''); setState(''); setCarrier(''); setAdvisor(''); setAttention('all'); setArchived(false); setLicenseType(''); setOrganization('') }}>Clear filters</button></div></section>
     {loading ? <p role="status">Loading agent licensing records…</p> : null}
     {!loading && !error ? <>
@@ -77,7 +76,7 @@ export default function CrmRecruitingPage() {
       {layout==='list'&&<section aria-label="Agent licensing records" className="recruit-list">{visible.map(({ record: r, summary: s }) => <article className="crm-panel license-agent-card" key={r.id}>
         <div><p className="crm-page-eyebrow">{stageLabel(r.stage)}</p><h2><Link to={`/crm/recruiting/${r.id}`}>{r.full_name}</Link></h2><p>{r.email}</p></div>
         <p><strong>License types:</strong> {r.license_types?.map(licenseTypeLabel).join(', ') || 'Not recorded'}</p>
-        <p><strong>Appointing under:</strong> {appointingOrganizationLabel(r.appointing_organization)}</p>
+        <p><strong>Appointing under:</strong> {appointingOrganizationsLabel(r)}</p>
         <p><strong>Contract level:</strong> {r.contract_level || 'Not recorded'}</p>
         <p>States: {s.states.join(', ') || 'Not recorded'}</p>
         <dl className="license-agent-counts"><div><dt>Licenses</dt><dd>{s.credentials.filter(c => c.kind === 'license').length}</dd></div><div><dt>Carrier reviews</dt><dd>{s.carriers.length}</dd></div><div><dt>Appointments pending</dt><dd>{s.pendingAppointments}</dd></div></dl>
@@ -89,7 +88,7 @@ export default function CrmRecruitingPage() {
         </ul>
         {s.expired.length > 0 ? <p className="crm-banner crm-banner-error">{s.expired.length} expired record{s.expired.length === 1 ? '' : 's'} — earliest: {s.expired[0].label}, {formatDateLabel(s.expired[0].date)}</p> : null}
         {s.renewals.length > 0 ? <p className="license-renewal">{s.renewals.length} renewal{s.renewals.length === 1 ? '' : 's'} within 60 days — next: {s.renewals[0].label}, {formatDateLabel(s.renewals[0].date)}</p> : null}
-        <div className="license-next-action"><p><strong>Next action:</strong> {r.next_action || 'Not set'}</p><p>Due: {formatDateLabel(r.next_action_due_on)}{s.followupDue ? <strong> · {r.next_action_due_on! < today ? 'Overdue' : 'Due today'}</strong> : ''}</p>{manager ? <p>Owner: {r.assigned_advisor_id ? advisorNames.get(r.assigned_advisor_id) || 'Assigned advisor' : 'Unassigned'}</p> : null}</div>
+
         <Link className="crm-secondary-btn" to={`/crm/recruiting/${r.id}`}>Manage agent</Link>
       </article>)}</section>}
     </> : null}

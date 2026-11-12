@@ -1,3 +1,6 @@
+import { sampleReportAnswers } from '../../../modules/reportCard/combined/samples'
+import { familyAreas, businessAreas } from '../../../modules/reportCard/combined/cardProfiles'
+import { COMBINED_VERSION } from '../../../modules/reportCard/combined/engine'
 import { deliveryTestFixture } from '../../agentcrm/deliveryTestFixture'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
@@ -38,6 +41,19 @@ function newProspectRpcResponse(overrides: Record<string, unknown> = {}) {
 }
 
 describe('ingestFamilyReportCard', () => {
+  it.each([['family',familyAreas],['business',businessAreas]] as const)('retains new %s planning version and grades at the persistence boundary', async (assessmentType, areas) => {
+    const admin = makeAdminStub(async fn => ({data:fn === 'ingest_public_report_card' ? newProspectRpcResponse() : null,error:null}))
+    const answers = sampleReportAnswers([...areas],'en',1)
+    const result = await ingestFamilyReportCard(validIngestRequestBodyFixture({assessmentType,assessmentVersion:COMBINED_VERSION,answers}),{
+      admin,findCandidates:async()=>[],sheetsWriter:vi.fn().mockResolvedValue({status:'succeeded'}),
+      orchestrateFollowUpTask:vi.fn().mockResolvedValue({status:'task_created',taskId:'test-task',errorCategory:null,needsManualReview:false}),
+      now:()=>new Date('2026-07-28T18:00:00.000Z'),
+    })
+    expect(result.ok).toBe(true)
+    const call = (admin.rpc as ReturnType<typeof vi.fn>).mock.calls.find(call=>call[0]==='ingest_public_report_card')
+    expect(call?.[1].p_payload.answers).toMatchObject({planningVersion:1,diagnostic:answers.diagnostic})
+  })
+
   it('rejects an invalid submission before touching the database', async () => {
     const admin = makeAdminStub(async () => ({ data: null, error: null }))
     const result = await ingestFamilyReportCard(

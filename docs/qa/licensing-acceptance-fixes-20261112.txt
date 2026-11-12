@@ -1,0 +1,53 @@
+LICENSING AND REPORT CARD ACCEPTANCE CHANGES — 2026-11-12
+
+Status: development source prepared; NOT released or accepted by the licensing manager.
+Branch: dev/licensing-acceptance-fixes-20261112
+Base: main f7e4afbad97d11c8dc22b789710a6650ce192661
+Production, billing, business records, and retained QA fixtures were not changed.
+No hosted database writes, schema applications, deployments, account changes, or upgrades were performed for this work.
+
+Requested licensing fixes
+- Constrain board/grid children to available width and keep horizontal controls/viewport accessible. CRM content has horizontal scrolling instead of clipping an oversized page.
+- Appointing under uses multiple checkboxes. Both Empower and Experior can be selected.
+- A new additive nullable array column supports multiple organizations. Legacy single selections remain readable; an explicit empty array means cleared. No backfill rewrites existing records.
+- Hide Follow-up owner/Next action inputs and next-action displays. Existing stored assignments, notes, and dates survive edits. The existing advisor filter is labelled Assigned advisor.
+- Routine saves supply a non-sensitive audit description automatically; users no longer type a mandatory reason. Audit history, actor, revision checks, and server reason validation remain intact.
+- Open forms near the beginning of the page, focus/scroll them into view, and retain a visible Cancel action. Errors scroll into view. Missing-license errors provide actions to open license or private-identity entry forms.
+- Show the carrier catalog and each carrier's status; unrecorded carriers show Not started. Existing records retain separate state/scope lines. Revoked contracts display Revoked even when an old issued code remains.
+- Detailed compliance checks remain available in an expandable section. Status display does not grant writing authority. Ordinary advisors do not gain editing rights or private-field access.
+
+Report changes confirmed by user
+- Family: Health & Disability grading, including coverage/cost and disability preparedness checks.
+- Family: student-loan questions are grouped with Credit; repayment and repayment-plan review contribute to Credit & Student Loans grading. No-loan answers remove repayment follow-ups and grading checks.
+- Business: Retirement; Estate Planning & Exit Strategy. The user confirmed these are two areas (Retirement was duplicated in the original list).
+- Business questions cover owner retirement funding/review, will, trust-needs review, and exit/succession planning. No assumption that every household or business needs a trust.
+- New planningVersion=1 opts new assessments and main-card samples into these questions/grades. Older saved reports retain their original questions and calculations.
+- Grades use the existing preliminary wellness scale. Each applicable known readiness check contributes equally: current=100, partial=50, missing=0; unknown is not zero. Loan repayment maps current/current, deferred/partial, mixed/partial, late/missing. Health coverage maps all/current, some/partial, none/missing; medical-cost difficulty maps yes/missing, no/current. Known checks determine the preliminary overall result; unknown checks remain visible as incomplete.
+- Commercial Trucking is hidden from sample navigation and does not render via the sample query. Existing direct-only assessment routes and historical records are retained.
+- Spanish labels are included for new questions and graded categories.
+
+Verification
+656 selected tests passed; zero failed or skipped. Scope:
+crm/recruiting, modules/reportCard, components/premium,
+components/publicSite/solutions, server/ingest/familyReportCard,
+server/premium, tests/migrationInventory.test.ts.
+Includes disposable in-memory PGlite migration/security/workflow tests, field/HTML rendering tests, numeric grading tests, conditional pruning, old-report compatibility, and mocked ingest persistence of planningVersion.
+These are not live browser or hosted integration results.
+TypeScript, lint, build, function budget (12/12), server ESM imports, browser Activity INSERT guard, and whitespace diff checks pass.
+Build reports the existing large-chunk warning; it does not fail the build.
+
+Pending before release
+1. Restore the in-app browser connection and exercise actual desktop/mobile horizontal scrolling, Edit agent/Add license/private details/carrier forms, Cancel/save/error recovery, multiple organization selection, and Family/Business sample output. The browser tool reports native pipe path unavailable. Native Chrome was in active user use; no further interaction was attempted.
+2. Apply and verify the new migration only in the separate development database after schema/function preflight and security-advisor review. It was tested in PGlite but has NOT been applied to development or production.
+   File: supabase/migrations/20261112165930_licensing_multiple_appointing_organizations.sql
+   Historical migration files are unchanged. Source inventory records the new file's reviewed hash.
+3. Build a correctly development-scoped preview after the development migration. The existing 9gdfhzh5b preview does not contain these fixes. Automatic deployment is disabled for this branch.
+4. Perform development owner/manager and ordinary-advisor browser acceptance, using disposable synthetic data; preserve all retained QA fixtures and business rows.
+5. Licensing manager reviews changed grading/wording and signs the revised acceptance checklist. The current user-edited checklist remains Changes required before acceptance.
+6. Separate explicit release authorization is required before any merge, production migration, or production deployment. Prior release approvals do not authorize this new change.
+
+Known boundaries retained
+Owners remain included as managers. Private licensing identity protection is unchanged.
+First policy submission remains manager-recorded rather than a carrier-feed event.
+Recorded workflow stages do not automatically demote after contract revocation.
+The documented leaked-password protection plan limitation remains; no billing upgrade is included.

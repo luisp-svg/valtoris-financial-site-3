@@ -29,3 +29,8 @@
 .license-type-options label { display: flex; align-items: center; gap: 10px; }
 .license-type-options legend { font-weight: 600; padding: 0 4px; }
 .recruit-fields { align-items: start; }
+
+.recruiting-page, .recruiting-page > section { width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; }
+.recruiting-page > section[aria-label="Licensing workflow board"] { overflow: hidden; }
+.recruit-form, .recruiting-page [role=alert] { scroll-margin-top: 104px; }
+.carrier-status-list { padding: 0; list-style: none; display: grid; gap: 12px; }

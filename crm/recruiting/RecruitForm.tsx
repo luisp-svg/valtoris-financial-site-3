@@ -1,12 +1,14 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import type { Option } from './types'
 export type Field = { key: string; label: string; required?: boolean; type?: 'text' | 'email' | 'date' | 'checkbox' | 'textarea' | 'checkboxes'; options?: Option[]; hint?: string; maxLength?: number }
 type Props = { sensitive?: boolean; title: string; description?: string; submitLabel?: string; changeReason?: string; fields: Field[]; initial?: Record<string, unknown>; busy: boolean; onCancel: () => void; onSubmit: (values: Record<string, unknown>, reason: string) => Promise<void> }
 export default function RecruitForm({ sensitive = false, title, description, submitLabel = 'Save changes', changeReason, fields, initial = {}, busy, onCancel, onSubmit }: Props) {
   const [values, setValues] = useState<Record<string, unknown>>(() => Object.fromEntries(fields.map(f => [f.key, initial[f.key] ?? (f.type === 'checkboxes' ? [] : f.type === 'checkbox' ? false : '')])))
-  const [reason, setReason] = useState(changeReason ?? '')
+  const panel = useRef<HTMLElement>(null)
+  useEffect(() => { panel.current?.scrollIntoView({ block: 'start' }); panel.current?.focus() }, [])
+  const reason = changeReason ?? `${title} saved through Licensing & Appointments.`
   async function submit(event: FormEvent) { event.preventDefault(); if (!busy) await onSubmit(values, reason) }
-  return <section className="crm-panel recruit-form" aria-label={title}>
+  return <section ref={panel} tabIndex={-1} className="crm-panel recruit-form" aria-label={title}>
     <div className="crm-panel-head"><h2>{title}</h2><button type="button" className="crm-text-btn" disabled={busy} onClick={onCancel}>Cancel</button></div>
     {description ? <p>{description}</p> : null}
     <form onSubmit={submit}>
@@ -19,8 +21,7 @@ export default function RecruitForm({ sensitive = false, title, description, sub
           : <input type={field.type === 'email' ? 'email' : 'text'} maxLength={field.type === 'date' ? 10 : field.maxLength ?? 300} pattern={field.type === 'date' ? '\\d{4}-\\d{2}-\\d{2}' : undefined} placeholder={field.type === 'date' ? 'YYYY-MM-DD' : undefined} required={field.required} disabled={busy} value={String(values[field.key])} onChange={e => setValues({ ...values, [field.key]: e.target.value })} />}
         {field.hint ? <span className="crm-muted">{field.hint}</span> : null}
       </label>)}</div>
-      {changeReason === undefined ? <label className="crm-field">Reason for this change *<textarea required maxLength={1000} value={reason} disabled={busy} onChange={e => setReason(e.target.value)} /></label> : null}
-      <p className="crm-muted">{sensitive ? 'Licensing managers only. Enter only the last four SSN digits. Keep identity values out of the change reason and do not upload identity documents.' : 'Use non-sensitive references only. Keep identity documents, banking details, and background-check information in the approved external process.'}</p>
+      <p className="crm-muted">{sensitive ? 'Licensing managers only. Enter only the last four SSN digits. Do not upload identity documents.' : 'Use non-sensitive references only. Keep identity documents, banking details, and background-check information in the approved external process.'}</p>
       <button className="crm-primary-btn" disabled={busy} type="submit">{busy ? 'Saving…' : submitLabel}</button>
     </form>
   </section>

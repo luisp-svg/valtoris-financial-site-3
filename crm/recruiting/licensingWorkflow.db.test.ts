@@ -28,7 +28,7 @@ beforeAll(async () => {
     insert into profiles values('${owner}','owner','owner@example.invalid',true,null);
     insert into carriers values('${carrier}','Sample carrier',true,null); set test.manager='yes';`)
   await db.exec(readFileSync('supabase/migrations/079_recruiting_readiness.sql','utf8').replace(/extensions\.citext/g,'text'))
-  for (const suffix of ['_agent_licensing_profile.sql','_licensing_workflow_private_profile.sql','_licensing_revoked_contract_code_guard.sql']) {
+  for (const suffix of ['_agent_licensing_profile.sql','_licensing_workflow_private_profile.sql','_licensing_revoked_contract_code_guard.sql','_licensing_multiple_appointing_organizations.sql']) {
     const name = readdirSync('supabase/migrations').find(f => f.endsWith(suffix))!
     await db.exec(readFileSync(`supabase/migrations/${name}`,'utf8'))
   }
@@ -76,6 +76,14 @@ describe('licensing workflow and manager-only identity', () => {
     await move('ready_to_write')
     await move('active_agent')
     expect((await db.query<{stage:string}>('select stage from recruit_records where id=$1',[recruit])).rows[0].stage).toBe('active_agent')
+  })
+  it('saves multiple appointing organizations and rejects invalid values', async () => {
+    const id = await run('create',{full_name:'Multi test',email:'multi@example.invalid',appointing_organizations:['empower','experior']},null)
+    expect((await db.query<{appointing_organizations:string[]}>('select appointing_organizations from recruit_records where id=$1',[id])).rows[0].appointing_organizations).toEqual(['empower','experior'])
+    await expect(run('edit',{full_name:'Multi test',email:'multi@example.invalid',stage:'recruit',appointing_organizations:['other']},id)).rejects.toThrow(/valid appointing/)
+    for (const invalid of ['empower',null,[null],['empower',2]]) await expect(run('edit',{full_name:'Multi test',email:'multi@example.invalid',stage:'recruit',appointing_organizations:invalid},id)).rejects.toThrow(/valid appointing/)
+    await run('edit',{full_name:'Multi test',email:'multi@example.invalid',stage:'recruit',appointing_organizations:[]},id)
+    expect((await db.query<{appointing_organizations:string[]}>('select appointing_organizations from recruit_records where id=$1',[id])).rows[0].appointing_organizations).toEqual([])
   })
   it('denies nonmanager API writes and direct identity/license reads', async () => {
     await db.exec(`set test.manager='no'; set role authenticated;`)
