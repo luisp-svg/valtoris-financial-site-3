@@ -91,3 +91,25 @@ Owners remain included as managers. Private licensing identity protection is unc
 First policy submission remains manager-recorded rather than a carrier-feed event.
 Recorded workflow stages do not automatically demote after contract revocation.
 The documented leaked-password protection plan limitation remains; no billing upgrade is included.
+
+DRIVER STATE, US DATE FORMAT, AND BLOCKED CARRIER NAVIGATION — 2026-11-12
+Current tested application commit: 3fc16a310f692089c6647d011f0cb961273e3451.
+Current development preview: dpl_5FLRS5Do8Rt1xmg9W9XBU6BJScxf, READY.
+URL: https://valtoris-financial-site-3-qlb2y1gbo-valtoris.vercel.app
+The stable branch URL above now points to this newer preview.
+
+- Added a required driver-license issuing state/territory selector to the manager-only private form. Existing private rows retain null until a manager supplies it; no inferred states or backfill. New transitions into Licensed or later require the state; current stages are not rewritten.
+- Driver state remains on the protected private table and out of generic history. RLS/grants remain unchanged.
+- Licensing date entry/display now uses MM/DD/YYYY for DOB, first policy submission, license/E&O/carrier dates, renewal labels and history date labels. API/database date-only values remain ISO for validation and comparisons. Impossible dates are rejected before save.
+- Form commands stay enabled while another form is open. Clean drafts switch directly; dirty drafts require discard confirmation. Cancel retains the draft. Distinct carrier, license and E&O forms use separate draft identities; reopening the same form brings it into view.
+- The user's screenshot showed the Active Agent confirmation dialog blocking the page after a missing-detail rejection. It now offers Open licensing details, closing the dialog and navigating directly to the agent's requirements. Stage checks are retained.
+- Source migration: 20261112175431_licensing_driver_state.sql. Applied only to development, hosted receipt 20261112180111. Function body MD5 c2f94631c79b9ffbe741e360d0546b1d. Expected previous-function precondition enforced. anon EXECUTE remains false.
+- Security advisory counts stayed unchanged (11 INFO, 94 function warnings, one leaked-password warning).
+- 666 selected tests passed, zero failed/skipped; TypeScript, lint, build, function budget, ESM imports and browser Activity guard passed.
+- Hosted rollback workflow/permission tests passed with the new state, including lowercase tx normalized to TX.
+- Browser: carrier Add status opened directly from an open private form. Entered a carrier draft; Cancel in the discard prompt retained it; OK opened the requested private form.
+- Browser: entered synthetic driver state Texas and dates 12/31/1990 and 11/01/2026, saved and reopened them. State and US date formatting persisted; stored dates were 1990-12-31 and 2026-11-01. Invalid 02/30/1990 was rejected clearly.
+- Browser: a rejected Active Agent move on the disposable agent displayed Open licensing details; selecting it closed the dialog and reached the correct record.
+- Exact disposable test recruit: 54bf8964-b4a8-494f-bde1-923eb7c18d3b, QA SYNTHETIC PR47 US DATES — disposable. Removed only that new record, its private row and matching history/audit rows under exact name/email/actor guards. No carrier or credential rows were created in this follow-up browser test.
+- After cleanup, all 17 tracked fingerprints/counts match the pre-update baseline, comparing prior columns (excluding the new nullable state column). Existing user-entered agent and private details, business records and retained QA fixtures are unchanged.
+- No merge, production migration/deployment or billing/upgrade change. PR remains draft with the previously listed advisor-browser, full questionnaire and manager-acceptance gates.
