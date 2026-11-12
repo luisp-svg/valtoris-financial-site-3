@@ -1,10 +1,10 @@
 LICENSING AND REPORT CARD ACCEPTANCE CHANGES — 2026-11-12
 
-Status: development database installed and preview READY; report sample browser checks passed. Interactive licensing forms await authorized owner login. NOT released to production or accepted by the licensing manager.
+Status: development database installed and preview READY; report sample browser checks passed. Owner licensing-form and desktop/390-pixel scrolling browser checks passed. NOT released to production or accepted by the licensing manager.
 Branch: dev/licensing-acceptance-fixes-20261112
 Base: main f7e4afbad97d11c8dc22b789710a6650ce192661
 Production, billing, business records, and retained QA fixtures were not changed.
-Development-only migration and preview deployment were authorized and completed on 2026-11-12. Synthetic hosted workflow tests ran inside rolled-back transactions. No production migration/deployment, permanent business-record writes, account changes, or upgrades were performed.
+Development-only migration and preview deployment were authorized and completed on 2026-11-12. Hosted workflow tests ran inside rolled-back transactions. The owner browser test used one new disposable synthetic agent, then removed only that agent and its test children/history/audit rows under exact identity/actor guards. No production migration/deployment, existing business-record changes, account changes, or upgrades were performed.
 
 Requested licensing fixes
 - Constrain board/grid children to available width and keep horizontal controls/viewport accessible. CRM content has horizontal scrolling instead of clipping an oversized page.
@@ -61,12 +61,30 @@ Preview
 - Preview error/fatal log scan (15 minutes): no groups returned.
 - Current production remains dpl_9shDD7C8ap5xejNMW8gA8fFnAJyr at f7e4afbad97d11c8dc22b789710a6650ce192661.
 
+Owner Chrome browser verification — completed 2026-11-12
+- Confirmed the signed-in Owner on the stable development preview and the separate development database.
+- Desktop board scroll-right reached Ready to Write, Active Agent, Paused and Withdrawn; the right control disabled at the endpoint.
+- Add agent opened in view; both Empower and Experior checked/saved/reloaded. No manual reason was requested.
+- Editing a contract-level value then Cancel retained the original saved value.
+- Attempting Licensed without credentials produced the expected error, scrolled it into view, and offered working correction buttons. Enter license number and dates opened the editable license form.
+- Synthetic license number, state/scope, issue/expiration dates and reported status saved and reloaded.
+- Private form opened without freezing. A future birth date was rejected; correcting it allowed save. NPN, last four, DOB, driver-license reference and first-policy reference reloaded correctly.
+- Synthetic E&O provider/reference and dates saved and reloaded.
+- Carrier-specific Add status opened with the carrier selected. All four progress choices were available; Code Issued and synthetic writing code saved. Update status reopened with the saved values; Cancel worked. Other catalog carriers showed Not started.
+- Edit agent successfully advanced to Licensed once licensing details were complete.
+- At 390 CSS pixels, the edit form, Cancel, inputs and multiple organization choices fit within the viewport. The workflow board scrolled through to Withdrawn with the end control disabled, and scrolled back left.
+- Restored/closed responsive tools and reloaded the clean development licensing board; zero agents remain, Owner session preserved.
+- Exact disposable recruit: 748b29f7-858e-4f42-94a0-0e95707e8f90, QA SYNTHETIC PR47 BROWSER — disposable. Cleanup removed only this new recruit, its two credentials, private row, one carrier row, six history entries and matching test audit rows.
+- Before cleanup, private history contained only the licensing_identity_updated marker.
+- After cleanup, all 17 tracked table counts and complete-row fingerprints match the pre-browser baseline. Retained QA task/commission fingerprints are unchanged. No existing business rows changed.
+- No remaining freeze or clipping issue reproduced in the checked flows. Two expected server 400 responses correspond to deliberate missing-license/future-date rejection tests; a Chrome-extension connection warning was unrelated to the application.
+- Screenshot evidence is retained locally under /tmp/valtoris-pr47-verification/ (private-form-synthetic.png, licensing-correction-path.png, board-final-stages.png, mobile-edit-form.png, mobile-board-final-stages.png, clean-board-after-browser-test.png).
+
 Pending before release
-1. Complete actual owner/manager form interactions: desktop/narrow-screen horizontal scrolling, Edit agent/Add license/private details/carrier forms, Cancel/save/error recovery, and multiple organization selections. In-app browser still reports native pipe path unavailable, but Chrome fallback is working; new preview login is open and an authorized owner login has been requested without requesting credentials in chat.
-2. Perform the ordinary-advisor browser check after owner testing. Hosted authenticated-role permission checks already pass; these do not replace browser acceptance.
-3. Finish questionnaire walkthrough and narrow-screen visual acceptance, stopping before any real contact submission or booking.
-4. Licensing manager reviews changed grading/wording and signs the revised acceptance checklist. The current user-edited checklist remains Changes required before acceptance.
-5. Separate explicit release authorization is required before any merge, production migration, or production deployment. Prior release approvals do not authorize this new change.
+1. Ordinary-advisor browser acceptance remains separate. Hosted authenticated-role tests already verify own-record visibility and denial of private/license/history reads and management writes; no broader access was granted.
+2. Finish the full questionnaire walkthrough and remaining public-report narrow-screen visual acceptance, stopping before real contact submission/booking. Numeric grading, sample rendering and conditional pruning tests pass.
+3. Licensing manager reviews changed grading/wording and signs the revised acceptance checklist. The current user-edited checklist remains Changes required before acceptance.
+4. Separate explicit release authorization is required before any merge, production migration, or production deployment. Prior release approvals do not authorize this new change.
 
 Known boundaries retained
 Owners remain included as managers. Private licensing identity protection is unchanged.
