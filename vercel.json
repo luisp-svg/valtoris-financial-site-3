@@ -191,6 +191,7 @@
   ],
   "git": {
     "deploymentEnabled": {
+      "docs/pr49-final-verification-20261113": false,
       "docs/pr48-final-verification-20261112": false,
       "docs/pr47-final-verification-20261112": false,
       "dev/licensing-acceptance-fixes-20261112": false,
