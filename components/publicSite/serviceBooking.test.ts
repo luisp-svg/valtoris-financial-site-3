@@ -28,13 +28,14 @@ describe('priority service booking handoff', () => {
     expect(parsed.searchParams.get('service')).toBe(type)
     expect(bookingUrlForAssessment(readBookingService(parsed.search))).toBe(url)
     const html = renderToStaticMarkup(createElement(MemoryRouter, { initialEntries: [entry] }, createElement(ScheduleReportCardPage)))
-    expect(html).toContain('Selecciona un agente para ver su calendario.')
+    expect(html).toContain(`title="Agendar con ${owner}`)
+    expect(html).toContain(`src="${url}"`)
     expect(html).toContain(owner)
     expect(html).toContain('Elige tu agente')
   })
-  it.each(['family','business','retirement','home_buyer','unknown'])('uses general scheduling for %s and clears stale service context', type => {
+  it.each(['family','business','retirement','home_buyer','unknown'])('preserves %s review context while clearing stale service context', type => {
     const entry = schedulePathForAssessment(type,'?service=health&utm_source=facebook')
-    expect(readBookingService(new URL(entry,'https://www.valtorisfinancial.com').search)).toBeUndefined()
+    expect(readBookingService(new URL(entry,'https://www.valtorisfinancial.com').search)).toBe(type==='unknown'?undefined:type)
     expect(bookingUrlForAssessment(type)).toBe(STRATEGY_SESSION_BOOKING_URL)
   })
   it.each(['https://untrusted.example','javascript:alert(1)','//untrusted.example','HEALTH',''])('rejects an unrecognized service %s as a destination', value => {

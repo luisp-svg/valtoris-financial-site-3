@@ -230,7 +230,7 @@ export default function CreditReportCardResults() {
         <section className="results-cta">
           <h2 className="results-cta-headline">{t('results', 'reviewWithValtoris')}</h2>
           <p className="results-cta-support">{t('ui', 'nextStepSupport')}</p>
-          <ScheduleReportCardLink className="platform-btn platform-btn-secondary">
+          <ScheduleReportCardLink bookingService="credit" className="platform-btn platform-btn-secondary">
             {t('results', 'reviewWithValtoris')}
           </ScheduleReportCardLink>
           <Link

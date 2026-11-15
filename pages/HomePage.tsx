@@ -351,8 +351,8 @@ export default function HomePage() {
           </p>
           <p>
             {t(
-              "Start with a short, specialized Report Card: student loans and health first, followed by home and auto, commercial insurance and trucking. Broader Family or Business Owner discovery is optional, with your prior answers carried forward.",
-              "Comienza con un Report Card especializado: préstamos y salud primero, después hogar y auto, seguro comercial y transporte. La revisión familiar o empresarial es opcional y conserva tus respuestas.",
+              "Start with our flagship Family or Business Owner Report Card. Review how your finances, protection, benefits and professional team fit together. Focused reviews are also available when you have one specific question.",
+              "Comienza con nuestros Report Cards principales para familias o dueños de negocios. Revisa cómo se coordinan tus finanzas, protección, beneficios y profesionales. También hay revisiones enfocadas para preguntas específicas.",
             )}
           </p>
           <PublicLink className="atelier-cta" to="/financial-assessment">
@@ -361,8 +361,8 @@ export default function HomePage() {
           </PublicLink>
           <p className="atelier-disclosure">
             {t(
-              "Complete 5–10 focused questions, see your preliminary results, and book a complimentary consultation immediately. Comprehensive discovery never blocks booking.",
-              "Responde 5–10 preguntas, mira tus resultados preliminares y reserva una consulta sin costo de inmediato. La revisión integral nunca bloquea la reserva.",
+              "Move through clearly organized sections and receive strengths, items to confirm and three priorities for review. Read your preliminary flagship report before choosing whether to save it or book a complimentary consultation.",
+              "Completa secciones organizadas y recibe fortalezas, información por confirmar y tres prioridades. Lee tu informe principal antes de decidir si deseas guardarlo o reservar una consulta sin costo.",
             )}
           </p>
           <PublicLink className="atelier-text-link" to="/report-cards">

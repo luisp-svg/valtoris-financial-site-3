@@ -201,7 +201,7 @@ export default function RetirementReportCardResults() {
         <section className="rd-cta">
           <h2 className="rd-cta-title">{t('ui', 'resultsScheduleTitle')}</h2>
           <p className="rd-cta-copy">{t('ui', 'resultsScheduleCopy')}</p>
-          <ScheduleReportCardLink className="platform-btn platform-btn-secondary">
+          <ScheduleReportCardLink bookingService="retirement" className="platform-btn platform-btn-secondary">
             {t('ui', 'resultsScheduleTitle')}
           </ScheduleReportCardLink>
           <button

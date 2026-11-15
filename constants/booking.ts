@@ -1,6 +1,6 @@
 import { STRATEGY_SESSION_BOOKING_URL } from './urls'
 
-export type BookingService = 'tsp' | 'health' | 'student_loan'
+export type BookingService = 'tsp' | 'health' | 'student_loan' | 'family' | 'business' | 'life' | 'credit' | 'home_buyer' | 'retirement' | 'commercial'
 
 /** Existing active calendars, with staff verified in AgentCRM. */
 export const HEALTH_BOOKING_URL = 'https://link.agent-crm.com/widget/booking/Ln1RKtSCFS0HdKTfoX4q'
@@ -8,7 +8,7 @@ export const STUDENT_LOAN_BOOKING_URL = 'https://link.agent-crm.com/widget/booki
 
 export function readBookingService(search: string): BookingService | undefined {
   const service = new URLSearchParams(search).get('service')
-  return service === 'health' || service === 'tsp' || service === 'student_loan' ? service : undefined
+  return ['health','tsp','student_loan','family','business','life','credit','home_buyer','retirement','commercial'].includes(service ?? '') ? service as BookingService : undefined
 }
 
 /** Only fixed, verified destinations; query parameters can never supply an external URL. */
@@ -21,7 +21,7 @@ export function bookingUrlForAssessment(service?: string): string {
 export function schedulePathForAssessment(assessmentType: string, search = ''): string {
   const params = new URLSearchParams(search)
   params.delete('service')
-  if (assessmentType === 'health' || assessmentType === 'tsp' || assessmentType === 'student_loan') params.set('service', assessmentType)
+  if (readBookingService(`?service=${encodeURIComponent(assessmentType)}`)) params.set('service', assessmentType)
   return `/schedule${params.size ? `?${params.toString()}` : ''}`
 }
 

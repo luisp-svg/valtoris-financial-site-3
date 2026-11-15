@@ -82,7 +82,7 @@ export default function FamilyReportCardResults() {
         <section className="rd-cta">
           <h2 className="rd-cta-title">{t('ui', 'resultsScheduleTitle')}</h2>
           <p className="rd-cta-copy">{t('ui', 'resultsScheduleCopy')}</p>
-          <ScheduleReportCardLink className="platform-btn platform-btn-secondary">
+          <ScheduleReportCardLink bookingService="family" className="platform-btn platform-btn-secondary">
             {t('ui', 'resultsScheduleTitle')}
           </ScheduleReportCardLink>
           <Link className="results-back-link" to={withLocale(ROUTES.protectionAnalysis)}>

@@ -21,7 +21,7 @@ export default function ReportCardSamplesPage() {
     <nav className="report-sample-navigation" aria-label={es ? 'Tipos de Report Card' : 'Report card types'}>{specializedFunnels.filter(card => !card.directOnly).map(card => <PublicLink key={card.id} to={`/report-card-samples?type=${card.id}`} aria-current={card.id === focus ? 'page' : undefined} className="premium-secondary">{card.title[es ? 1 : 0]}</PublicLink>)}</nav>
     {!cards.length && <p>{es ? 'Elige un Report Card de la lista.' : 'Choose a report card from the list.'}</p>}
     {cards.map(card => {
-      const answers = sampleReportAnswers(card.selected, locale, mainReportCard(card.selected) ? 1 : undefined)
+      const answers = sampleReportAnswers(card.selected, locale, mainReportCard(card.selected) ? 1 : undefined, mainReportCard(card.selected) ? 1 : undefined)
       const reports = combinedResults(answers)
       return <section key={card.id} aria-labelledby={`sample-${card.id}`}>
         <h2 id={`sample-${card.id}`}>{card.title[es ? 1 : 0]}</h2>

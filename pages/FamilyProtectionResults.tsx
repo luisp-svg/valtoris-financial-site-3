@@ -142,7 +142,7 @@ export default function FamilyProtectionResults() {
           <h2>{t('results', 'scheduleTitle')}</h2>
           <p>{t('results', 'scheduleCopy')}</p>
           <div className="protection-results-actions">
-            <ScheduleReportCardLink className="platform-btn platform-btn-primary">
+            <ScheduleReportCardLink bookingService="life" className="platform-btn platform-btn-primary">
               {t('results', 'scheduleCta')}
             </ScheduleReportCardLink>
             <Link className="platform-btn platform-btn-outline" to={withLocale(ROUTES.reportCard)}>
