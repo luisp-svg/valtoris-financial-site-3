@@ -74,3 +74,12 @@ DOCUMENTATION-SAVE BOUNDARY
 This summary is saved locally in project documentation only, uncommitted and
 without a push, merge or deployment. Saving it changes no billing settings,
 business records or retained QA fixtures.
+
+SUBSEQUENT PUBLICATION AUTHORIZATION — November 15, 2026
+
+The user subsequently approved committing this summary and explicitly requested
+deployment. Publication uses docs/pr51-final-verification-20261115, with automatic
+deployment disabled for that exact branch. The authorized merge to main triggers
+production deployment. Only this summary and the branch-specific guard are
+included; no application logic, migration, billing, business-record or QA-fixture
+change is included. This supersedes the earlier local-save boundary above.

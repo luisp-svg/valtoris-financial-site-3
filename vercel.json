@@ -191,6 +191,7 @@
   ],
   "git": {
     "deploymentEnabled": {
+      "docs/pr51-final-verification-20261115": false,
       "docs/pr50-final-verification-20261113": false,
       "docs/pr49-final-verification-20261113": false,
       "docs/pr48-final-verification-20261112": false,
