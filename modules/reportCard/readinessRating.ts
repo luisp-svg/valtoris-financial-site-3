@@ -1,5 +1,6 @@
 export type ReadinessRating = {
  rubricVersion:2;
+ requiredKnown?:number;
  scale?: 'wellness';
  code: 'A'|'B'|'C'|'D'|'F'|'PENDING'|'NA';
  score:number|null;

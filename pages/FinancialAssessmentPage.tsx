@@ -1,3 +1,4 @@
+import ConsultationOffer from '../components/premium/ConsultationOffer';
 import ReportResultsOverview from '../components/premium/ReportResultsOverview';
 import { adaptiveReportCard, combinedResults } from '../modules/reportCard/combined/results';
 import { mainReportCard } from '../modules/reportCard/combined/cardProfiles';
@@ -94,7 +95,7 @@ function FinancialAssessmentForm({
   const cardVersion: 1 | undefined = consultationOnly ? undefined : 1;
   const planningVersion: 1 | undefined = !consultationOnly && mainReportCard(selected) ? 1 : undefined;
   const familySupplementVersion: 1 | undefined = !consultationOnly && mainReportCard(selected) === 'family' ? 1 : undefined;
-  const flagshipVersion: 1 | undefined = !consultationOnly && mainReportCard(selected) ? 1 : undefined;
+  const flagshipVersion: 2 | undefined = !consultationOnly && mainReportCard(selected) ? 2 : undefined;
   const draftAnswers = {format:COMBINED_FORMAT,selected,diagnostic,locale,cardVersion,strategyVersion:1 as const,insuranceRoutingVersion:1 as const,planningVersion,familySupplementVersion,flagshipVersion};
   const questions = consultationOnly ? [] : combinedQuestions(selected, diagnostic, 1, 1, cardVersion, familySupplementVersion, planningVersion, flagshipVersion),
     atContact = step >= questions.length,
@@ -188,8 +189,8 @@ function FinancialAssessmentForm({
     ) {
       setError(
         t(
-          consultationOnly ? "Enter your full name, a valid email and phone number, and accept both required acknowledgments." : "Review your answers, contact details and required acknowledgments. Retirement age and employee counts must be consistent.",
-          consultationOnly ? "Ingresa tu nombre completo, correo y teléfono válidos, y acepta las dos confirmaciones obligatorias." : "Revisa respuestas, datos de contacto y confirmaciones obligatorias. La edad de jubilación y los totales de empleados deben ser coherentes.",
+          consultationOnly ? "Enter your full name, a valid email and phone number, and accept both required acknowledgments." : "Review your answers, contact details and required acknowledgments. Use a valid phone number if you provide one; supporting report cards may require it.",
+          consultationOnly ? "Ingresa tu nombre completo, correo y teléfono válidos, y acepta las dos confirmaciones obligatorias." : "Revisa respuestas, datos de contacto y confirmaciones obligatorias. Si proporcionas un teléfono, debe ser válido.",
         ),
       );
       return;
@@ -288,6 +289,7 @@ function FinancialAssessmentForm({
                 consultationOnly ? "Elige un tema, comparte tus datos y selecciona una hora para tu consulta. No se requiere un Report Card." : flagshipVersion ? "Revisa lo establecido, lo que falta confirmar y los siguientes pasos. Mira tu informe antes de decidir si deseas guardarlo o reservar una consulta." : "Comienza con una revisión enfocada. Mira tus resultados preliminares y reserva una consulta sin costo.",
               )}
             </p>
+            {flagshipVersion&&<ConsultationOffer locale={locale}/>}
             {!funnel && !consultationOnly && <div className="priority-directory-grid">{publicReportCards.map(item=><Link className="premium-secondary" key={item.id} to={`/financial-assessment?focus=${item.id}&lang=${locale}`}>{item.title[es?1:0]}</Link>)}</div>}
             {(funnel||consultationOnly)&&<div className="premium-selection-footer">
               <p aria-live="polite">
@@ -331,6 +333,7 @@ function FinancialAssessmentForm({
                   <ReportResultsOverview card={adaptiveReportCard(draftAnswers)} selected={selected} locale={locale} strategyVersion={1} mainCard protectionReviews={combinedResults(draftAnswers).filter(r=>r.kind==='protection-estimate')} />
                   <p>{t('This preview has not been submitted as a lead. Save below only if you want to retain the report and continue to consultation booking.','Este informe no se ha enviado como contacto. Guárdalo abajo si deseas conservarlo y continuar a la reserva de consulta.')}</p>
                 </section>}
+                {flagshipVersion&&<ConsultationOffer locale={locale}/>}
                 <ContactHeading ref={flagshipVersion ? undefined : heading} tabIndex={-1} id="save-flagship-report">
                   {t(consultationOnly ? "Reserve a Conversation" : "Save Your Report & Choose Your Next Step", consultationOnly ? "Reserva una conversación" : "Guarda tu informe y elige el siguiente paso")}
                 </ContactHeading>
@@ -373,14 +376,14 @@ function FinancialAssessmentForm({
                 </label>
                 <label className="premium-field">
                   {t(
-                    "Phone number — required for appointment matching",
-                    "Teléfono — obligatorio para identificar tu cita",
+                    flagshipVersion === 2 ? "Phone number (optional)" : "Phone number — required for appointment matching",
+                    flagshipVersion === 2 ? "Teléfono (opcional)" : "Teléfono — obligatorio para identificar tu cita",
                   )}
                   <input
                     autoComplete="tel"
                     type="tel"
                     maxLength={30}
-                    required
+                    required={!flagshipVersion}
                     disabled={locked}
                     value={contact.phone}
                     onChange={(e) => {

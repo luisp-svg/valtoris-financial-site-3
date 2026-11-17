@@ -1,4 +1,4 @@
-import { flagshipSummary } from './flagship.js';
+import { flagshipSummary, flagshipQuestions } from './flagship.js';
 import { mainReportCard } from './cardProfiles.js';
 import { isProtectionArea, protectionEstimate } from './protectionCalculator.js';
 import {readinessRating, type ReadinessRating} from '../readinessRating.js';
@@ -36,24 +36,32 @@ export function adaptiveReportCard(answers:Pick<CombinedAnswers,'format'|'select
   }
   scoringValues.push(...(profile === 'business' && type === 'benefits' && answers.diagnostic['benefits.workforce'] === 'none' ? ['not_applicable'] : values));
   const points=values.flatMap(v=>v==='current'?[100]:v==='partial'?[50]:v==='missing'?[0]:[]);
-  const rating=reportRating(profile === 'business' && type === 'benefits' && answers.diagnostic['benefits.workforce'] === 'none'
+  let rating=reportRating(profile === 'business' && type === 'benefits' && answers.diagnostic['benefits.workforce'] === 'none'
    ? ['not_applicable']
    : values, Boolean(profile));
+  if(answers.flagshipVersion&&rating.applicable>0&&rating.known<Math.ceil(rating.applicable*.8))rating={...rating,code:"PENDING",score:null,requiredKnown:Math.ceil(rating.applicable*.8)};
   const score=answers.strategyVersion===1?rating.score:points.length?Math.round(points.reduce((a,b)=>a+b,0)/points.length):null;
   return {id:type as string,rating,type,title:answers.planningVersion === 1 && profile === 'family' && type === 'health' ? (answers.locale === 'es' ? 'Salud y discapacidad' : 'Health & Disability') : answers.planningVersion === 1 && profile === 'family' && type === 'credit' ? (answers.locale === 'es' ? 'Crédito y préstamos estudiantiles' : 'Credit & Student Loans') :profile === 'family' && type === 'family' ? (answers.locale === 'es' ? 'Flujo de efectivo, ahorros y patrimonio' : 'Cash Flow, Savings & Estate Basics') : profile === 'family' && type === 'protection' ? (answers.locale === 'es' ? 'Preparación de seguro de vida' : 'Life Insurance Readiness') : PRIORITIES.find(p=>p.id===type)![answers.locale],score,grade:score===null?null:profile?wellnessLetter(score):letter(score),status:points.length<2?'needs-review' as const:'preliminary' as const,known:points.length,total:answers.strategyVersion===1?rating.applicable:indicators.length};
  });
  if (answers.planningVersion === 1 && profile === 'business') {
   const values = questions.filter(q => answers.flagshipVersion ? ['business.buy_sell.review','business.buy_sell_funding.review','business.succession.review'].includes(q.id) : q.id.startsWith('owner_estate.')).map(q => answers.diagnostic[q.id]);
   scoringValues.push(...values);
-  const rating = reportRating(values, true);
+  let rating = reportRating(values, true);
+  if(answers.flagshipVersion&&rating.applicable>0&&rating.known<Math.ceil(rating.applicable*.8))rating={...rating,code:"PENDING",score:null,requiredKnown:Math.ceil(rating.applicable*.8)};
   categories.push({ id:'estate_exit', type:'business', title:answers.locale === 'es' ? 'Planificación patrimonial y estrategia de salida' : 'Estate Planning & Exit Strategy', rating, score:rating.score, grade:rating.score === null ? null : wellnessLetter(rating.score), status:rating.known < rating.applicable ? 'needs-review' : 'preliminary', known:rating.known, total:rating.applicable });
  }
  // Preserve legacy category weighting; the new strategy uses explicitly preliminary known-answer grades.
  const known=categories.filter(c=>c.score!==null);
  let rating=reportRating(questions.filter(q=>/\.(status|review)$/.test(q.id)).map(q=>answers.diagnostic[q.id]), Boolean(profile));
  if (answers.planningVersion === 1) rating = reportRating(scoringValues, Boolean(profile));
+ const flagship=answers.flagshipVersion&&profile?flagshipSummary(profile,answers.diagnostic,answers.locale,answers.flagshipVersion):null;
+ if(flagship&&profile){
+  rating=reportRating(flagshipQuestions(profile,answers.diagnostic,answers.flagshipVersion).filter(q=>q.action).map(q=>answers.diagnostic[q.id]),true);
+  const requiredKnown=Math.max(5,Math.ceil(rating.applicable*.8));
+  if(rating.applicable>0&&rating.known<requiredKnown)rating={...rating,score:null,code:"PENDING",requiredKnown};
+ }
  const score=answers.strategyVersion===1?rating.score:known.length>=Math.ceil(categories.length*.8)?Math.round(known.reduce((sum,c)=>sum+c.score!,0)/known.length):null;
- return {flagship:answers.flagshipVersion===1&&profile?flagshipSummary(profile,answers.diagnostic,answers.locale):null,rating,rubricVersion:answers.strategyVersion===1?2:1,overall:{score,grade:score===null?null:profile?wellnessLetter(score):letter(score),status:categories.some(c=>c.status==='needs-review')?'needs-review' as const:'preliminary' as const,known:known.length,total:categories.filter(category => category.rating.code !== 'NA').length},categories};
+ return {flagship,rating,rubricVersion:answers.strategyVersion===1?2:1,overall:{score,grade:score===null?null:profile?wellnessLetter(score):letter(score),status:categories.some(c=>c.status==='needs-review')?'needs-review' as const:'preliminary' as const,known:known.length,total:categories.filter(category => category.rating.code !== 'NA').length},categories};
 }
 export function combinedResults(answers:Pick<CombinedAnswers,'selected'|'diagnostic'|'locale'|'consultationOnly'|'insuranceRoutingVersion'|'strategyVersion'|'cardVersion'|'planningVersion'|'familySupplementVersion'|'flagshipVersion'> & {format?:CombinedAnswers['format']}){
  if(answers.format!==COMBINED_FORMAT)return legacyResults(answers as Parameters<typeof legacyResults>[0]);
@@ -68,7 +76,7 @@ export function combinedResults(answers:Pick<CombinedAnswers,'selected'|'diagnos
    : PRIORITIES.find(priority => priority.id === type)![answers.locale];
   if (useDime && type === 'protection') return [];
   if (answers.cardVersion === 1 && isProtectionArea(type)) {
-   if(answers.flagshipVersion===1 && (answers.diagnostic['family.calculate']!=='yes'||answers.diagnostic['family.dependents']==='self'))return [];
+   if(answers.flagshipVersion && (answers.diagnostic['family.calculate']!=='yes'||answers.diagnostic['family.dependents']==='self'))return [];
    return [{ type, title, kind: 'protection-estimate' as const, result: protectionEstimate(type, answers.diagnostic, answers.locale, useDime) }];
   }
   const category = card?.categories.find(entry => entry.type === type);
