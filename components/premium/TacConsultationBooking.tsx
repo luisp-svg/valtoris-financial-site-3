@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 type Reservation={state:string;startTime:string;timezone?:string;canReschedule?:boolean}
-export default function TacConsultationBooking({assessmentId,locale,onBooked,onReservationPending,consultationOnly=false}:{consultationOnly?:boolean;assessmentId:string;locale:'en'|'es';onBooked:()=>void;onReservationPending?:()=>void}){
+export default function TacConsultationBooking({assessmentId,locale,onBooked,onReservationPending,consultationOnly=false}:{consultationOnly?:boolean;assessmentId:string;locale:'en'|'es';onBooked?:()=>void;onReservationPending?:()=>void}){
  const es=locale==='es'
  const t=useCallback((en:string,spanish:string)=>es?spanish:en,[es])
  const initialZone=Intl.DateTimeFormat().resolvedOptions().timeZone||'America/Chicago'
@@ -25,7 +25,7 @@ export default function TacConsultationBooking({assessmentId,locale,onBooked,onR
     const available:string[]=Array.isArray(data.slots)?data.slots:[]
     setSlots(available);setBooking(data.booking??null)
     if(!data.booking?.startTime||data.booking?.canReschedule)setChosen(current=>available.includes(current)?current:'')
-    if(data.booking?.state==='confirmed')callbacks.current.onBooked()
+    if(data.booking?.state==='confirmed')callbacks.current.onBooked?.()
     else if(data.booking?.state==='pending'&&!data.booking.canReschedule)callbacks.current.onReservationPending?.()
     if(data.booking?.startTime&&!data.booking.canReschedule){setChosen(data.booking.startTime);if(data.booking.timezone)setTimezone(data.booking.timezone)}
    }).catch(()=>{if(!disposed)setMessage(t('Scheduling is temporarily unavailable. Your assessment is saved. Please try again shortly.','La agenda no está disponible por el momento. Tu evaluación está guardada. Intenta de nuevo en breve.'))})
@@ -46,7 +46,7 @@ export default function TacConsultationBooking({assessmentId,locale,onBooked,onR
     return
    }
    setBooking({state:data.state,startTime:data.startTime})
-   if(data.state==='confirmed')callbacks.current.onBooked()
+   if(data.state==='confirmed')callbacks.current.onBooked?.()
    else {callbacks.current.onReservationPending?.();setMessage(t('Your reservation is saved and awaiting confirmation. Your results will open automatically once it is verified.','Tu reserva está guardada y espera confirmación. Los resultados se abrirán automáticamente al verificarla.'))}
   }catch{setRefresh(value=>value+1);setMessage(t('Confirmation is taking longer than expected. Check this reservation again to avoid making a second booking.','La confirmación está tardando más de lo esperado. Verifica esta reserva para evitar crear otra cita.'))}
   finally{sending.current=false;setSubmitting(false)}
@@ -62,6 +62,7 @@ export default function TacConsultationBooking({assessmentId,locale,onBooked,onR
   </div>
   <button type="button" className="premium-secondary" disabled={submitting||!!booking&&!booking.canReschedule||!day} onClick={()=>setDay(new Date(Date.parse(day+'T12:00:00Z')+86400000).toISOString().slice(0,10))}>{t('Next Day →','Día siguiente →')}</button>
   {loading?<p role="status">{t('Finding available times…','Buscando horarios disponibles…')}</p>:booking&&!booking.canReschedule?<p>{t('Your reservation','Tu reserva')}: {new Intl.DateTimeFormat(es?'es-US':'en-US',{timeZone:timezone,dateStyle:'medium',timeStyle:'short'}).format(new Date(booking.startTime))}</p>:slots.length>0?<fieldset className="tac-booking-slots"><legend>{t('Available times · 30 minutes','Horarios disponibles · 30 minutos')}</legend>{slots.map(slot=><label key={slot}><input type="radio" name="consultation-time" value={slot} checked={chosen===slot} onChange={()=>setChosen(slot)} disabled={submitting}/><span>{display(slot)}</span></label>)}</fieldset>:!message?<p>{t('No times are available on this date. Please choose another date.','No hay horarios disponibles en esta fecha. Elige otra fecha.')}</p>:null}
+  {booking?.state==='confirmed'&&<p role="status">{t('Your consultation is confirmed.','Tu consulta está confirmada.')}</p>}
   {booking?.state==='cancelled'&&<p>{t('This reservation was cancelled. Contact your advisor to arrange a new time; your assessment remains saved.','Esta reserva fue cancelada. Contacta a tu asesor para acordar otra hora; tu evaluación sigue guardada.')}</p>}
   <div role="status" aria-live="polite">{message&&<p>{message}</p>}</div>
   <button type="button" className="premium-button" disabled={!chosen||submitting||loading||booking?.state==='cancelled'} onClick={()=>void reserve()}>{submitting?t('Confirming…','Confirmando…'):booking&&!booking.canReschedule?t('Check My Reservation','Verificar mi reserva'):t('Confirm My Consultation','Confirmar mi consulta')}</button>
