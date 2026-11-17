@@ -43,7 +43,9 @@ describe('flagship questionnaires and reports',()=>{
   for(const q of flagshipQuestions('family',a.diagnostic)) if(q.action)a.diagnostic[q.id]='discuss';
   a.diagnostic['family.cashflow.status']='current';a.diagnostic['family.reserves.review']='unknown';
   const r=adaptiveReportCard(a)!;
-  expect(r.overall.score).toBe(100);
+  expect(r.overall.score).toBeNull();
+  expect(r.overall.grade).toBeNull();
+  expect(r.rating.code).toBe('PENDING');
   expect(r.flagship?.known).toBe(1);
   expect(r.flagship?.findings.some(f=>f.state==='private')).toBe(true);
   expect(r.flagship?.findings.some(f=>f.state==='unknown')).toBe(true);
@@ -60,7 +62,7 @@ describe('flagship questionnaires and reports',()=>{
   const a=sampleReportAnswers(familyAreas,'en',1);
   expect(validateCombined(a)).not.toBeNull();expect(adaptiveReportCard(a)?.flagship).toBeNull();
   expect(combinedQuestions(a.selected,a.diagnostic,1,1,1,undefined,1).some(q=>q.id==='flagship.priority')).toBe(false);
-  expect(validateCombined({...a,flagshipVersion:2})).toBeNull();
+  expect(validateCombined({...a,flagshipVersion:3})).toBeNull();
   expect(validateCombined({...sampleReportAnswers(['credit'],'en'),flagshipVersion:1})).toBeNull();
  });
 });

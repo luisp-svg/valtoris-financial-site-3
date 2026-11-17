@@ -21,7 +21,7 @@ export const PRIORITIES = [
  {id:'trucking',en:'Commercial trucking insurance',es:'Seguro de transporte comercial'},
 ] as const;
 export type Priority = typeof PRIORITIES[number]['id'];
-export type CombinedAnswers = {format:typeof COMBINED_FORMAT | typeof legacy.COMBINED_FORMAT;strategyVersion?:1;cardVersion?:1;familySupplementVersion?:1;planningVersion?:1;flagshipVersion?:1;insuranceRoutingVersion?:1;consultationOnly?:true;selected:Priority[];diagnostic:ShortDiagnostic;contact:{fullName:string;email:string;phone:string};locale:Locale};
+export type CombinedAnswers = {format:typeof COMBINED_FORMAT | typeof legacy.COMBINED_FORMAT;strategyVersion?:1;cardVersion?:1;familySupplementVersion?:1;planningVersion?:1;flagshipVersion?:1|2;insuranceRoutingVersion?:1;consultationOnly?:true;selected:Priority[];diagnostic:ShortDiagnostic;contact:{fullName:string;email:string;phone:string};locale:Locale};
 export type CombinedQuestion = {id:string;question:ShortQuestion;reviews:Priority[];section?:{en:string;es:string}};
 export const PRIORITY_GROUPS: {en:string;es:string;ids:Priority[]}[] = [
  {en:'Start here: student loans & health',es:'Comienza aquí: préstamos y salud',ids:['student_loan','health']},
@@ -58,8 +58,8 @@ export function primaryAssessment(s:readonly Priority[]):PublicReportCardAssessm
  return old.length ? legacy.primaryAssessment(old) : 'business';
 }
 export function isCombined(v:unknown):v is CombinedAnswers{return !!v&&typeof v==='object'&&[COMBINED_FORMAT,legacy.COMBINED_FORMAT].includes((v as CombinedAnswers).format);}
-export function combinedQuestions(selected:readonly Priority[],answers:ShortDiagnostic,insuranceRoutingVersion?:1,strategyVersion?:1,cardVersion?:1,familySupplementVersion?:1,planningVersion?:1,flagshipVersion?:1):CombinedQuestion[]{
- if(flagshipVersion===1){const profile=mainReportCard(selected);if(profile)return flagshipQuestions(profile,answers);}
+export function combinedQuestions(selected:readonly Priority[],answers:ShortDiagnostic,insuranceRoutingVersion?:1,strategyVersion?:1,cardVersion?:1,familySupplementVersion?:1,planningVersion?:1,flagshipVersion?:1|2):CombinedQuestion[]{
+ if(flagshipVersion===1||flagshipVersion===2){const profile=mainReportCard(selected);if(profile)return flagshipQuestions(profile,answers,flagshipVersion);}
  const readiness = readinessQuestions(selected, answers, insuranceRoutingVersion, strategyVersion);
  if (cardVersion !== 1) return readiness;
  const profile = mainReportCard(selected);
@@ -239,8 +239,8 @@ function readinessQuestions(selected:readonly Priority[],answers:ShortDiagnostic
  return visible.sort((a,b)=>rank(a)-rank(b));
 }
 export function validCombinedQuestion(q:CombinedQuestion,value:unknown):boolean{if(q.question.kind==='date')return value==='unknown'||typeof value==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value)&&Number.isFinite(Date.parse(value+'T12:00:00Z'))&&new Date(value+'T12:00:00Z').toISOString().slice(0,10)===value;return validQuestion(q.question,value);}
-export function pruneCombined(s:readonly Priority[],d:ShortDiagnostic,insuranceRoutingVersion?:1,strategyVersion?:1,cardVersion?:1,familySupplementVersion?:1,planningVersion?:1,flagshipVersion?:1):ShortDiagnostic{const keys=new Set(combinedQuestions(s,d,insuranceRoutingVersion,strategyVersion,cardVersion,familySupplementVersion,planningVersion,flagshipVersion).map(q=>q.id));return Object.fromEntries(Object.entries(d).filter(([k])=>keys.has(k)));}
-export function updateCombined(s:readonly Priority[],d:ShortDiagnostic,id:string,value:string|string[],insuranceRoutingVersion?:1,strategyVersion?:1,cardVersion?:1,familySupplementVersion?:1,planningVersion?:1,flagshipVersion?:1):ShortDiagnostic{return pruneCombined(s,{...d,[id]:value},insuranceRoutingVersion,strategyVersion,cardVersion,familySupplementVersion,planningVersion,flagshipVersion);}
+export function pruneCombined(s:readonly Priority[],d:ShortDiagnostic,insuranceRoutingVersion?:1,strategyVersion?:1,cardVersion?:1,familySupplementVersion?:1,planningVersion?:1,flagshipVersion?:1|2):ShortDiagnostic{const keys=new Set(combinedQuestions(s,d,insuranceRoutingVersion,strategyVersion,cardVersion,familySupplementVersion,planningVersion,flagshipVersion).map(q=>q.id));return Object.fromEntries(Object.entries(d).filter(([k])=>keys.has(k)));}
+export function updateCombined(s:readonly Priority[],d:ShortDiagnostic,id:string,value:string|string[],insuranceRoutingVersion?:1,strategyVersion?:1,cardVersion?:1,familySupplementVersion?:1,planningVersion?:1,flagshipVersion?:1|2):ShortDiagnostic{return pruneCombined(s,{...d,[id]:value},insuranceRoutingVersion,strategyVersion,cardVersion,familySupplementVersion,planningVersion,flagshipVersion);}
 export function validateCombined(raw:unknown,assessmentType?:PublicReportCardAssessmentType):CombinedAnswers|null{
  if(!isCombined(raw))return null;
  if(raw.format===legacy.COMBINED_FORMAT)return legacy.validateCombined(raw,assessmentType);
@@ -249,12 +249,12 @@ export function validateCombined(raw:unknown,assessmentType?:PublicReportCardAss
  if(raw.cardVersion!==undefined&&(raw.cardVersion!==1||raw.strategyVersion!==1||raw.consultationOnly))return null;
  if(raw.familySupplementVersion!==undefined&&(raw.familySupplementVersion!==1||raw.cardVersion!==1||mainReportCard(raw.selected)!=='family'))return null;
  if(raw.planningVersion!==undefined&&(raw.planningVersion!==1||raw.cardVersion!==1||!mainReportCard(raw.selected)))return null;
- if(raw.flagshipVersion!==undefined&&(raw.flagshipVersion!==1||raw.cardVersion!==1||raw.planningVersion!==1||raw.consultationOnly||!mainReportCard(raw.selected)))return null;
+ if(raw.flagshipVersion!==undefined&&(![1,2].includes(raw.flagshipVersion)||raw.cardVersion!==1||raw.planningVersion!==1||raw.consultationOnly||!mainReportCard(raw.selected)))return null;
  if(raw.insuranceRoutingVersion!==undefined&&raw.insuranceRoutingVersion!==1)return null;
  if(assessmentType&&primaryAssessment(raw.selected)!==assessmentType)return null;
  const active=raw.consultationOnly?[]:combinedQuestions(raw.selected,raw.diagnostic,raw.insuranceRoutingVersion,raw.strategyVersion,raw.cardVersion,raw.familySupplementVersion,raw.planningVersion,raw.flagshipVersion);
  if(Object.keys(raw.diagnostic).some(k=>!active.some(q=>q.id===k))||active.some(q=>!validCombinedQuestion(q,raw.diagnostic[q.id])))return null;
- if(!raw.contact||typeof raw.contact!=='object'||Array.isArray(raw.contact)||Object.keys(raw.contact).some(k=>!['fullName','email','phone'].includes(k))||!(['fullName','email','phone'] as const).every(k=>typeof raw.contact[k]==='string')||!validShortContact(raw.contact)||!normalizePhone(raw.contact.phone))return null;
+ if(!raw.contact||typeof raw.contact!=='object'||Array.isArray(raw.contact)||Object.keys(raw.contact).some(k=>!['fullName','email','phone'].includes(k))||!(['fullName','email','phone'] as const).every(k=>typeof raw.contact[k]==='string')||!validShortContact(raw.contact)||(raw.flagshipVersion!==2&&!normalizePhone(raw.contact.phone)))return null;
  return {...raw,selected:orderedPriorities(raw.selected),contact:{fullName:raw.contact.fullName.trim(),email:raw.contact.email.trim(),phone:raw.contact.phone.trim()}};
 }
 export function projectDiagnostic(type:Priority,d:ShortDiagnostic){return type==='commercial'||type==='trucking'?{}:legacy.projectDiagnostic(type,d);}
