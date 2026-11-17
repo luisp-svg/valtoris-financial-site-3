@@ -14,7 +14,7 @@ const title = (input: QaBooking) => `TAC QA ${input.requestId}`
 // QA creates send no customFields, tags or phone and never update contacts or
 // enroll workflows. Re-read the complete list before each POST; any revision
 // change or another published workflow requires a new review. See docs/qa.
-function reviewedWebinarWorkflow(value: unknown) {
+export function reviewedWebinarWorkflow(value: unknown) {
   const w = record(value)
   return w.id === '2529ddcf-62d0-4383-b7dd-8851dc78a44c' &&
     w.locationId === LOCATION && w.status === 'published' && w.version === 4 &&

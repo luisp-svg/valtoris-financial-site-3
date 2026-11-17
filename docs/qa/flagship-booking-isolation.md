@@ -28,4 +28,9 @@ the test. No workflow modification API is permitted by this adapter.
 This is logical isolation within the shared provider location, not a separate
 AgentCRM account. A future workflow edit requires a fresh trigger review and
 revision pin; it must never be made to pass by disabling a live workflow.
-Production booking paths do not receive this exception.
+Production booking paths do not receive the Preview opt-in. The user authorized
+production release on November 16, 2026. A separate production setting,
+`AGENTCRM_BOOKING_REVIEWED_WEBINAR_REVISION=4`, permits the same exact reviewed
+revision in the correct location, retaining all calendar and notification checks.
+Production contact creation also sends no custom fields and cannot change the
+webinar trigger field. Any changed or newly published workflow still blocks.
