@@ -49,6 +49,15 @@ export class SilentTestBookingClient implements SilentBookingProvider {
     const location = record(record(await this.request('GET', `/locations/${LOCATION}`)).location)
     if (location.id !== LOCATION) throw new Error('silent_test_location_mismatch')
     const workflows = record(await this.request('GET', `/workflows/?locationId=${LOCATION}`))
+    // Temporary staging diagnosis: revision metadata only, never provider bodies or credentials.
+    if (process.env.VERCEL_ENV === 'preview') for (const value of Array.isArray(workflows.workflows) ? workflows.workflows : []) {
+      const w = record(value)
+      if (w.status !== 'draft') console.info('[silent-test-workflow-revision]', JSON.stringify({
+        id: typeof w.id === 'string' && idPattern.test(w.id) ? w.id : null,
+        version: typeof w.version === 'number' ? w.version : null,
+        updatedAt: typeof w.updatedAt === 'string' && /^[0-9TZ:.+-]+$/.test(w.updatedAt) ? w.updatedAt : null,
+      }))
+    }
     if (!Array.isArray(workflows.workflows) || workflows.workflows.some(w => record(w).status !== 'draft') ||
       workflows.nextPage || workflows.nextPageUrl || record(workflows.meta).nextPageUrl) throw new Error('silent_test_workflows_not_safe')
     const calendar = record(record(await this.request('GET', `/calendars/${calendarId}`)).calendar)
