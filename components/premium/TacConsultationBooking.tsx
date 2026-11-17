@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import ConsultationOffer from './ConsultationOffer'
 
 type Reservation={state:string;startTime:string;timezone?:string;canReschedule?:boolean}
-export default function TacConsultationBooking({assessmentId,locale,onBooked,onReservationPending,consultationOnly=false}:{consultationOnly?:boolean;assessmentId:string;locale:'en'|'es';onBooked?:()=>void;onReservationPending?:()=>void}){
+export default function TacConsultationBooking({assessmentId,locale,onBooked,onReservationPending,consultationOnly=false,flagshipReview=false}:{consultationOnly?:boolean;flagshipReview?:boolean;assessmentId:string;locale:'en'|'es';onBooked?:()=>void;onReservationPending?:()=>void}){
  const es=locale==='es'
  const t=useCallback((en:string,spanish:string)=>es?spanish:en,[es])
  const initialZone=Intl.DateTimeFormat().resolvedOptions().timeZone||'America/Chicago'
@@ -56,7 +56,7 @@ export default function TacConsultationBooking({assessmentId,locale,onBooked,onR
  const zones=[...new Set([initialZone,timezone,'America/New_York','America/Chicago','America/Denver','America/Los_Angeles','America/Anchorage','Pacific/Honolulu'])]
  return <section className="tac-booking" aria-labelledby="consultation-booking-heading">
   <h2 id="consultation-booking-heading">{t('Reserve Your Consultation','Reserva tu consulta')}</h2>
-  {!consultationOnly&&<ConsultationOffer locale={locale}/> }
+  {flagshipReview&&!consultationOnly&&<ConsultationOffer locale={locale}/> }
   <p>{t(consultationOnly ? 'Choose an available time and confirm your consultation. We’ll complete your financial intake together during the meeting.' : 'Choose a time to complete your Report Card experience. We’ll complete your deeper intake together during the consultation.',consultationOnly ? 'Elige un horario disponible y confirma tu consulta. Completaremos la información financiera juntos durante la reunión.' : 'Elige un horario para completar tu experiencia Report Card. Completaremos la información adicional juntos durante la consulta.')}</p>
   {booking?.canReschedule&&<p>{t('Your earlier reservation was not confirmed. Choose an available time below to complete your booking.','Tu reserva anterior no fue confirmada. Elige un horario disponible abajo para completar tu reserva.')}</p>}
   <div className="tac-booking-fields">
