@@ -3,7 +3,7 @@ import { expect, it, vi } from 'vitest'
 import { SILENT_QA_CALENDAR_NAME, SilentTestBookingClient } from './silentTestBookingClient'
 import type { QaBooking } from '../premium/silentTacBooking'
 const LOCATION = 'I2Y36c45rBLFZhCQwkDC'
-function fixture(allowTestWrites = true) {
+function fixture(allowTestWrites = true, allowReviewedWebinarWorkflow = false) {
   const input: QaBooking = { requestId: randomUUID(), submissionId: randomUUID(), contactKey: randomUUID(),
     email: 'silent-qa@example.invalid', calendarId: 'qaCalendar', startTime: '2030-01-02T15:00:00Z', endTime: '2030-01-02T15:30:00Z' }
   const calendar: Record<string, unknown> = { id: input.calendarId, locationId: LOCATION, name: SILENT_QA_CALENDAR_NAME,
@@ -29,7 +29,7 @@ function fixture(allowTestWrites = true) {
     else throw new Error('unexpected route')
     return new Response(JSON.stringify(data), { status: 200 })
   })
-  const client = new SilentTestBookingClient({ token: 'fake-test-token', locationId: LOCATION, calendarId: input.calendarId, allowTestWrites }, fetchImpl)
+  const client = new SilentTestBookingClient({ token: 'fake-test-token', locationId: LOCATION, calendarId: input.calendarId, allowTestWrites, allowReviewedWebinarWorkflow }, fetchImpl)
   return { input, client, calendar, contact, event, fetchImpl,
     setNotifications: (v: unknown[]) => { notifications = v }, setWorkflows: (v: unknown[]) => { workflows = v }, setTotal: (v: number) => { searchTotal = v } }
 }
@@ -66,6 +66,36 @@ it('blocks unknown and published workflows', async () => {
   const f = fixture(); f.setWorkflows([{ status: 'published' }])
   await expect(f.client.createContact(f.input)).rejects.toThrow('silent_test_workflows_not_safe')
   f.setWorkflows([{}]); await expect(f.client.createContact(f.input)).rejects.toThrow('silent_test_workflows_not_safe')
+})
+const reviewedWorkflow = { id: '2529ddcf-62d0-4383-b7dd-8851dc78a44c', locationId: LOCATION,
+  status: 'published', version: 4, updatedAt: '2026-11-11T02:07:04.668Z' }
+it('permits only an explicitly reviewed revision while preserving synthetic write restrictions', async () => {
+  const f = fixture(true, true); f.setWorkflows([reviewedWorkflow, { status: 'draft' }])
+  await f.client.createContact(f.input)
+  await f.client.createEvent(f.input, 'qaContact')
+  const posts = f.fetchImpl.mock.calls.filter(([, init]) => init?.method === 'POST')
+  const contact = JSON.parse(String(posts[0][1]?.body))
+  expect(contact.dnd).toBe(true)
+  for (const key of ['customFields', 'phone', 'tags', 'assignedTo']) expect(contact).not.toHaveProperty(key)
+  expect(JSON.parse(String(posts[1][1]?.body)).toNotify).toBe(false)
+})
+it('keeps the reviewed exception disabled by default', async () => {
+  const f = fixture(); f.setWorkflows([reviewedWorkflow])
+  await expect(f.client.createContact(f.input)).rejects.toThrow('silent_test_workflows_not_safe')
+})
+it.each([{ id: 'new-workflow' }, { locationId: 'other-location' }, { version: 5 },
+  { version: '4' }, { version: undefined }, { updatedAt: '2026-11-12T02:07:04.668Z' },
+  { updatedAt: undefined }, { status: 'unknown' }])('fails closed when reviewed revision changes %j', async patch => {
+  const f = fixture(true, true); f.setWorkflows([{ ...reviewedWorkflow, ...patch }])
+  await expect(f.client.createContact(f.input)).rejects.toThrow('silent_test_workflows_not_safe')
+  expect(f.fetchImpl.mock.calls.every(([, init]) => init?.method === 'GET')).toBe(true)
+})
+it('blocks newly published workflows and rechecks the reviewed revision immediately before writes', async () => {
+  const f = fixture(true, true); f.setWorkflows([reviewedWorkflow])
+  await f.client.assertSilentCalendar(f.input.calendarId)
+  f.setWorkflows([reviewedWorkflow, { id: 'new', status: 'published' }])
+  await expect(f.client.createEvent(f.input, 'qaContact')).rejects.toThrow('silent_test_workflows_not_safe')
+  expect(f.fetchImpl.mock.calls.every(([, init]) => init?.method === 'GET')).toBe(true)
 })
 it.each([{ dnd: false }, { source: 'Real client' }, { phone: '+12025550100' }, { tags: ['client'] }, { additionalEmails: ['real@example.com'] }])('rejects contact mismatch %j', async patch => {
   const f = fixture(); Object.assign(f.contact, patch)

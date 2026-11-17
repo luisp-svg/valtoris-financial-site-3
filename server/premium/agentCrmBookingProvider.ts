@@ -23,7 +23,9 @@ export class AgentCrmBookingProvider implements TacBookingProvider {
   this.locationId=config.locationId;this.token=config.token
   this.testOnly=env.AGENTCRM_BOOKING_TEST_ONLY!=='false'
   this.qaCalendar=env.AGENTCRM_SILENT_TEST_CALENDAR_ID||''
-  this.silent=this.testOnly?new SilentTestBookingClient({token:this.token,locationId:this.locationId,calendarId:this.qaCalendar,allowTestWrites:env.AGENTCRM_BOOKING_WRITES_ENABLED==='true'},fetchImpl):null
+  this.silent=this.testOnly?new SilentTestBookingClient({token:this.token,locationId:this.locationId,calendarId:this.qaCalendar,allowTestWrites:env.AGENTCRM_BOOKING_WRITES_ENABLED==='true',
+   allowReviewedWebinarWorkflow:env.VERCEL_ENV==='preview'&&env.VALTORIS_HOSTED_QA==='true'&&env.AGENTCRM_QA_REVIEWED_WEBINAR_REVISION==='4',
+  },fetchImpl):null
  }
  calendar(answers:CombinedAnswers){
   if(this.testOnly)return this.qaCalendar
