@@ -27,6 +27,38 @@ function fixture(){
  return {env,booking,c,cal,fetchImpl,provider:new AgentCrmBookingProvider(env,fetchImpl)}
 }
 afterEach(()=>vi.restoreAllMocks())
+it.each([false,true])('requires independent production review opt-in for the pinned webinar revision (%s)',async approved=>{
+ const loc='I2Y36c45rBLFZhCQwkDC'
+ const workflows=[{id:'2529ddcf-62d0-4383-b7dd-8851dc78a44c',locationId:loc,status:'published',version:4,updatedAt:'2026-11-11T02:07:04.668Z'}]
+ const fetchImpl=vi.fn(async(url:RequestInfo|URL)=>{
+  const path=new URL(String(url)).pathname
+  return new Response(JSON.stringify(path==='/workflows/'?{workflows}:path.endsWith('/notifications')?[]:
+   {calendar:{id:calendar,locationId:loc,googleInvitationEmails:false,slotDuration:30}}),{status:200})
+ })
+ const f=fixture(),provider=new AgentCrmBookingProvider({...f.env,AGENTCRM_LOCATION_ID:loc,
+  AGENTCRM_BOOKING_REVIEWED_WEBINAR_REVISION:approved?'4':''},fetchImpl)
+ if(approved){await expect(provider.assertSilent(calendar)).resolves.toBeUndefined();workflows[0].version=5}
+ await expect(provider.assertSilent(calendar)).rejects.toThrow('booking_workflows_not_safe')
+ expect(fetchImpl.mock.calls.every(([url])=>!new URL(String(url)).pathname.includes('/contacts/'))).toBe(true)
+})
+it.each([
+ {VERCEL_ENV:'production',VALTORIS_HOSTED_QA:'true',AGENTCRM_QA_REVIEWED_WEBINAR_REVISION:'4',allowed:false},
+ {VERCEL_ENV:'preview',VALTORIS_HOSTED_QA:'false',AGENTCRM_QA_REVIEWED_WEBINAR_REVISION:'4',allowed:false},
+ {VERCEL_ENV:'preview',VALTORIS_HOSTED_QA:'true',AGENTCRM_QA_REVIEWED_WEBINAR_REVISION:'5',allowed:false},
+ {VERCEL_ENV:'preview',VALTORIS_HOSTED_QA:'true',AGENTCRM_QA_REVIEWED_WEBINAR_REVISION:'4',allowed:true},
+])('restricts the reviewed workflow revision to opted-in hosted Preview QA %j',async ({allowed,...settings})=>{
+ const loc='I2Y36c45rBLFZhCQwkDC',cal='qaCalendar'
+ const fetchImpl=vi.fn(async(url:RequestInfo|URL)=>{
+  const path=new URL(String(url)).pathname
+  const data=path.startsWith('/locations/')?{location:{id:loc}}:path==='/workflows/'?
+   {workflows:[{id:'2529ddcf-62d0-4383-b7dd-8851dc78a44c',locationId:loc,status:'published',version:4,updatedAt:'2026-11-11T02:07:04.668Z'}]}:
+   path.endsWith('/notifications')?[]:{calendar:{id:cal,locationId:loc,name:'Valtoris QA — Silent Booking Tests',calendarType:'event',teamMembers:[],googleInvitationEmails:false}}
+  return new Response(JSON.stringify(data),{status:200})
+ })
+ const provider=new AgentCrmBookingProvider({...settings,AGENTCRM_PRIVATE_INTEGRATION_TOKEN:'fake',AGENTCRM_LOCATION_ID:loc,AGENTCRM_SILENT_TEST_CALENDAR_ID:cal},fetchImpl)
+ if(allowed)await expect(provider.assertSilent(cal)).resolves.toBeUndefined()
+ else await expect(provider.assertSilent(cal)).rejects.toThrow('silent_test_workflows_not_safe')
+})
 it('sends only DND contact creation and a silent booking with server-owned identity',async()=>{
  const f=fixture();f.provider.assertAllowed(f.booking.submission_id,f.booking.email,calendar)
  await f.provider.createContact(f.booking)

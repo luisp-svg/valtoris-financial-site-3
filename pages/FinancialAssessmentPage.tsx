@@ -1,3 +1,5 @@
+import ReportResultsOverview from '../components/premium/ReportResultsOverview';
+import { adaptiveReportCard, combinedResults } from '../modules/reportCard/combined/results';
 import { mainReportCard } from '../modules/reportCard/combined/cardProfiles';
 import { publicReportCards, reportCardForFocus } from "../modules/reportCard/funnelStrategy";
 import { premiumSpanishConsent } from "../components/premium/consentLabels";
@@ -89,10 +91,12 @@ function FinancialAssessmentForm({
   const submissionId = useRef<string | null>(null),
     inFlight = useRef(false),
     heading = useRef<HTMLHeadingElement>(null);
-  const cardVersion = consultationOnly ? undefined : 1;
-  const planningVersion = !consultationOnly && mainReportCard(selected) ? 1 : undefined;
-  const familySupplementVersion = !consultationOnly && mainReportCard(selected) === 'family' ? 1 : undefined;
-  const questions = consultationOnly ? [] : combinedQuestions(selected, diagnostic, 1, 1, cardVersion, familySupplementVersion, planningVersion),
+  const cardVersion: 1 | undefined = consultationOnly ? undefined : 1;
+  const planningVersion: 1 | undefined = !consultationOnly && mainReportCard(selected) ? 1 : undefined;
+  const familySupplementVersion: 1 | undefined = !consultationOnly && mainReportCard(selected) === 'family' ? 1 : undefined;
+  const flagshipVersion: 1 | undefined = !consultationOnly && mainReportCard(selected) ? 1 : undefined;
+  const draftAnswers = {format:COMBINED_FORMAT,selected,diagnostic,locale,cardVersion,strategyVersion:1 as const,insuranceRoutingVersion:1 as const,planningVersion,familySupplementVersion,flagshipVersion};
+  const questions = consultationOnly ? [] : combinedQuestions(selected, diagnostic, 1, 1, cardVersion, familySupplementVersion, planningVersion, flagshipVersion),
     atContact = step >= questions.length,
     q = questions[step];
   useEffect(() => {
@@ -100,7 +104,8 @@ function FinancialAssessmentForm({
     window.scrollTo(0, 0);
   }, [step]);
   useEffect(()=>{if(error){errorHeading.current?.focus();errorHeading.current?.scrollIntoView({block:"center",behavior:"smooth"})}},[error]);
-  async function begin() {
+  async function begin(forSave = false) {
+    if(flagshipVersion && !forSave){setStep(0);return;}
     if (!selected.length || inFlight.current) return;
     inFlight.current = true;
     setBusy(true);
@@ -125,9 +130,9 @@ function FinancialAssessmentForm({
           storageKey: "valtoris-combined-assessment-session",
         });
         // The contact-only form is already being completed before its secure session is issued.
-        if (consultationOnly) session.current.formStartedAt = formOpenedAt.current;
+        if (consultationOnly || flagshipVersion) session.current.formStartedAt = formOpenedAt.current;
       }
-      setStep(0);
+      if(!forSave) setStep(0);
     } catch {
       setError(
         t(
@@ -170,6 +175,7 @@ function FinancialAssessmentForm({
         ...(cardVersion ? { cardVersion } : {}),
         ...(familySupplementVersion ? { familySupplementVersion } : {}),
         ...(planningVersion ? { planningVersion } : {}),
+        ...(flagshipVersion ? { flagshipVersion } : {}),
       ...(consultationOnly ? {consultationOnly:true as const} : {}),
       selected,
       diagnostic,
@@ -188,8 +194,8 @@ function FinancialAssessmentForm({
       );
       return;
     }
-    if (consultationOnly && (!session.current || !submissionId.current)) {
-      await begin();
+    if ((consultationOnly || flagshipVersion) && (!session.current || !submissionId.current)) {
+      await begin(true);
       if (!session.current || !submissionId.current) return;
     }
     if (!session.current || !submissionId.current) {
@@ -249,6 +255,7 @@ function FinancialAssessmentForm({
       setBusy(false);
     }
   }
+  const ContactHeading = flagshipVersion ? 'h2' : 'h1';
   return (
     <main className="premium-assessment">
       <header className="premium-assessment-header">
@@ -260,7 +267,7 @@ function FinancialAssessmentForm({
           spanishLabel="Español"
         />
       </header>
-      <div className="premium-assessment-inner">
+      <div className={`premium-assessment-inner${flagshipVersion && atContact ? " premium-flagship-report" : ""}`}>
         {step < 0 ? (
           <>
             <p className="premium-kicker">
@@ -277,8 +284,8 @@ function FinancialAssessmentForm({
             </h1>
             <p className="premium-lead">
               {t(
-                consultationOnly ? "Choose a conversation topic, share your contact details, then select a consultation time. No Report Card is required." : "Start with a focused review. See your preliminary results and book a complimentary consultation immediately.",
-                consultationOnly ? "Elige un tema, comparte tus datos y selecciona una hora para tu consulta. No se requiere un Report Card." : "Comienza con una revisión enfocada. Mira tus resultados preliminares y reserva una consulta sin costo.",
+                consultationOnly ? "Choose a conversation topic, share your contact details, then select a consultation time. No Report Card is required." : flagshipVersion ? "Review what is established, what needs confirmation and what to do next. See your preliminary report before choosing whether to save it or book a consultation." : "Start with a focused review. See your preliminary results and book a complimentary consultation immediately.",
+                consultationOnly ? "Elige un tema, comparte tus datos y selecciona una hora para tu consulta. No se requiere un Report Card." : flagshipVersion ? "Revisa lo establecido, lo que falta confirmar y los siguientes pasos. Mira tu informe antes de decidir si deseas guardarlo o reservar una consulta." : "Comienza con una revisión enfocada. Mira tus resultados preliminares y reserva una consulta sin costo.",
               )}
             </p>
             {!funnel && !consultationOnly && <div className="priority-directory-grid">{publicReportCards.map(item=><Link className="premium-secondary" key={item.id} to={`/financial-assessment?focus=${item.id}&lang=${locale}`}>{item.title[es?1:0]}</Link>)}</div>}
@@ -299,7 +306,7 @@ function FinancialAssessmentForm({
             </div>}
             <p className="premium-fineprint">
               {t(
-                consultationOnly ? "We’ll save your request before showing available appointment times. We’ll complete your financial intake during your consultation." : "This Report Card has its own questions, followed by your contact details. You can choose “Not sure.”",
+                consultationOnly ? "We’ll save your request before showing available appointment times. We’ll complete your financial intake during your consultation." : flagshipVersion ? "Choose “Not sure” or “Prefer to discuss privately” whenever needed. Your report reflects your answers; it does not verify coverage or financial adequacy. No account numbers or documents are needed." : "This Report Card has its own questions, followed by your contact details. You can choose “Not sure.”",
                 "El número de preguntas se adapta a tus prioridades y respuestas. Puedes elegir “No sé”. Los documentos y detalles adicionales se completan durante tu consulta.",
               )}
             </p>
@@ -308,20 +315,28 @@ function FinancialAssessmentForm({
           <section className="premium-question-card">
             <p className="premium-step-count">
               {atContact
-                ? t("Your details · final step", "Tus datos · último paso")
+                ? t(flagshipVersion ? "Your preliminary report · optional save" : "Your details · final step", flagshipVersion ? "Tu informe preliminar · guardado opcional" : "Tus datos · último paso")
                 : t(
-                    `Question ${step + 1} of ${questions.length}`,
-                    `Pregunta ${step + 1} de ${questions.length}`,
+                    flagshipVersion ? `Your review · Question ${step + 1}` : `Question ${step + 1} of ${questions.length}`,
+                    flagshipVersion ? `Tu revisión · Pregunta ${step + 1}` : `Pregunta ${step + 1} de ${questions.length}`,
                   )}
             </p>
+            {!atContact && q?.section && <p className="premium-kicker">{q.section[locale]}</p>}
             {atContact ? (
               <>
-                <h1 ref={heading} tabIndex={-1}>
-                  {t(consultationOnly ? "Reserve a Conversation" : "Prepare Your Consultation", consultationOnly ? "Reserva una conversación" : "Prepara tu consulta")}
-                </h1>
+                {flagshipVersion && <section aria-label={t('Your preliminary report','Tu informe preliminar')}>
+                  <h1 ref={heading} tabIndex={-1}>{t(mainReportCard(selected)==='business'?'Your Business Owner Report Card':'Your Family Financial Report Card',mainReportCard(selected)==='business'?'Tu Report Card empresarial':'Tu Report Card familiar')}</h1>
+                  <p className="premium-kicker">{t('YOUR REPORT · NO CONTACT DETAILS REQUIRED TO READ','TU INFORME · SIN DATOS DE CONTACTO PARA LEERLO')}</p>
+                  <a className="premium-button" href="#save-flagship-report">{t("Save Report & Choose a Time","Guardar informe y elegir horario")}</a>
+                  <ReportResultsOverview card={adaptiveReportCard(draftAnswers)} selected={selected} locale={locale} strategyVersion={1} mainCard protectionReviews={combinedResults(draftAnswers).filter(r=>r.kind==='protection-estimate')} />
+                  <p>{t('This preview has not been submitted as a lead. Save below only if you want to retain the report and continue to consultation booking.','Este informe no se ha enviado como contacto. Guárdalo abajo si deseas conservarlo y continuar a la reserva de consulta.')}</p>
+                </section>}
+                <ContactHeading ref={flagshipVersion ? undefined : heading} tabIndex={-1} id="save-flagship-report">
+                  {t(consultationOnly ? "Reserve a Conversation" : "Save Your Report & Choose Your Next Step", consultationOnly ? "Reserva una conversación" : "Guarda tu informe y elige el siguiente paso")}
+                </ContactHeading>
                 <p>
                   {t(
-                    consultationOnly ? "Share your contact details, then choose your complimentary consultation time. No Report Card is required. We’ll complete your financial intake together during the consultation." : "Save your assessment to see your preliminary results and choose a complimentary consultation time. Further discovery is optional.",
+                    consultationOnly ? "Share your contact details, then choose your complimentary consultation time. No Report Card is required. We’ll complete your financial intake together during the consultation." : "Save your assessment to retain your results and choose a complimentary consultation time. Booking does not require choosing a product. Follow-up and marketing permissions are separate.",
                     consultationOnly ? "Guarda tus datos y elige una hora para tu consulta sin costo. Completaremos la información financiera juntos durante la consulta." : "Guarda tu evaluación para ver tus resultados preliminares y elegir una consulta sin costo. La revisión adicional es opcional.",
                   )}
                 </p>
@@ -358,8 +373,8 @@ function FinancialAssessmentForm({
                 </label>
                 <label className="premium-field">
                   {t(
-                    "Phone for appointment matching",
-                    "Teléfono para identificar tu cita",
+                    "Phone number — required for appointment matching",
+                    "Teléfono — obligatorio para identificar tu cita",
                   )}
                   <input
                     autoComplete="tel"
@@ -405,7 +420,7 @@ function FinancialAssessmentForm({
               </>
             ) : (
               <>
-                <p className="premium-kicker">
+                {!flagshipVersion && <p className="premium-kicker">
                   {q.id.startsWith("shared.") && funnel
                     ? funnel.title[es ? 1 : 0]
                     : q.id.startsWith("business.funding.")
@@ -416,7 +431,7 @@ function FinancialAssessmentForm({
                       )
                       ? t("Family & Income Protection · DIME", "Protección familiar e ingresos · DIME")
                       : q.reviews.map(type => PRIORITIES.find(priority => priority.id === type)![locale]).join(" · ")}
-                </p>
+                </p>}
                 <h1 ref={heading} tabIndex={-1} id="combined-question">
                   {q.question.label[locale]}
                 </h1>
@@ -449,7 +464,7 @@ function FinancialAssessmentForm({
                         }
                         onChange={(e) => {
                           setDiagnostic((d) =>
-                            updateCombined(selected, d, q.id, e.target.value, 1, 1, cardVersion, familySupplementVersion, planningVersion),
+                            updateCombined(selected, d, q.id, e.target.value, 1, 1, cardVersion, familySupplementVersion, planningVersion, flagshipVersion),
                           );
                           setError("");
                         }}
@@ -472,6 +487,7 @@ function FinancialAssessmentForm({
                                 cardVersion,
                                 familySupplementVersion,
                                 planningVersion,
+                                flagshipVersion,
                               ),
                             );
                             setError("");
@@ -491,7 +507,7 @@ function FinancialAssessmentForm({
                       value={String(diagnostic[q.id] ?? "")}
                       onChange={(e) => {
                         setDiagnostic((d) =>
-                          updateCombined(selected, d, q.id, e.target.value, 1, 1, cardVersion, familySupplementVersion, planningVersion),
+                          updateCombined(selected, d, q.id, e.target.value, 1, 1, cardVersion, familySupplementVersion, planningVersion, flagshipVersion),
                         );
                         setError("");
                       }}
@@ -535,18 +551,18 @@ function FinancialAssessmentForm({
                               const next = multi
                                 ? checked
                                   ? values.filter((v) => v !== option.value)
-                                  : ["none", "unknown"].includes(option.value)
+                                  : ["none", "unknown", "discuss"].includes(option.value)
                                     ? [option.value]
                                     : [
                                         ...values.filter(
                                           (v) =>
-                                            !["none", "unknown"].includes(v),
+                                            !["none", "unknown", "discuss"].includes(v),
                                         ),
                                         option.value,
                                       ]
                                 : option.value;
                               setDiagnostic((d) =>
-                                updateCombined(selected, d, q.id, next, 1, 1, cardVersion, familySupplementVersion, planningVersion),
+                                updateCombined(selected, d, q.id, next, 1, 1, cardVersion, familySupplementVersion, planningVersion, flagshipVersion),
                               );
                               setError("");
                             }}
@@ -582,10 +598,10 @@ function FinancialAssessmentForm({
                     ? t(
                         locked
                           ? "Retry Save"
-                          : consultationOnly ? "Save Details & Choose a Time" : "Save & View My Results",
+                          : consultationOnly ? "Save Details & Choose a Time" : flagshipVersion ? "Save Report & Continue" : "Save & View My Results",
                         locked
                           ? "Reintentar guardado"
-                          : "Guardar y ver mis resultados",
+                          : flagshipVersion ? "Guardar informe y continuar" : "Guardar y ver mis resultados",
                       )
                     : t("Continue", "Continuar")}{" "}
                 ↗

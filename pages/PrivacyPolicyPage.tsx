@@ -47,10 +47,12 @@ export default function PrivacyPolicyPage() {
       <section aria-labelledby="privacy-family-report-card">
         <h2 id="privacy-family-report-card">Family Financial Report Card submissions</h2>
         <p>
-          When you complete the Family Financial Report Card™ assessment, your submission is sent
-          to our server endpoint and stored in our customer relationship management (CRM) system as
-          an Initial Financial Diagnostic. The public results page is shown only after the CRM
-          save succeeds.
+          The flagship Family and Business Owner Report Cards can display a preliminary preview in
+          your browser before you provide contact details. Those answers are not saved as a lead
+          unless you choose to save the report. Refreshing or leaving the page may clear unsaved answers.
+          If you save, your answers, contact details and permission choices are sent to our server
+          and stored in our customer relationship management (CRM) system. The saved results page
+          is available after that save succeeds.
         </p>
       </section>
 
@@ -139,7 +141,7 @@ export default function PrivacyPolicyPage() {
         <h2 id="privacy-how-used">How information is used</h2>
         <ul>
           <li>Calculate and store your Initial Financial Diagnostic</li>
-          <li>Show your results page after a successful CRM save</li>
+          <li>Show your saved results page after a successful CRM save</li>
           <li>Support internal matching, duplicate review, and operational follow-up tasks</li>
           <li>Maintain CRM history for authorized advisors and owners</li>
           <li>Attempt secondary Sheets logging when configured</li>

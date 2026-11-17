@@ -1,6 +1,6 @@
 import { readAgentCrmConfig } from '../agentcrm/config.js'
 import { normalizeEmail,normalizePhone } from '../../crm/households/normalizeContact.js'
-import { SilentTestBookingClient } from '../agentcrm/silentTestBookingClient.js'
+import { SilentTestBookingClient, reviewedWebinarWorkflow } from '../agentcrm/silentTestBookingClient.js'
 import { PREMIUM_CALENDARS } from './booking.js'
 import { dateInZone,type TacBookingProvider } from './tacBookingService.js'
 import type { TacBookingRecord } from './tacBookingStore.js'
@@ -23,7 +23,9 @@ export class AgentCrmBookingProvider implements TacBookingProvider {
   this.locationId=config.locationId;this.token=config.token
   this.testOnly=env.AGENTCRM_BOOKING_TEST_ONLY!=='false'
   this.qaCalendar=env.AGENTCRM_SILENT_TEST_CALENDAR_ID||''
-  this.silent=this.testOnly?new SilentTestBookingClient({token:this.token,locationId:this.locationId,calendarId:this.qaCalendar,allowTestWrites:env.AGENTCRM_BOOKING_WRITES_ENABLED==='true'},fetchImpl):null
+  this.silent=this.testOnly?new SilentTestBookingClient({token:this.token,locationId:this.locationId,calendarId:this.qaCalendar,allowTestWrites:env.AGENTCRM_BOOKING_WRITES_ENABLED==='true',
+   allowReviewedWebinarWorkflow:env.VERCEL_ENV==='preview'&&env.VALTORIS_HOSTED_QA==='true'&&env.AGENTCRM_QA_REVIEWED_WEBINAR_REVISION==='4',
+  },fetchImpl):null
  }
  calendar(answers:CombinedAnswers){
   if(this.testOnly)return this.qaCalendar
@@ -61,7 +63,8 @@ export class AgentCrmBookingProvider implements TacBookingProvider {
   const rules=await this.request('GET',`/calendars/${calendar}/notifications`)
   if(!Array.isArray(rules)||rules.some(n=>{const r=record(n);return r.deleted!==true&&r.isActive!==false&&r.channel!=='inApp'}))throw new Error('booking_notifications_not_safe')
   const flows=record(await this.request('GET',`/workflows/?locationId=${encodeURIComponent(this.locationId)}`))
-  if(!Array.isArray(flows.workflows)||flows.workflows.some(w=>record(w).status!=='draft')||record(flows.meta).nextPageUrl)throw new Error('booking_workflows_not_safe')
+  const reviewed=this.env.AGENTCRM_BOOKING_REVIEWED_WEBINAR_REVISION==='4'&&this.locationId==='I2Y36c45rBLFZhCQwkDC'
+  if(!Array.isArray(flows.workflows)||flows.workflows.some(w=>record(w).status!=='draft'&&!(reviewed&&reviewedWebinarWorkflow(w)))||flows.nextPage||flows.nextPageUrl||record(flows.meta).nextPageUrl)throw new Error('booking_workflows_not_safe')
  }
  async slots(calendar:string,day:string,timezone:string){
   id(calendar)

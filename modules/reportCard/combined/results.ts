@@ -1,3 +1,4 @@
+import { flagshipSummary } from './flagship.js';
 import { mainReportCard } from './cardProfiles.js';
 import { isProtectionArea, protectionEstimate } from './protectionCalculator.js';
 import {readinessRating, type ReadinessRating} from '../readinessRating.js';
@@ -12,24 +13,25 @@ function reportRating(values: unknown[], useWellnessScale: boolean): ReadinessRa
  if (!useWellnessScale) return rating;
  return { ...rating, scale: 'wellness', code: rating.score === null ? rating.code : wellnessLetter(rating.score) };
 }
-export function adaptiveReportCard(answers:Pick<CombinedAnswers,'format'|'selected'|'diagnostic'|'locale'|'consultationOnly'|'insuranceRoutingVersion'|'strategyVersion'|'cardVersion'|'planningVersion'|'familySupplementVersion'>){
+export function adaptiveReportCard(answers:Pick<CombinedAnswers,'format'|'selected'|'diagnostic'|'locale'|'consultationOnly'|'insuranceRoutingVersion'|'strategyVersion'|'cardVersion'|'planningVersion'|'familySupplementVersion'|'flagshipVersion'>){
  if(answers.consultationOnly||answers.format!==COMBINED_FORMAT)return null;
- const questions=combinedQuestions(answers.selected,answers.diagnostic,answers.insuranceRoutingVersion,answers.strategyVersion,answers.cardVersion,answers.familySupplementVersion,answers.planningVersion);
+ const questions=combinedQuestions(answers.selected,answers.diagnostic,answers.insuranceRoutingVersion,answers.strategyVersion,answers.cardVersion,answers.familySupplementVersion,answers.planningVersion,answers.flagshipVersion);
  const profile = answers.cardVersion === 1 ? mainReportCard(answers.selected) : undefined;
  const scoredAreasBase = answers.cardVersion === 1
   ? answers.selected.filter(type => !isProtectionArea(type) || profile === 'family')
   : answers.selected;
- const scoredAreas = answers.planningVersion === 1 && profile === 'family' ? [...scoredAreasBase, 'health' as const] : answers.planningVersion === 1 && profile === 'business' ? [...scoredAreasBase, 'retirement' as const] : scoredAreasBase;
+ const scoredAreasUnfiltered = answers.planningVersion === 1 && profile === 'family' ? [...scoredAreasBase, 'health' as const] : answers.planningVersion === 1 && profile === 'business' ? [...scoredAreasBase, 'retirement' as const] : scoredAreasBase;
+ const scoredAreas=scoredAreasUnfiltered.filter(type=>!answers.flagshipVersion||questions.some(q=>q.reviews.includes(type)&&/\.(status|review)$/.test(q.id))||(profile==='business'&&type==='benefits'));
  if (!scoredAreas.length) return null;
  const scoringValues: unknown[] = [];
  const categories=scoredAreas.map(type=>{
-  const indicators=questions.filter(q=>q.reviews.includes(type)&&!q.id.startsWith('owner_estate.')&&/\.(status|review)$/.test(q.id));
+  const indicators=questions.filter(q=>q.reviews.includes(type)&&!q.id.startsWith('owner_estate.')&&(!answers.flagshipVersion||!['business.buy_sell.review','business.buy_sell_funding.review','business.succession.review'].includes(q.id))&&/\.(status|review)$/.test(q.id));
   const values=indicators.map(q=>answers.diagnostic[q.id]);
-  if (answers.planningVersion === 1 && profile === 'family' && type === 'health') {
+  if (!answers.flagshipVersion && answers.planningVersion === 1 && profile === 'family' && type === 'health') {
    values.push(({ all:'current', some:'partial', none:'missing' } as Record<string,string>)[String(answers.diagnostic['family_health.coverage'])] ?? 'unknown');
    values.push(({ yes:'missing', no:'current' } as Record<string,string>)[String(answers.diagnostic['family_health.cost_difficulty'])] ?? 'unknown');
   }
-  if (answers.planningVersion === 1 && profile === 'family' && type === 'credit' && answers.diagnostic['family_loans.has_loans'] !== 'no') {
+  if (!answers.flagshipVersion && answers.planningVersion === 1 && profile === 'family' && type === 'credit' && answers.diagnostic['family_loans.has_loans'] !== 'no') {
    values.push(({ current:'current', deferred:'partial', late:'missing', mixed:'partial' } as Record<string,string>)[String(answers.diagnostic['family_loans.repayment'])] ?? 'unknown');
   }
   scoringValues.push(...(profile === 'business' && type === 'benefits' && answers.diagnostic['benefits.workforce'] === 'none' ? ['not_applicable'] : values));
@@ -41,7 +43,7 @@ export function adaptiveReportCard(answers:Pick<CombinedAnswers,'format'|'select
   return {id:type as string,rating,type,title:answers.planningVersion === 1 && profile === 'family' && type === 'health' ? (answers.locale === 'es' ? 'Salud y discapacidad' : 'Health & Disability') : answers.planningVersion === 1 && profile === 'family' && type === 'credit' ? (answers.locale === 'es' ? 'Crédito y préstamos estudiantiles' : 'Credit & Student Loans') :profile === 'family' && type === 'family' ? (answers.locale === 'es' ? 'Flujo de efectivo, ahorros y patrimonio' : 'Cash Flow, Savings & Estate Basics') : profile === 'family' && type === 'protection' ? (answers.locale === 'es' ? 'Preparación de seguro de vida' : 'Life Insurance Readiness') : PRIORITIES.find(p=>p.id===type)![answers.locale],score,grade:score===null?null:profile?wellnessLetter(score):letter(score),status:points.length<2?'needs-review' as const:'preliminary' as const,known:points.length,total:answers.strategyVersion===1?rating.applicable:indicators.length};
  });
  if (answers.planningVersion === 1 && profile === 'business') {
-  const values = questions.filter(q => q.id.startsWith('owner_estate.')).map(q => answers.diagnostic[q.id]);
+  const values = questions.filter(q => answers.flagshipVersion ? ['business.buy_sell.review','business.buy_sell_funding.review','business.succession.review'].includes(q.id) : q.id.startsWith('owner_estate.')).map(q => answers.diagnostic[q.id]);
   scoringValues.push(...values);
   const rating = reportRating(values, true);
   categories.push({ id:'estate_exit', type:'business', title:answers.locale === 'es' ? 'Planificación patrimonial y estrategia de salida' : 'Estate Planning & Exit Strategy', rating, score:rating.score, grade:rating.score === null ? null : wellnessLetter(rating.score), status:rating.known < rating.applicable ? 'needs-review' : 'preliminary', known:rating.known, total:rating.applicable });
@@ -51,9 +53,9 @@ export function adaptiveReportCard(answers:Pick<CombinedAnswers,'format'|'select
  let rating=reportRating(questions.filter(q=>/\.(status|review)$/.test(q.id)).map(q=>answers.diagnostic[q.id]), Boolean(profile));
  if (answers.planningVersion === 1) rating = reportRating(scoringValues, Boolean(profile));
  const score=answers.strategyVersion===1?rating.score:known.length>=Math.ceil(categories.length*.8)?Math.round(known.reduce((sum,c)=>sum+c.score!,0)/known.length):null;
- return {rating,rubricVersion:answers.strategyVersion===1?2:1,overall:{score,grade:score===null?null:profile?wellnessLetter(score):letter(score),status:categories.some(c=>c.status==='needs-review')?'needs-review' as const:'preliminary' as const,known:known.length,total:categories.filter(category => category.rating.code !== 'NA').length},categories};
+ return {flagship:answers.flagshipVersion===1&&profile?flagshipSummary(profile,answers.diagnostic,answers.locale):null,rating,rubricVersion:answers.strategyVersion===1?2:1,overall:{score,grade:score===null?null:profile?wellnessLetter(score):letter(score),status:categories.some(c=>c.status==='needs-review')?'needs-review' as const:'preliminary' as const,known:known.length,total:categories.filter(category => category.rating.code !== 'NA').length},categories};
 }
-export function combinedResults(answers:Pick<CombinedAnswers,'selected'|'diagnostic'|'locale'|'consultationOnly'|'insuranceRoutingVersion'|'strategyVersion'|'cardVersion'|'planningVersion'|'familySupplementVersion'> & {format?:CombinedAnswers['format']}){
+export function combinedResults(answers:Pick<CombinedAnswers,'selected'|'diagnostic'|'locale'|'consultationOnly'|'insuranceRoutingVersion'|'strategyVersion'|'cardVersion'|'planningVersion'|'familySupplementVersion'|'flagshipVersion'> & {format?:CombinedAnswers['format']}){
  if(answers.format!==COMBINED_FORMAT)return legacyResults(answers as Parameters<typeof legacyResults>[0]);
  const card=adaptiveReportCard({...answers,format:COMBINED_FORMAT});
  if (answers.consultationOnly) return [];
@@ -66,6 +68,7 @@ export function combinedResults(answers:Pick<CombinedAnswers,'selected'|'diagnos
    : PRIORITIES.find(priority => priority.id === type)![answers.locale];
   if (useDime && type === 'protection') return [];
   if (answers.cardVersion === 1 && isProtectionArea(type)) {
+   if(answers.flagshipVersion===1 && (answers.diagnostic['family.calculate']!=='yes'||answers.diagnostic['family.dependents']==='self'))return [];
    return [{ type, title, kind: 'protection-estimate' as const, result: protectionEstimate(type, answers.diagnostic, answers.locale, useDime) }];
   }
   const category = card?.categories.find(entry => entry.type === type);

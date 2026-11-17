@@ -251,7 +251,7 @@ export default function HomeBuyerReportCardResults() {
         <section className="results-cta">
           <h2 className="results-cta-headline">{t('results', 'reviewWithValtoris')}</h2>
           <p className="results-cta-support">{t('ui', results.scoringVersion === 2 ? 'v2.nextStepSupport' : 'nextStepSupport')}</p>
-          <ScheduleReportCardLink className="platform-btn platform-btn-secondary">
+          <ScheduleReportCardLink bookingService="home_buyer" className="platform-btn platform-btn-secondary">
             {t('results', 'reviewWithValtoris')}
           </ScheduleReportCardLink>
           <Link

@@ -9,6 +9,18 @@ const record = (value: unknown): Record<string, unknown> => value && typeof valu
 const source = (input: QaBooking) => `Valtoris Local QA ${input.contactKey}`
 const title = (input: QaBooking) => `TAC QA ${input.requestId}`
 
+// Read-only builder review, 2026-11-16: this revision has exactly one trigger,
+// Contact changed -> "Webinar Nov 19 2026 - Consent Responses" has changed.
+// QA creates send no customFields, tags or phone and never update contacts or
+// enroll workflows. Re-read the complete list before each POST; any revision
+// change or another published workflow requires a new review. See docs/qa.
+export function reviewedWebinarWorkflow(value: unknown) {
+  const w = record(value)
+  return w.id === '2529ddcf-62d0-4383-b7dd-8851dc78a44c' &&
+    w.locationId === LOCATION && w.status === 'published' && w.version === 4 &&
+    w.updatedAt === '2026-11-11T02:07:04.668Z'
+}
+
 /** Local test harness only. No tags, workflows, messages, opportunities or tasks. */
 export class SilentTestBookingClient implements SilentBookingProvider {
   constructor(private readonly settings: {
@@ -16,6 +28,7 @@ export class SilentTestBookingClient implements SilentBookingProvider {
     locationId: string
     calendarId: string
     allowTestWrites: boolean
+    allowReviewedWebinarWorkflow?: boolean
   }, private readonly fetchImpl: typeof fetch = fetch) {
     assertAgentCrmServerOnly()
     if (!settings.token.trim() || settings.locationId !== LOCATION || !idPattern.test(settings.calendarId)) throw new Error('invalid_silent_test_config')
@@ -49,7 +62,8 @@ export class SilentTestBookingClient implements SilentBookingProvider {
     const location = record(record(await this.request('GET', `/locations/${LOCATION}`)).location)
     if (location.id !== LOCATION) throw new Error('silent_test_location_mismatch')
     const workflows = record(await this.request('GET', `/workflows/?locationId=${LOCATION}`))
-    if (!Array.isArray(workflows.workflows) || workflows.workflows.some(w => record(w).status !== 'draft') ||
+    if (!Array.isArray(workflows.workflows) || workflows.workflows.some(w =>
+      record(w).status !== 'draft' && !(this.settings.allowReviewedWebinarWorkflow && reviewedWebinarWorkflow(w))) ||
       workflows.nextPage || workflows.nextPageUrl || record(workflows.meta).nextPageUrl) throw new Error('silent_test_workflows_not_safe')
     const calendar = record(record(await this.request('GET', `/calendars/${calendarId}`)).calendar)
     // A QA event calendar has no staff assignments, hence no linked staff calendar.

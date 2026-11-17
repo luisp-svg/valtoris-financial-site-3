@@ -41,6 +41,19 @@ function newProspectRpcResponse(overrides: Record<string, unknown> = {}) {
 }
 
 describe('ingestFamilyReportCard', () => {
+  it.each([['family',familyAreas],['business',businessAreas]] as const)('persists and derives the %s flagship identity without dropping private answers',async(assessmentType,areas)=>{
+    const admin=makeAdminStub(async fn=>({data:fn==='ingest_public_report_card'?newProspectRpcResponse():null,error:null}));
+    const answers=sampleReportAnswers([...areas],'en',1,1);
+    const result=await ingestFamilyReportCard(validIngestRequestBodyFixture({assessmentType,assessmentVersion:COMBINED_VERSION,answers}),{
+      admin,findCandidates:async()=>[],sheetsWriter:vi.fn().mockResolvedValue({status:'succeeded'}),
+      orchestrateFollowUpTask:vi.fn().mockResolvedValue({status:'task_created',taskId:'test-task',errorCategory:null,needsManualReview:false}),now:()=>new Date('2026-07-28T18:00:00.000Z'),
+    });
+    expect(result.ok).toBe(true);
+    const call=(admin.rpc as ReturnType<typeof vi.fn>).mock.calls.find(call=>call[0]==='ingest_public_report_card');
+    expect(call?.[1].p_payload.answers).toMatchObject({flagshipVersion:1,diagnostic:answers.diagnostic});
+    expect(call?.[1].p_payload.derived_metrics.financialReportCard.flagship.profile).toBe(assessmentType);
+  });
+
   it.each([['family',familyAreas],['business',businessAreas]] as const)('retains new %s planning version and grades at the persistence boundary', async (assessmentType, areas) => {
     const admin = makeAdminStub(async fn => ({data:fn === 'ingest_public_report_card' ? newProspectRpcResponse() : null,error:null}))
     const answers = sampleReportAnswers([...areas],'en',1)
