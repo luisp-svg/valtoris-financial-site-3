@@ -1,3 +1,4 @@
+import { STUDENT_LOAN_CONCERN, studentLoanReviewQuestions } from './studentLoanRouting.js';
 import { flagshipQuestions } from './flagship.js';
 import { planningQuestions } from './planningQuestions.js';
 import { familySupplementQuestions } from './familySupplement.js';
@@ -60,6 +61,10 @@ export function primaryAssessment(s:readonly Priority[]):PublicReportCardAssessm
 export function isCombined(v:unknown):v is CombinedAnswers{return !!v&&typeof v==='object'&&[COMBINED_FORMAT,legacy.COMBINED_FORMAT].includes((v as CombinedAnswers).format);}
 export function combinedQuestions(selected:readonly Priority[],answers:ShortDiagnostic,insuranceRoutingVersion?:1,strategyVersion?:1,cardVersion?:1,familySupplementVersion?:1,planningVersion?:1,flagshipVersion?:1|2):CombinedQuestion[]{
  if(flagshipVersion===1||flagshipVersion===2){const profile=mainReportCard(selected);if(profile)return flagshipQuestions(profile,answers,flagshipVersion);}
+ if (strategyVersion === 1 && selected.length === 1 && selected[0] === 'student_loan' &&
+     Object.prototype.hasOwnProperty.call(answers, STUDENT_LOAN_CONCERN)) {
+  return studentLoanReviewQuestions(answers).map(question => ({ id: question.id, question, reviews: ['student_loan'] }));
+ }
  const readiness = readinessQuestions(selected, answers, insuranceRoutingVersion, strategyVersion);
  if (cardVersion !== 1 || (strategyVersion === 1 && selected.length === 1 && selected[0] === 'student_loan')) return readiness;
  const profile = mainReportCard(selected);
