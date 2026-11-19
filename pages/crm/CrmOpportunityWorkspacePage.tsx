@@ -51,7 +51,9 @@ import type {
 import { ROUTES, crmHouseholdPath, crmProductionPath } from '../../constants/routes'
 import { createSupabaseBrowserClient } from '../../lib/supabase/client'
 
-type WorkspaceTabId = 'overview' | 'activity'
+import CreditReportReview from '../../crm/creditReview/CreditReportReview'
+
+type WorkspaceTabId = 'overview' | 'activity' | 'credit-report'
 
 const WORKSPACE_TABS: { id: WorkspaceTabId; label: string }[] = [
   { id: 'overview', label: 'Overview' },
@@ -227,6 +229,11 @@ export default function CrmOpportunityWorkspacePage() {
     notFound,
     hasOpportunity: Boolean(workspace),
   })
+
+  const isCreditRepair = workspace?.opportunity.service_vertical?.code === 'credit_repair'
+  const tabs: typeof WORKSPACE_TABS = isCreditRepair
+    ? [...WORKSPACE_TABS, { id: 'credit-report', label: 'Credit report' }]
+    : WORKSPACE_TABS
 
   const activityView = workspace
     ? getOpportunityActivityViewState(workspace.activities)
@@ -416,7 +423,7 @@ export default function CrmOpportunityWorkspacePage() {
       {viewState.kind === 'ready' && workspace ? (
         <>
           <nav className="crm-household-workspace-tabs" aria-label="Opportunity sections">
-            {WORKSPACE_TABS.map((tab) => (
+            {tabs.map((tab) => (
               <button
                 key={tab.id}
                 type="button"
@@ -625,6 +632,10 @@ export default function CrmOpportunityWorkspacePage() {
                 </dl>
               </section>
             </>
+          ) : null}
+
+          {isCreditRepair && activeTab === 'credit-report' ? (
+            <CreditReportReview key={workspace.opportunity.id} />
           ) : null}
 
           {activeTab === 'activity' ? (
