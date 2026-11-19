@@ -1,3 +1,4 @@
+import { STUDENT_LOAN_CONCERN, STUDENT_LOAN_TIMING, studentLoanBookingTiming } from "../modules/reportCard/combined/studentLoanRouting";
 import ConsultationOffer from '../components/premium/ConsultationOffer';
 import ReportResultsOverview from '../components/premium/ReportResultsOverview';
 import { adaptiveReportCard, combinedResults } from '../modules/reportCard/combined/results';
@@ -77,7 +78,7 @@ function FinancialAssessmentForm({
   });
   const studentLoanOnly = !consultationOnly && selected.length === 1 && selected[0] === "student_loan";
   const [wantsBooking, setWantsBooking] = useState(false);
-  const [diagnostic, setDiagnostic] = useState<ShortDiagnostic>({});
+  const [diagnostic, setDiagnostic] = useState<ShortDiagnostic>(() => studentLoanOnly ? { [STUDENT_LOAN_CONCERN]: "", [STUDENT_LOAN_TIMING]: "unknown" } : {});
   const [contact, setContact] = useState({
     fullName: "",
     email: "",
@@ -100,7 +101,8 @@ function FinancialAssessmentForm({
   const familySupplementVersion: 1 | undefined = !consultationOnly && mainReportCard(selected) === 'family' ? 1 : undefined;
   const flagshipVersion: 2 | undefined = !consultationOnly && mainReportCard(selected) ? 2 : undefined;
   const draftAnswers = {format:COMBINED_FORMAT,selected,diagnostic,locale,cardVersion,strategyVersion:1 as const,insuranceRoutingVersion:1 as const,planningVersion,familySupplementVersion,flagshipVersion};
-  const questions = consultationOnly ? [] : combinedQuestions(selected, diagnostic, 1, 1, cardVersion, familySupplementVersion, planningVersion, flagshipVersion),
+  const questions = consultationOnly ? [] : combinedQuestions(selected, diagnostic, 1, 1, cardVersion, familySupplementVersion, planningVersion, flagshipVersion)
+    .filter(question => !studentLoanOnly || question.id !== STUDENT_LOAN_TIMING),
     atContact = step >= questions.length,
     q = questions[step];
   const atStudentLoanPreview = studentLoanOnly && atContact && !wantsBooking;
@@ -312,8 +314,8 @@ function FinancialAssessmentForm({
             </div>}
             <p className="premium-fineprint">
               {t(
-                consultationOnly ? "We’ll save your request before showing available appointment times. We’ll complete your financial intake during your consultation." : flagshipVersion ? "Choose “Not sure” or “Prefer to discuss privately” whenever needed. Your report reflects your answers; it does not verify coverage or financial adequacy. No account numbers or documents are needed." : studentLoanOnly ? "See your first next step before sharing contact details. Choose “Not sure” whenever you need to." : "This Report Card has its own questions, followed by your contact details. You can choose “Not sure.”",
-                studentLoanOnly ? "Mira tu próximo paso antes de compartir tus datos. Puedes elegir «No sé»." : "El número de preguntas se adapta a tus prioridades y respuestas. Puedes elegir “No sé”. Los documentos y detalles adicionales se completan durante tu consulta.",
+                consultationOnly ? "We’ll save your request before showing available appointment times. We’ll complete your financial intake during your consultation." : flagshipVersion ? "Choose “Not sure” or “Prefer to discuss privately” whenever needed. Your report reflects your answers; it does not verify coverage or financial adequacy. No account numbers or documents are needed." : studentLoanOnly ? "See your preliminary Report Card before sharing contact details. Choose “Not sure” whenever you need to." : "This Report Card has its own questions, followed by your contact details. You can choose “Not sure.”",
+                studentLoanOnly ? "Mira tu Report Card preliminar antes de compartir tus datos. Puedes elegir «No sé»." : "El número de preguntas se adapta a tus prioridades y respuestas. Puedes elegir “No sé”. Los documentos y detalles adicionales se completan durante tu consulta.",
               )}
             </p>
           </>
@@ -322,7 +324,7 @@ function FinancialAssessmentForm({
             {atStudentLoanPreview ? (
               <StudentLoanPreliminary
                 locale={locale}
-                goal={diagnostic["student_loan.goal"]}
+                answers={diagnostic}
                 heading={heading}
                 onBook={() => setWantsBooking(true)}
                 onBack={() => setStep(step - 1)}
@@ -356,6 +358,18 @@ function FinancialAssessmentForm({
                     consultationOnly ? "Guarda tus datos y elige una hora para tu consulta sin costo. Completaremos la información financiera juntos durante la consulta." : studentLoanOnly ? "Guarda tus respuestas y datos de contacto para elegir un horario para tu revisión de préstamos sin costo." : "Guarda tu evaluación para ver tus resultados preliminares y elegir una consulta sin costo. La revisión adicional es opcional.",
                   )}
                 </p>
+                {studentLoanOnly && <label className="premium-field">
+                  {studentLoanBookingTiming.label[locale]}
+                  <select
+                    value={diagnostic[STUDENT_LOAN_TIMING]}
+                    disabled={busy || locked}
+                    onChange={event => setDiagnostic({ ...diagnostic, [STUDENT_LOAN_TIMING]: event.target.value })}
+                  >
+                    {studentLoanBookingTiming.options?.map(option =>
+                      <option key={option.value} value={option.value}>{option.label[locale]}</option>
+                    )}
+                  </select>
+                </label>}
                 {consultationOnly && <label className="premium-field">{t('Conversation topic','Tema de conversación')}<select value={selected[0]} onChange={event=>{if(isPriority(event.target.value))setSelected([event.target.value])}} disabled={busy||locked}>{PRIORITIES.filter(priority => priority.id !== "trucking").map(priority=><option key={priority.id} value={priority.id}>{priority[locale]}</option>)}</select></label>}
                 <label className="premium-field">
                   {t(
@@ -621,7 +635,7 @@ function FinancialAssessmentForm({
                           : studentLoanOnly ? "Guardar datos y elegir horario" : flagshipVersion ? "Guardar informe y continuar" : "Guardar y ver mis resultados",
                       )
                     : studentLoanOnly && step === questions.length - 1
-                      ? t("See My Next Step", "Ver mi próximo paso")
+                      ? t("See My Report Card", "Ver mi Report Card")
                       : t("Continue", "Continuar")}{" "}
                 ↗
               </button>
