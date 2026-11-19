@@ -34,6 +34,7 @@ import {
   validateCombined,
   type Priority,
 } from "../modules/reportCard/combined/engine";
+import { StudentLoanPreliminary } from "../components/premium/StudentLoanPreliminary";
 import type { ShortDiagnostic } from "../modules/reportCard/shortForm/contract";
 import "../components/premium/premium.css";
 import "../components/premium/atelier.css";
@@ -74,6 +75,8 @@ function FinancialAssessmentForm({
     if (!consultationOnly) return [];
     return [isPriority(requestedFocus) && requestedFocus !== "trucking" ? requestedFocus : "family"];
   });
+  const studentLoanOnly = !consultationOnly && selected.length === 1 && selected[0] === "student_loan";
+  const [wantsBooking, setWantsBooking] = useState(false);
   const [diagnostic, setDiagnostic] = useState<ShortDiagnostic>({});
   const [contact, setContact] = useState({
     fullName: "",
@@ -100,13 +103,14 @@ function FinancialAssessmentForm({
   const questions = consultationOnly ? [] : combinedQuestions(selected, diagnostic, 1, 1, cardVersion, familySupplementVersion, planningVersion, flagshipVersion),
     atContact = step >= questions.length,
     q = questions[step];
+  const atStudentLoanPreview = studentLoanOnly && atContact && !wantsBooking;
   useEffect(() => {
     heading.current?.focus();
     window.scrollTo(0, 0);
-  }, [step]);
+  }, [step, atStudentLoanPreview]);
   useEffect(()=>{if(error){errorHeading.current?.focus();errorHeading.current?.scrollIntoView({block:"center",behavior:"smooth"})}},[error]);
   async function begin(forSave = false) {
-    if(flagshipVersion && !forSave){setStep(0);return;}
+    if((flagshipVersion || studentLoanOnly) && !forSave){setStep(0);return;}
     if (!selected.length || inFlight.current) return;
     inFlight.current = true;
     setBusy(true);
@@ -131,7 +135,7 @@ function FinancialAssessmentForm({
           storageKey: "valtoris-combined-assessment-session",
         });
         // The contact-only form is already being completed before its secure session is issued.
-        if (consultationOnly || flagshipVersion) session.current.formStartedAt = formOpenedAt.current;
+        if (consultationOnly || flagshipVersion || studentLoanOnly) session.current.formStartedAt = formOpenedAt.current;
       }
       if(!forSave) setStep(0);
     } catch {
@@ -195,7 +199,7 @@ function FinancialAssessmentForm({
       );
       return;
     }
-    if ((consultationOnly || flagshipVersion) && (!session.current || !submissionId.current)) {
+    if ((consultationOnly || flagshipVersion || studentLoanOnly) && (!session.current || !submissionId.current)) {
       await begin(true);
       if (!session.current || !submissionId.current) return;
     }
@@ -308,13 +312,22 @@ function FinancialAssessmentForm({
             </div>}
             <p className="premium-fineprint">
               {t(
-                consultationOnly ? "We’ll save your request before showing available appointment times. We’ll complete your financial intake during your consultation." : flagshipVersion ? "Choose “Not sure” or “Prefer to discuss privately” whenever needed. Your report reflects your answers; it does not verify coverage or financial adequacy. No account numbers or documents are needed." : "This Report Card has its own questions, followed by your contact details. You can choose “Not sure.”",
-                "El número de preguntas se adapta a tus prioridades y respuestas. Puedes elegir “No sé”. Los documentos y detalles adicionales se completan durante tu consulta.",
+                consultationOnly ? "We’ll save your request before showing available appointment times. We’ll complete your financial intake during your consultation." : flagshipVersion ? "Choose “Not sure” or “Prefer to discuss privately” whenever needed. Your report reflects your answers; it does not verify coverage or financial adequacy. No account numbers or documents are needed." : studentLoanOnly ? "See your first next step before sharing contact details. Choose “Not sure” whenever you need to." : "This Report Card has its own questions, followed by your contact details. You can choose “Not sure.”",
+                studentLoanOnly ? "Mira tu próximo paso antes de compartir tus datos. Puedes elegir «No sé»." : "El número de preguntas se adapta a tus prioridades y respuestas. Puedes elegir “No sé”. Los documentos y detalles adicionales se completan durante tu consulta.",
               )}
             </p>
           </>
         ) : (
           <section className="premium-question-card">
+            {atStudentLoanPreview ? (
+              <StudentLoanPreliminary
+                locale={locale}
+                goal={diagnostic["student_loan.goal"]}
+                heading={heading}
+                onBook={() => setWantsBooking(true)}
+                onBack={() => setStep(step - 1)}
+              />
+            ) : <>
             <p className="premium-step-count">
               {atContact
                 ? t(flagshipVersion ? "Your preliminary report · optional save" : "Your details · final step", flagshipVersion ? "Tu informe preliminar · guardado opcional" : "Tus datos · último paso")
@@ -339,8 +352,8 @@ function FinancialAssessmentForm({
                 </ContactHeading>
                 <p>
                   {t(
-                    consultationOnly ? "Share your contact details, then choose your complimentary consultation time. No Report Card is required. We’ll complete your financial intake together during the consultation." : "Save your assessment to retain your results and choose a complimentary consultation time. Booking does not require choosing a product. Follow-up and marketing permissions are separate.",
-                    consultationOnly ? "Guarda tus datos y elige una hora para tu consulta sin costo. Completaremos la información financiera juntos durante la consulta." : "Guarda tu evaluación para ver tus resultados preliminares y elegir una consulta sin costo. La revisión adicional es opcional.",
+                    consultationOnly ? "Share your contact details, then choose your complimentary consultation time. No Report Card is required. We’ll complete your financial intake together during the consultation." : studentLoanOnly ? "Save your answers and contact details so you can choose a time for your complimentary student loan review." : "Save your assessment to retain your results and choose a complimentary consultation time. Booking does not require choosing a product. Follow-up and marketing permissions are separate.",
+                    consultationOnly ? "Guarda tus datos y elige una hora para tu consulta sin costo. Completaremos la información financiera juntos durante la consulta." : studentLoanOnly ? "Guarda tus respuestas y datos de contacto para elegir un horario para tu revisión de préstamos sin costo." : "Guarda tu evaluación para ver tus resultados preliminares y elegir una consulta sin costo. La revisión adicional es opcional.",
                   )}
                 </p>
                 {consultationOnly && <label className="premium-field">{t('Conversation topic','Tema de conversación')}<select value={selected[0]} onChange={event=>{if(isPriority(event.target.value))setSelected([event.target.value])}} disabled={busy||locked}>{PRIORITIES.filter(priority => priority.id !== "trucking").map(priority=><option key={priority.id} value={priority.id}>{priority[locale]}</option>)}</select></label>}
@@ -584,6 +597,7 @@ function FinancialAssessmentForm({
                 disabled={busy || locked}
                 onClick={() => {
                   if(consultationOnly){navigate("/");return;}
+                  if (studentLoanOnly && atContact) { setWantsBooking(false); setError(""); return; }
                   setStep((s) => s - 1);
                   setError("");
                 }}
@@ -601,15 +615,18 @@ function FinancialAssessmentForm({
                     ? t(
                         locked
                           ? "Retry Save"
-                          : consultationOnly ? "Save Details & Choose a Time" : flagshipVersion ? "Save Report & Continue" : "Save & View My Results",
+                          : consultationOnly || studentLoanOnly ? "Save Details & Choose a Time" : flagshipVersion ? "Save Report & Continue" : "Save & View My Results",
                         locked
                           ? "Reintentar guardado"
-                          : flagshipVersion ? "Guardar informe y continuar" : "Guardar y ver mis resultados",
+                          : studentLoanOnly ? "Guardar datos y elegir horario" : flagshipVersion ? "Guardar informe y continuar" : "Guardar y ver mis resultados",
                       )
-                    : t("Continue", "Continuar")}{" "}
+                    : studentLoanOnly && step === questions.length - 1
+                      ? t("See My Next Step", "Ver mi próximo paso")
+                      : t("Continue", "Continuar")}{" "}
                 ↗
               </button>
             </div>
+            </>}
           </section>
         )}
         {error && (
