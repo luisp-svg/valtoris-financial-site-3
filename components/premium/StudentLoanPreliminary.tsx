@@ -1,4 +1,6 @@
 import type { RefObject } from 'react';
+import type { ShortDiagnostic } from '../../modules/reportCard/shortForm/contract';
+import { STUDENT_LOAN_CONCERN, studentLoanReviewQuestions } from '../../modules/reportCard/combined/studentLoanRouting';
 
 const nextSteps = {
   payments: [
@@ -27,27 +29,51 @@ const nextSteps = {
   ],
 } as const;
 
-export function StudentLoanPreliminary({ locale, goal, heading, onBook, onBack }: {
+export function StudentLoanPreliminary({ locale, answers, heading, onBook, onBack }: {
   locale: 'en' | 'es';
-  goal: unknown;
+  answers: ShortDiagnostic;
   heading: RefObject<HTMLHeadingElement>;
   onBook: () => void;
   onBack: () => void;
 }) {
   const es = locale === 'es';
+  const goal = answers[STUDENT_LOAN_CONCERN];
+  const facts = studentLoanReviewQuestions(answers)
+    .filter(question => question.id.startsWith('student_loan.'))
+    .flatMap(question => {
+      const option = question.options?.find(item => item.value === answers[question.id]);
+      return option ? [{ id: question.id, label: question.label[locale], value: option.label[locale] }] : [];
+    });
   const topic = typeof goal === 'string' && Object.prototype.hasOwnProperty.call(nextSteps, goal)
     ? goal as keyof typeof nextSteps
     : 'unknown';
   const [title, action] = nextSteps[topic][es ? 1 : 0];
+  const futureEducation = answers['student_loan.context'] === 'future';
+  const consult = {
+    payments: ['We’ll review what’s driving your payment and which options are worth checking.', 'Revisaremos qué determina tu pago y qué opciones vale la pena verificar.'],
+    options: ['We’ll review what your servicer shows and discuss questions about your current plan.', 'Revisaremos lo que muestra tu administrador y las preguntas sobre tu plan actual.'],
+    pslf: ['We’ll review your records and identify gaps in your payment or employment history to verify.', 'Revisaremos tus registros e identificaremos datos de pagos o empleo pendientes de verificar.'],
+    past_due: ['We’ll review the status, any deadline you report, and which next steps to confirm with your servicer.', 'Revisaremos el estado, los plazos indicados y los pasos que conviene confirmar con tu administrador.'],
+    records: ['We’ll identify which records to gather and how to use them to clarify your options.', 'Identificaremos qué registros reunir y cómo usarlos para aclarar tus opciones.'],
+    unknown: ['We’ll help you organize your loan information and identify the first question to resolve.', 'Te ayudaremos a organizar la información de tus préstamos e identificar la primera pregunta que conviene resolver.'],
+  }[topic][es ? 1 : 0];
 
   return (
     <>
-      <p className="premium-step-count">{es ? 'Tu resultado preliminar' : 'Your preliminary result'}</p>
-      <h1 ref={heading} tabIndex={-1}>{title}</h1>
-      <p>{action}</p>
-      <p>{es
-        ? 'En tu consulta sin costo, revisaremos tu inquietud, qué datos faltan y qué opciones vale la pena verificar.'
-        : 'In your complimentary consultation, we’ll review your concern, what information is missing, and which options are worth checking.'}</p>
+      <h1 ref={heading} tabIndex={-1}>{es ? 'Tu Report Card preliminar' : 'Your Preliminary Student Loan Report Card'}</h1>
+      <h2>{es ? 'Lo que nos contaste' : 'What You Told Us'}</h2>
+      <dl>
+        {facts.map(fact => <div key={fact.id}><dt>{fact.label}</dt><dd>{fact.value}</dd></div>)}
+      </dl>
+      <h2>{es ? 'Qué verificar' : 'What to Verify'}</h2>
+      <p><strong>{futureEducation ? (es ? 'Revisa los costos de estudio' : 'Review your education costs') : title}.</strong>{' '}
+        {futureEducation
+          ? (es ? 'Busca el costo de asistencia y la información de ayuda económica de tu escuela.' : 'Gather your school’s cost of attendance and any financial aid information you have.')
+          : action}</p>
+      <h2>{es ? 'Qué cubriremos en tu consulta sin costo' : 'What We’ll Cover on Your Complimentary Call'}</h2>
+      <p>{futureEducation
+        ? (es ? 'Revisaremos tus preguntas sobre costos y qué información de ayuda económica conviene confirmar.' : 'We’ll review your cost questions and which financial aid details to confirm.')
+        : consult}</p>
       <div className="premium-question-actions">
         <button type="button" className="premium-secondary" onClick={onBack}>{es ? 'Atrás' : 'Back'}</button>
         <button type="button" className="premium-button" onClick={onBook}>

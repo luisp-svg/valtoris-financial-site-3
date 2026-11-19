@@ -149,7 +149,7 @@ export default function PremiumFunnelLanding({
         <p className="premium-lead">{entry?.summary ?? reviewPromises[priority][es ? 1 : 0]}</p>
         {entry && <p className="premium-fineprint">{entry.audience}</p>}
         <p className="premium-fineprint">
-          {priority==="family"||priority==="business" ? (es?"Comienza este Report Card directamente y recibe un informe sobre las áreas a continuación.":"Start this Report Card directly and get one set of results covering the areas below.") : priority === "student_loan" ? (es ? "Responde unas preguntas y mira tu próximo paso. Si deseas ayuda, reserva una consulta sin costo." : "Answer a few questions and see your next step. If you’d like help, book a complimentary consultation.") : es
+          {priority==="family"||priority==="business" ? (es?"Comienza este Report Card directamente y recibe un informe sobre las áreas a continuación.":"Start this Report Card directly and get one set of results covering the areas below.") : priority === "student_loan" ? (es ? "Responde unas preguntas y mira tu Report Card preliminar. Si deseas ayuda, reserva una consulta sin costo." : "Answer a few questions and see your preliminary Report Card. If you’d like help, book a complimentary consultation.") : es
             ? "Responde 5–10 preguntas, mira tus resultados preliminares y reserva una consulta sin costo."
             : "Answer 5–10 focused questions, see useful preliminary results, and book a complimentary consultation."}
         </p>
