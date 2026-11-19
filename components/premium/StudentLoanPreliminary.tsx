@@ -35,7 +35,7 @@ export function StudentLoanPreliminary({ locale, goal, heading, onBook, onBack }
   onBack: () => void;
 }) {
   const es = locale === 'es';
-  const topic = typeof goal === 'string' && Object.hasOwn(nextSteps, goal)
+  const topic = typeof goal === 'string' && Object.prototype.hasOwnProperty.call(nextSteps, goal)
     ? goal as keyof typeof nextSteps
     : 'unknown';
   const [title, action] = nextSteps[topic][es ? 1 : 0];
