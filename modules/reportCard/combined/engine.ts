@@ -61,7 +61,7 @@ export function isCombined(v:unknown):v is CombinedAnswers{return !!v&&typeof v=
 export function combinedQuestions(selected:readonly Priority[],answers:ShortDiagnostic,insuranceRoutingVersion?:1,strategyVersion?:1,cardVersion?:1,familySupplementVersion?:1,planningVersion?:1,flagshipVersion?:1|2):CombinedQuestion[]{
  if(flagshipVersion===1||flagshipVersion===2){const profile=mainReportCard(selected);if(profile)return flagshipQuestions(profile,answers,flagshipVersion);}
  const readiness = readinessQuestions(selected, answers, insuranceRoutingVersion, strategyVersion);
- if (cardVersion !== 1) return readiness;
+ if (cardVersion !== 1 || (strategyVersion === 1 && selected.length === 1 && selected[0] === 'student_loan')) return readiness;
  const profile = mainReportCard(selected);
  const protectionAreas = orderedPriorities(selected).filter(isProtectionArea);
  const calculatorAreas = profile === 'family' ? ['family'] as const : protectionAreas;
