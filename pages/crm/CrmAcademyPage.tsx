@@ -1,18 +1,19 @@
-import { useEffect, useState, type FormEvent, type MouseEvent } from 'react'
+import './academyHome.css'
+import { useCallback, useEffect, useState, type FormEvent, type MouseEvent } from 'react'
 import { useCrmAuth } from '../../crm/auth/CrmAuthContext'
 import { createSupabaseBrowserClient } from '../../lib/supabase/client'
 
 const COURSES = [
-  { id: 'texas-pc', title: 'Texas General Lines P&C' },
-  { id: 'student-loan', title: 'Student Loan Advisor Training' },
-  { id: 'texas-life', title: 'Texas Life Insurance License Prep' },
-  { id: 'texas-health', title: 'Texas Health Insurance License Prep' },
-  { id: 'financial-planning-cfp-prep', title: 'Comprehensive Financial Planning · CFP® Prep' },
-  { id: 'ricp-prep', title: 'Retirement Income Planning · RICP® Prep' },
-  { id: 'clu-prep', title: 'Life Insurance and Business Planning · CLU® Prep' },
-  { id: 'cic-prep', title: 'Insurance Coverage and Agency Practice · CIC Prep' },
-  { id: 'health-underwriting-rhu-legacy', title: 'Health Underwriting and Benefits · Legacy RHU Study' },
-  { id: 'cebs-us-prep', title: 'Employee Benefits and Retirement Plans · U.S. CEBS Prep' },
+  { id: 'texas-pc', title: 'Texas General Lines P&C', description: 'Prepare for the Texas property and casualty exam with practice on policies, coverage and claims.' },
+  { id: 'student-loan', title: 'Student Loan Advisor Training', description: 'Help borrowers compare repayment options, review forgiveness eligibility and plan their next steps.' },
+  { id: 'texas-life', title: 'Texas Life Insurance License Prep', description: 'Study life insurance policies, annuities and Texas licensing rules through practice questions.' },
+  { id: 'texas-health', title: 'Texas Health Insurance License Prep', description: 'Review health insurance coverage, policy provisions and Texas exam topics.' },
+  { id: 'financial-planning-cfp-prep', title: 'Comprehensive Financial Planning · CFP® Prep', description: 'Practice connecting cash flow, investments, taxes and risk in a comprehensive financial plan.' },
+  { id: 'ricp-prep', title: 'Retirement Income Planning · RICP® Prep', description: 'Build retirement income strategies around spending needs, longevity and reliable income.' },
+  { id: 'clu-prep', title: 'Life Insurance and Business Planning · CLU® Prep', description: 'Explore how life insurance supports families, business succession and estate planning.' },
+  { id: 'cic-prep', title: 'Insurance Coverage and Agency Practice · CIC Prep', description: 'Practice identifying coverage gaps and applying policy terms in everyday agency work.' },
+  { id: 'health-underwriting-rhu-legacy', title: 'Health Underwriting and Benefits · Legacy RHU Study', description: 'Study health underwriting, group coverage and the design of employee benefits.' },
+  { id: 'cebs-us-prep', title: 'Employee Benefits and Retirement Plans · U.S. CEBS Prep', description: 'Explore how employers design and administer health benefits and retirement plans.' },
 ] as const
 
 type Lesson = { id: string; title: string; html: string }
@@ -29,15 +30,69 @@ type Course = {
 
 export default function CrmAcademyPage() {
   const { role, user } = useCrmAuth()
-  const [selected, setSelected] = useState<(typeof COURSES)[number]['id']>('texas-pc')
   if (role !== 'owner' && role !== 'advisor') return <p>Academy access is available to TAC owners and advisors.</p>
-  return <main>
-    <h1>TAC Academy</h1>
-    <nav aria-label="Academy courses">
-      {COURSES.map(course => <button key={course.id} type="button" aria-pressed={selected === course.id}
-        onClick={() => setSelected(course.id)}>{course.title}</button>)}
-    </nav>
-    <CourseView key={`${user?.id}:${selected}`} slug={selected} />
+  return <AcademyHome key={user?.id} />
+}
+
+type CourseId = (typeof COURSES)[number]['id']
+type Progress = { complete: number; total: number; started: boolean }
+
+function summarize(course: Course): Progress {
+  const completed = new Set(course.completed)
+  return {
+    complete: course.lessons.filter(lesson => completed.has(lesson.id)).length,
+    total: course.lessons.length,
+    started: Boolean(course.lastLesson || course.attempts || completed.size),
+  }
+}
+
+function AcademyHome() {
+  const [selected, setSelected] = useState<CourseId | null>(null)
+  const [progress, setProgress] = useState<Partial<Record<CourseId, Progress | null>>>({})
+  const remember = useCallback((id: CourseId, course: Course) => {
+    setProgress(previous => ({ ...previous, [id]: summarize(course) }))
+  }, [])
+
+  useEffect(() => {
+    let active = true
+    for (const { id } of COURSES) {
+      courseRequest(id).then(course => {
+        if (active) setProgress(previous => id in previous ? previous : { ...previous, [id]: summarize(course) })
+      }).catch(() => {
+        if (active) setProgress(previous => id in previous ? previous : { ...previous, [id]: null })
+      })
+    }
+    return () => { active = false }
+  }, [])
+
+  if (selected) return <main className="academy-home">
+    <button type="button" className="academy-back" onClick={() => setSelected(null)}>← All courses</button>
+    <CourseView key={selected} slug={selected} onProgress={remember} />
+  </main>
+
+  return <main className="academy-home">
+    <header className="academy-welcome">
+      <h1>Welcome to TAC Academy</h1>
+      <p>Choose a course to build your skills, prepare for an exam, or pick up where you left off.</p>
+    </header>
+    <section aria-label="Course catalog" className="academy-catalog">
+      {COURSES.map(course => {
+        const saved = progress[course.id]
+        const percent = saved && saved.total ? Math.round(100 * saved.complete / saved.total) : 0
+        const finished = saved && saved.total > 0 && saved.complete === saved.total
+        const action = finished ? 'Review course' : saved?.started ? 'Resume course' : saved ? 'Start course' : 'Open course'
+        return <article key={course.id} className="academy-card">
+          <h2>{course.title}</h2>
+          <p>{course.description}</p>
+          <div className="academy-card-progress">
+            <div><span>{saved ? `${saved.complete} of ${saved.total} items complete` : saved === null ? 'Progress unavailable' : 'Loading progress…'}</span>
+              {saved && <strong>{percent}%</strong>}</div>
+            {saved && <progress aria-label={`${course.title} completion`} value={saved.complete} max={saved.total || 1} />}
+          </div>
+          <button type="button" className="academy-open" aria-label={`${action}: ${course.title}`} onClick={() => setSelected(course.id)}>{action} <span aria-hidden="true">→</span></button>
+        </article>
+      })}
+    </section>
   </main>
 }
 
@@ -47,7 +102,7 @@ async function courseRequest(slug: string, args = {}): Promise<Course> {
   return data as Course
 }
 
-function CourseView({ slug }: { slug: string }) {
+function CourseView({ slug, onProgress }: { slug: CourseId; onProgress: (slug: CourseId, course: Course) => void }) {
   const [course, setCourse] = useState<Course>()
   const [selected, setSelected] = useState<string>()
   const [busy, setBusy] = useState(false)
@@ -59,16 +114,19 @@ function CourseView({ slug }: { slug: string }) {
     courseRequest(slug).then(data => {
       if (!active) return
       setCourse(data)
+      onProgress(slug, data)
       setSelected(data.lastLesson ?? data.lessons[0]?.id)
     }).catch((err: Error) => { if (active) setError(err.message) })
     return () => { active = false }
-  }, [slug, loadAttempt])
+  }, [slug, loadAttempt, onProgress])
 
   async function save(args: object) {
     setBusy(true)
     setError('')
     try {
-      setCourse(await courseRequest(slug, args))
+      const updated = await courseRequest(slug, args)
+      setCourse(updated)
+      onProgress(slug, updated)
     } catch (err) {
       setError((err as Error).message)
     } finally {
