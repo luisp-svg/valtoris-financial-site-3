@@ -8,6 +8,11 @@ const COURSES = [
   { id: 'texas-life', title: 'Texas Life Insurance License Prep' },
   { id: 'texas-health', title: 'Texas Health Insurance License Prep' },
   { id: 'financial-planning-cfp-prep', title: 'Comprehensive Financial Planning · CFP® Prep' },
+  { id: 'ricp-prep', title: 'Retirement Income Planning · RICP® Prep' },
+  { id: 'clu-prep', title: 'Life Insurance and Business Planning · CLU® Prep' },
+  { id: 'cic-prep', title: 'Insurance Coverage and Agency Practice · CIC Prep' },
+  { id: 'health-underwriting-rhu-legacy', title: 'Health Underwriting and Benefits · Legacy RHU Study' },
+  { id: 'cebs-us-prep', title: 'Employee Benefits and Retirement Plans · U.S. CEBS Prep' },
 ] as const
 
 type Lesson = { id: string; title: string; html: string }
