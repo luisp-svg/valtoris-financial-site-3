@@ -7,6 +7,7 @@ const COURSES = [
   { id: 'student-loan', title: 'Student Loan Advisor Training' },
   { id: 'texas-life', title: 'Texas Life Insurance License Prep' },
   { id: 'texas-health', title: 'Texas Health Insurance License Prep' },
+  { id: 'financial-planning-cfp-prep', title: 'Comprehensive Financial Planning · CFP® Prep' },
 ] as const
 
 type Lesson = { id: string; title: string; html: string }
@@ -101,7 +102,10 @@ function CourseView({ slug }: { slug: string }) {
   const lesson = course.lessons.find(item => item.id === selected)
   const index = course.lessons.findIndex(item => item.id === selected)
   const next = course.lessons[index + 1]
-  const examTitle = slug === 'student-loan' ? 'Comprehensive final exam' : 'Graded licensing review'
+  const examTitle = slug === 'student-loan' ? 'Comprehensive final exam' : 'Graded knowledge review'
+  const examInstructions = slug === 'student-loan'
+    ? 'The internal study target is 80 out of 100.'
+    : `This ${course.questions.length}-question review checks course knowledge. Use a separate timed mock for exam pacing.`
   return <section>
     <h2>{course.title}</h2>
     <p role="status">{course.completed.length} of {course.lessons.length} course items complete.
@@ -127,7 +131,7 @@ function CourseView({ slug }: { slug: string }) {
     </>}
     {selected === 'exam' && <form onSubmit={submit}>
       <h3>{examTitle}</h3>
-      <p>{slug !== 'student-loan' ? 'This 16-question drill is a course review. Use a separate timed mock for exam pacing.' : 'The internal study target is 80 out of 100.'}</p>
+      <p>{examInstructions}</p>
       {course.questions.map((question, index) => <fieldset key={index} disabled={busy}>
         <legend>{index + 1}. {question.prompt.replace(/^\d+\.\s*/, '')}</legend>
         {question.choices.map((choice, choiceIndex) => <label key={choiceIndex} style={{ display: 'block' }}>
