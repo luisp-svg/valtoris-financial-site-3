@@ -82,6 +82,7 @@ export default function CrmShell({ children }: CrmShellProps) {
         <h2>{group.label}</h2>
         {group.paths.flatMap(path => CRM_SIDEBAR_NAV.filter(item => item.path === path && !item.placeholder)).map(renderLink)}
       </section>)}
+      {(role === 'owner' || role === 'advisor') && <NavLink to="/crm/academy" className="crm-nav-link">Academy</NavLink>}
       {otherItems.length > 0 && <section className="tac-nav-group" aria-label="More"><h2>More</h2>{otherItems.map(renderLink)}</section>}
       {upcomingItems.length > 0 && <details className="tac-nav-upcoming" open={upcomingItems.some(item => pathname.startsWith(item.path)) || undefined}>
         <summary>Coming soon</summary>{upcomingItems.map(renderLink)}
