@@ -49,6 +49,7 @@ const CrmClientIntakeNewPage = lazy(() => import('../pages/crm/CrmClientIntakeNe
 const CrmArchivedRecordsPage = lazy(() => import('../pages/crm/CrmArchivedRecordsPage'))
 const CrmLoginPage = lazy(() => import('../pages/crm/CrmLoginPage'))
 const CrmPasswordRecoveryPage = lazy(() => import('../pages/crm/CrmPasswordRecoveryPage'))
+const CrmAcademyPage = lazy(() => import('../pages/crm/CrmAcademyPage'))
 const CrmHomePage = lazy(() => import('../pages/crm/CrmHomePage'))
 const CrmHouseholdsPage = lazy(() => import('../pages/crm/CrmHouseholdsPage'))
 const CrmHouseholdWorkspacePage = lazy(() => import('../pages/crm/CrmHouseholdWorkspacePage'))
@@ -340,6 +341,7 @@ export default function App() {
         <Route path="auth/recovery" element={<CrmPasswordRecoveryPage />} />
         <Route element={<CrmProtectedGate />}>
           <Route index element={<CrmHomePage />} />
+          <Route path="academy" element={<CrmAcademyPage />} />
           <Route path="intake" element={<CrmIntakePage />} />
           <Route path="contacts/new" element={<CrmContactNewPage />} />
           <Route path="contacts/:leadId" element={<CrmContactDetailPage />} />
