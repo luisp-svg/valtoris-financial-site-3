@@ -1,0 +1,19 @@
+.academy-home { width: 100%; max-width: 80rem; margin-inline: auto; }
+.academy-welcome { padding: clamp(1.5rem,4vw,3rem); border-radius: 1.25rem; background: #14283e; color: #fff; margin-bottom: 1.5rem; }
+.academy-home .academy-welcome h1 { color: #fff; font-size: clamp(2rem,4vw,3.5rem); line-height: 1.1; margin: 0 0 .75rem; }
+.academy-home .academy-welcome p { color: #e0e8ed; margin: 0; max-width: 44rem; }
+.academy-catalog { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,19rem),1fr)); gap: 1rem; }
+.academy-card { display: flex; flex-direction: column; min-width: 0; padding: 1.4rem; border: 1px solid #ced9e0; border-radius: 1rem; background: #fff; }
+.academy-home .academy-card h2 { color: #162d43; font-size: 1.25rem; line-height: 1.3; margin: 0; }
+.academy-home .academy-card p { color: #465c6e; font-size: 1rem; line-height: 1.5; margin: .7rem 0 1.25rem; }
+.academy-card-progress { margin-top: auto; }
+.academy-card-progress div { display: flex; justify-content: space-between; gap: .5rem; font-size: .85rem; color: #43576a; }
+.academy-card-progress progress { display: block; appearance: none; width: 100%; height: .45rem; margin: .4rem 0 0; border: 0; border-radius: .5rem; overflow: hidden; background: #e3e9ed; color: #24756d; }
+.academy-card-progress progress::-webkit-progress-bar { background: #e3e9ed; }
+.academy-card-progress progress::-webkit-progress-value { background: #24756d; }
+.academy-card-progress progress::-moz-progress-bar { background: #24756d; }
+.academy-home .academy-open,.academy-home .academy-back { padding: .7rem 1rem; border-radius: .5rem; font: inherit; font-weight: 600; cursor: pointer; }
+.academy-home .academy-open { display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; color: white; background: #19354c; border: 0; }
+.academy-home .academy-open:hover { background: #254c63; }
+.academy-home .academy-back { margin-bottom: 1rem; border: 1px solid #bbcbd4; color: #18364c; background: white; }
+.academy-home button:focus-visible { outline: 3px solid #43857c; outline-offset: 3px; }
